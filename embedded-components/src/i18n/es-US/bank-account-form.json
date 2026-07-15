@@ -56,9 +56,12 @@
     "singleMethodLabel": "Número de ruta {{method}}",
     "combinedMethodLabel": "Número de ruta {{methods}}",
     "placeholder": "Ingrese número de ruta de 9 dígitos",
+    "internationalPlaceholder": "Ingrese el código bancario / de ruta",
+    "optionalSuffix": "(opcional)",
     "validation": {
       "required": "El número de ruta es requerido para {{method}}",
-      "digits": "El número de ruta debe tener 9 dígitos"
+      "digits": "El número de ruta debe tener 9 dígitos",
+      "codeRequired": "El código bancario / de ruta es requerido"
     }
   },
   "requiredFor": {
@@ -140,6 +143,7 @@
       "validation": {
         "required": "El número de cuenta es requerido",
         "digitsOnly": "El número de cuenta debe contener solo dígitos",
+        "invalidCharacters": "El número de cuenta solo puede contener letras y números",
         "duplicate": "Ya existe una cuenta vinculada con este número de cuenta y número de ruta"
       }
     },

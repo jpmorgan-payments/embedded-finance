@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Recipients API
  * Streamline how you set up, manage, and verify payees by creating, updating, listing, and validating recipients for your payment transactions. This helps keep your payment workflows organized and secure without manual tracking.
- * OpenAPI spec version: 1.0.47
+ * OpenAPI spec version: 1.0.55-latest
  */
 import { useCallback } from 'react';
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';

@@ -5,6 +5,7 @@ import {
   useCreateRecipient,
 } from '@/api/generated/ep-recipients';
 import { ApiError, Recipient } from '@/api/generated/ep-recipients.schemas';
+import type { RoutingCodeType } from '@/api/generated/ep-recipients.schemas';
 
 import {
   BankAccountFormData,
@@ -46,6 +47,14 @@ export interface UseRecipientFormOptions {
    * so the API links the account to an existing party rather than creating one.
    */
   partyId?: string;
+
+  /**
+   * Routing code type to persist for the account's routing information.
+   * Defaults to `USABA` (domestic). International FX recipient creation passes the
+   * currency's canonical code (e.g. `AUBSB`, `INFSC`, `BIC`) so the payee is stored
+   * with the correct routing code instead of the domestic default.
+   */
+  routingCodeType?: RoutingCodeType;
 
   /** Callback when operation succeeds */
   onSuccess?: (recipient?: Recipient) => void;
@@ -121,6 +130,7 @@ export function useRecipientForm({
   recipientType,
   clientId,
   partyId,
+  routingCodeType,
   onSuccess,
   onError,
   onSettled,
@@ -170,7 +180,8 @@ export function useRecipientForm({
       // Create: Use full RecipientRequest with type field
       const createPayload = transformBankAccountFormToRecipientPayload(
         data,
-        recipientType
+        recipientType,
+        routingCodeType
       );
       if (clientId) {
         createPayload.clientId = clientId;
@@ -188,7 +199,8 @@ export function useRecipientForm({
       // Edit: Use UpdateRecipientRequest (no type field, only account/partyDetails)
       const updatePayload = transformBankAccountFormToRecipientPayload(
         data,
-        recipientType
+        recipientType,
+        routingCodeType
       );
 
       // Extract only the fields allowed in UpdateRecipientRequest

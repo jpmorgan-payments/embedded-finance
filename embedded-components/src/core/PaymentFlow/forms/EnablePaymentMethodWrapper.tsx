@@ -5,7 +5,10 @@ import { useTranslationWithTokens } from '@/i18n';
 
 import { useGetRecipient } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
-import type { TransactionRecipientDetailsV2 } from '@/api/generated/ep-transactions.schemas';
+import type {
+  CountryCode,
+  TransactionRecipientDetailsV2,
+} from '@/api/generated/ep-transactions.schemas';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -235,7 +238,7 @@ export function EnablePaymentMethodWrapper({
             city: data.address.city,
             state: data.address.state,
             postalCode: data.address.postalCode,
-            countryCode: data.address.countryCode,
+            countryCode: data.address.countryCode as CountryCode,
           },
         }),
         ...(data.contacts &&

@@ -38,6 +38,7 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 
+import { getFxAvailableRails } from '../PaymentFlowFX/fxRecipientRequirements';
 import { useRecipientForm } from '../RecipientWidgets/hooks';
 import { RadioIndicator } from './components/RadioIndicator';
 import { FlowContainer, FlowView, useFlowContext } from './FlowContainer';
@@ -644,6 +645,62 @@ function MainTransferView({
     );
   }, [payees, linkedAccounts, formData.payeeId, formData.unsavedRecipient]);
 
+  // Cross-border (FX) recipient: when the selected payee has a non-USD account
+  // currency, relabel the rails as the product's value tiers ("FX High-value" /
+  // "FX Low-value") to match the recipient form, and mark rails the destination
+  // currency doesn't support (e.g. RTP) as unavailable.
+  const isFxPayee =
+    !!selectedPayee?.currencyCode && selectedPayee.currencyCode !== 'USD';
+
+  const effectivePaymentMethods = useMemo(() => {
+    if (!isFxPayee) return paymentMethods;
+    const highValueLabel = tString('fx.rails.label.WIRE', 'FX High-value');
+    const lowValueLabel = tString('fx.rails.label.ACH', 'FX Low-value');
+    return paymentMethods.map((method) => {
+      if (method.id === 'WIRE') {
+        return {
+          ...method,
+          name: highValueLabel,
+          description: tString(
+            'fx.rails.desc.WIRE',
+            'Time-critical cross-currency payouts (same or next business day)'
+          ),
+        };
+      }
+      if (method.id === 'ACH') {
+        return {
+          ...method,
+          name: lowValueLabel,
+          description: tString(
+            'fx.rails.desc.ACH',
+            'Non-urgent cross-currency payouts (two to five business days)'
+          ),
+        };
+      }
+      return method;
+    });
+  }, [isFxPayee, paymentMethods, tString]);
+
+  const fxMethodAvailability = useMemo(() => {
+    if (!isFxPayee || !selectedPayee?.currencyCode) return undefined;
+    const railSet = new Set<string>(
+      getFxAvailableRails(selectedPayee.currencyCode)
+    );
+    const reason = tString(
+      'fx.rails.rtpUnavailable',
+      'Not available for cross-currency payments'
+    );
+    const availability: Partial<
+      Record<PaymentMethodType, { available: boolean; reason?: string }>
+    > = {};
+    paymentMethods.forEach((method) => {
+      if (!railSet.has(method.id)) {
+        availability[method.id] = { available: false, reason };
+      }
+    });
+    return Object.keys(availability).length > 0 ? availability : undefined;
+  }, [isFxPayee, selectedPayee?.currencyCode, paymentMethods, tString]);
+
   const selectedAccount = useMemo(
     () => accounts.find((a) => a.id === formData.fromAccountId),
     [accounts, formData.fromAccountId]
@@ -665,8 +722,8 @@ function MainTransferView({
   }, [selectedPayee?.type, selectedAccount?.category, setFormData]);
 
   const selectedMethod = useMemo(
-    () => paymentMethods.find((m) => m.id === formData.paymentMethod),
-    [paymentMethods, formData.paymentMethod]
+    () => effectivePaymentMethods.find((m) => m.id === formData.paymentMethod),
+    [effectivePaymentMethods, formData.paymentMethod]
   );
 
   // Account restrictions
@@ -1081,10 +1138,11 @@ function MainTransferView({
           <PaymentMethodSelector
             payee={selectedPayee}
             selectedMethod={formData.paymentMethod}
-            availableMethods={paymentMethods}
+            availableMethods={effectivePaymentMethods}
             onSelect={handlePaymentMethodSelect}
             onEnableMethod={onEnablePaymentMethod}
             disabled={!hasPayee}
+            methodAvailability={fxMethodAvailability}
           />
         )}
       </StepSection>
@@ -1669,6 +1727,7 @@ function PaymentFlowContent({
             enabledPaymentMethods:
               enabledMethods.length > 0 ? enabledMethods : ['ACH'],
             recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+            currencyCode: savedRecipient.account?.currencyCode,
           },
           unsavedRecipient: undefined, // Clear unsaved recipient
         });
@@ -2044,6 +2103,7 @@ function PaymentFlowContent({
         enabledPaymentMethods:
           enabledMethods.length > 0 ? enabledMethods : ['ACH'],
         recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+        currencyCode: recipient.account?.currencyCode,
       };
 
       // Select the newly created linked account
@@ -2088,6 +2148,7 @@ function PaymentFlowContent({
         enabledPaymentMethods:
           enabledMethods.length > 0 ? enabledMethods : ['ACH'],
         recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+        currencyCode: recipient.account?.currencyCode,
       };
 
       // Select the newly created recipient
@@ -2646,6 +2707,7 @@ export function PaymentFlow({
             enabledPaymentMethods:
               enabledMethods.length > 0 ? enabledMethods : ['ACH'],
             recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+            currencyCode: recipient.account?.currencyCode,
             details: {
               email: recipient.partyDetails?.contacts?.find(
                 (c) => c.contactType === 'EMAIL'
@@ -3134,6 +3196,7 @@ export function PaymentFlowInline({
             enabledPaymentMethods:
               enabledMethods.length > 0 ? enabledMethods : ['ACH'],
             recipientType: isOrganization ? 'BUSINESS' : 'INDIVIDUAL',
+            currencyCode: recipient.account?.currencyCode,
             details: {
               email: recipient.partyDetails?.contacts?.find(
                 (c) => c.contactType === 'EMAIL'

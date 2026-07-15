@@ -12,6 +12,16 @@ interface PayeeListItemProps {
   payee: Payee;
   isSelected: boolean;
   onSelect: (payee: Payee) => void;
+  /**
+   * Optional badge rendered inline after the payee name (e.g. a currency chip).
+   * Non-breaking: when omitted, nothing extra is rendered.
+   */
+  renderBadge?: (payee: Payee) => React.ReactNode;
+  /**
+   * When provided, the item is not selectable and this reason is shown as a
+   * sublabel. Non-breaking: when omitted, the item is selectable as before.
+   */
+  disabledReason?: string;
 }
 
 /**
@@ -31,6 +41,8 @@ export function PayeeListItem({
   payee,
   isSelected,
   onSelect,
+  renderBadge,
+  disabledReason,
 }: PayeeListItemProps) {
   const isBusiness = payee.recipientType === 'BUSINESS';
 
@@ -41,18 +53,24 @@ export function PayeeListItem({
     ? ` ending in ${payee.accountNumber.slice(-4)}`
     : '';
 
+  const isDisabled = !!disabledReason;
+  const badge = renderBadge?.(payee);
+
   return (
     <button
       type="button"
       onClick={() => onSelect(payee)}
+      disabled={isDisabled}
       className={cn(
         'eb-flex eb-w-full eb-items-center eb-gap-2 eb-px-3 eb-py-2.5 eb-text-left eb-text-sm eb-transition-colors',
-        isSelected ? 'eb-bg-primary/5' : 'hover:eb-bg-muted/50'
+        isDisabled && 'eb-cursor-not-allowed eb-opacity-60',
+        !isDisabled && isSelected && 'eb-bg-primary/5',
+        !isDisabled && !isSelected && 'hover:eb-bg-muted/50'
       )}
-      aria-label={`${isSelected ? 'Selected: ' : ''}${payee.name}${accountSuffix}`}
+      aria-label={`${isSelected ? 'Selected: ' : ''}${payee.name}${accountSuffix}${disabledReason ? ` — ${disabledReason}` : ''}`}
       aria-pressed={isSelected}
     >
-      <RadioIndicator isSelected={isSelected} size="sm" />
+      <RadioIndicator isSelected={isSelected} size="sm" disabled={isDisabled} />
 
       <div className="eb-flex eb-h-7 eb-w-7 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary/10">
         <Icon
@@ -62,11 +80,19 @@ export function PayeeListItem({
       </div>
 
       <div className="eb-min-w-0 eb-flex-1">
-        <span className="eb-truncate eb-font-medium">{payee.name}</span>
-        {payee.accountNumber && (
-          <span className="eb-ml-1 eb-text-muted-foreground">
-            {formatAccountNumber(payee.accountNumber)}
-          </span>
+        <div className="eb-flex eb-items-center eb-gap-1.5">
+          <span className="eb-truncate eb-font-medium">{payee.name}</span>
+          {payee.accountNumber && (
+            <span className="eb-text-muted-foreground">
+              {formatAccountNumber(payee.accountNumber)}
+            </span>
+          )}
+          {badge}
+        </div>
+        {disabledReason && (
+          <div className="eb-mt-0.5 eb-text-xs eb-text-destructive">
+            {disabledReason}
+          </div>
         )}
       </div>
     </button>

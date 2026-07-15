@@ -52,6 +52,17 @@ interface PayeeSelectorFullProps extends PayeeSelectorProps {
   linkedAccountsError?: boolean;
   onRetryRecipients?: () => void;
   onRetryLinkedAccounts?: () => void;
+  /**
+   * Optional badge rendered inline after each payee name (e.g. a currency chip).
+   * Non-breaking: when omitted, no badge is rendered.
+   */
+  renderPayeeBadge?: (payee: Payee) => React.ReactNode;
+  /**
+   * Optional per-payee disabled reason. When it returns a string, that payee is
+   * not selectable and the reason is shown. Non-breaking: when omitted, all
+   * payees remain selectable as before.
+   */
+  getPayeeDisabledReason?: (payee: Payee) => string | undefined;
 }
 
 /**
@@ -82,6 +93,8 @@ export function PayeeSelector({
   linkedAccountsError = false,
   onRetryRecipients,
   onRetryLinkedAccounts,
+  renderPayeeBadge,
+  getPayeeDisabledReason,
 }: PayeeSelectorFullProps) {
   const { t, tString } = useTranslationWithTokens(['make-payment']);
 
@@ -270,6 +283,8 @@ export function PayeeSelector({
       onRetry={onRetryRecipients}
       addLabel={tString('payeeSelector.addNewRecipient', 'Add New Recipient')}
       onAdd={handleAddRecipient}
+      renderBadge={renderPayeeBadge}
+      getDisabledReason={getPayeeDisabledReason}
       t={t}
     />
   );
@@ -291,6 +306,8 @@ export function PayeeSelector({
       onRetry={onRetryLinkedAccounts}
       addLabel={tString('payeeSelector.linkNewAccount', 'Link New Account')}
       onAdd={handleLinkAccount}
+      renderBadge={renderPayeeBadge}
+      getDisabledReason={getPayeeDisabledReason}
       t={t}
     />
   );
@@ -601,6 +618,8 @@ interface PayeeTabContentProps {
   onRetry?: () => void;
   addLabel: string;
   onAdd: () => void;
+  renderBadge?: (payee: Payee) => React.ReactNode;
+  getDisabledReason?: (payee: Payee) => string | undefined;
   t: TranslationFn;
 }
 
@@ -620,6 +639,8 @@ function PayeeTabContent({
   onRetry,
   addLabel,
   onAdd,
+  renderBadge,
+  getDisabledReason,
   t,
 }: PayeeTabContentProps) {
   const isEmpty = filteredPayees.length === 0 && !isSearching;
@@ -659,6 +680,8 @@ function PayeeTabContent({
               payee={payee}
               isSelected={payee.id === selectedPayeeId}
               onSelect={onSelect}
+              renderBadge={renderBadge}
+              disabledReason={getDisabledReason?.(payee)}
             />
           ))}
 

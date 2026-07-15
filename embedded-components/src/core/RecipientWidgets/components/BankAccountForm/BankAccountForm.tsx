@@ -373,6 +373,8 @@ interface RoutingNumberFieldsProps {
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
   control: any; // React Hook Form control
   disabled?: boolean;
+  /** Cross-border (FX) overrides for the bank/routing code field. */
+  internationalConfig?: BankAccountFormProps['config']['internationalFieldConfig'];
 }
 
 const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
@@ -382,8 +384,50 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   configs,
   control,
   disabled = false,
+  internationalConfig,
 }) => {
   const { t, tString } = useTranslationWithTokens('bank-account-form');
+
+  // Cross-border (FX): the bank/routing code belongs to the destination bank,
+  // not the rail. Show a single shared field labelled per currency (or hide it
+  // entirely when the account-number format embeds it, e.g. CLABE).
+  if (
+    internationalConfig?.routingCodeLabel ||
+    internationalConfig?.hideRoutingNumber
+  ) {
+    if (internationalConfig.hideRoutingNumber) {
+      return null;
+    }
+    const optional = internationalConfig.routingCodeRequired === false;
+    return (
+      <FormField
+        control={control}
+        name="routingNumbers.0.routingNumber"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormLabel>
+              {internationalConfig.routingCodeLabel}
+              {optional && (
+                <span className="eb-ml-1 eb-font-normal eb-text-muted-foreground">
+                  {t('routingNumbers.optionalSuffix')}
+                </span>
+              )}
+            </FormLabel>
+            <FormControl>
+              <Input
+                {...field}
+                type="text"
+                placeholder={tString('routingNumbers.internationalPlaceholder')}
+                disabled={disabled}
+              />
+            </FormControl>
+            <FormMessage>{fieldState.error?.message}</FormMessage>
+          </FormItem>
+        )}
+      />
+    );
+  }
+
   // Only show checkbox if there are multiple payment methods
   const showCheckbox = paymentMethods.length > 1;
 
@@ -896,23 +940,25 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
           readonly={effectiveConfig.readonlyFields?.accountNumber}
           disabled={isLoading}
         />
-        <StandardFormField
-          control={form.control}
-          name="bankAccountType"
-          type="select"
-          label={
-            effectiveConfig.content.fieldLabels?.bankAccountType ||
-            t('fields.accountType.label')
-          }
-          placeholder={tString('fields.accountType.placeholder')}
-          required
-          readonly={effectiveConfig.readonlyFields?.bankAccountType}
-          disabled={isLoading}
-          options={[
-            { value: 'CHECKING', label: t('accountTypes.checking') },
-            { value: 'SAVINGS', label: t('accountTypes.savings') },
-          ]}
-        />
+        {!effectiveConfig.internationalFieldConfig?.hideBankAccountType && (
+          <StandardFormField
+            control={form.control}
+            name="bankAccountType"
+            type="select"
+            label={
+              effectiveConfig.content.fieldLabels?.bankAccountType ||
+              t('fields.accountType.label')
+            }
+            placeholder={tString('fields.accountType.placeholder')}
+            required
+            readonly={effectiveConfig.readonlyFields?.bankAccountType}
+            disabled={isLoading}
+            options={[
+              { value: 'CHECKING', label: t('accountTypes.checking') },
+              { value: 'SAVINGS', label: t('accountTypes.savings') },
+            ]}
+          />
+        )}
       </div>
 
       {/* Routing Numbers */}
@@ -942,6 +988,7 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
         }}
         configs={effectiveConfig.paymentMethods.configs}
         disabled={isLoading}
+        internationalConfig={effectiveConfig.internationalFieldConfig}
       />
 
       {/* Address Fields */}

@@ -5,9 +5,19 @@ import { useTranslationWithTokens } from '@/i18n';
 import { ArrowLeft, Loader2, Save, UserX } from 'lucide-react';
 
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
-import type { TransactionRecipientDetailsV2 } from '@/api/generated/ep-transactions.schemas';
+import type {
+  CountryCode,
+  TransactionRecipientDetailsV2,
+} from '@/api/generated/ep-transactions.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
 import {
@@ -19,6 +29,13 @@ import {
 } from '@/core/RecipientWidgets/components/BankAccountForm';
 import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm';
 
+import { CurrencyFlag } from '../../PaymentFlowFX/components/CurrencyFlag';
+import { FxRailDisclaimer } from '../../PaymentFlowFX/components/FxRailDisclaimer';
+import {
+  getFxAvailableRails,
+  getFxCurrencyRequirement,
+  getFxRoutingCodeType,
+} from '../../PaymentFlowFX/fxRecipientRequirements';
 import type { PaymentMethod, UnsavedRecipient } from '../PaymentFlow.types';
 
 /**
@@ -50,6 +67,22 @@ export interface BankAccountFormWrapperProps {
   isEditing?: boolean;
   /** Initial error to display (e.g., from a failed save attempt from unsaved recipient card) */
   initialError?: Error | null;
+  /**
+   * Enable cross-border (FX) recipient capture (FR-FX-10). When true, a
+   * "Recipient's account currency" select is shown; choosing a non-USD currency
+   * tags the created recipient with `account.currencyCode` so the downstream FX
+   * flow can derive `targetCurrency`. The tag is also applied client-side so the
+   * flow has the currency immediately, without waiting for the create response to
+   * echo it back. Default: `false` (domestic only, identical to today's behavior).
+   */
+  internationalMode?: boolean;
+  /** Currencies selectable when {@link internationalMode} is on (USD is always the default). */
+  supportedCurrencies?: string[];
+  /**
+   * Optional map of currency code ⇒ display name (e.g. `{ EUR: 'Euro' }`) used to
+   * render friendlier options like "EUR — Euro". Falls back to the bare code.
+   */
+  currencyLabels?: Record<string, string>;
 }
 
 /**
@@ -274,6 +307,9 @@ export function BankAccountFormWrapper({
   initialData,
   isEditing = false,
   initialError = null,
+  internationalMode = false,
+  supportedCurrencies,
+  currencyLabels,
 }: BankAccountFormWrapperProps) {
   // If there's an initial error with originalFormData, seed both the confirmation
   // and restore state so the form re-opens at step 2 showing the error.
@@ -291,6 +327,14 @@ export function BankAccountFormWrapper({
 
   // Key to force form remount when returning from confirmation
   const [formKey, setFormKey] = useState(0);
+
+  // FR-FX-10: optional international recipient capture. USD => today's domestic form.
+  const [accountCurrency, setAccountCurrency] = useState<string>('USD');
+  const isInternational = internationalMode && accountCurrency !== 'USD';
+  // The one-time "pay without saving" path is hidden for international recipients (D4/FR-FX-11).
+  const effectiveOnSubmitWithoutSave = isInternational
+    ? undefined
+    : onSubmitWithoutSave;
 
   /**
    * Transform BankAccountFormData to a Recipient-like object for form pre-fill
@@ -364,7 +408,9 @@ export function BankAccountFormWrapper({
     } as Recipient;
   }, [initialData, formDataToRestore]);
   const showConfirmation =
-    formType === 'recipient' && onSubmitWithoutSave && pendingFormData !== null;
+    formType === 'recipient' &&
+    effectiveOnSubmitWithoutSave &&
+    pendingFormData !== null;
 
   // Get base config based on form type
   const linkedAccountConfig = useLinkedAccountConfig();
@@ -391,9 +437,28 @@ export function BankAccountFormWrapper({
   } = useRecipientForm({
     mode: 'create',
     recipientType,
+    // FR-FX-10: international recipients persist the currency's canonical routing
+    // code (e.g. AUBSB, INFSC, BIC) instead of the domestic USABA default. Domestic
+    // (USD) recipients pass undefined and fall back to USABA in the transform.
+    routingCodeType: isInternational
+      ? getFxRoutingCodeType(accountCurrency)
+      : undefined,
     onSuccess: (recipient) => {
       if (recipient) {
-        onSuccess(recipient);
+        // FR-FX-10: tag the created recipient with its account currency so the
+        // downstream FX flow can derive `targetCurrency`. Applied client-side so
+        // the currency is available immediately, without depending on the create
+        // response to echo the selected non-USD currency back.
+        const tagged = isInternational
+          ? ({
+              ...recipient,
+              account: {
+                ...(recipient.account ?? {}),
+                currencyCode: accountCurrency,
+              },
+            } as unknown as Recipient)
+          : recipient;
+        onSuccess(tagged);
       }
     },
     onError: (apiError) => {
@@ -409,7 +474,7 @@ export function BankAccountFormWrapper({
   });
 
   // Build customized config
-  const { tString } = useTranslationWithTokens(['make-payment']);
+  const { t, tString } = useTranslationWithTokens(['make-payment']);
   const config: BankAccountFormConfig = useMemo(() => {
     const baseConfig =
       formType === 'linked-account' ? linkedAccountConfig : recipientConfig;
@@ -421,33 +486,13 @@ export function BankAccountFormWrapper({
       : tString('bankAccountForm.addRecipientButton', 'Add Recipient');
     if (isEditing) {
       submitButtonText = tString('bankAccountForm.continueButton', 'Continue');
-    } else if (!isLinkedAccount && onSubmitWithoutSave) {
+    } else if (!isLinkedAccount && effectiveOnSubmitWithoutSave) {
       // When one-time option is available, use "Continue" to go to confirmation
       submitButtonText = tString('bankAccountForm.continueButton', 'Continue');
     }
 
-    // For recipients, filter available payment methods if specified
-    if (!isLinkedAccount && availablePaymentMethods) {
-      const availableMethodIds = availablePaymentMethods.map(
-        (m) => m.id
-      ) as Array<'ACH' | 'WIRE' | 'RTP'>;
-      return {
-        ...baseConfig,
-        paymentMethods: {
-          ...baseConfig.paymentMethods,
-          available: baseConfig.paymentMethods.available.filter((m) =>
-            availableMethodIds.includes(m as 'ACH' | 'WIRE' | 'RTP')
-          ),
-        },
-        content: {
-          ...baseConfig.content,
-          submitButtonText,
-          cancelButtonText: tString('bankAccountForm.cancelButton', 'Cancel'),
-        },
-      };
-    }
-
-    return {
+    // Base config with shared content overrides.
+    let nextConfig: BankAccountFormConfig = {
       ...baseConfig,
       content: {
         ...baseConfig.content,
@@ -455,14 +500,104 @@ export function BankAccountFormWrapper({
         cancelButtonText: tString('bankAccountForm.cancelButton', 'Cancel'),
       },
     };
+
+    // For recipients, filter available payment methods if specified by the host.
+    if (!isLinkedAccount && availablePaymentMethods) {
+      const availableMethodIds = availablePaymentMethods.map(
+        (m) => m.id
+      ) as Array<'ACH' | 'WIRE' | 'RTP'>;
+      nextConfig = {
+        ...nextConfig,
+        paymentMethods: {
+          ...nextConfig.paymentMethods,
+          available: nextConfig.paymentMethods.available.filter((m) =>
+            availableMethodIds.includes(m as 'ACH' | 'WIRE' | 'RTP')
+          ),
+        },
+      };
+    }
+
+    // Cross-border (FX) overrides: relabel the account number, restrict rails to
+    // those the destination currency supports, and relax the US-domestic field
+    // rules (account type, digits-only account number, 9-digit routing).
+    if (isInternational) {
+      const requirement = getFxCurrencyRequirement(accountCurrency);
+      const rails = getFxAvailableRails(accountCurrency);
+      if (requirement) {
+        // In the FX flow the rails are the product's value tiers, not US
+        // networks — surface them as "FX High-value" / "FX Low-value".
+        const highValueLabel = tString('fx.rails.label.WIRE', 'FX High-value');
+        const lowValueLabel = tString('fx.rails.label.ACH', 'FX Low-value');
+        nextConfig = {
+          ...nextConfig,
+          paymentMethods: {
+            ...nextConfig.paymentMethods,
+            available:
+              rails.length > 0
+                ? rails
+                : nextConfig.paymentMethods.available.filter(
+                    (m) => m !== 'RTP'
+                  ),
+            defaultSelected:
+              rails.length === 1
+                ? rails
+                : nextConfig.paymentMethods.defaultSelected,
+            configs: {
+              ...nextConfig.paymentMethods.configs,
+              WIRE: {
+                ...nextConfig.paymentMethods.configs.WIRE,
+                label: highValueLabel,
+                labelString: highValueLabel,
+                shortLabel: highValueLabel,
+                shortLabelString: highValueLabel,
+                description: tString(
+                  'fx.rails.desc.WIRE',
+                  'Time-critical cross-currency payouts (same or next business day)'
+                ),
+              },
+              ACH: {
+                ...nextConfig.paymentMethods.configs.ACH,
+                label: lowValueLabel,
+                labelString: lowValueLabel,
+                shortLabel: lowValueLabel,
+                shortLabelString: lowValueLabel,
+                description: tString(
+                  'fx.rails.desc.ACH',
+                  'Non-urgent cross-currency payouts (two to five business days)'
+                ),
+              },
+            },
+          },
+          content: {
+            ...nextConfig.content,
+            fieldLabels: {
+              ...nextConfig.content.fieldLabels,
+              accountNumber: requirement.accountNumberLabel,
+            },
+          },
+          internationalFieldConfig: {
+            hideBankAccountType: !requirement.requiresAccountType,
+            accountNumberFormat: requirement.accountNumberFormat,
+            relaxRoutingFormat: true,
+            routingCodeLabel: requirement.routingCode?.label,
+            routingCodeRequired: requirement.routingCode?.required ?? false,
+            hideRoutingNumber: !requirement.routingCode,
+          },
+        };
+      }
+    }
+
+    return nextConfig;
   }, [
     formType,
     linkedAccountConfig,
     recipientConfig,
     availablePaymentMethods,
     isEditing,
-    onSubmitWithoutSave,
+    effectiveOnSubmitWithoutSave,
     tString,
+    isInternational,
+    accountCurrency,
   ]);
 
   /**
@@ -512,7 +647,7 @@ export function BankAccountFormWrapper({
             city: data.address.city,
             state: data.address.state,
             postalCode: data.address.postalCode,
-            countryCode: data.address.countryCode,
+            countryCode: data.address.countryCode as CountryCode,
           },
         }),
         ...(data.contacts &&
@@ -540,14 +675,14 @@ export function BankAccountFormWrapper({
   // Handle form submission
   const handleSubmit = (data: BankAccountFormData) => {
     // When editing an unsaved recipient, directly update without asking save/use-once
-    if (isEditing && onSubmitWithoutSave) {
+    if (isEditing && effectiveOnSubmitWithoutSave) {
       const unsavedRecipient = transformToUnsavedRecipient(data);
-      onSubmitWithoutSave(unsavedRecipient);
+      effectiveOnSubmitWithoutSave(unsavedRecipient);
       return;
     }
 
     // For new recipients with one-time option, go to confirmation step
-    if (formType === 'recipient' && onSubmitWithoutSave) {
+    if (formType === 'recipient' && effectiveOnSubmitWithoutSave) {
       setPendingFormData(data);
       return;
     }
@@ -620,6 +755,51 @@ export function BankAccountFormWrapper({
         onSwitchToRecipient={onSwitchToRecipient}
         onSwitchToLinkedAccount={onSwitchToLinkedAccount}
       />
+
+      {/* FR-FX-10: cross-border recipient currency capture (opt-in via internationalMode) */}
+      {internationalMode && formType === 'recipient' && !isEditing && (
+        <div className="eb-rounded-lg eb-border eb-bg-card eb-p-4">
+          <label
+            htmlFor="fx-account-currency"
+            className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
+          >
+            {t(
+              'bankAccountForm.accountCurrencyLabel',
+              "Recipient's account currency"
+            )}
+          </label>
+          <Select value={accountCurrency} onValueChange={setAccountCurrency}>
+            <SelectTrigger id="fx-account-currency" className="eb-w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USD">
+                {t(
+                  'bankAccountForm.accountCurrencyDomestic',
+                  'USD — US Dollar (domestic)'
+                )}
+              </SelectItem>
+              {(supportedCurrencies ?? []).map((cur) => (
+                <SelectItem key={cur} value={cur}>
+                  <span className="eb-flex eb-items-center eb-gap-2">
+                    <CurrencyFlag currency={cur} />
+                    <span>
+                      {currencyLabels?.[cur]
+                        ? `${cur} — ${currencyLabels[cur]}`
+                        : cur}
+                    </span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {isInternational && (
+            <div className="eb-mt-3">
+              <FxRailDisclaimer currency={accountCurrency} />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Form - embedded in a bordered card for visual separation */}
       <div className="eb-rounded-lg eb-border eb-bg-card">

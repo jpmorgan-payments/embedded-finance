@@ -3,7 +3,7 @@
  * Do not edit manually.
  * Recipients API
  * Streamline how you set up, manage, and verify payees by creating, updating, listing, and validating recipients for your payment transactions. This helps keep your payment workflows organized and secure without manual tracking.
- * OpenAPI spec version: 1.0.47
+ * OpenAPI spec version: 1.0.55-latest
  */
 export type RecipientType = (typeof RecipientType)[keyof typeof RecipientType];
 
@@ -11,6 +11,21 @@ export const RecipientType = {
   RECIPIENT: 'RECIPIENT',
   LINKED_ACCOUNT: 'LINKED_ACCOUNT',
   SETTLEMENT_ACCOUNT: 'SETTLEMENT_ACCOUNT',
+} as const;
+
+/**
+ * Callback event type needs to send to notsub for correct status.
+ */
+export type RecipientStatus =
+  (typeof RecipientStatus)[keyof typeof RecipientStatus];
+
+export const RecipientStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  MICRODEPOSITS_INITIATED: 'MICRODEPOSITS_INITIATED',
+  READY_FOR_VALIDATION: 'READY_FOR_VALIDATION',
+  REJECTED: 'REJECTED',
+  PENDING: 'PENDING',
 } as const;
 
 export interface PageMetaData {
@@ -35,12 +50,79 @@ export interface PageMetaData {
 }
 
 /**
- * Two letter country code based on ISO 3166 standard
+ * Two letter country code based on ISO 3166 standard, includes SEPA regions
  */
 export type CountryCode = (typeof CountryCode)[keyof typeof CountryCode];
 
 export const CountryCode = {
+  AD: 'AD',
+  AE: 'AE',
+  AL: 'AL',
+  AR: 'AR',
+  AT: 'AT',
+  AU: 'AU',
+  BE: 'BE',
+  BG: 'BG',
+  BR: 'BR',
+  CA: 'CA',
+  CH: 'CH',
+  CN: 'CN',
+  CO: 'CO',
+  CR: 'CR',
+  CY: 'CY',
+  CZ: 'CZ',
+  DE: 'DE',
+  DK: 'DK',
+  EE: 'EE',
+  ES: 'ES',
+  FI: 'FI',
+  FR: 'FR',
+  GB: 'GB',
+  GR: 'GR',
+  HK: 'HK',
+  HR: 'HR',
+  HU: 'HU',
+  IE: 'IE',
+  ID: 'ID',
+  IL: 'IL',
+  IN: 'IN',
+  IS: 'IS',
+  IT: 'IT',
+  JP: 'JP',
+  KE: 'KE',
+  KR: 'KR',
+  LI: 'LI',
+  LT: 'LT',
+  LU: 'LU',
+  LV: 'LV',
+  MA: 'MA',
+  MC: 'MC',
+  ME: 'ME',
+  MT: 'MT',
+  MX: 'MX',
+  MY: 'MY',
+  NL: 'NL',
+  NO: 'NO',
+  NZ: 'NZ',
+  PE: 'PE',
+  PH: 'PH',
+  PK: 'PK',
+  PL: 'PL',
+  PT: 'PT',
+  RO: 'RO',
+  SA: 'SA',
+  SE: 'SE',
+  SG: 'SG',
+  SI: 'SI',
+  SK: 'SK',
+  SM: 'SM',
+  TH: 'TH',
+  TR: 'TR',
+  TW: 'TW',
   US: 'US',
+  VA: 'VA',
+  VN: 'VN',
+  ZA: 'ZA',
 } as const;
 
 /**
@@ -64,10 +146,17 @@ export interface RecipientAddress {
   addressLine2?: string;
   /**
    * Third line of address; not required.
+   * @deprecated
    * @minLength 0
    * @maxLength 34
    */
   addressLine3?: string;
+  /**
+   * Building name or number if address is in a building
+   * @minLength 0
+   * @maxLength 16
+   */
+  buildingNumber?: string;
   /**
    * Address city.
    * @minLength 1
@@ -130,6 +219,31 @@ WEBSITE - URL starting with http:// or https://.
   value: string;
 }
 
+/**
+ * Type of identification
+ */
+export type RecipientIdentityIdType =
+  (typeof RecipientIdentityIdType)[keyof typeof RecipientIdentityIdType];
+
+export const RecipientIdentityIdType = {
+  USCC: 'USCC',
+  ORGANIZATION_ID: 'ORGANIZATION_ID',
+  NATIONAL_ID: 'NATIONAL_ID',
+  TAX_ID: 'TAX_ID',
+  SSN: 'SSN',
+} as const;
+
+export interface RecipientIdentity {
+  /** Type of identification */
+  idType: RecipientIdentityIdType;
+  /**
+   * Identification value
+   * @minLength 1
+   * @maxLength 255
+   */
+  idValue: string;
+}
+
 export interface RecipientPartyDetails {
   address?: RecipientAddress;
   type: PartyType;
@@ -155,10 +269,24 @@ export interface RecipientPartyDetails {
    */
   businessName?: string;
   /**
+   * Recipient optional alternative name
+
+   * @minLength 1
+   * @maxLength 140
+   * @nullable
+   * @pattern ^(.|\s)*\S(.|\s)*$
+   */
+  alternativeName?: string | null;
+  /**
    * Contact details for the recipient.
    * @minItems 0
    */
   contacts?: RecipientContact[];
+  /**
+   * Identity details for the recipient.
+   * @minItems 0
+   */
+  identities?: RecipientIdentity[];
 }
 
 /**
@@ -181,8 +309,8 @@ export const AccountType = {
 /**
  * Routing number corresponding to the routing code type
  * @minLength 1
- * @maxLength 13
- * @pattern ^[A-Za-z0-9]([A-Za-z0-9\-]{0,11})[A-Za-z0-9]$
+ * @maxLength 18
+ * @pattern ^[A-Za-z0-9]([A-Za-z0-9\-]{0,16})[A-Za-z0-9]$
  */
 export type RoutingNumber = string;
 
@@ -205,6 +333,18 @@ export type RoutingCodeType =
   (typeof RoutingCodeType)[keyof typeof RoutingCodeType];
 
 export const RoutingCodeType = {
+  AUBSB: 'AUBSB',
+  BIC: 'BIC',
+  BRSTN: 'BRSTN',
+  CACPA: 'CACPA',
+  CLABE: 'CLABE',
+  CNAPS: 'CNAPS',
+  GBDSC: 'GBDSC',
+  HKNCC: 'HKNCC',
+  INFSC: 'INFSC',
+  JPZGN: 'JPZGN',
+  NZNCC: 'NZNCC',
+  SGIBG: 'SGIBG',
   USABA: 'USABA',
 } as const;
 
@@ -213,6 +353,56 @@ export interface RoutingInformation {
   transactionType: RoutingInformationTransactionType;
   routingCodeType: RoutingCodeType;
 }
+
+/**
+ * Three letter currency code based on ISO 4217 standard
+ */
+export type CurrencyCode = (typeof CurrencyCode)[keyof typeof CurrencyCode];
+
+export const CurrencyCode = {
+  AED: 'AED',
+  ARS: 'ARS',
+  AUD: 'AUD',
+  BGN: 'BGN',
+  BRL: 'BRL',
+  CAD: 'CAD',
+  CHF: 'CHF',
+  CNY: 'CNY',
+  COP: 'COP',
+  CRC: 'CRC',
+  CZK: 'CZK',
+  DKK: 'DKK',
+  EUR: 'EUR',
+  GBP: 'GBP',
+  HKD: 'HKD',
+  HUF: 'HUF',
+  IDR: 'IDR',
+  ILS: 'ILS',
+  INR: 'INR',
+  ISK: 'ISK',
+  JPY: 'JPY',
+  KES: 'KES',
+  KRW: 'KRW',
+  MAD: 'MAD',
+  MXN: 'MXN',
+  MYR: 'MYR',
+  NOK: 'NOK',
+  NZD: 'NZD',
+  PEN: 'PEN',
+  PHP: 'PHP',
+  PKR: 'PKR',
+  PLN: 'PLN',
+  RON: 'RON',
+  SAR: 'SAR',
+  SEK: 'SEK',
+  SGD: 'SGD',
+  THB: 'THB',
+  TRY: 'TRY',
+  TWD: 'TWD',
+  USD: 'USD',
+  VND: 'VND',
+  ZAR: 'ZAR',
+} as const;
 
 /**
  * Bank account details of the recipient.
@@ -226,23 +416,112 @@ export interface RecipientAccount {
    * @maxItems 3
    */
   routingInformation?: RoutingInformation[];
+  currencyCode?: CurrencyCode;
   countryCode: CountryCode;
 }
 
 /**
- * Callback event type needs to send to notsub for correct status.
+ * Payment rail used to validate micro deposit by Account Validation Services.
+ * @nullable
  */
-export type RecipientStatus =
-  (typeof RecipientStatus)[keyof typeof RecipientStatus];
+export type MicroDepositTransactionType =
+  | (typeof MicroDepositTransactionType)[keyof typeof MicroDepositTransactionType]
+  | null;
 
-export const RecipientStatus = {
-  ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE',
-  MICRODEPOSITS_INITIATED: 'MICRODEPOSITS_INITIATED',
-  READY_FOR_VALIDATION: 'READY_FOR_VALIDATION',
-  REJECTED: 'REJECTED',
-  PENDING: 'PENDING',
+export const MicroDepositTransactionType = {
+  RTP: 'RTP',
+  ACH: 'ACH',
 } as const;
+
+/**
+ * Microdeposit details of the recipient.
+ */
+export interface MicroDeposit {
+  /**
+   * Payment rail used to validate micro deposit by Account Validation Services.
+   * @nullable
+   */
+  transactionType: MicroDepositTransactionType;
+}
+
+/**
+ * Part of the request which is responsible for the reason
+ * @nullable
+ */
+export type ApiErrorReasonV2Location =
+  | (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location]
+  | null;
+
+export const ApiErrorReasonV2Location = {
+  BODY: 'BODY',
+  QUERY: 'QUERY',
+  PATH: 'PATH',
+  HEADER: 'HEADER',
+} as const;
+
+/**
+ * Schema representing detailed reasons for an API error, including code, location, and message.
+ */
+export interface ApiErrorReasonV2 {
+  /**
+   * Short code that identifies the error - publicly cataloged and documented
+   * @minLength 0
+   * @maxLength 5
+   * @nullable
+   */
+  code?: string | null;
+  /**
+   * Part of the request which is responsible for the reason
+   * @nullable
+   */
+  location?: ApiErrorReasonV2Location;
+  /**
+   * The location of the property or parameter in error
+   * @minLength 0
+   * @maxLength 512
+   * @nullable
+   */
+  field?: string | null;
+  /**
+   * Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+   * @minLength 0
+   * @maxLength 2048
+   */
+  message: string;
+}
+
+export interface ApiError {
+  /**
+   * Short humanly-readable title of the error
+   * @minLength 1
+   * @maxLength 512
+   */
+  title: string;
+  /**
+   * HTTP status code
+   * @minimum 100
+   * @maximum 599
+   */
+  httpStatus: number;
+  /**
+   * Internal assigned traced identifier
+   * @minLength 0
+   * @maxLength 512
+   */
+  traceId?: string;
+  /**
+   * Client provided request identifier
+   * @minLength 0
+   * @maxLength 512
+   */
+  requestId?: string;
+  /**
+   * Provides additional context and detail on the validation errors
+   * @minItems 0
+   * @maxItems 100
+   */
+  context?: ApiErrorReasonV2[];
+}
 
 export interface Result {
   /** Account validation response code */
@@ -255,6 +534,7 @@ export interface Result {
 
 export interface Codes {
   error?: Result;
+  accountScore?: Result;
   verification?: Result;
   authentication?: Result;
   verificationMicroDeposit?: Result;
@@ -316,7 +596,7 @@ export interface AccountValidationResponse {
 export type CardHolderName = string;
 
 /**
- * Expiry date of card in the format MM-YY
+ * Expiry date of card in the format YYMM
  * @pattern ^(?:[0-9]{2})(0[1-9]|1[0-2])$
  */
 export type ExpiryDate = string;
@@ -341,12 +621,14 @@ export interface Recipient {
   account?: RecipientAccount;
   type?: RecipientType;
   status?: RecipientStatus;
+  microDeposit?: MicroDeposit;
   /** Client identifier */
   clientId?: string;
   /** The date and time the recipient was created */
   createdAt?: string;
   /** The date and time the recipient was last updated */
   updatedAt?: string;
+  error?: ApiError;
   /**
    * Account validation response
    * @minItems 0
@@ -364,59 +646,6 @@ export type ListRecipientsResponse = PageMetaData & {
    */
   recipients?: Recipient[];
 };
-
-/**
- * Part of the request which is responsible for the reason
- */
-export type ApiErrorReasonV2Location =
-  (typeof ApiErrorReasonV2Location)[keyof typeof ApiErrorReasonV2Location];
-
-export const ApiErrorReasonV2Location = {
-  BODY: 'BODY',
-  QUERY: 'QUERY',
-  PATH: 'PATH',
-  HEADER: 'HEADER',
-} as const;
-
-/**
- * Schema representing detailed reasons for an API error, including code, location, and message.
- */
-export interface ApiErrorReasonV2 {
-  /**
-   * Short code that identifies the error - publicly cataloged and documented
-   * @minLength 0
-   */
-  code?: string;
-  /** Part of the request which is responsible for the reason */
-  location?: ApiErrorReasonV2Location;
-  /**
-   * The location of the property or parameter in error
-   * @minLength 0
-   */
-  field?: string;
-  /**
-   * Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
-   * @minLength 0
-   */
-  message: string;
-}
-
-export interface ApiError {
-  /** Short humanly-readable title of the error */
-  title: string;
-  /** HTTP status code */
-  httpStatus: number;
-  /** Internal assigned traced identifier */
-  traceId?: string;
-  /** Client provided request identifier */
-  requestId?: string;
-  /**
-   * Provides additional context and detail on the validation errors
-   * @minItems 0
-   * @maxItems 100
-   */
-  context?: ApiErrorReasonV2[];
-}
 
 export type RecipientRequestCard = {
   name: CardHolderName;
@@ -539,6 +768,11 @@ export type GetAllRecipientsParams = {
    * Recipient type to return
    */
   type?: RecipientType;
+  /**
+   * Recipient statuses to filter results by
+   * @minItems 0
+   */
+  status?: RecipientStatus[];
   /**
    * Number of records per page.
    * @minimum 1

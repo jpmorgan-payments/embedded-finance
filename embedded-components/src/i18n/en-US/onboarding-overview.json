@@ -746,6 +746,7 @@
     "countryOfResidence": {
       "label": "Country of residence",
       "tooltip": "",
+      "placeholder": "Select country",
       "description": {
         "default": "Please select your current country of residence",
         "soleProp": "As a sole proprietor, your country of residence is set to the United States",

@@ -1,4 +1,4 @@
-import { FC, ReactNode, useState } from 'react';
+import { ComponentProps, FC, ReactNode, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { Trans } from 'react-i18next';
@@ -121,7 +121,11 @@ export const RemoveAccountDialogTrigger: FC<
 
         {amendRecipientStatus === 'error' && (
           <ServerErrorAlert
-            error={amendRecipientError}
+            error={
+              amendRecipientError as ComponentProps<
+                typeof ServerErrorAlert
+              >['error']
+            }
             showDetails
             customTitle={t('forms.removeAccount.error.title')}
           />

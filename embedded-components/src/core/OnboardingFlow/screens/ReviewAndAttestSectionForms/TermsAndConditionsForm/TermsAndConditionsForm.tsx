@@ -37,6 +37,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui';
+import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingFlow/config';
 import {
   useFlowContext,
   useOnboardingContext,
@@ -291,8 +292,14 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
 
       // Use a hidden anchor element to trigger a download
       const query = documentQueries.find((q) => q.data?.id === documentId);
-      const fileName =
-        query?.data?.documentType?.replace(/\s+/g, '_') ?? documentId;
+      const docType = query?.data?.documentType;
+      // Map the API documentType enum (e.g. TERMS_CONDITIONS) to a readable
+      // English label (e.g. "Terms and Conditions"); fall back to the raw type
+      // or the document id when no mapping/type is available.
+      const documentLabel = docType
+        ? (DOCUMENT_TYPE_MAPPING[docType]?.label ?? docType)
+        : documentId;
+      const fileName = documentLabel.replace(/\s+/g, '_');
 
       const link = document.createElement('a');
       link.href = url;
@@ -487,12 +494,13 @@ export const TermsAndConditionsForm: React.FC<StepperStepProps> = ({
                   >
                     <span className="eb-flex eb-items-center eb-gap-2">
                       <FileIcon />
-                      <p className="eb-text-[#12647E] eb-underline">
+                      <p className="eb-normal-case eb-text-[#12647E] eb-underline">
                         {query?.isFetching ||
                         loadingDocuments[id] ||
                         !query?.data
                           ? t('common:loading', 'Loading...')
-                          : query?.data?.documentType}
+                          : (DOCUMENT_TYPE_MAPPING[query.data.documentType]
+                              ?.label ?? query.data.documentType)}
                       </p>
                       <ExternalLinkIcon className="eb-text-[#12647E]" />
                     </span>

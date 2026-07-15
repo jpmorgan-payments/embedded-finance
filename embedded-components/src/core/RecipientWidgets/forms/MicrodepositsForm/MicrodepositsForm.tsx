@@ -1,4 +1,4 @@
-import { FC, ReactNode, useState } from 'react';
+import { ComponentProps, FC, ReactNode, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
@@ -177,7 +177,11 @@ export const MicrodepositsFormDialogTrigger: FC<
         {!isRecipientLoading && recipientError && (
           <div className="eb-space-y-6 eb-p-6">
             <ServerErrorAlert
-              error={recipientError}
+              error={
+                recipientError as ComponentProps<
+                  typeof ServerErrorAlert
+                >['error']
+              }
               showDetails
               customTitle={t('forms.microdeposits.errors.loading.title')}
               customErrorMessage={t(
@@ -205,7 +209,11 @@ export const MicrodepositsFormDialogTrigger: FC<
                 {/* API Error Alerts */}
                 {verifyStatus === 'error' && verifyError && (
                   <ServerErrorAlert
-                    error={verifyError}
+                    error={
+                      verifyError as ComponentProps<
+                        typeof ServerErrorAlert
+                      >['error']
+                    }
                     showDetails
                     customTitle={t(
                       'forms.microdeposits.errors.verificationFailed.title'

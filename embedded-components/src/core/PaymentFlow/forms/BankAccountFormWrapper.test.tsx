@@ -227,4 +227,54 @@ describe('BankAccountFormWrapper', () => {
       ).toBeTruthy();
     });
   });
+
+  describe('international mode (FX)', () => {
+    it('does not show the account currency selector by default', () => {
+      renderWrapper({ formType: 'recipient' });
+
+      expect(
+        screen.queryByText(/recipient's account currency/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it('shows the account currency selector when internationalMode is enabled', () => {
+      renderWrapper({
+        formType: 'recipient',
+        internationalMode: true,
+        supportedCurrencies: ['EUR', 'GBP'],
+      });
+
+      expect(
+        screen.getByText(/recipient's account currency/i)
+      ).toBeInTheDocument();
+      // Defaults to USD (domestic).
+      expect(screen.getByText(/us dollar \(domestic\)/i)).toBeInTheDocument();
+    });
+
+    it('does not show the currency selector for linked-account form type', () => {
+      renderWrapper({
+        formType: 'linked-account',
+        internationalMode: true,
+        supportedCurrencies: ['EUR'],
+      });
+
+      expect(
+        screen.queryByText(/recipient's account currency/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it('keeps the one-time Continue button while USD is selected', () => {
+      renderWrapper({
+        formType: 'recipient',
+        internationalMode: true,
+        supportedCurrencies: ['EUR'],
+        onSubmitWithoutSave: vi.fn(),
+      });
+
+      // USD is the default, so the pay-without-saving path stays available.
+      expect(
+        screen.getByRole('button', { name: /continue/i })
+      ).toBeInTheDocument();
+    });
+  });
 });

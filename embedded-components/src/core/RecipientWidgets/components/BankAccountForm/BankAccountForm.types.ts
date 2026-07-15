@@ -175,6 +175,49 @@ export interface BankAccountFormConfig {
    * number combination does not already exist among these recipients.
    */
   existingAccounts?: Recipient[];
+
+  /**
+   * Cross-border (FX) field overrides. When present, the form relaxes its
+   * US-domestic assumptions for the current beneficiary. Absent for all
+   * domestic flows, so their behavior is unchanged.
+   *
+   * Populated by the FX create-recipient wrapper from the per-currency
+   * requirement matrix (see `fxRecipientRequirements` in `PaymentFlowFX`).
+   */
+  internationalFieldConfig?: {
+    /**
+     * Hide the checking/savings account-type select and skip its requirement
+     * (e.g. IBAN countries, CLABE, Brazil).
+     */
+    hideBankAccountType?: boolean;
+    /**
+     * Account-number format. `IBAN`/`CLABE`/`LOCAL` allow alphanumeric values
+     * instead of the domestic digits-only rule.
+     */
+    accountNumberFormat?: 'IBAN' | 'CLABE' | 'LOCAL';
+    /**
+     * Skip the US 9-digit routing-number format check. International routing
+     * codes (BSB, IFSC, sort code, SWIFT/BIC, …) have varied lengths/formats.
+     */
+    relaxRoutingFormat?: boolean;
+    /**
+     * Label for the single bank/routing code field (e.g. "IFSC code",
+     * "BSB code", "BIC / SWIFT"). When set, the form shows one shared code
+     * field labelled per destination instead of the per-rail
+     * "{{method}} Routing Number" fields.
+     */
+    routingCodeLabel?: string;
+    /**
+     * Whether the bank/routing code is mandatory. `false` for IBAN currencies
+     * where the BIC/SWIFT is optional. Defaults to required when omitted.
+     */
+    routingCodeRequired?: boolean;
+    /**
+     * Hide the bank/routing code field entirely (e.g. CLABE, which already
+     * embeds the bank and branch).
+     */
+    hideRoutingNumber?: boolean;
+  };
 }
 
 /**

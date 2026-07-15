@@ -537,6 +537,7 @@ export function ReviewPanel({
   isPayeesLoading = false,
   transactionError,
   onDismissError,
+  renderExtraContent,
 }: Omit<ReviewPanelProps, 'mobileConfig'>) {
   // Get live form data from context
   const { formData, isComplete, currentView, setValidationErrors } =
@@ -836,6 +837,9 @@ export function ReviewPanel({
               balanceAfterPayment={balanceAfterPayment}
             />
           )}
+
+          {/* Optional extra content (e.g. FX conversion summary) */}
+          {renderExtraContent?.(formData)}
         </div>
 
         {/* Submit Button */}

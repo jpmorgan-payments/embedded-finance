@@ -38,6 +38,13 @@ interface PaymentMethodOptionProps {
   isLinkedAccount: boolean;
   onSelect: () => void;
   onEnable: () => void;
+  /**
+   * When set, the method is shown as unavailable (not selectable, no Enable
+   * action) with this reason. Used for e.g. FX-incompatible methods.
+   */
+  unavailableReason?: string;
+  /** Optional delivery estimate shown as a sublabel on the enabled state. */
+  deliveryEstimate?: string;
   t: (
     key: string,
     fallback: string,
@@ -56,9 +63,34 @@ function PaymentMethodOption({
   isLinkedAccount,
   onSelect,
   onEnable,
+  unavailableReason,
+  deliveryEstimate,
   t,
 }: PaymentMethodOptionProps) {
   const Icon = getPaymentMethodIcon(method.id);
+
+  // Unavailable state - method exists but cannot be used in this context
+  // (e.g. RTP for international/FX payments). Not selectable, no Enable action.
+  if (unavailableReason) {
+    return (
+      <div className="eb-flex eb-items-center eb-gap-3 eb-bg-muted/30 eb-p-3 eb-opacity-60">
+        <RadioIndicator isSelected={false} disabled />
+
+        <div className="eb-flex eb-h-8 eb-w-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted/50">
+          <Icon className="eb-h-4 eb-w-4 eb-text-muted-foreground" />
+        </div>
+
+        <div className="eb-min-w-0 eb-flex-1">
+          <div className="eb-text-sm eb-font-medium eb-text-muted-foreground">
+            {method.name}
+          </div>
+          <div className="eb-text-xs eb-text-muted-foreground">
+            {unavailableReason}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isEnabled) {
     // Locked state - compact with sublabel
@@ -122,6 +154,11 @@ function PaymentMethodOption({
             {formatCurrency(method.fee)}
           </span>
         )}
+        {deliveryEstimate && (
+          <div className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
+            {deliveryEstimate}
+          </div>
+        )}
       </div>
     </button>
   );
@@ -138,6 +175,8 @@ export function PaymentMethodSelector({
   onSelect,
   onEnableMethod,
   disabled = false,
+  methodAvailability,
+  deliveryOverrides,
 }: PaymentMethodSelectorProps) {
   const { t } = useTranslationWithTokens(['make-payment']);
 
@@ -157,6 +196,11 @@ export function PaymentMethodSelector({
       {availableMethods.map((method, index) => {
         const isEnabled = payee.enabledPaymentMethods.includes(method.id);
         const isSelected = selectedMethod === method.id;
+        const availability = methodAvailability?.[method.id];
+        const unavailableReason =
+          availability && availability.available === false
+            ? availability.reason
+            : undefined;
 
         return (
           <React.Fragment key={method.id}>
@@ -168,6 +212,8 @@ export function PaymentMethodSelector({
               isLinkedAccount={isLinkedAccount}
               onSelect={() => onSelect(method.id)}
               onEnable={() => onEnableMethod(method.id)}
+              unavailableReason={unavailableReason}
+              deliveryEstimate={deliveryOverrides?.[method.id]}
               t={t}
             />
           </React.Fragment>
