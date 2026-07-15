@@ -2,6 +2,18 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.16.8] - 2026-07-15
+
+### Changes
+
+#### Features
+
+- **payments:** add draft version of PaymentFlowFX component
+
+#### Bug Fixes
+
+- **onboarding:** add default content tokens for countryOfResidence placeholder
+
 ## [0.16.7] - 2026-07-08
 
 ### Changes

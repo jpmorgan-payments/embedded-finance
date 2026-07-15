@@ -40,7 +40,6 @@ import type {
   ApiErrorV2,
   TransactionResponseV2,
 } from '@/api/generated/ep-transactions.schemas';
-import type { ErrorType } from '@/api/use-axios-instance';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -938,7 +937,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
 
   // Parse error for custom display
   const errorInfo = useServerError(
-    recipientsError as unknown as ErrorType<ApiError> | null
+    recipientsError as unknown as Parameters<typeof useServerError>[0]
   );
   const errorMessage = errorInfo?.getErrorMessage({
     '400': t('errors.loading.400'),

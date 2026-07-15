@@ -118,4 +118,38 @@ describe('transformBankAccountFormToRecipientPayload', () => {
       payload.account?.routingInformation?.map((x) => x.transactionType)
     ).toEqual(['ACH', 'WIRE']);
   });
+
+  it('defaults routingCodeType to USABA for domestic recipients', () => {
+    const data: BankAccountFormData = {
+      ...base,
+      routingNumbers: [{ paymentType: 'ACH', routingNumber: '021000021' }],
+      paymentTypes: ['ACH'],
+    };
+    const payload = transformBankAccountFormToRecipientPayload(
+      data,
+      'RECIPIENT'
+    );
+    expect(
+      payload.account?.routingInformation?.map((x) => x.routingCodeType)
+    ).toEqual(['USABA']);
+  });
+
+  it('applies the provided routingCodeType to every routing entry (international FX)', () => {
+    const data: BankAccountFormData = {
+      ...base,
+      routingNumbers: [
+        { paymentType: 'ACH', routingNumber: 'IFSC0001234' },
+        { paymentType: 'WIRE', routingNumber: 'IFSC0001234' },
+      ],
+      paymentTypes: ['ACH', 'WIRE'],
+    };
+    const payload = transformBankAccountFormToRecipientPayload(
+      data,
+      'RECIPIENT',
+      'INFSC'
+    );
+    expect(
+      payload.account?.routingInformation?.map((x) => x.routingCodeType)
+    ).toEqual(['INFSC', 'INFSC']);
+  });
 });

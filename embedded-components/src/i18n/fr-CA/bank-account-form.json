@@ -56,9 +56,12 @@
     "singleMethodLabel": "Numéro d'acheminement {{method}}",
     "combinedMethodLabel": "Numéro d'acheminement {{methods}}",
     "placeholder": "Entrer le numéro d'acheminement à 9 chiffres",
+    "internationalPlaceholder": "Entrer le code bancaire / d'acheminement",
+    "optionalSuffix": "(facultatif)",
     "validation": {
       "required": "Le numéro d'acheminement est requis pour {{method}}",
-      "digits": "Le numéro d'acheminement doit comporter 9 chiffres"
+      "digits": "Le numéro d'acheminement doit comporter 9 chiffres",
+      "codeRequired": "Le code bancaire / d'acheminement est requis"
     }
   },
   "requiredFor": {
@@ -140,6 +143,7 @@
       "validation": {
         "required": "Le numéro de compte est requis",
         "digitsOnly": "Le numéro de compte doit contenir uniquement des chiffres",
+        "invalidCharacters": "Le numéro de compte ne peut contenir que des lettres et des chiffres",
         "duplicate": "Un compte avec ce numéro de compte et numéro de routage est déjà lié"
       }
     },

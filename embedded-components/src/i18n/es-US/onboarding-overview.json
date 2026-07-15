@@ -686,6 +686,7 @@
     "countryOfResidence": {
       "label": "País de residencia",
       "tooltip": "",
+      "placeholder": "Seleccionar país",
       "description": {
         "default": "Seleccione su país de residencia actual",
         "soleProp": "Como propietario único, su país de residencia está establecido como Estados Unidos",

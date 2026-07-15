@@ -87,6 +87,12 @@ export interface Payee {
   enabledPaymentMethods: PaymentMethodType[];
   recipientType?: RecipientType;
   details?: PayeeDetails;
+  /**
+   * ISO 4217 currency code of the payee's account. A non-USD value marks a
+   * cross-border (FX) recipient, which relabels the payment rails as
+   * "FX High-value" (WIRE) / "FX Low-value" (ACH).
+   */
+  currencyCode?: string;
 }
 
 /**
@@ -142,6 +148,25 @@ export interface UnsavedRecipient {
 }
 
 /**
+ * Snapshot of a selected FX quote, stored on the form data for cross-border
+ * (PaymentFlowFX) payments. Ignored by the domestic flow.
+ */
+export interface PaymentFlowFxQuote {
+  /** Exchange rate expressed as target-currency units per 1 USD. */
+  rate: number;
+  /** Locked-rate identifier, when the quote is executable rather than indicative. */
+  rateId?: string;
+  /** Absolute expiry of a locked quote. */
+  expiresAt?: Date;
+  /** Whether the rate is indicative (not guaranteed at execution). */
+  isIndicative: boolean;
+  /** Provider disclaimer text, if any. */
+  disclaimer?: string;
+  /** When the quote was captured (used for staleness checks). */
+  fetchedAt: Date;
+}
+
+/**
  * Form data for the payment flow
  */
 export interface PaymentFlowFormData {
@@ -166,6 +191,18 @@ export interface PaymentFlowFormData {
 
   // Memo
   memo?: string;
+
+  /**
+   * Target settlement currency for cross-border (FX) payments. Undefined for
+   * domestic USD payments. Used only by PaymentFlowFX.
+   */
+  targetCurrency?: string;
+
+  /**
+   * Selected FX quote snapshot for cross-border payments. Used only by
+   * PaymentFlowFX.
+   */
+  fxQuote?: PaymentFlowFxQuote;
 
   // For new recipient creation
   newRecipient?: {
@@ -413,6 +450,12 @@ export interface ReviewPanelProps {
   } | null;
   /** Callback to dismiss the transaction error */
   onDismissError?: () => void;
+  /**
+   * Optional extra content rendered between the totals and the submit button
+   * (e.g. an FX conversion summary). Receives the live form data. Non-breaking:
+   * when omitted, nothing extra is rendered.
+   */
+  renderExtraContent?: (formData: PaymentFlowFormData) => React.ReactNode;
 }
 
 /**
@@ -441,6 +484,20 @@ export interface PaymentMethodSelectorProps {
   onSelect: (method: PaymentMethodType) => void;
   onEnableMethod: (method: PaymentMethodType) => void;
   disabled?: boolean;
+  /**
+   * Optional per-method availability overrides. When a method is marked
+   * `available: false`, it is shown as unavailable (not selectable, no Enable
+   * action) with the provided reason. Non-breaking: when omitted, all methods
+   * behave as before.
+   */
+  methodAvailability?: Partial<
+    Record<PaymentMethodType, { available: boolean; reason?: string }>
+  >;
+  /**
+   * Optional per-method delivery estimates shown as a sublabel on the enabled
+   * state. Non-breaking: when omitted, no delivery estimate is shown.
+   */
+  deliveryOverrides?: Partial<Record<PaymentMethodType, string>>;
 }
 
 // Re-export API types for convenience

@@ -1,0 +1,315 @@
+openapi: 3.0.0
+info:
+  title: FX Rate Sheet API
+  description: Retrieve real-time FX rate sheets for any of your accounts, with the flexibility to filter by department or line of business, so you can access up-to-date foreign exchange rates tailored to your specific transaction needs. This API helps you streamline FX operations by providing executable and indicative rates, transaction limits, and payment method details directly in your workflow.
+  version: 1.0.2
+servers:
+  - url: https://openbanking.jpmorgan.com/tsapi/v1
+    description: PRODUCTION - OAUTH
+  - url: https://apigateway.jpmorgan.com/tsapi/v1
+    description: PRODUCTION - MTLS
+  - url: https://openbankinguat.jpmorgan.com/tsapi/v1
+    description: CLIENT TESTING - OAUTH
+  - url: https://apigateway.jpmorgan.com/tsapi/v1
+    description: CLIENT TESTING - MTLS
+tags:
+  - name: Retrieve FX Ratesheets
+    description: Retrieve FX Rate sheet for a specified account
+paths:
+  /accounts/{accountId}/ratesheets/current:
+    get:
+      operationId: getCurrentRatesheet
+      tags:
+        - Retrieve FX Ratesheets
+      description: "<!-- theme: success -->\n> Retrieves the FX rate sheet for a specified account with optional filtering by customer department. \n\n---  "
+      summary: FX Ratesheet API
+      parameters:
+        - name: accountId
+          in: path
+          description: Account number you wish to retrieve an FX rate sheet for
+          required: true
+          schema:
+            type: string
+          examples:
+            FX ratesheet for an account:
+              summary: FX ratesheet for an account
+              value: '123456789'
+        - name: customerDepartment
+          in: query
+          description: |-
+            <!-- theme: success -->
+            > Customer department name(s) specifying the client's line of business (LOB) context, such as regional or activity flows, to categorize and retrieve the appropriate rate sheets.
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+              minLength: 1
+              maxLength: 50
+            maxItems: 100
+          examples:
+            FX ratesheet for an account:
+              summary: FX ratesheet for client LOB references
+              value:
+                - Example E-commerce Dept
+                - Example Payments Dept
+                - Example Forex Dept
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateSheetDetails'
+              examples:
+                FX ratesheet for an account:
+                  summary: FX ratesheet for client LOB references
+                  value:
+                    _metadata:
+                      sendingTime: 20180903-15:01:02Z
+                      clientRequestId: 51a190dc-940d-43d1-a0b9-5fabd5f2e640
+                    data:
+                      accountId: '123456789'
+                      ratesheetId: d51176f6-739b-4f76-9595-f2a51912d393
+                      publicationId: e51176f6-739b-4f76-9595-f2a51912d394
+                      publicationTime: '2018-09-03T15:01:02Z'
+                      expiry: '2018-09-03T15:01:02Z'
+                      thresholdAmount: 1000000
+                      thresholdCcy: USD
+                      customerDepartment:
+                        - name: Example E-commerce Dept
+                          currencyPairs:
+                            - clientBuyCcy: BRL
+                              clientSellCcy: USD
+                              onshoreOffshore: Onshore
+                              baseCcy: USD
+                              fromBuyCcyToSellCcy: Divide
+                              rates:
+                                - rateId: R1234567-8901-2345-6789-012345678901
+                                  clientRate: 3.31645                            
+                                  rateType: EXECUTABLE
+                                  paymentMethod: ACH
+                                  beneficiaryType: BUSINESS
+                                  minTransactionSize: 100
+                                  maxTransactionSize: 10000
+                                  minMaxTransactionSizeCcy: USD
+                                - rateId: R1234567-8901-2345-6789-012345678902
+                                  clientRate: 3.31645
+                                  rateType: INDICATIVE
+                                  paymentMethod: ACH
+                                  beneficiaryType: BUSINESS
+                                  minTransactionSize: 100
+                                  maxTransactionSize: 10000
+                                  minMaxTransactionSizeCcy: USD
+      x-examples:
+        - name: FX ratesheet for an account
+          parameters:
+            accountId: '123456789'
+            customerDepartment:
+              - LOB1
+              - LOB2
+              - LOB3
+components:
+  schemas:
+    RateSheetDetails:
+      title: RateSheetDetails
+      description: Rate Sheet Details
+      type: object
+      properties:
+        _metadata:
+          $ref: '#/components/schemas/Metadata'
+        data:
+          $ref: '#/components/schemas/Data'
+    Metadata:
+      title: Metadata
+      description: Ratesheet request metadata
+      type: object
+      properties:
+        sendingTime:
+          description: Time that the response is sent in UTC timezone
+          type: string
+          pattern: '[0-9]{8}-[0-9]{2}:[0-9]{2}:[0-9]{2}Z$'
+          example: 20180903-15:01:02Z
+        clientRequestId:
+          description: Unique Id for the request
+          type: string
+          maxLength: 36
+        disclaimer:
+          description: Treasury Services FX Disclaimer concerning the use of the ratesheet and how rates will be applied to instructions for FX transactions
+          type: string
+    Data:
+      title: Data
+      description: Rate Sheet Data
+      type: object
+      properties:
+        accountId:
+          description: Client Account Number
+          type: string
+          example: '342391'
+        ratesheetId:
+          description: Name of the rate sheet presented
+          type: string
+          example: d51176f6-739b-4f76-9595-f2a51912d393
+        publicationId:
+          description: Unique Id for rate sheet publication
+          type: string
+          example: e51176f6-739b-4f76-9595-f2a51912d394
+        publicationTime:
+          description: Time that the ratesheet is published in UTC timezone
+          type: string
+          format: date-time
+          example: '2018-09-03T15:01:02Z'
+        expiry:
+          description: Time that the rate sheet rate expires. After this time, the rates presented are no longer valid
+          type: string
+          format: date-time
+          example: '2018-09-03T15:01:02Z'
+        thresholdAmount:
+          description: The maximum transaction amount in which the rates on the ratesheet can be applicable. Rates presented are no longer valid for transactions over this amount
+          type: number
+        thresholdCcy:
+          description: The currency for the threshold amount
+          type: string
+        customerDepartment:
+          type: array
+          description: 'Categorization of the rates created at the request of the client (ie: client wants a different set of rates to be provided for ecommerce versus commercial activity). Request for this categoization must be requested to TSFX Product to prior to implementation of the API'
+          items:
+            $ref: '#/components/schemas/CustomerDepartment'
+    CustomerDepartment:
+      title: CustomerDepartment
+      description: "Customer Department, used for categorization of the rates created at the request of the client \n(e.g. client wants a different set of rates to be provided for ecommerce versus commercial activity)."
+      properties:
+        name:
+          type: string
+          description: Name of the customer department
+          example: E-commerce
+        currencyPairs:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurrencyPair'
+    CurrencyPair:
+      title: CurrencyPair
+      description: Currency Pair
+      type: object
+      properties:
+        clientBuyCcy:
+          description: Currency client intends to buy as a part of the transaction
+          type: string
+          example: BRL
+        clientSellCcy:
+          description: Currency client intends to sell as part of the transaction
+          type: string
+          example: USD
+        onshoreOffshore:
+          description: Defines whether the rates being provided are for use in the Onshore or Offshore market
+          type: string
+          enum:
+            - Onshore
+            - Offshore
+        baseCcy:
+          description: 'First currency in the rate quote (i.e:  1 CCY A = 1.25 CCY B). Base currency can be customized to match client buy or sell currency, or can be presented in market convention'
+          type: string
+          example: USD
+        fromBuyCcyToSellCcy:
+          description: How to use the rates provided to convert the Buy currency to the Sell currency
+          type: string
+          enum:
+            - Divide
+            - Multiply
+          example: Divide
+        rates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rate'
+    Rate:
+      title: Rate
+      description: Representation of a rate
+      type: object
+      properties:
+        rateId:
+          description: Unique reference of the rate sheet rate. To be used on a payment instruction to denote what rate was presented at the time of the request (targeted to roll out Q3 2019)
+          type: string
+          example: R12345678901234567890123456789
+        clientRate:
+          description: The rate in which J.P. Morgan will convert the instruction for an FX transaction. The rate presented shall be a  foreign exchange rate plus an applicable spread as J.P. Morgan determines in its discretion. For more information concerning this rate, please refer to your Global Account Terms
+          type: number
+          example: 2.5535
+        rateType:
+          type: string
+          description: EXECUTABLE means rates shown via the ratesheet API can be applied to FX transactions executed by account linked to the API request, assuming the instruction for the transaction matches certain conditions. INDICATIVE means rates shown are provided for informational purposes only and do not constitute an offer or commitment to enter into any foreign exchange transaction at such rates. For more information concerning the conditions in which a rate can be applied for an executable rate sheet, or additional information on the indicative rates we provide, please see disclaimers in field 'disclaimer'
+          enum:
+            - EXECUTABLE
+            - INDICATIVE
+          example: EXECUTABLE
+        paymentMethod:
+          description: Transaction Type in which the client rate shown can be applicable, as outlined in above field 'disclaimer'
+          type: string
+          enum:
+            - WIRE_DRAFT_BOOK
+            - ACH
+            - WALLET
+            - CARD
+          example: ACH
+        beneficiaryType:
+          description: Tag to denote whether rates presented can be applicable, as outlined in 'disclaimer' to individuals, business, or ecommerce beneficiaries
+          type: string
+          enum:
+            - INDIVIDUAL
+            - BUSINESS
+            - BUSINESS (eCom)
+            - INDIVIDUAL (eCom)
+          example: BUSINESS
+        minTransactionSize:
+          description: Mininum amount in which the rates presented can be applicable, as outlined in 'disclaimer'
+          type: number
+        maxTransactionSize:
+          description: Maximum amount in which the rates presented can be applicable, as outlined in 'disclaimer'
+          type: number
+        minMaxTransactionSizeCcy:
+          description: The currency for the min/max transaction amount
+          type: string
+          format: Float
+          maxLength: 3
+          minLength: 3
+    ErrorResponse:
+      title: Error Response
+      description: Error response
+      type: array
+      items:
+        $ref: '#/components/schemas/Errors'
+      example:
+        - errors:
+            - errorCode: ERR_1203
+              errorMsg: All rates expired, unable to find valid rates for request
+    Errors:
+      title: Errors
+      description: An array of errors
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    Error:
+      title: Error
+      description: Representation of an error
+      type: object
+      properties:
+        errorCode:
+          description: Error code
+          type: string
+          example: ERR_1203
+        errorMsg:
+          description: Error message
+          type: string
+          example: All rates expired, unable to find valid rates for request
+x-jpmc-securityDefinitions:
+  JPMC-OAuth2: {}
+  MutualTLS:
+    type: x509
+    description: Mutual TLS authentication using client and server certificates.
+  x509: {}
+x-jpmc-security:
+  - MutualTLS: []

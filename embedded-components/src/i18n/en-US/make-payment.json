@@ -60,7 +60,8 @@
   },
   "paymentMethod": {
     "enableButton": "Enable",
-    "selectPayeeFirst": "Select a payee first"
+    "selectPayeeFirst": "Select a payee first",
+    "loadingRecipientDetails": "Loading recipient details to show available payment methods..."
   },
   "payeeType": {
     "linkAccountTitle": "Link My Account",
@@ -201,5 +202,80 @@
     "MANAGEMENT": "Management",
     "PROCESSING": "Processing",
     "PROCESSING_OFFSET": "Processing Offset"
+  },
+  "fx": {
+    "flowTitle": "Send Money Internationally",
+    "youSendLabel": "You send",
+    "recipientGets": "Recipient gets (approx.)",
+    "recipientGetsLabel": "Recipient gets (approx.)",
+    "recipientGetsApprox": "Recipient gets (approx.)",
+    "recipientReceives": "Recipient receives",
+    "conversionTitle": "Currency conversion",
+    "conversionCaption": "Recipient gets ≈ {{amount}}, converted from your USD at the rate above.",
+    "convertedAtProcessing": "The final amount in {{currency}} is determined at processing.",
+    "rate": "Rate",
+    "rateLine": "1 USD = {{rate}} {{currency}}",
+    "rateLoading": "Getting the latest rate…",
+    "rateUnavailable": "A live exchange rate is not available right now. Your payment will be converted at the market rate on execution.",
+    "rateDisclaimer": "Rate disclaimer",
+    "exchangeRate": "Exchange rate",
+    "indicative": "Indicative",
+    "indicativeSuffix": "(indicative)",
+    "locked": "Locked",
+    "expiresIn": "Expires in {{time}}",
+    "marketRateFallback": "The locked rate expired, so your payment was submitted at the market rate.",
+    "paymentSent": "Payment Sent!",
+    "paymentInitiated": "Your payment of {{amount}} has been initiated",
+    "beingConverted": "Being converted to {{currency}}",
+    "loadingSettlement": "Loading conversion details...",
+    "makeAnotherPayment": "Make Another Payment",
+    "done": "Done",
+    "accountNotForExternal": "Not available for external recipients",
+    "accountUnavailable": "Account unavailable.",
+    "accountClearedReason": "The selected account cannot send this payment. Please select a different account.",
+    "accountEndingIn": "Account ending in",
+    "accountFallback": "Account",
+    "pendingClose": "Pending Close",
+    "linkedOnly": "Linked accounts only",
+    "loading": "Loading...",
+    "unavailable": "Unavailable",
+    "available": "Available",
+    "errorTitle": "Unable to Load Accounts",
+    "errorMessage": "We couldn't load your accounts. Please check your connection and try again.",
+    "emptyTitle": "No Accounts Available",
+    "emptyMessage": "You don't have any accounts available for transfers. Please contact support if you need assistance.",
+    "close": "Close",
+    "tryAgain": "Try Again",
+    "retrying": "Retrying...",
+    "rails": {
+      "title": "Payment rails for {{country}} ({{currency}})",
+      "label": {
+        "ACH": "FX Low-value",
+        "WIRE": "FX High-value"
+      },
+      "desc": {
+        "ACH": "Non-urgent cross-currency payouts (two to five business days)",
+        "WIRE": "Time-critical cross-currency payouts (same or next business day)"
+      },
+      "method": {
+        "ACH": "ACH",
+        "WIRE": "Wire"
+      },
+      "tier": {
+        "ACH": "FX Low-value",
+        "WIRE": "FX High-value"
+      },
+      "useCase": {
+        "ACH": "Non-urgent cross-currency payouts",
+        "WIRE": "Time-critical cross-currency payouts"
+      },
+      "settlement": "Settles in {{window}}.",
+      "window": {
+        "ACH": "two to five business days",
+        "WIRE": "same or next business day"
+      },
+      "notUsAch": "\"ACH\" and \"Wire\" here are FX settlement tiers (low-value vs. high-value) — not US domestic ACH or Fedwire. The rails available depend on the destination currency.",
+      "rtpUnavailable": "Not available for cross-currency payments"
+    }
   }
 }

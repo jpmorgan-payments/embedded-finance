@@ -20,6 +20,14 @@ export type {
   PaymentFlowInlineProps,
 } from './core/PaymentFlow';
 
+export { PaymentFlowFX, PaymentFlowFXInline } from './core/PaymentFlowFX';
+export type {
+  PaymentFlowFXProps,
+  PaymentFlowFXInlineProps,
+  FxConfig,
+  FxQuote,
+} from './core/PaymentFlowFX';
+
 export * from './core/OnboardingFlow';
 
 export * from './core/ClientDetails';

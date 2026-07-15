@@ -1,0 +1,1993 @@
+openapi: 3.0.1
+info:
+  title: Recipients API
+  version: 1.0.55-latest
+  description: Streamline how you set up, manage, and verify payees by creating, updating, listing, and validating recipients for your payment transactions. This helps keep your payment workflows organized and secure without manual tracking.
+  contact:
+    name: JPMC Technical Services Support
+servers:
+- url: https://api.payments.jpmorgan.com/embedded/v1
+  description: PRODUCTION - MTLS
+- url: https://api-mock.payments.jpmorgan.com/embedded/v1
+  description: MOCK
+- url: https://api-sandbox.payments.jpmorgan.com/embedded/v1
+  description: CLIENT TESTING - MTLS
+- url: https://api-test.payments.jpmorgan.com/embedded/v1
+  description: JPM-UAT - Embedded Payments Sandbox
+- url: https://api-perf.payments.jpmorgan.com/embedded/v1
+  description: JPM-PERF - Embedded Payments Sandbox
+tags:
+- name: Recipients
+  description: Set up and manage who can be paid through transactions.
+paths:
+  /recipients:
+    get:
+      summary: List recipients
+      description: Returns a list of all recipients for a given client profile.
+      operationId: getAllRecipients
+      tags:
+      - Recipients
+      parameters:
+      - $ref: '#/components/parameters/token'
+      - $ref: '#/components/parameters/clientIdInQuery'
+      - name: type
+        in: query
+        description: Recipient type to return
+        required: false
+        example: RECIPIENT
+        schema:
+          $ref: '#/components/schemas/RecipientType'
+      - name: status
+        description: Recipient statuses to filter results by
+        in: query
+        required: false
+        example:
+        - ACTIVE
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipientStatus'
+          minItems: 0
+          uniqueItems: true
+      - $ref: '#/components/parameters/pageSize'
+      - $ref: '#/components/parameters/pageNo'
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListRecipientsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    post:
+      summary: Create recipient
+      description: Creates a new recipient.
+      operationId: createRecipient
+      tags:
+      - Recipients
+      parameters:
+      - $ref: '#/components/parameters/token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipientRequest'
+            examples:
+              CreateRecipientReq:
+                $ref: '#/components/examples/CreateRecipientReq'
+              CreateRecipientReqARS_AR:
+                $ref: '#/components/examples/CreateRecipientReqARS_AR'
+              CreateRecipientReqBRL_BR:
+                $ref: '#/components/examples/CreateRecipientReqBRL_BR'
+              CreateRecipientReqCHF_CH:
+                $ref: '#/components/examples/CreateRecipientReqCHF_CH'
+              CreateRecipientReqCOP_CO:
+                $ref: '#/components/examples/CreateRecipientReqCOP_CO'
+              CreateRecipientReqCRC_CR:
+                $ref: '#/components/examples/CreateRecipientReqCRC_CR'
+              CreateRecipientReqCZK_CZ:
+                $ref: '#/components/examples/CreateRecipientReqCZK_CZ'
+              CreateRecipientReqDKK_DK:
+                $ref: '#/components/examples/CreateRecipientReqDKK_DK'
+              CreateRecipientReqHUF_HU:
+                $ref: '#/components/examples/CreateRecipientReqHUF_HU'
+              CreateRecipientReqIDR_ID:
+                $ref: '#/components/examples/CreateRecipientReqIDR_ID'
+              CreateRecipientReqILS_IL:
+                $ref: '#/components/examples/CreateRecipientReqILS_IL'
+              CreateRecipientReqMYR_MY:
+                $ref: '#/components/examples/CreateRecipientReqMYR_MY'
+              CreateRecipientReqNOK_NO:
+                $ref: '#/components/examples/CreateRecipientReqNOK_NO'
+              CreateRecipientReqPEN_PE:
+                $ref: '#/components/examples/CreateRecipientReqPEN_PE'
+              CreateRecipientReqSEK_SE:
+                $ref: '#/components/examples/CreateRecipientReqSEK_SE'
+              Create a recipient using RTP into a checking account:
+                summary: Create Recipient - Sole Prop
+                description: Create Recipient - Sole Prop
+                value:
+                  clientId: '1000010400'
+                  partyId: '2000000111'
+                  account:
+                    number: '182119492'
+                    type: CHECKING
+                    countryCode: US
+                    routingInformation:
+                    - routingNumber: '541798298'
+                      transactionType: RTP
+                      routingCodeType: USABA
+                  type: LINKED_ACCOUNT
+              Create a recipient using pay-by-email:
+                summary: Create Recipient - Payment Intent
+                description: Create Recipient - Payment Intent
+                value:
+                  partyDetails:
+                    firstName: Monica
+                    lastName: Gellar
+                    type: INDIVIDUAL
+                    contacts:
+                    - contactType: EMAIL
+                      value: monica@cpgetaways.com
+                  type: RECIPIENT
+      responses:
+        '201':
+          description: The recipient was created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipient'
+              examples:
+                CreateRecipientRes:
+                  $ref: '#/components/examples/CreateRecipientRes'
+                CreatePaymentIntentRecipientRes:
+                  $ref: '#/components/examples/CreatePaymentIntentRecipientRes'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  '/recipients/{id}':
+    get:
+      summary: Get recipient
+      description: Returns information about a specific recipient.
+      operationId: getRecipient
+      tags:
+      - Recipients
+      parameters:
+      - $ref: '#/components/parameters/token'
+      - name: id
+        in: path
+        description: Recipient ID. A unique identifier for a recipient.
+        required: true
+        schema:
+          type: string
+        example: 616d93a1-ce53-4c71-b03b-02a11396db28
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipient'
+              examples:
+                GetRecipientRes:
+                  $ref: '#/components/examples/GetRecipientRes'
+                GetPaymentIntentRecipientRes:
+                  $ref: '#/components/examples/GetPaymentIntentRecipientRes'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    post:
+      summary: Update recipient
+      description: Updates details of a recipient, such as adding values for attributes related to payment types. All attributes must be provided in the same format as when creating a recipient. The value partyDetails.type cannot be amended after creation.
+      operationId: amendRecipient
+      tags:
+      - Recipients
+      parameters:
+      - $ref: '#/components/parameters/token'
+      - name: id
+        in: path
+        description: Recipient ID. A unique identifier for a recipient.
+        required: true
+        schema:
+          type: string
+        example: 616d93a1-ce53-4c71-b03b-02a11396db28
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecipientRequest'
+            examples:
+              UpdateRecipientRequest_make_inactive:
+                summary: Update Recipient By Id - Sole Prop
+                description: Update Recipient By Id - Sole Prop
+                value:
+                  status: INACTIVE
+              UpdateRecipientReq:
+                $ref: '#/components/examples/UpdateRecipientReq'
+      responses:
+        '200':
+          description: The recipient was amended successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipient'
+              examples:
+                UpdateRecipientRes:
+                  $ref: '#/components/examples/UpdateRecipientRes'
+                UpdatePaymentIntentRecipientRes:
+                  $ref: '#/components/examples/UpdatePaymentIntentRecipientRes'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  '/recipients/{id}/verify-microdeposit':
+    post:
+      summary: Creates a microdeposits verification process.
+      description: Creates a microdeposits verification process.
+      operationId: recipientsVerification
+      tags:
+      - Recipients
+      parameters:
+      - $ref: '#/components/parameters/token'
+      - name: id
+        in: path
+        description: Recipient ID. A unique identifier for a recipient.
+        required: true
+        schema:
+          type: string
+        example: dea21834-f876-404b-a240-9977e598da5e
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MicrodepositAmounts'
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MicrodepositVerificationResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+components:
+  parameters:
+    token:
+      name: token
+      in: header
+      description: JWT Client token
+      required: false
+      schema:
+        type: string
+        minLength: 0
+    clientIdInQuery:
+      name: clientId
+      in: query
+      description: Unique Client identifier
+      required: false
+      example: '9000000001'
+      schema:
+        type: string
+        pattern: ^\d{10}$
+        minLength: 10
+        maxLength: 10
+    pageSize:
+      name: limit
+      in: query
+      description: Number of records per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 25
+        default: 25
+        format: int32
+      required: false
+    pageNo:
+      name: page
+      in: query
+      description: Page Number
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+        maximum: 1000000
+        format: int32
+      required: false
+  schemas:
+    RecipientType:
+      type: string
+      enum:
+      - RECIPIENT
+      - LINKED_ACCOUNT
+      - SETTLEMENT_ACCOUNT
+      nullable: false
+      example: RECIPIENT
+    RecipientStatus:
+      description: Callback event type needs to send to notsub for correct status.
+      type: string
+      enum:
+      - ACTIVE
+      - INACTIVE
+      - MICRODEPOSITS_INITIATED
+      - READY_FOR_VALIDATION
+      - REJECTED
+      - PENDING
+      nullable: false
+      example: ACTIVE
+    PageMetaData:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 1
+          description: |
+            Page Number.
+        limit:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 30
+          description: |
+            Number of records per page.
+        total_items:
+          type: integer
+          minimum: 0
+          format: int32
+          example: 1
+          description: |
+            Total number of items.
+    CountryCode:
+      type: string
+      enum:
+      - AD
+      - AE
+      - AL
+      - AR
+      - AT
+      - AU
+      - BE
+      - BG
+      - BR
+      - CA
+      - CH
+      - CN
+      - CO
+      - CR
+      - CY
+      - CZ
+      - DE
+      - DK
+      - EE
+      - ES
+      - FI
+      - FR
+      - GB
+      - GR
+      - HK
+      - HR
+      - HU
+      - IE
+      - ID
+      - IL
+      - IN
+      - IS
+      - IT
+      - JP
+      - KE
+      - KR
+      - LI
+      - LT
+      - LU
+      - LV
+      - MA
+      - MC
+      - ME
+      - MT
+      - MX
+      - MY
+      - NL
+      - NO
+      - NZ
+      - PE
+      - PH
+      - PK
+      - PL
+      - PT
+      - RO
+      - SA
+      - SE
+      - SG
+      - SI
+      - SK
+      - SM
+      - TH
+      - TR
+      - TW
+      - US
+      - VA
+      - VN
+      - ZA
+      description: Two letter country code based on ISO 3166 standard, includes SEPA regions
+      example: US
+    RecipientAddress:
+      description: Address details for the recipient. Mandatory for payments using the RTP payment type.
+      type: object
+      required:
+      - addressLine1
+      - city
+      - countryCode
+      properties:
+        addressType:
+          type: string
+          example: Principal place of business
+          description: Type of address e.g. 'Primary Residence' | 'Principal place of business'.
+        addressLine1:
+          type: string
+          minLength: 1
+          maxLength: 34
+          pattern: ^(.|\s)*\S(.|\s)*$
+          example: 90 Bedford Street
+          description: First line of address; required and must not be a PO Box.
+        addressLine2:
+          type: string
+          minLength: 0
+          maxLength: 34
+          example: Apt 2E
+          description: Second line of address; not required.
+        addressLine3:
+          type: string
+          minLength: 0
+          maxLength: 34
+          description: Third line of address; not required.
+          deprecated: true
+        buildingNumber:
+          type: string
+          minLength: 0
+          maxLength: 16
+          description: Building name or number if address is in a building
+        city:
+          type: string
+          minLength: 1
+          maxLength: 34
+          pattern: ^(.|\s)*\S(.|\s)*$
+          example: New York
+          description: Address city.
+        state:
+          type: string
+          maxLength: 30
+          example: NY
+          description: State code in alpha-2 format. State is mandatory for countries like United States.
+        postalCode:
+          type: string
+          maxLength: 10
+          example: '10014'
+          description: Postal/ZIP code.
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+    PartyType:
+      type: string
+      enum:
+      - INDIVIDUAL
+      - ORGANIZATION
+      nullable: false
+      example: INDIVIDUAL
+    RecipientContact:
+      type: object
+      required:
+      - contactType
+      - value
+      properties:
+        contactType:
+          type: string
+          nullable: false
+          enum:
+          - EMAIL
+          - WEBSITE
+          - PHONE
+          description: Type of contact information being provided
+          example: PHONE
+        countryCode:
+          type: string
+          pattern: ^\+[1-9]\d{0,2}$
+          description: |
+            E.164 format compatible telephone country code
+            Mandatory for contactType PHONE
+          example: '+1'
+        value:
+          type: string
+          nullable: false
+          minLength: 1
+          maxLength: 2048
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Contact information corresponding to contactType: 
+            PHONE - E.164-compliant telephone number (excluding country code).
+            EMAIL - Email address (addr-spec in Section 3.4 of RFC 5322).
+            WEBSITE - URL starting with http:// or https://.
+          example: '6316215110'
+    RecipientIdentity:
+      type: object
+      required:
+      - idType
+      - idValue
+      properties:
+        idType:
+          type: string
+          nullable: false
+          enum:
+          - USCC
+          - ORGANIZATION_ID
+          - NATIONAL_ID
+          - TAX_ID
+          - SSN
+          description: Type of identification
+          example: USCC
+        idValue:
+          minLength: 1
+          maxLength: 255
+          type: string
+          description: Identification value
+          example: 91310000717860841G
+    RecipientPartyDetails:
+      type: object
+      required:
+      - type
+      properties:
+        address:
+          $ref: '#/components/schemas/RecipientAddress'
+        type:
+          $ref: '#/components/schemas/PartyType'
+        firstName:
+          type: string
+          maxLength: 70
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient's first name. Mandatory for recipient type INDIVIDUAL.
+          example: Monica
+        lastName:
+          type: string
+          maxLength: 70
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient's last name. Mandatory for recipient type INDIVIDUAL.
+          example: Gellar
+        businessName:
+          type: string
+          maxLength: 140
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient company name. Mandatory for recipient type ORGANIZATION.
+          example: Central Park Getaways
+        alternativeName:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 140
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient optional alternative name
+          example: Central Park
+        contacts:
+          type: array
+          description: Contact details for the recipient.
+          items:
+            $ref: '#/components/schemas/RecipientContact'
+          minItems: 0
+        identities:
+          type: array
+          description: Identity details for the recipient.
+          items:
+            $ref: '#/components/schemas/RecipientIdentity'
+          minItems: 0
+    AccountNumber:
+      type: string
+      nullable: false
+      pattern: ^[A-Z0-9]{1,35}$
+      description: Demand Deposit Account number or International Account Number (IBAN).
+      example: '021000021'
+    AccountType:
+      type: string
+      nullable: false
+      enum:
+      - CHECKING
+      - IBAN
+      - SAVINGS
+      description: Type of bank account.
+      example: CHECKING
+    RoutingNumber:
+      type: string
+      nullable: false
+      minLength: 1
+      maxLength: 18
+      pattern: ^[A-Za-z0-9]([A-Za-z0-9\-]{0,16})[A-Za-z0-9]$
+      description: Routing number corresponding to the routing code type
+      example: '021000021'
+    RoutingInformationTransactionType:
+      type: string
+      nullable: false
+      enum:
+      - ACH
+      - RTP
+      - WIRE
+      description: Type of transaction.
+      example: RTP
+    RoutingCodeType:
+      type: string
+      nullable: false
+      enum:
+      - AUBSB
+      - BIC
+      - BRSTN
+      - CACPA
+      - CLABE
+      - CNAPS
+      - GBDSC
+      - HKNCC
+      - INFSC
+      - JPZGN
+      - NZNCC
+      - SGIBG
+      - USABA
+      description: Type of routing code.
+      example: USABA
+    RoutingInformation:
+      type: object
+      required:
+      - routingNumber
+      - transactionType
+      - routingCodeType
+      properties:
+        routingNumber:
+          $ref: '#/components/schemas/RoutingNumber'
+        transactionType:
+          $ref: '#/components/schemas/RoutingInformationTransactionType'
+        routingCodeType:
+          $ref: '#/components/schemas/RoutingCodeType'
+    CurrencyCode:
+      type: string
+      enum:
+      - AED
+      - ARS
+      - AUD
+      - BGN
+      - BRL
+      - CAD
+      - CHF
+      - CNY
+      - COP
+      - CRC
+      - CZK
+      - DKK
+      - EUR
+      - GBP
+      - HKD
+      - HUF
+      - IDR
+      - ILS
+      - INR
+      - ISK
+      - JPY
+      - KES
+      - KRW
+      - MAD
+      - MXN
+      - MYR
+      - NOK
+      - NZD
+      - PEN
+      - PHP
+      - PKR
+      - PLN
+      - RON
+      - SAR
+      - SEK
+      - SGD
+      - THB
+      - TRY
+      - TWD
+      - USD
+      - VND
+      - ZAR
+      description: Three letter currency code based on ISO 4217 standard
+      example: USD
+    RecipientAccount:
+      type: object
+      required:
+      - number
+      - countryCode
+      description: Bank account details of the recipient.
+      properties:
+        number:
+          $ref: '#/components/schemas/AccountNumber'
+        type:
+          $ref: '#/components/schemas/AccountType'
+        routingInformation:
+          type: array
+          description: Routing information.
+          items:
+            $ref: '#/components/schemas/RoutingInformation'
+          minItems: 1
+          maxItems: 3
+        currencyCode:
+          $ref: '#/components/schemas/CurrencyCode'
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+    MicroDeposit:
+      type: object
+      required:
+      - transactionType
+      description: Microdeposit details of the recipient.
+      properties:
+        transactionType:
+          description: Payment rail used to validate micro deposit by Account Validation Services.
+          type: string
+          enum:
+          - RTP
+          - ACH
+          nullable: true
+          example: RTP
+    ApiErrorReasonV2:
+      type: object
+      description: Schema representing detailed reasons for an API error, including code, location, and message.
+      required:
+      - message
+      properties:
+        code:
+          type: string
+          example: '11000'
+          description: Short code that identifies the error - publicly cataloged and documented
+          minLength: 0
+          maxLength: 5
+          nullable: true
+        location:
+          type: string
+          enum:
+          - BODY
+          - QUERY
+          - PATH
+          - HEADER
+          example: BODY
+          description: Part of the request which is responsible for the reason
+          nullable: true
+        field:
+          type: string
+          description: The location of the property or parameter in error
+          minLength: 0
+          maxLength: 512
+          nullable: true
+        message:
+          type: string
+          example: Client with ID 0031234567 does not exist.
+          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+          minLength: 0
+          maxLength: 2048
+    ApiError:
+      type: object
+      required:
+      - title
+      - httpStatus
+      - error
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 512
+          description: Short humanly-readable title of the error
+          example: BAD REQUEST
+        httpStatus:
+          type: integer
+          minimum: 100
+          maximum: 599
+          format: int32
+          description: HTTP status code
+          example: 422
+        traceId:
+          type: string
+          minLength: 0
+          maxLength: 512
+          description: Internal assigned traced identifier
+        requestId:
+          type: string
+          minLength: 0
+          maxLength: 512
+          description: Client provided request identifier
+        context:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiErrorReasonV2'
+          description: Provides additional context and detail on the validation errors
+          minItems: 0
+          maxItems: 100
+    Result:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Account validation response code
+          example: 1002
+        message:
+          type: string
+          description: Account validation response message, message is based on the code
+          example: Open Valid
+        description:
+          type: string
+          description: Account validation response description, description is based on the code
+          example: Multiple validations to the same account is restricted
+    Codes:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/Result'
+        accountScore:
+          $ref: '#/components/schemas/Result'
+        verification:
+          $ref: '#/components/schemas/Result'
+        authentication:
+          $ref: '#/components/schemas/Result'
+        verificationMicroDeposit:
+          $ref: '#/components/schemas/Result'
+        authenticationMicroDeposit:
+          $ref: '#/components/schemas/Result'
+    ClearingSystemId:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Routing number
+          example: '122199983'
+        idType:
+          type: string
+          description: Routing code
+          example: ABA
+    FinancialInstitutionId:
+      type: object
+      properties:
+        clearingSystemId:
+          $ref: '#/components/schemas/ClearingSystemId'
+    ProviderResponse:
+      description: Contains additional, unstructured information from the provider.
+      type: object
+      additionalProperties: true
+    Details:
+      type: object
+      properties:
+        accountNumber:
+          type: string
+          description: Account number
+          example: XXXXXXXX052
+        financialInstitutionId:
+          $ref: '#/components/schemas/FinancialInstitutionId'
+        paymentCheckContributingStatus:
+          type: string
+          description: Payment Check Contributing Status
+          example: Participant
+        providerResponse:
+          $ref: '#/components/schemas/ProviderResponse'
+    Responses:
+      type: object
+      properties:
+        codes:
+          $ref: '#/components/schemas/Codes'
+        provider:
+          type: string
+          description: Name of the entity that provided the validation
+          example: EWS
+        details:
+          $ref: '#/components/schemas/Details'
+    AccountValidationResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+          description: Unique identifier for a set of related requests
+          example: 53281d03-dfff-4094-a6d8-b43c29b92bef
+        profileName:
+          description: Profile name to identify account validation configuration
+          type: string
+        responses:
+          type: array
+          description: Account validation responses
+          items:
+            $ref: '#/components/schemas/Responses'
+          minItems: 0
+    CardHolderName:
+      type: string
+      minLength: 1
+      maxLength: 30
+      example: M GELLAR
+      pattern: '^[A-Za-z]+(?: [A-Za-z]+)*$'
+      description: Name on the credit/debit card
+    ExpiryDate:
+      type: string
+      description: Expiry date of card in the format YYMM
+      example: '3105'
+      pattern: ^(?:[0-9]{2})(0[1-9]|1[0-2])$
+    RecipientCard:
+      type: object
+      required:
+      - name
+      - pan
+      - expiryDate
+      properties:
+        name:
+          $ref: '#/components/schemas/CardHolderName'
+        pan:
+          type: string
+          minLength: 13
+          maxLength: 19
+          example: '*********0123'
+          pattern: ^\*{9,15}\d{4}$
+          description: A tokenized and masked card Primary Account Number (PAN)
+        expiryDate:
+          $ref: '#/components/schemas/ExpiryDate'
+    Recipient:
+      type: object
+      required:
+      - id
+      - partyDetails
+      properties:
+        id:
+          type: string
+          example: a8eb71c9-7bbb-41f2-8d9e-b0f52d1ecd71
+        partyDetails:
+          $ref: '#/components/schemas/RecipientPartyDetails'
+        partyId:
+          type: string
+          description: Related Party Identifier for Linked Accounts
+        account:
+          $ref: '#/components/schemas/RecipientAccount'
+        type:
+          $ref: '#/components/schemas/RecipientType'
+        status:
+          $ref: '#/components/schemas/RecipientStatus'
+        microDeposit:
+          $ref: '#/components/schemas/MicroDeposit'
+        clientId:
+          type: string
+          description: Client identifier
+          example: '0030000132'
+        createdAt:
+          description: The date and time the recipient was created
+          type: string
+          format: date-time
+          example: 2023-02-22T15:05:46.952+0000
+        updatedAt:
+          description: The date and time the recipient was last updated
+          type: string
+          format: date-time
+          example: 2023-02-22T16:05:46.952+0000
+        error:
+          $ref: '#/components/schemas/ApiError'
+        accountValidationResponse:
+          type: array
+          description: Account validation response
+          items:
+            $ref: '#/components/schemas/AccountValidationResponse'
+          minItems: 0
+          maxItems: 10
+        card:
+          $ref: '#/components/schemas/RecipientCard'
+    ListRecipientsResponse:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/PageMetaData'
+      - type: object
+        properties:
+          metadata:
+            $ref: '#/components/schemas/PageMetaData'
+          recipients:
+            type: array
+            description: Recipients available in current page
+            items:
+              $ref: '#/components/schemas/Recipient'
+            minItems: 0
+    RecipientRequest:
+      type: object
+      properties:
+        partyDetails:
+          $ref: '#/components/schemas/RecipientPartyDetails'
+        partyId:
+          type: string
+          description: Related Party Identifier for Linked Accounts
+        account:
+          $ref: '#/components/schemas/RecipientAccount'
+        type:
+          $ref: '#/components/schemas/RecipientType'
+        clientId:
+          type: string
+          description: Client identifier
+          example: '0030000132'
+        card:
+          type: object
+          required:
+          - name
+          - pan
+          - expiryDate
+          properties:
+            name:
+              $ref: '#/components/schemas/CardHolderName'
+            pan:
+              type: string
+              minLength: 13
+              maxLength: 19
+              example: '123456789123456'
+              pattern: ^\d{13,19}$
+              description: A card Primary Account Number (PAN)
+            expiryDate:
+              $ref: '#/components/schemas/ExpiryDate'
+    RecipientCardUpdate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/CardHolderName'
+        expiryDate:
+          $ref: '#/components/schemas/ExpiryDate'
+      additionalProperties: false
+    UpdateRecipientRequest:
+      type: object
+      properties:
+        partyDetails:
+          $ref: '#/components/schemas/RecipientPartyDetails'
+        status:
+          $ref: '#/components/schemas/RecipientStatus'
+        account:
+          $ref: '#/components/schemas/RecipientAccount'
+        card:
+          $ref: '#/components/schemas/RecipientCardUpdate'
+    MicrodepositAmounts:
+      type: object
+      required:
+      - amounts
+      description: Microdeposit amount verification
+      properties:
+        amounts:
+          type: array
+          items:
+            type: number
+          example:
+          - 0.12
+          - 0.58
+          minItems: 0
+    MicrodepositVerificationResponse:
+      type: object
+      required:
+      - status
+      description: Microdeposit verification outcome
+      properties:
+        status:
+          type: string
+          enum:
+          - VERIFIED
+          - FAILED
+          - FAILED_MAX_ATTEMPTS_EXCEEDED
+  responses:
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Bad Request
+              summary: Bad Request
+              value:
+                title: Bad Request
+                httpStatus: 400
+                error: BAD_REQUEST
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Unauthorized
+              summary: Unauthorized
+              value:
+                title: Unauthorized Request
+                httpStatus: 401
+                error: UNAUTHORIZED
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Forbidden
+              summary: Forbidden
+              value:
+                title: Forbidden
+                httpStatus: 403
+                error: FORBIDDEN
+    '404':
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Not Found
+              summary: Not Found
+              value:
+                title: Not Found
+                httpStatus: 404
+                error: NOT_FOUND
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Internal Server Error
+              summary: Internal Server Error
+              value:
+                title: Internal Server Error
+                httpStatus: 500
+                error: INTERNAL_SERVER_ERROR
+    '503':
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          examples:
+            Error:
+              description: Service Unavailable
+              summary: Service Unavailable
+              value:
+                title: Service Unavailable
+                httpStatus: 503
+                error: SERVICE_UNAVAILABLE
+  examples:
+    CreateRecipientReq:
+      summary: Create Recipient Req - ACH
+      description: Create Recipient request limited to ACH
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld NY
+          address:
+            addressType: Principal place of business
+            addressLine1: 129 West 81st St
+            addressLine2: Apt 4A
+            buildingNumber: '129'
+            city: New York
+            state: NY
+            postalCode: '10024'
+            countryCode: US
+          contacts:
+          - contactType: PHONE
+            countryCode: '+1'
+            value: '212569741'
+          identities:
+          - idType: SSN
+            idValue: '987654321'
+        account:
+          number: '0282119492'
+          type: SAVINGS
+          bankName: JPMC NY Branch
+          branchCode: NYC001
+          currencyCode: USD
+          countryCode: US
+          routingInformation:
+          - routingNumber: '021000021'
+            transactionType: ACH
+            routingCodeType: USABA
+        type: LINKED_ACCOUNT
+    CreateRecipientReqARS_AR:
+      summary: Create Recipient Req - ACH - ARS - AR
+      description: Create Recipient request limited to ACH for Argentina with ARS
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld AR
+          address:
+            addressType: Principal place of business
+            addressLine1: Av. Corrientes 1200
+            addressLine2: San Nicolas
+            buildingNumber: '1200'
+            city: Buenos Aires
+            state: C
+            postalCode: C1043AAL
+            countryCode: AR
+          contacts:
+          - contactType: EMAIL
+            value: jerry@seinfeldstaycation.com
+          - contactType: PHONE
+            countryCode: '+54'
+            value: '1130012233'
+          identities:
+          - idType: TAX_ID
+            idValue: '20123456789'
+        account:
+          number: '0720461888000012345678'
+          type: CHECKING
+          bankName: JPMC AR Branch
+          branchCode: BUE001
+          currencyCode: ARS
+          countryCode: AR
+          routingInformation:
+          - routingNumber: BARCARARRXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqBRL_BR:
+      summary: Create Recipient Req - ACH - BRL - BR
+      description: Create Recipient request limited to ACH for Brazil with BRL
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld BR
+          address:
+            addressType: Principal place of business
+            addressLine1: Avenida Paulista 1000
+            addressLine2: Bela Vista
+            buildingNumber: '1000'
+            city: Sao Paulo
+            state: SP
+            postalCode: 01310-100
+            countryCode: BR
+          contacts:
+          - contactType: PHONE
+            countryCode: '+55'
+            value: '1130012233'
+          identities:
+          - idType: TAX_ID
+            idValue: '12345678000195'
+        account:
+          number: '0282119492'
+          type: CHECKING
+          bankName: JPMC BR Branch
+          branchCode: SAO001
+          currencyCode: BRL
+          countryCode: BR
+          routingInformation:
+          - routingNumber: BRASBRRJXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqCHF_CH:
+      summary: Create Recipient Req - ACH - CHF - CH
+      description: Create Recipient request limited to ACH for Switzerland with CHF
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld CH
+          address:
+            addressType: Principal place of business
+            addressLine1: Bahnhofstrasse 20
+            addressLine2: Kreis 1
+            buildingNumber: '20'
+            city: Zurich
+            state: ZH
+            postalCode: '8001'
+            countryCode: CH
+          contacts:
+          - contactType: PHONE
+            countryCode: '+41'
+            value: '443001122'
+          identities:
+          - idType: NATIONAL_ID
+            idValue: '1234567890'
+        account:
+          number: CH9300762011623852957
+          type: IBAN
+          bankName: JPMC CH Branch
+          branchCode: ZRH001
+          currencyCode: CHF
+          countryCode: CH
+          routingInformation:
+          - routingNumber: UBSWCHZHXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqCOP_CO:
+      summary: Create Recipient Req - ACH - COP - CO
+      description: Create Recipient request limited to ACH for Colombia with COP
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld CO
+          address:
+            addressType: Principal place of business
+            addressLine1: 'Calle 72 #10-34'
+            addressLine2: Chapinero
+            buildingNumber: '72'
+            city: Bogota
+            state: DC
+            postalCode: '110221'
+            countryCode: CO
+          contacts:
+          - contactType: PHONE
+            countryCode: '+57'
+            value: '6013001122'
+          identities:
+          - idType: NATIONAL_ID
+            idValue: '9001234567'
+        account:
+          number: '0282119492'
+          type: SAVINGS
+          bankName: JPMC CO Branch
+          branchCode: BOG001
+          currencyCode: COP
+          countryCode: CO
+          routingInformation:
+          - routingNumber: COLOCOBMXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqCRC_CR:
+      summary: Create Recipient Req - ACH - CRC - CR
+      description: Create Recipient request limited to ACH for Costa Rica with CRC
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld CR
+          address:
+            addressType: Principal place of business
+            addressLine1: Avenida Central 100
+            addressLine2: Catedral
+            buildingNumber: '100'
+            city: San Jose
+            state: SJ
+            postalCode: '10101'
+            countryCode: CR
+          contacts:
+          - contactType: PHONE
+            countryCode: '+506'
+            value: '22334455'
+          identities:
+          - idType: ORGANIZATION_ID
+            idValue: '3101234567'
+        account:
+          number: CR05015202001026284066
+          type: IBAN
+          bankName: JPMC CR Branch
+          branchCode: SJO001
+          currencyCode: CRC
+          countryCode: CR
+          routingInformation:
+          - routingNumber: BNCRCRSXQUI
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqCZK_CZ:
+      summary: Create Recipient Req - ACH - CZK - CZ
+      description: Create Recipient request limited to ACH for Czech Republic with CZK
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld CZ
+          address:
+            addressType: Principal place of business
+            addressLine1: Vaclavske namesti 10
+            addressLine2: Nove Mesto
+            buildingNumber: '10'
+            city: Prague
+            state: PR
+            postalCode: '11000'
+            countryCode: CZ
+          contacts:
+          - contactType: PHONE
+            countryCode: '+420'
+            value: '221300112'
+          identities:
+          - idType: TAX_ID
+            idValue: '1234567890'
+        account:
+          number: CZ6508000000192000145399
+          type: IBAN
+          bankName: JPMC CZ Branch
+          branchCode: PRG001
+          currencyCode: CZK
+          countryCode: CZ
+          routingInformation:
+          - routingNumber: GIBACZPXXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqDKK_DK:
+      summary: Create Recipient Req - ACH - DKK - DK
+      description: Create Recipient request limited to ACH for Denmark with DKK
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld DK
+          address:
+            addressType: Principal place of business
+            addressLine1: Ostergade 15
+            addressLine2: Indre By
+            buildingNumber: '15'
+            city: Copenhagen
+            state: '84'
+            postalCode: '1100'
+            countryCode: DK
+          contacts:
+          - contactType: PHONE
+            countryCode: '+45'
+            value: '33112233'
+          identities:
+          - idType: TAX_ID
+            idValue: '1234567890'
+        account:
+          number: DK5000400440116243
+          type: IBAN
+          bankName: JPMC DK Branch
+          branchCode: CPH001
+          currencyCode: DKK
+          countryCode: DK
+          routingInformation:
+          - routingNumber: DABADKKKXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqHUF_HU:
+      summary: Create Recipient Req - ACH - HUF - HU
+      description: Create Recipient request limited to ACH for Hungary with HUF
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld HU
+          address:
+            addressType: Principal place of business
+            addressLine1: Andrassy ut 60
+            addressLine2: Terezvaros
+            buildingNumber: '60'
+            city: Budapest
+            state: BU
+            postalCode: '1062'
+            countryCode: HU
+          contacts:
+          - contactType: PHONE
+            countryCode: '+36'
+            value: '13001122'
+          identities:
+          - idType: TAX_ID
+            idValue: '1234567890'
+        account:
+          number: HU42117730161111101800000000
+          type: IBAN
+          bankName: JPMC HU Branch
+          branchCode: BUD001
+          currencyCode: HUF
+          countryCode: HU
+          routingInformation:
+          - routingNumber: OTPVHUHBXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqIDR_ID:
+      summary: Create Recipient Req - ACH - IDR - ID
+      description: Create Recipient request limited to ACH for Indonesia with IDR
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld ID
+          address:
+            addressType: Principal place of business
+            addressLine1: Jl. Sudirman Kav 52
+            addressLine2: Jakarta
+            buildingNumber: '52'
+            city: Jakarta
+            state: JK
+            postalCode: '12190'
+            countryCode: ID
+          contacts:
+          - contactType: PHONE
+            countryCode: '+62'
+            value: '213001122'
+          identities:
+          - idType: TAX_ID
+            idValue: '1234567890'
+        account:
+          number: '0282119492'
+          type: CHECKING
+          bankName: JPMC ID Branch
+          branchCode: JKT001
+          currencyCode: IDR
+          countryCode: ID
+          routingInformation:
+          - routingNumber: CENAIDJAXXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqILS_IL:
+      summary: Create Recipient Req - ACH - ILS - IL
+      description: Create Recipient request limited to ACH for Israel with ILS
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld IL
+          address:
+            addressType: Principal place of business
+            addressLine1: Ibn Gabirol 30
+            addressLine2: Tel Aviv-Yafo
+            buildingNumber: '30'
+            city: Tel Aviv
+            state: TA
+            postalCode: '6407807'
+            countryCode: IL
+          contacts:
+          - contactType: PHONE
+            countryCode: '+972'
+            value: '33001122'
+          identities:
+          - idType: TAX_ID
+            idValue: '12345678'
+        account:
+          number: IL620108000000099999999
+          type: IBAN
+          bankName: JPMC IL Branch
+          branchCode: TLV001
+          currencyCode: ILS
+          countryCode: IL
+          routingInformation:
+          - routingNumber: POALILIJXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqMYR_MY:
+      summary: Create Recipient Req - ACH - MYR - MY
+      description: Create Recipient request limited to ACH for Malaysia with MYR
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld MY
+          address:
+            addressType: Principal place of business
+            addressLine1: Jalan Ampang 88
+            addressLine2: Kuala Lumpur
+            buildingNumber: '88'
+            city: Kuala Lumpur
+            state: KUL
+            postalCode: '50450'
+            countryCode: MY
+          contacts:
+          - contactType: PHONE
+            countryCode: '+60'
+            value: '33001122'
+          identities:
+          - idType: TAX_ID
+            idValue: '1234567890'
+        account:
+          number: '0282119492'
+          type: CHECKING
+          bankName: JPMC MY Branch
+          branchCode: KUL001
+          currencyCode: MYR
+          countryCode: MY
+          routingInformation:
+          - routingNumber: MBBEMYKLXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqNOK_NO:
+      summary: Create Recipient Req - ACH - NOK - NO
+      description: Create Recipient request limited to ACH for Norway with NOK
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld NO
+          address:
+            addressType: Principal place of business
+            addressLine1: Karl Johans gate 25
+            addressLine2: Sentrum
+            buildingNumber: '25'
+            city: Oslo
+            state: '03'
+            postalCode: '0159'
+            countryCode: NO
+          contacts:
+          - contactType: PHONE
+            countryCode: '+47'
+            value: '22334455'
+          identities:
+          - idType: NATIONAL_ID
+            idValue: '1234567890'
+        account:
+          number: NO9386011117947
+          type: IBAN
+          bankName: JPMC NO Branch
+          branchCode: OSL001
+          currencyCode: NOK
+          countryCode: NO
+          routingInformation:
+          - routingNumber: DNBANOKKNOK
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqPEN_PE:
+      summary: Create Recipient Req - ACH - PEN - PE
+      description: Create Recipient request limited to ACH for Peru with PEN
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld PE
+          address:
+            addressType: Principal place of business
+            addressLine1: Av. Arequipa 123
+            addressLine2: Miraflores
+            buildingNumber: '123'
+            city: Lima
+            state: LIMA
+            postalCode: '15074'
+            countryCode: PE
+          contacts:
+          - contactType: PHONE
+            countryCode: '+51'
+            value: '13001122'
+          identities:
+          - idType: TAX_ID
+            idValue: '20100070970'
+        account:
+          number: '00219800730200007671'
+          type: CHECKING
+          bankName: JPMC PE Branch
+          branchCode: LIM001
+          currencyCode: PEN
+          countryCode: PE
+          routingInformation:
+          - routingNumber: BCONPEPLXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientReqSEK_SE:
+      summary: Create Recipient Req - ACH - SEK - SE
+      description: Create Recipient request limited to ACH for Sweden with SEK
+      value:
+        clientId: '1000010401'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld SE
+          address:
+            addressType: Principal place of business
+            addressLine1: Drottninggatan 50
+            addressLine2: Norrmalm
+            buildingNumber: '50'
+            city: Stockholm
+            state: AB
+            postalCode: '11121'
+            countryCode: SE
+          identities:
+          - idType: TAX_ID
+            idValue: '1234567890'
+        account:
+          number: SE4550000000058398257466
+          type: IBAN
+          bankName: JPMC SE Branch
+          branchCode: STO001
+          currencyCode: SEK
+          countryCode: SE
+          routingInformation:
+          - routingNumber: ESSESESSXXX
+            transactionType: ACH
+            routingCodeType: BIC
+        type: RECIPIENT
+    CreateRecipientRes:
+      summary: Create Recipient - Sole Prop
+      description: Create Recipient - Sole Prop
+      value:
+        clientId: '1000010400'
+        partyId: '2000000111'
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        partyDetails:
+          address:
+            addressLine1: 90 Bedford Street
+            addressLine2: Apt 2E
+            city: New York
+            countryCode: US
+            state: NY
+            postalCode: '10014'
+          firstName: Monica
+          lastName: Gellar
+          type: INDIVIDUAL
+          contacts:
+          - contactType: PHONE
+            countryCode: '+1'
+            value: '6316215110'
+        account:
+          number: '0182119492'
+          type: CHECKING
+          routingInformation:
+          - routingNumber: '541798298'
+            transactionType: RTP
+            routingCodeType: USABA
+          countryCode: US
+        type: SETTLEMENT_ACCOUNT
+        status: ACTIVE
+        createdAt: 2023-02-22T15:05:46.952+0000
+        accountValidationResponse:
+        - requestId: 81950670-d6b3-4fbb-bcce-20169d7a85d3
+          profileName: verificationauth
+          responses:
+          - codes:
+              verification:
+                code: 1002
+                message: Open valid
+              authentication:
+                code: 5002
+                message: Ownership Match
+            provider: EWS
+            details:
+              accountNumber: XXXXXXXX052
+              financialInstitutionId:
+                clearingSystemId:
+                  id: '987654321'
+                  idType: ABA
+    CreatePaymentIntentRecipientRes:
+      summary: Create Recipient - Payment Intent
+      description: Create Recipient - Payment Intent
+      value:
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        partyDetails:
+          firstName: Monica
+          lastName: Gellar
+          type: INDIVIDUAL
+          contacts:
+          - contactType: EMAIL
+            value: monica@cpgetaways.com
+        type: RECIPIENT
+        status: ACTIVE
+        createdAt: 2023-02-22T15:05:46.952+0000
+    GetRecipientRes:
+      summary: Get Recipient By Id - Sole Prop
+      description: Get Recipient By Id - Sole Prop
+      value:
+        clientId: '1000010400'
+        partyId: '2000000111'
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        partyDetails:
+          address:
+            addressLine1: 90 Bedford Street
+            addressLine2: Apt 2E
+            city: New York
+            countryCode: US
+            state: NY
+            postalCode: '10014'
+          type: ORGANIZATION
+          firstName: Monica
+          lastName: Gellar
+          businessName: Central Park Getaways
+          contacts:
+          - contactType: PHONE
+            countryCode: '+1'
+            value: '6316215110'
+        account:
+          number: '0182119492'
+          type: CHECKING
+          routingInformation:
+          - routingNumber: '541798298'
+            transactionType: RTP
+            routingCodeType: USABA
+          countryCode: US
+        type: LINKED_ACCOUNT
+        status: ACTIVE
+        error:
+          title: Bad Request
+          httpStatus: 400
+          error: BAD_REQUEST
+          message: ABA routing number 541798298 not found
+          context:
+          - message: ABA routing number 541798298 not found
+    GetPaymentIntentRecipientRes:
+      summary: Get Recipient By Id - Payment Intent
+      description: Get Recipient By Id - Payment Intent
+      value:
+        clientId: '1000010400'
+        partyId: '2000000111'
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Monica
+          lastName: Gellar
+          businessName: Central Park Getaways
+          contacts:
+          - contactType: EMAIL
+            value: monica@cpgetaways.com
+        type: RECIPIENT
+        status: ACTIVE
+    UpdateRecipientReq:
+      summary: Update Recipient Request
+      description: 'Updated values: ACTIVE'
+      value:
+        platformId: '0005191231'
+        clientId: '1000010401'
+        status: ACTIVE
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Jerry
+          lastName: Seinfeld
+          businessName: The Seinfeld Staycation
+          alternativeName: Seinfeld NY
+          address:
+            addressType: Principal place of business
+            addressLine1: 129 West 81st St
+            addressLine2: Apt 4A
+            city: New York
+            state: NY
+            postalCode: '10024'
+            countryCode: US
+          contacts:
+          - contactType: PHONE
+            countryCode: '+1'
+            value: '212569741'
+          identities:
+          - idType: SSN
+            idValue: '987654321'
+        type: RECIPIENT
+        account:
+          number: '0282119492'
+          type: SAVINGS
+          currencyCode: USD
+          countryCode: US
+          routingInformation:
+          - routingNumber: '021000021'
+            transactionType: ACH
+            routingCodeType: USABA
+    UpdateRecipientRes:
+      summary: Update Recipient By Id - Sole Prop
+      description: Update Recipient By Id - Sole Prop
+      value:
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        clientId: '1000010400'
+        partyId: '2000000111'
+        partyDetails:
+          address:
+            addressLine1: 90 Bedford Street
+            addressLine2: Apt 2E
+            city: New York
+            countryCode: US
+            state: NY
+            postalCode: '10014'
+          type: INDIVIDUAL
+          firstName: Monica
+          lastName: Gellar
+          businessName: Central Park Getaways
+          contacts:
+          - contactType: PHONE
+            countryCode: '+1'
+            value: '6316215110'
+        account:
+          number: '0182119492'
+          type: CHECKING
+          routingInformation:
+          - routingNumber: '541798298'
+            transactionType: RTP
+            routingCodeType: USABA
+          countryCode: US
+        type: LINKED_ACCOUNT
+        status: INACTIVE
+    UpdatePaymentIntentRecipientRes:
+      summary: Update Recipient By Id - Payment Intent
+      description: Update Recipient By Id - Payment Intent
+      value:
+        id: 616d93a1-ce53-4c71-b03b-02a11396db28
+        clientId: '1000010400'
+        partyId: '2000000111'
+        partyDetails:
+          type: INDIVIDUAL
+          firstName: Monica
+          lastName: Gellar
+          contacts:
+          - contactType: EMAIL
+            value: monica@cpgetaways.com
+        type: RECIPIENT
+        status: INACTIVE

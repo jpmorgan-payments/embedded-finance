@@ -187,15 +187,29 @@ function validateAccountHolder(
  */
 function validateBankAccountDetails(
   data: BankAccountSuperRefineData,
+  config: BankAccountFormConfig,
   v: ValidationGetter,
   ctx: z.RefinementCtx
 ): void {
+  const intl = config.internationalFieldConfig;
+
   if (!data.accountNumber || data.accountNumber.trim().length === 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: v('fields.accountNumber.validation.required'),
       path: ['accountNumber'],
     });
+  } else if (intl?.accountNumberFormat) {
+    // Cross-border: IBAN/CLABE/local numbers may contain letters. Enforce
+    // alphanumeric (spaces allowed for grouped IBAN entry) instead of US
+    // digits-only.
+    if (!/^[A-Za-z0-9\s]+$/.test(data.accountNumber)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v('fields.accountNumber.validation.invalidCharacters'),
+        path: ['accountNumber'],
+      });
+    }
   } else if (!/^\d+$/.test(data.accountNumber)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -204,7 +218,9 @@ function validateBankAccountDetails(
     });
   }
 
-  if (!data.bankAccountType) {
+  // The checking/savings account type is not meaningful for every destination
+  // (e.g. IBAN countries, CLABE, Brazil); the FX wrapper hides it there.
+  if (!intl?.hideBankAccountType && !data.bankAccountType) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: v('fields.accountType.validation.required'),
@@ -250,8 +266,12 @@ function validateRoutingNumberForMethod(
     return;
   }
 
-  // Validate routing number format (always 9 digits)
-  if (!/^\d{9}$/.test(routingEntry.routingNumber)) {
+  // Validate routing number format (always 9 digits) unless the FX wrapper
+  // relaxes it for non-US routing codes (BSB, IFSC, sort code, SWIFT/BIC, …).
+  if (
+    !config.internationalFieldConfig?.relaxRoutingFormat &&
+    !/^\d{9}$/.test(routingEntry.routingNumber)
+  ) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: v('routingNumbers.validation.digits'),
@@ -282,6 +302,25 @@ function validateRoutingNumbers(
   ctx: z.RefinementCtx,
   selectedMethods: RoutingInformationTransactionType[]
 ): void {
+  const intl = config.internationalFieldConfig;
+  // Cross-border (FX): a single shared bank/routing code applies regardless of
+  // the selected rail. It is hidden for formats that embed it (CLABE) and
+  // optional for IBAN currencies (BIC/SWIFT). Validated once at index 0.
+  if (intl) {
+    if (intl.hideRoutingNumber) {
+      return;
+    }
+    const value = data.routingNumbers?.[0]?.routingNumber?.trim() ?? '';
+    if (!value && intl.routingCodeRequired !== false) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v('routingNumbers.validation.codeRequired'),
+        path: ['routingNumbers', 0, 'routingNumber'],
+      });
+    }
+    return;
+  }
+
   selectedMethods.forEach((method, methodIndex) => {
     validateRoutingNumberForMethod(method, methodIndex, data, config, v, ctx);
   });
@@ -490,7 +529,7 @@ export function createBankAccountFormSchema(
     validateAccountHolder(data, v, ctx);
 
     // 2. Bank account details (always required)
-    validateBankAccountDetails(data, v, ctx);
+    validateBankAccountDetails(data, config, v, ctx);
 
     // 3. Routing numbers for each selected payment method
     validateRoutingNumbers(data, config, v, ctx, selectedMethods);

@@ -686,6 +686,7 @@
     "countryOfResidence": {
       "label": "Pays de résidence",
       "tooltip": "",
+      "placeholder": "Sélectionner le pays",
       "description": {
         "default": "Veuillez sélectionner votre pays de résidence actuel",
         "soleProp": "En tant que travailleur autonome, votre pays de résidence est fixé aux États-Unis",

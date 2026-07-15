@@ -56,9 +56,12 @@
     "singleMethodLabel": "{{method}} Routing Number",
     "combinedMethodLabel": "{{methods}} Routing Number",
     "placeholder": "Enter 9-digit routing number",
+    "internationalPlaceholder": "Enter the bank / routing code",
+    "optionalSuffix": "(optional)",
     "validation": {
       "required": "Routing number is required for {{method}}",
-      "digits": "Routing number must be 9 digits"
+      "digits": "Routing number must be 9 digits",
+      "codeRequired": "Bank / routing code is required"
     }
   },
   "requiredFor": {
@@ -140,6 +143,7 @@
       "validation": {
         "required": "Account number is required",
         "digitsOnly": "Account number must contain only digits",
+        "invalidCharacters": "Account number can only contain letters and numbers",
         "duplicate": "An account with this account and routing number is already linked"
       }
     },

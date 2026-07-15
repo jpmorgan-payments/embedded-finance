@@ -2,6 +2,7 @@ import type {
   Recipient,
   RecipientRequest,
   RecipientType,
+  RoutingCodeType,
   RoutingInformation,
 } from '@/api/generated/ep-recipients.schemas';
 
@@ -103,11 +104,15 @@ export function bankAccountFormDataToDisplayRecipient(
  *
  * @param data - The form data from BankAccountForm
  * @param recipientType - The type of recipient ('LINKED_ACCOUNT' or 'RECIPIENT')
+ * @param routingCodeType - Routing code type for the account's routing information.
+ *   Defaults to `USABA` (domestic). International FX recipients pass the currency's
+ *   canonical code (e.g. `AUBSB`, `INFSC`, `BIC`) resolved from the FX config map.
  * @returns The API payload ready for submission
  */
 export function transformBankAccountFormToRecipientPayload(
   data: BankAccountFormData,
-  recipientType: RecipientType
+  recipientType: RecipientType,
+  routingCodeType: RoutingCodeType = 'USABA'
 ): RecipientRequest {
   const sourceRoutingNumbers =
     recipientType === 'LINKED_ACCOUNT'
@@ -116,7 +121,7 @@ export function transformBankAccountFormToRecipientPayload(
 
   const routingInformation: RoutingInformation[] = sourceRoutingNumbers.map(
     (routingConfig) => ({
-      routingCodeType: 'USABA' as const,
+      routingCodeType,
       routingNumber: routingConfig.routingNumber,
       transactionType: routingConfig.paymentType,
     })
