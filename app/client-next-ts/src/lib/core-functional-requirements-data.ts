@@ -47,19 +47,6 @@ export const CORE_COMPONENT_FUNCTIONAL_REQUIREMENTS: CoreComponentRequirementsEn
       docs: [{ file: 'FUNCTIONAL_REQUIREMENTS.md' }],
     },
     {
-      folder: 'MakePayment',
-      title: 'MakePayment',
-      description:
-        'Payment amount, funding account, recipient, and submission UX.',
-      docs: [
-        { file: 'FUNCTIONAL_REQUIREMENTS.md' },
-        {
-          file: 'MAKE_PAYMENT_REQUIREMENTS.md',
-          label: 'Make payment requirements (detailed)',
-        },
-      ],
-    },
-    {
       folder: 'OnboardingFlow',
       title: 'OnboardingFlow',
       description:
@@ -70,13 +57,23 @@ export const CORE_COMPONENT_FUNCTIONAL_REQUIREMENTS: CoreComponentRequirementsEn
       folder: 'PaymentFlow',
       title: 'PaymentFlow',
       description:
-        'End-to-end payment flow UI (inline and embedded), including routing and states.',
+        'Domestic USD payment flow UI (dialog and inline), including routing and states.',
       docs: [
         { file: 'FUNCTIONAL_REQUIREMENTS.md' },
         {
           file: 'REQUIREMENTS.md',
           label: 'Payment flow requirements (overview)',
         },
+      ],
+    },
+    {
+      folder: 'PaymentFlowFX',
+      title: 'PaymentFlowFX',
+      description:
+        'Cross-border / multicurrency payouts (Beta) — FX quote, rate sheet, V3 submit.',
+      docs: [
+        { file: 'README.md', label: 'Developer quick reference' },
+        { file: 'SPECIFICATION.md', label: 'FX specification' },
       ],
     },
     {

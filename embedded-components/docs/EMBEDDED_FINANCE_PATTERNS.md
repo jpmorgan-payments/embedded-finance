@@ -74,41 +74,43 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 
 ### Implementation Status Matrix
 
-| Pattern                     | OnboardingFlow | Accounts | LinkedAccountWidget | TransactionsDisplay | RecipientsWidget |
-| --------------------------- | -------------- | -------- | ------------------- | ------------------- | ---------------- |
+> Columns added July 2026: **PaymentFlow**, **ClientDetails**, **PaymentFlowFX** (Beta). Statuses are maintainer estimates from code/docs — re-verify before closing related backlog items.
+
+| Pattern                     | OnboardingFlow | Accounts | LinkedAccountWidget | TransactionsDisplay | RecipientsWidget | PaymentFlow | ClientDetails | PaymentFlowFX (Beta) |
+| --------------------------- | -------------- | -------- | ------------------- | ------------------- | ---------------- | ----------- | ------------- | -------------------- |
 | **Data Display & Security** |
-| Sensitive Data Masking      | -              | ✅       | -                   | ⚠️ Needs            | ⚠️ Partial       |
-| Status Badges               | -              | ✅       | ✅                  | ✅                  | ✅               |
-| Compact Details             | -              | ⚠️ Needs | ⚠️ Needs            | ✅                  | ✅               |
-| Field Toggle                | -              | ✅       | -                   | ✅                  | ⚠️ Needs         |
-| Detail Navigation           | -              | ⚠️ Needs | ⚠️ Needs            | ✅ (Dialog)         | ✅ (Dialog)      |
+| Sensitive Data Masking      | -              | ✅       | -                   | ⚠️ Needs            | ⚠️ Partial       | ⚠️ Partial  | ⚠️ Partial    | ⚠️ Partial           |
+| Status Badges               | -              | ✅       | ✅                  | ✅                  | ✅               | -           | ✅            | -                    |
+| Compact Details             | -              | ⚠️ Needs | ⚠️ Needs            | ✅                  | ✅               | ✅          | ✅            | ✅                   |
+| Field Toggle                | -              | ✅       | -                   | ✅                  | ⚠️ Needs         | -           | ⚠️ Needs      | -                    |
+| Detail Navigation           | -              | ⚠️ Needs | ⚠️ Needs            | ✅ (Dialog)         | ✅ (Dialog)      | -           | ✅            | -                    |
 | **Forms & Validation**      |
-| Progressive Validation      | ⚠️ Partial     | -        | -                   | -                   | ✅               |
-| Dialog Forms                | ⚠️ Partial     | -        | ✅                  | -                   | ✅               |
-| Multi-Mode Forms            | -              | -        | ⚠️ Needs            | -                   | ⚠️ Low Prio      |
-| Config-Driven Forms         | ⚠️ Partial     | -        | -                   | -                   | ✅               |
-| Wizard/Stepper              | ✅             | -        | ⚠️ Needs            | -                   | -                |
-| Review Panel                | ⚠️ Needs       | -        | -                   | -                   | ⚠️ Low Prio      |
+| Progressive Validation      | ⚠️ Partial     | -        | -                   | -                   | ✅               | ✅          | -             | ✅                   |
+| Dialog Forms                | ⚠️ Partial     | -        | ✅                  | -                   | ✅               | ✅          | -             | ✅                   |
+| Multi-Mode Forms            | -              | -        | ⚠️ Needs            | -                   | ⚠️ Low Prio      | ✅          | -             | ✅                   |
+| Config-Driven Forms         | ⚠️ Partial     | -        | -                   | -                   | ✅               | ⚠️ Partial  | -             | ⚠️ Partial           |
+| Wizard/Stepper              | ✅             | -        | ⚠️ Needs            | -                   | -                | ✅          | -             | ✅                   |
+| Review Panel                | ⚠️ Needs       | -        | -                   | -                   | ⚠️ Low Prio      | ✅          | -             | ✅                   |
 | **Data Tables & Lists**     |
-| Responsive Table/Cards      | -              | ✅       | -                   | ✅                  | ✅               |
-| Enhanced Data Grid          | -              | -        | -                   | ✅                  | ⚠️ Needs         |
-| Filter & Search             | -              | -        | -                   | ✅                  | ✅               |
-| Pagination                  | -              | -        | -                   | ✅                  | ✅               |
+| Responsive Table/Cards      | -              | ✅       | -                   | ✅                  | ✅               | -           | -             | -                    |
+| Enhanced Data Grid          | -              | -        | -                   | ✅                  | ⚠️ Needs         | -           | -             | -                    |
+| Filter & Search             | -              | -        | -                   | ✅                  | ✅               | -           | -             | -                    |
+| Pagination                  | -              | -        | -                   | ✅                  | ✅               | -           | -             | -                    |
 | **User Feedback & States**  |
-| Loading Skeletons           | ⚠️ Partial     | ✅       | ✅                  | ⚠️ Needs            | ✅               |
-| Error with Retry            | ✅             | ✅       | ✅                  | ✅                  | ✅               |
-| Empty States                | -              | ✅       | ✅                  | ⚠️ Basic            | ✅               |
-| Success States              | -              | -        | ⚠️ Needs            | -                   | ⚠️ Needs         |
+| Loading Skeletons           | ⚠️ Partial     | ✅       | ✅                  | ⚠️ Needs            | ✅               | ✅          | ✅            | ✅                   |
+| Error with Retry            | ✅             | ✅       | ✅                  | ✅                  | ✅               | ✅          | ✅            | ✅                   |
+| Empty States                | -              | ✅       | ✅                  | ⚠️ Basic            | ✅               | ✅          | ⚠️ Basic      | ✅                   |
+| Success States              | -              | -        | ⚠️ Needs            | -                   | ⚠️ Needs         | ✅          | -             | ✅                   |
 | **Navigation & Flow**       |
-| Timeline/Progress           | ✅             | -        | ⚠️ Needs            | -                   | -                |
-| Container Queries           | -              | ✅       | ✅                  | -                   | ✅               |
+| Timeline/Progress           | ✅             | -        | ⚠️ Needs            | -                   | -                | -           | -             | -                    |
+| Container Queries           | -              | ✅       | ✅                  | -                   | ✅               | ⚠️ Partial  | ⚠️ Needs      | ⚠️ Partial           |
 | **Component Control**       |
-| Ref Control                 | -              | ✅       | ⚠️ Needs            | ✅                  | ⚠️ Needs         |
-| Clipboard Copy              | -              | ✅       | -                   | ✅                  | ⚠️ Needs         |
-| Confirmation Dialog         | -              | -        | ✅                  | -                   | ✅               |
-| Staggered Animation         | -              | ✅       | ✅                  | ⚠️ Needs            | ⚠️ Needs         |
+| Ref Control                 | -              | ✅       | ⚠️ Needs            | ✅                  | ⚠️ Needs         | ⚠️ Needs    | -             | ⚠️ Needs             |
+| Clipboard Copy              | -              | ✅       | -                   | ✅                  | ⚠️ Needs         | ⚠️ Needs    | ⚠️ Needs      | ⚠️ Needs             |
+| Confirmation Dialog         | -              | -        | ✅                  | -                   | ✅               | -           | -             | -                    |
+| Staggered Animation         | -              | ✅       | ✅                  | ⚠️ Needs            | ⚠️ Needs         | -           | -             | -                    |
 | **Technical Patterns**      |
-| i18n Integration            | ✅             | ✅       | ✅                  | ⚠️ Needs            | ⚠️ Needs         |
+| i18n Integration            | ✅             | ✅       | ✅                  | ⚠️ Needs            | ⚠️ Needs         | ✅          | ✅            | ✅                   |
 
 **Legend**:
 
@@ -119,7 +121,7 @@ This matrix tracks the implementation status of UI/UX patterns across all embedd
 - ⚠️ Low Prio = Pattern would be nice-to-have but lower priority for this component
 - - = Not applicable
 
-> **Legacy Recipients:** The deprecated `Recipients` component is tracked separately and should not be used for new implementations.
+> **Removed APIs:** Legacy `Recipients` / `MakePayment` are gone — use `RecipientsWidget` / `PaymentFlow` (and `PaymentFlowFX` for FX Beta). Do not add matrix columns for removed components.
 
 ### UX Testing Findings Integration
 
@@ -127,13 +129,13 @@ Based on the UX Testing Report (December 2, 2025), the following issues have bee
 
 **Critical Issues Identified:**
 
-- **Make Payment**: Form discoverability issue (hidden behind button) - Review Panel pattern needs improvement
+- **PaymentFlow** (was Make Payment): Form discoverability / review-panel polish still tracked in BACKLOG
 - **Button Style Inconsistency**: Status Badges pattern needs standardization across all components
 - **Account Number Masking**: Inconsistent masking patterns (4 vs 8 asterisks) - Sensitive Data Masking needs standardization
 - **Filter Labels**: Inconsistent capitalization ("All Status" vs "All statuses") - Filter & Search pattern needs standardization
 - **Pagination Format**: Inconsistent text formats - Pagination pattern needs standardization
 - **Missing Tooltips**: Icon-only buttons lack tooltips - Component Control patterns need enhancement
-- **Responsive Design**: Legacy Recipients table has horizontal scrollbar - Responsive Table/Cards needs improvement
+- **Responsive Design**: Recipient widget tables — Responsive Table/Cards needs improvement
 - **Data Quality**: Many "N/A" values and "$NaN" display issues - Compact Details and Field Toggle patterns need refinement
 
 ---
@@ -2974,4 +2976,4 @@ const contentTokens = useContext(ContentTokensContext);
 
 ---
 
-_Last Updated: July 16, 2026 — Naming aligned with current public API (`PaymentFlow` replaces `MakePayment`; `RecipientsWidget` replaces legacy `Recipients`). Pattern matrix columns still need a dedicated PaymentFlow / ClientDetails / PaymentFlowFX refresh pass._
+_Last Updated: July 16, 2026 — Naming aligned with current public API (`PaymentFlow` replaces `MakePayment`; `RecipientsWidget` replaces legacy `Recipients`). Pattern matrix includes PaymentFlow, ClientDetails, and PaymentFlowFX (Beta) columns._

@@ -24,7 +24,7 @@ const stories = [
     id: 'partially-hosted-onboarding' as const,
     title: 'Partially Hosted UI Integration Guide',
     excerpt:
-      'Integrate the hosted Onboarding UI into your platform with session transfer, iframe embedding, postMessage, and security guidance. Source: PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md.',
+      'Integrate the hosted Onboarding UI into your platform with session transfer, iframe embedding, postMessage, and security guidance. Source: PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md.',
     date: '2026-03-12',
     readTime: '25 min read',
     tags: ['Onboarding', 'Hosted UI', 'Integration'],

@@ -23,7 +23,7 @@ export function RecipesSection() {
       id: 'partially-hosted-onboarding',
       title: 'Partially Hosted UI Integration Guide',
       excerpt:
-        'Session transfer, iframe embedding, postMessage, and security for the hosted onboarding experience (PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md).',
+        'Session transfer, iframe embedding, postMessage, and security for the hosted onboarding experience (PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md).',
       date: '2026-03-12',
       readTime: '25 min read',
       tags: ['Onboarding', 'Hosted UI', 'Integration'],

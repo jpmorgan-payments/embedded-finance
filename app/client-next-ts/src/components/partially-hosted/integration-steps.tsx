@@ -13,7 +13,7 @@ export const integrationSteps: IntegrationStep[] = [
     label: 'Overview',
     title: 'Integration overview',
     description:
-      "See how your frontend, backend, and JPMorgan's hosted embedded finance components work together end‑to‑end. Works with all 6 components: Accounts, Recipients, MakePayment, TransactionsDisplay, OnboardingFlow, and LinkedAccountWidget.",
+      "See how your frontend, backend, and JPMorgan's hosted embedded finance components work together end‑to‑end. Works with Accounts, RecipientsWidget, PaymentFlow, TransactionsDisplay, OnboardingFlow, and LinkedAccountWidget.",
     details: [
       'User starts onboarding from your platform (for example, by clicking “Open wallet”).',
       'Your frontend calls your backend to create a session for the selected component.',
@@ -39,7 +39,7 @@ export const integrationSteps: IntegrationStep[] = [
     label: 'Backend API',
     title: 'Backend: POST /sessions (session transfer)',
     description:
-      'A backend endpoint that calls the Embedded Finance Service to create a short‑lived session for any of the 6 embedded components (Accounts, Recipients, MakePayment, TransactionsDisplay, OnboardingFlow, LinkedAccountWidget).',
+      'A backend endpoint that calls the Embedded Finance Service to create a short‑lived session for embedded components (Accounts, RecipientsWidget, PaymentFlow, TransactionsDisplay, OnboardingFlow, LinkedAccountWidget).',
     details: [
       'Expose POST /sessions on your backend; authenticate the caller (your logged‑in user).',
       'Call the Embedded Finance Service with type "EMBEDDED_UI" and the target client identifier.',
@@ -204,7 +204,7 @@ function EmbeddedComponentFrame({ url, componentName }: { url: string; component
     code: `import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
 
 // Initialize once you have a session token from your backend
-// Works with all 6 components: Accounts, Recipients, MakePayment, TransactionsDisplay, OnboardingFlow, LinkedAccountWidget
+// Works with Accounts, RecipientsWidget, PaymentFlow, TransactionsDisplay, OnboardingFlow, LinkedAccountWidget
 const embeddedUI = new PartiallyHostedUIComponent({
   sessionToken: 'your-short-lived-session-token', // from POST /sessions
   experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI', // or other component types

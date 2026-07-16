@@ -282,7 +282,8 @@ export function createFullscreenUrl(
     LinkedAccountWidget: 'linked-accounts',
     Recipients: 'recipients',
     TransactionsDisplay: 'transactions',
-    MakePayment: 'make-payment',
+    PaymentFlow: 'payment-flow',
+    MakePayment: 'payment-flow', // legacy name → PaymentFlow slug
     OnboardingFlow: 'onboarding',
     ClientDetails: 'client-details',
   };

@@ -25,6 +25,17 @@ export class FormDetectionUtils {
         'input[placeholder*="business name"]',
       ],
     },
+    'payment-flow': {
+      required: [
+        'input[placeholder*="amount"]',
+        'input[placeholder*="recipient"]',
+      ],
+      optional: [
+        'input[placeholder*="memo"]',
+        'input[placeholder*="reference"]',
+      ],
+    },
+    /** @deprecated legacy showcase slug — same selectors as payment-flow */
     'make-payment': {
       required: [
         'input[placeholder*="amount"]',

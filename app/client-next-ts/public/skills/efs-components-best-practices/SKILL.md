@@ -15,45 +15,45 @@ description: EF&S integration links — REST APIs behind partner platforms; part
 
 ## Partially hosted
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UTILITY_GUIDE.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UTILITY_GUIDE.md
 
 ## Recipes (`embedded-components/docs/`)
 
-Webhook UX:  
+Webhook UX:
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/WEBHOOK_INTEGRATION_RECIPE.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/WEBHOOK_INTEGRATION_RECIPE.md
 
-Dates:  
+Dates:
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DATE_PARSING_GUIDE.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DATE_PARSING_GUIDE.md
 
-Important-date selector constraints:  
+Important-date selector constraints:
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/IMPORTANT_DATE_SELECTOR_RECIPE.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/IMPORTANT_DATE_SELECTOR_RECIPE.md
 
-Onboarding-flow narrative + UX cues:  
+Onboarding-flow narrative + UX cues:
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md
 
 ## Monorepo
 
-Root:  
+Root:
 
-https://github.com/jpmorgan-payments/embedded-finance  
+https://github.com/jpmorgan-payments/embedded-finance
 
-Readme (`embedded-components/`):  
+Readme (`embedded-components/`):
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md
 
-Architecture:  
+Architecture:
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/ARCHITECTURE.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/ARCHITECTURE.md
 
-`src/core` index:  
+`src/core` index:
 
-https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/README.md  
+https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/README.md
 
 ## Showcase
 

@@ -25,7 +25,10 @@ import type {
 import merge from 'lodash/merge';
 import { http, HttpResponse, type RequestHandler } from 'msw';
 
-import { getClientStatusOverrideForScenario, usesMicrodepositLinkedAccountMock } from '../components/sellsense/scenarios-config';
+import {
+  getClientStatusOverrideForScenario,
+  usesMicrodepositLinkedAccountMock,
+} from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
 import { testScenarioNaicsCodesQuestionsMock } from '../mocks/testScenarioNaicsCodesQuestions.mock';
 import {
@@ -1557,7 +1560,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
   }),
 
-  // MakePayment Component Handlers - Updated to use database
+  // PaymentFlow / transaction handlers - Updated to use database
   http.get(`${apiUrl}/ef/do/v1/accounts`, (req) => {
     const url = new URL(req.request.url);
     const clientId = url.searchParams.get('clientId');

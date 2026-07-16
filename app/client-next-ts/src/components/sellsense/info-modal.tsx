@@ -50,7 +50,7 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
         return <Receipt className="h-4 w-4" />;
       case 'Recipients':
         return <UserCheck className="h-4 w-4" />;
-      case 'MakePayment':
+      case 'PaymentFlow':
         return <Zap className="h-4 w-4" />;
       case 'ClientDetails':
         return <Users className="h-4 w-4" />;
@@ -390,7 +390,7 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                           'View transaction history with filtering and search'}
                         {componentName === 'Recipients' &&
                           'Manage payment recipients and beneficiary information'}
-                        {componentName === 'MakePayment' &&
+                        {componentName === 'PaymentFlow' &&
                           'Initiate payments between accounts with multiple methods'}
                         {componentName === 'ClientDetails' &&
                           'Display comprehensive client information, status, and verification details'}

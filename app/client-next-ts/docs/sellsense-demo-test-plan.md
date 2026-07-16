@@ -4,14 +4,14 @@ Base URL: `https://embedded-finance-dev.com/sellsense-demo`
 
 ## Configuration dimensions
 
-| Dimension    | Values |
-|-------------|--------|
-| **Scenarios** | New Seller - Onboarding, Onboarding - Seller with prefilled data, Onboarding - Link account in review, Onboarding - Docs Needed, Linked Bank Account, Seller with Limited DDA, Seller with Payments DDA |
-| **Themes**   | Empty, Default Blue, Salt Theme, Create Commerce, SellSense, PayFicient, Custom |
-| **Content tone** | Standard, Friendly |
-| **View**     | onboarding, overview, wallet, transactions, linked-accounts, payout, catalog, pricing, orders, payments, performance, analytics, growth |
-| **Fullscreen** | `fullscreen=true` |
-| **Component** (fullscreen) | accounts, linked-accounts, recipients, make-payment, transactions, onboarding |
+| Dimension                  | Values                                                                                                                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Scenarios**              | New Seller - Onboarding, Onboarding - Seller with prefilled data, Onboarding - Link account in review, Onboarding - Docs Needed, Linked Bank Account, Seller with Limited DDA, Seller with Payments DDA |
+| **Themes**                 | Empty, Default Blue, Salt Theme, Create Commerce, SellSense, PayFicient, Custom                                                                                                                         |
+| **Content tone**           | Standard, Friendly                                                                                                                                                                                      |
+| **View**                   | onboarding, overview, wallet, transactions, linked-accounts, payout, catalog, pricing, orders, payments, performance, analytics, growth                                                                 |
+| **Fullscreen**             | `fullscreen=true`                                                                                                                                                                                       |
+| **Component** (fullscreen) | accounts, linked-accounts, recipients, payment-flow (alias: make-payment), transactions, onboarding, client-details                                                                                    |
 
 ## Test batches (subagent-style)
 
@@ -19,7 +19,7 @@ Base URL: `https://embedded-finance-dev.com/sellsense-demo`
 2. **Themes** – For each theme, load `?theme=<name>` and assert: page loads, theme reflected in UI.
 3. **Content tone** – `?contentTone=Standard` and `?contentTone=Friendly`; assert copy/tone change where applicable.
 4. **Views** – For active scenarios: `?view=wallet|overview|transactions|linked-accounts`; for onboarding scenarios: `?view=onboarding`.
-5. **Fullscreen + component** – `?fullscreen=true&component=accounts|linked-accounts|recipients|make-payment|transactions|onboarding&theme=Empty`.
+5. **Fullscreen + component** – `?fullscreen=true&component=accounts|linked-accounts|recipients|payment-flow|transactions|onboarding|client-details&theme=Empty` (`make-payment` is a legacy alias for `payment-flow`).
 
 ## URL encoding
 

@@ -35,15 +35,23 @@ const THEMES = [
 
 const CONTENT_TONES = ['Standard', 'Friendly'];
 
-const VIEWS_ACTIVE = ['wallet', 'overview', 'transactions', 'linked-accounts', 'payout'];
+const VIEWS_ACTIVE = [
+  'wallet',
+  'overview',
+  'transactions',
+  'linked-accounts',
+  'payout',
+];
 
 const FULLSCREEN_COMPONENTS = [
   'accounts',
   'linked-accounts',
   'recipients',
-  'make-payment',
+  'payment-flow',
+  'make-payment', // legacy alias → PaymentFlow
   'transactions',
   'onboarding',
+  'client-details',
 ];
 
 function scenarioToQuery(s: string) {

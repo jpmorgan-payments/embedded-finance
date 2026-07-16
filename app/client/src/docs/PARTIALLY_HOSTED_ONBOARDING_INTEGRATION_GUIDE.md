@@ -3,7 +3,7 @@
 > **This is a legacy location and will be removed soon.**
 >
 > Please refer to the new location:
-> [Partially Hosted UI Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md)
+> [Partially Hosted UI Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md)
 
 ---
 

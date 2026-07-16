@@ -152,7 +152,7 @@ themes + custom theming, content tone selection, multiple views
 component mode, URL-driven state
 
 **Component Showcase**: OnboardingFlow, LinkedAccountWidget, Accounts,
-TransactionsDisplay, Recipients, MakePayment with live demos, code examples, and
+TransactionsDisplay, RecipientsWidget, PaymentFlow with live demos, code examples, and
 documentation links
 
 **Developer Tools**: MSW integration for API mocking, theme customization

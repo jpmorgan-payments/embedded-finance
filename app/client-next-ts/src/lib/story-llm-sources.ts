@@ -1,6 +1,6 @@
 import dateParsingGuide from '@ef-docs/DATE_PARSING_GUIDE.md?raw';
 import importantDateRecipe from '@ef-docs/IMPORTANT_DATE_SELECTOR_RECIPE.md?raw';
-import hostedOnboardingGuide from '@ef-docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md?raw';
+import hostedOnboardingGuide from '@ef-docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md?raw';
 import webhookRecipe from '@ef-docs/WEBHOOK_INTEGRATION_RECIPE.md?raw';
 
 import { CORE_COMPONENT_FUNCTIONAL_REQUIREMENTS } from '@/lib/core-functional-requirements-data';
@@ -46,7 +46,7 @@ export const STORY_LLM_SOURCES = {
   },
   'partially-hosted-onboarding': {
     githubViewUrl: embeddedComponentsDocBlob(
-      'partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md'
+      'partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md'
     ),
     getMarkdownCopy: () => hostedOnboardingGuide,
   },

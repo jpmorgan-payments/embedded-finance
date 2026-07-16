@@ -22,7 +22,7 @@ Maintainer and integrator documentation for `@jpmorgan-payments/embedded-finance
 | [DOCS_UPLOAD_FORM_RECIPE.md](./DOCS_UPLOAD_FORM_RECIPE.md) | Document upload |
 | [WEBHOOK_INTEGRATION_RECIPE.md](./WEBHOOK_INTEGRATION_RECIPE.md) | Webhooks |
 | [IMPORTANT_DATE_SELECTOR_RECIPE.md](./IMPORTANT_DATE_SELECTOR_RECIPE.md) | Date selector UX |
-| [partially-hosted/](./partially-hosted/) | Partially hosted onboarding |
+| [partially-hosted/](./partially-hosted/) | Partially hosted onboarding — use [`PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md`](./partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md) (typo stub at old `INTERGRATION` name) |
 
 ## Architecture & quality
 

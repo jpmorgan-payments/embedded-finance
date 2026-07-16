@@ -385,11 +385,11 @@ function TransactionsSection() {
         ],
       },
       payments: {
-        title: 'MakePayment Component',
+        title: 'PaymentFlow Component',
         description: 'Initiate payments with multiple payment methods',
         code: `import {
   EBComponentsProvider,
-  MakePayment,
+  PaymentFlow,
 } from '@jpmorgan-payments/embedded-finance-components';
 
 function PaymentSection() {
@@ -407,23 +407,10 @@ function PaymentSection() {
       }}
       contentTokens={{
         name: 'enUS',
-        buttonLabels: {
-          sendPayment: 'Send Payment',
-          confirmPayment: 'Confirm Payment',
-        },
-        formLabels: {
-          amount: 'Payment Amount',
-          recipient: 'Recipient',
-        },
-        messages: {
-          paymentProcessing: 'Processing your payment...',
-          paymentSuccess: 'Payment sent successfully!',
-        },
       }}
     >
       <PaymentFlow
-        clientId="your-client-id"
-        trigger={<Button>Make Payment</Button>}
+        trigger={<Button>Send money</Button>}
         onTransactionComplete={(response, error) => {
           if (response) {
             console.log('Payment successful:', response);
@@ -455,14 +442,14 @@ function PaymentSection() {
           {
             id: 'contentTokens',
             title: 'Content Tokens',
-            description: 'Button labels, form labels, and messages',
-            lineRange: [19, 33],
+            description: 'Locale / content token name',
+            lineRange: [19, 21],
           },
           {
             id: 'component',
             title: 'Component Props',
-            description: 'Payment-specific configuration',
-            lineRange: [35, 57],
+            description: 'PaymentFlow trigger and completion callback',
+            lineRange: [23, 32],
           },
         ],
       },
