@@ -2,6 +2,14 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.16.9] - 2026-07-16
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** fix an issue where ptc gateway navigation was being triggered despite non-NEW status
+
 ## [0.16.8] - 2026-07-15
 
 ### Changes
