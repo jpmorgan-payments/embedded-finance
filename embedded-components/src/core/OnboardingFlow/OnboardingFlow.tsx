@@ -89,11 +89,17 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   // confirm publicly-traded status before proceeding to overview.
   // Only applies to existing clients (loaded via providerClientId), not
   // freshly-created ones that just went through gateway in this session.
+  // The gateway is only for org-type/PTC selection during initial creation,
+  // so it must only be reached while the client is still in the 'NEW'
+  // (pre-submission) state. Once the client has been submitted — any of
+  // INFORMATION_REQUESTED, REVIEW_IN_PROGRESS, APPROVED, DECLINED, SUSPENDED
+  // or TERMINATED — routing there makes no sense.
   const ptcAnswered = !!existingOrgParty?.organizationDetails?.publiclyTraded;
   const needsPTCGateway =
     !!props.enablePubliclyTradedCompanies &&
     !!providerClientId &&
     !!organizationType &&
+    clientData?.status === 'NEW' &&
     !ptcAnswered;
 
   const flowProviderInitialScreenId = props.docUploadOnlyMode
@@ -214,12 +220,17 @@ const FlowRenderer: React.FC = React.memo(() => {
     currentScreenId === 'document-upload-form';
 
   // PTC unanswered: lock sidebar sections so user must answer PTC first.
+  // The gateway/PTC question is only relevant during initial creation, so the
+  // lock only applies while the client is still in the 'NEW' (pre-submission)
+  // state. Once submitted — INFORMATION_REQUESTED, REVIEW_IN_PROGRESS,
+  // APPROVED, DECLINED, SUSPENDED or TERMINATED — the lock is skipped.
   const orgParty = getOrganizationParty(clientData);
   const ptcAnsweredInSession = !!sessionData.isPTCQuestionAnswered;
   const needsPTCGateway =
     !!enablePubliclyTradedCompanies &&
     !!clientData?.id &&
     !!organizationType &&
+    clientData?.status === 'NEW' &&
     !orgParty?.organizationDetails?.publiclyTraded &&
     !ptcAnsweredInSession;
 
