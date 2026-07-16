@@ -1,88 +1,75 @@
 # Core Components Organization
 
-This directory contains the main embedded banking components organized by functionality and importance.
+This directory contains the main embedded banking components organized by functionality.
 
-## 📁 Directory Structure
+## Directory Structure
 
-### **Core Components** (Primary Business Logic)
+### Core Components (public API)
 
-These are the main components that provide core embedded banking functionality:
+Exported from `src/index.tsx`:
 
-- **`Accounts/`** - Account management and display
-- **`RecipientWidgets/`** - Payment recipient and linked account management
-  - **`LinkedAccountWidget/`** - External bank account linking with microdeposit verification
-  - **`RecipientsWidget/`** - Payment recipient management (without microdeposits)
-- **`TransactionsDisplay/`** - Transaction history and display
-- **`OnboardingFlow/`** - Customer onboarding process
+| Directory            | Components                                      | Notes                                      |
+| -------------------- | ----------------------------------------------- | ------------------------------------------ |
+| `OnboardingFlow/`    | `OnboardingFlow`                                | Stable; optional PTC via `enablePubliclyTradedCompanies` |
+| `PaymentFlow/`       | `PaymentFlow`, `PaymentFlowInline`              | Domestic USD payments                      |
+| `PaymentFlowFX/`     | `PaymentFlowFX`, `PaymentFlowFXInline`          | **Beta** — cross-border / FX payouts       |
+| `Accounts/`          | `Accounts`                                      | In testing                                 |
+| `ClientDetails/`     | `ClientDetails`                                 | In testing                                 |
+| `RecipientWidgets/`  | `LinkedAccountWidget`, `RecipientsWidget`       | Stable                                     |
+| `TransactionsDisplay/` | `TransactionsDisplay`                         | In testing                                 |
+| `EBComponentsProvider/` | `EBComponentsProvider`                       | Required wrapper for all components        |
 
-### **Utility Components** (Supporting Infrastructure)
+### Internal / not yet public
 
-These provide supporting functionality and infrastructure:
+- **`IndirectOwnership/`** — Ownership hierarchy UI used in onboarding-adjacent flows; **not** exported from the package root yet.
 
-- **`EBComponentsProvider/`** - Main provider component
-- **`themes.ts`** - Centralized theme configurations
+### Removed (do not reference in new docs)
 
-### **Legacy Components** (Deprecated/Historical)
+| Former component         | Replacement                         | Removed |
+| ------------------------ | ----------------------------------- | ------- |
+| `MakePayment`            | `PaymentFlow` / `PaymentFlowInline` | v0.15   |
+| `OnboardingWizardBasic`  | `OnboardingFlow`                    | v0.15   |
+| `Recipients`             | `RecipientsWidget`                  | earlier |
+| `RecipientListWidget`    | `RecipientsWidget`                  | earlier |
 
-These are older components maintained for reference:
+## Storybook Tags Strategy
 
-- **`Recipients/`** - Legacy recipient management (deprecated, use `RecipientWidgets/RecipientsWidget/` instead)
-- **`RecipientListWidget/`** - Legacy recipient list widget (deprecated)
+### Core Tags
 
-## 🏷️ Storybook Tags Strategy
+- `@core` — Main business components
+- `@utility` — Supporting infrastructure
+- `@beta` — Pre-stable surfaces (e.g. PaymentFlowFX)
 
-### **Core Tags**
+### Component-Specific Tags
 
-- **`@core`** - All core business components
-- **`@utility`** - Supporting infrastructure components
-- **`@legacy`** - Deprecated/historical components
+- `@accounts` — Account-related components
+- `@recipient-widgets` — LinkedAccountWidget, RecipientsWidget
+- `@payment` — PaymentFlow / PaymentFlowFX
+- `@transactions` — Transaction display
+- `@onboarding` — Onboarding flows
+- `@client-details` — ClientDetails
 
-### **Component-Specific Tags**
+### Feature Tags
 
-- **`@accounts`** - Account-related components
-- **`@recipient-widgets`** - Recipient and linked account widgets (LinkedAccountWidget, RecipientsWidget)
-- **`@payment`** - Payment processing
-- **`@transactions`** - Transaction display
-- **`@onboarding`** - Onboarding flows
-- **`@legacy`** - Deprecated components (including legacy Recipients)
+- `@sellsense` — SellSense themed stories
+- `@theme` — Theme-related stories
 
-### **Feature Tags**
-
-- **`@sellsense`** - SellSense themed stories
-- **`@theme`** - Theme-related stories
-
-## 📖 Story Organization
-
-### **Core Component Stories**
+## Story Organization
 
 ```
+Core/OnboardingFlow
+Core/PaymentFlow
+Beta/PaymentFlowFX
 Core/Accounts
+Core/ClientDetails
 Core/RecipientWidgets/LinkedAccountWidget
 Core/RecipientWidgets/RecipientsWidget
 Core/TransactionsDisplay
-Core/OnboardingFlow
 ```
 
-### **Legacy Component Stories**
+## Theme Integration
 
-```
-Legacy/Recipients
-Legacy/Recipients/Validation
-Legacy/Recipients/Configuration
-```
-
-### **Sub-Stories**
-
-```
-Core/RecipientWidgets/LinkedAccountWidget/Verification
-Core/RecipientWidgets/LinkedAccountWidget/Configuration
-Core/OnboardingFlow/Mocks
-Core/OnboardingFlow/DocumentUpload
-```
-
-## 🎨 Theme Integration
-
-All core components support SellSense theming through the centralized `themes.ts` file:
+All core components support theming through the centralized `themes.ts` file:
 
 ```typescript
 import { SELLSENSE_THEME } from '@storybook-themes';
@@ -91,42 +78,12 @@ import { SELLSENSE_THEME } from '@storybook-themes';
 theme: SELLSENSE_THEME;
 ```
 
-The theme types are derived from `EBComponentsProvider/config.types.ts` and use the `EBTheme` interface.
+Theme types are derived from `EBComponentsProvider/config.types.ts` (`EBTheme`).
 
-## 🔍 Navigation Tips
-
-### **Find Core Components**
-
-- Use `@core` tag to see all main business components
-- Use specific component tags (e.g., `@accounts`) for focused views
-
-### **Find Themed Stories**
-
-- Use `@sellsense` tag to see all SellSense themed stories
-- Use `@theme` tag for theme-related stories
-
-### **Find Legacy Components**
-
-- Use `@legacy` tag for deprecated/historical components
-
-## 📝 Adding New Components
-
-### **For Core Components:**
+## Adding New Components
 
 1. Create directory under `src/core/`
-2. Add `@core` tag to story meta
-3. Add component-specific tag (e.g., `@newcomponent`)
-4. Follow existing naming conventions
-
-### **For Legacy Components:**
-
-1. Create directory under `src/core/`
-2. Add `@legacy` tag to story meta
-3. Add appropriate feature tags
-4. Mark as deprecated in documentation
-
-### **For New Themes:**
-
-1. Add theme to `themes.ts`
-2. Add `@theme` tag to themed stories
-3. Add brand-specific tag if needed (e.g., `@sellsense`)
+2. Export from `src/index.tsx` (public React/npm API)
+3. Optionally register in `src/vanilla/componentRegistry.ts` for `initEBComponentsManager()`
+4. Add Storybook stories with `@core` (or `@beta`) and a component-specific tag
+5. Follow `ARCHITECTURE.md` for file layout (no aggregation barrels under `components/`)

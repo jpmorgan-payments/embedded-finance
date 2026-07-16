@@ -1,13 +1,17 @@
 # Embedded Components - Development Backlog
 
-**Last Updated:** May 12, 2026  
+**Last Updated:** July 16, 2026  
 **Status:** Living Document - Updated as work progresses  
 **Source:** UX Testing Report (2025-12-02, 2025-12-09, 2026-01-14, 2026-02-19, 2026-03-06), Development Roadmap, Recent PRs  
-**Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment, **client-details**); Storybook https://storybook.embedded-finance-dev.com/
+**Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, payment-flow / make-payment alias, **client-details**); Storybook https://storybook.embedded-finance-dev.com/
+
+> **API renames (v0.15+):** `MakePayment` → `PaymentFlow`; `OnboardingWizardBasic` → `OnboardingFlow`. Legacy `Recipients` was removed earlier — use `RecipientsWidget`. Historical UX reports and older BL items may still use the old names.
 
 **Re-tested:** February 19, 2026 — Each open item (Priority 1–5, BL-601, BL-723) was re-verified by **code inspection** (embedded-components and app/client-next-ts). All 7 showcase components were **browser-loaded**; UI-visible issues (e.g. filter labels, pagination, Dialog) were confirmed via code (i18n, component TSX). Full one-by-one in-browser click-through for every BL item was not done. See **`docs/ux-testing/2026-02-19/BACKLOG_VERIFICATION.md`** for item-level verdicts and evidence. Only **open** items are listed; completed/fixed items are not retained.
 
 **Updated:** March 6, 2026 — Git analysis of 60+ commits (Feb 22 – Mar 6, 2026) and full browser UX testing session across all 7 components. Key changes this cycle: ClientDetails error/loading states, content tokens architecture, i18n expansion (es-US/fr-CA), ServerErrorAlert pattern, Mock API Editor enhancements, Empty+ a11y theme, session transfer multi-experience support. See **`docs/ux-testing/2026-03-06/`** for browser test results. New items: BL-800+.
+
+**Updated:** July 16, 2026 — Docs pass aligned backlog references with current public API (`PaymentFlow`, `PaymentFlowFX` Beta, PTC on OnboardingFlow). No bulk BL re-triage in this pass.
 
 **Note on Tracking IDs:** This backlog uses a hierarchical format (BL-001-1, BL-001-1a, etc.) for detailed task breakdown. New items from 2025-12-09 testing use simple sequential IDs (BL-600+). Future backlog updates may migrate to simpler format for consistency.
 
@@ -27,17 +31,16 @@
 
 ### Quick Reference by Component
 
-**Recipients (DEPRECATED - use RecipientsWidget):**
+**RecipientsWidget / LinkedAccountWidget** (legacy `Recipients` removed):
 
-> ⚠️ The legacy Recipients component is deprecated. Use `RecipientsWidget` for new implementations.
-> Backlog items below are retained for historical reference and ongoing maintenance.
+> Use `RecipientsWidget` / `LinkedAccountWidget`. Older BL items that say "legacy Recipients" are historical; close or retarget them when re-triaging.
 
 - BL-060: Filter & label standardization
 - BL-061: Pagination text format
 - BL-062: Default rows per page
 - BL-070: Tooltips & help text
 - BL-080: Responsive design improvements
-- BL-402: Theme 0 enhancements (Conditional attributes, edit flows, duplicate detection)
+- BL-402: Theme 0 enhancements (Conditional attributes, edit flows, duplicate detection) — retarget to widgets if still open
 
 **TransactionsDisplay:**
 

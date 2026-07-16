@@ -2,7 +2,13 @@
 
 This document catalogues the most prominent UI/UX patterns extracted from the embedded-components codebase. These patterns complement the [Salt Design System patterns](https://www.saltdesignsystem.com/salt/patterns) and follow [Atomic Design principles](https://atomicdesign.bradfrost.com/chapter-2/) and [Nielsen's Usability Heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/).
 
-> **Note:** References to `Recipients/` in this document refer to the legacy Recipients component. For new implementations, use `RecipientsWidget` from `RecipientWidgets/`. `LinkedAccountWidget` and `RecipientsWidget` share `BaseRecipientsWidget`, which provides compact cards, table view, pagination styles, and virtualized scroll. See the [RecipientWidgets README](../src/core/RecipientWidgets/README.md) for guidance.
+> **Component naming (updated July 2026):**
+>
+> - **`PaymentFlow` was removed** — use **`PaymentFlow`** / **`PaymentFlowInline`** (and **`PaymentFlowFX`** for FX / Beta).
+> - **Legacy `Recipients` / `RecipientListWidget` were removed** — use **`RecipientsWidget`** / **`LinkedAccountWidget`** from `RecipientWidgets/`.
+> - Path references below that still say `PaymentFlow/` should be read as `PaymentFlow/`.
+>
+> `LinkedAccountWidget` and `RecipientsWidget` share `BaseRecipientsWidget` (compact cards, table view, pagination, virtualized scroll). See the [RecipientWidgets README](../src/core/RecipientWidgets/README.md).
 
 ---
 
@@ -1827,7 +1833,7 @@ const requiredContactTypes = getRequiredContactTypes(
 
 **Implementation**:
 
-- **Primary**: `MakePayment/components/PaymentSuccess/`
+- **Primary**: `PaymentFlow/ (success view)`
 - **Status**: ✅ Well-implemented with action options
 
 **Pattern Details**:
@@ -2109,7 +2115,7 @@ const { mutate: createRecipient } = useCreateRecipient({
 
 **Refinement Needed**:
 
-- ⚠️ **MakePayment**: Could benefit from more granular error mapping
+- ⚠️ **PaymentFlow**: Could benefit from more granular error mapping
 - ⚠️ **RecipientsWidget**: Some error scenarios could be more specific
 
 **Technical Benefits**:
@@ -2126,7 +2132,7 @@ const { mutate: createRecipient } = useCreateRecipient({
 
 **Implementation**:
 
-- **Primary**: `MakePayment/hooks/` (usePaymentForm, usePaymentData, usePaymentValidation)
+- **Primary**: `PaymentFlow/hooks/` (usePaymentForm, usePaymentData, usePaymentValidation)
 - **Secondary**: `Recipients/hooks/useRecipientsFilters.ts`
 - **Tertiary**: `LinkedAccountWidget/hooks/useLinkedAccounts.ts`
 - **Status**: ✅ Well-implemented with clear separation of concerns
@@ -2425,7 +2431,7 @@ recipients: oldData.recipients.map((r) =>
 **Refinement Needed**:
 
 - ⚠️ **OnboardingFlow**: Could use optimistic updates for form submissions
-- ⚠️ **MakePayment**: Could use optimistic updates for payment submission
+- ⚠️ **PaymentFlow**: Could use optimistic updates for payment submission
 - ⚠️ **Accounts**: Could use optimistic updates for account operations
 - ⚠️ **RecipientsWidget**: Already uses invalidateQueries, could add setQueryData for instant feedback
 - ⚠️ **TransactionsDisplay**: Read-only component, optimistic updates not applicable
@@ -2487,7 +2493,7 @@ recipients: oldData.recipients.map((r) =>
 **Refinement Needed**:
 
 - ⚠️ **Recipients**: Could add copy for account numbers
-- ⚠️ **MakePayment**: Could add copy for transaction reference IDs
+- ⚠️ **PaymentFlow**: Could add copy for transaction reference IDs
 
 **Usability Alignment**:
 
@@ -2552,7 +2558,7 @@ recipients: oldData.recipients.map((r) =>
 **Refinement Needed**:
 
 - ⚠️ **Accounts**: Could add confirmation for account-related actions
-- ⚠️ **MakePayment**: Could add confirmation for large payments
+- ⚠️ **PaymentFlow**: Could add confirmation for large payments
 
 **Usability Alignment**:
 
@@ -2762,7 +2768,7 @@ const renderField = (label: string, value: any) => {
 **Implementation**:
 
 - **Primary**: All components using `useTranslation` hook
-- **Status**: ✅ Well-implemented in MakePayment, LinkedAccountWidget, OnboardingFlow
+- **Status**: ✅ Well-implemented in PaymentFlow, LinkedAccountWidget, OnboardingFlow
 
 **Pattern Details**:
 
@@ -2772,7 +2778,7 @@ const { t } = useTranslation(['make-payment']);
 
 // Translation with default value
 {
-  t('buttons.makePayment', { defaultValue: 'Make Payment' });
+  t('buttons.PaymentFlow', { defaultValue: 'Make Payment' });
 }
 
 // Translation with variables
@@ -2944,16 +2950,16 @@ const contentTokens = useContext(ContentTokensContext);
 3. **Container Query Migration**: Migrate Accounts to container queries (Recipients uses `useElementWidth`, LinkedAccountWidget uses `@container`)
 4. **Success State Standardization**: Add success toast/confirmation to Recipients and LinkedAccountWidget after create/edit
 5. **Ref Control Enhancement**: Add ref-based control to Recipients and LinkedAccountWidget
-6. **Clipboard Copy Pattern**: Add copy-to-clipboard to Recipients (account numbers) and MakePayment (reference IDs)
-7. **Responsive Design Fixes**: Fix horizontal scrollbar in legacy Recipients table, implement responsive table design (UX Issue: Responsive design)
+6. **Clipboard Copy Pattern**: Add copy-to-clipboard to Recipients (account numbers) and PaymentFlow (reference IDs)
+7. **Responsive Design Fixes**: Fix horizontal scrollbar / responsive table design on recipient widgets (UX Issue: Responsive design)
 8. **i18n Standardization**: Finish internationalization for RecipientsWidget and TransactionsDisplay (remaining hardcoded strings)
 
 ### Low Priority
 
-1. **Wizard Pattern Extraction**: Extract wizard pattern from OnboardingFlow for reuse in MakePayment and LinkedAccountWidget
+1. **Wizard Pattern Extraction**: Extract wizard pattern from OnboardingFlow for reuse in PaymentFlow and LinkedAccountWidget
 2. **Filter & Search Enhancement**: Add search/filter to Accounts
 3. **Multi-Mode Form Pattern**: Extend to LinkedAccountWidget (manual account entry option)
-4. **Configuration-Driven Forms**: Enhance MakePayment and OnboardingFlow with more configuration options
+4. **Configuration-Driven Forms**: Enhance PaymentFlow and OnboardingFlow with more configuration options
 5. **Field Toggle Pattern**: Add show/hide empty fields toggle to Recipients details
 6. **Staggered Animation Pattern**: Apply to Recipients cards and TransactionsDisplay mobile cards for polish
 7. **Enhanced Data Grid Migration**: Migrate RecipientsWidget table to Enhanced Data Grid pattern (TanStack Table)
@@ -2968,4 +2974,4 @@ const contentTokens = useContext(ContentTokensContext);
 
 ---
 
-_Last Updated: Refined pattern matrix with logical grouping, UX testing findings integration, and component reordering (OnboardingFlow, Accounts, LinkedAccountWidget, MakePayment, TransactionsDisplay, Recipients). Removed IndirectOwnership references. Matrix now includes pattern descriptions and reflects December 2025 UX testing findings._
+_Last Updated: July 16, 2026 — Naming aligned with current public API (`PaymentFlow` replaces `MakePayment`; `RecipientsWidget` replaces legacy `Recipients`). Pattern matrix columns still need a dedicated PaymentFlow / ClientDetails / PaymentFlowFX refresh pass._

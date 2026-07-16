@@ -1,7 +1,10 @@
 # PTC (Publicly Traded Companies) Feature Plan
 
 **Date:** 2026-04-21  
-**Last Updated:** 2026-05-28
+**Last Updated:** 2026-07-16  
+**Status:** ✅ **Implemented** (shipped behind `enablePubliclyTradedCompanies` on `OnboardingFlow`; see CHANGELOG v0.14+)
+
+This document remains the design/implementation reference. For consumer usage, see the package README (`OnboardingFlow` props) and Storybook **Core → OnboardingFlow** PTC stories.
 
 ---
 

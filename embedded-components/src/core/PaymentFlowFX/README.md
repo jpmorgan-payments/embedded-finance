@@ -1,5 +1,7 @@
 # PaymentFlowFX
 
+> **Status: Beta** — exported and usable, but API / behaviour may still change before GA. Prefer `PaymentFlow` for domestic USD-only hosts until FX is required.
+
 `PaymentFlowFX` (dialog) and `PaymentFlowFXInline` (embedded) are the cross-border /
 multicurrency payout counterparts to [`PaymentFlow`](../PaymentFlow/PaymentFlow.tsx). They
 preserve **all** existing `PaymentFlow` behaviour (USD → USD payments are byte-for-byte the
