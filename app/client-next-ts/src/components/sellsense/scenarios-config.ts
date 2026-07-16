@@ -15,7 +15,7 @@ export type ScenarioKey = (typeof SCENARIO_KEYS)[keyof typeof SCENARIO_KEYS];
 // Available components that can be conditionally shown
 export const AVAILABLE_COMPONENTS = {
   ACCOUNTS: 'Accounts',
-  MAKE_PAYMENT: 'MakePayment',
+  PAYMENT_FLOW: 'PaymentFlow',
   LINKED_ACCOUNTS: 'LinkedAccountWidget',
   TRANSACTIONS: 'TransactionsDisplay',
   RECIPIENTS: 'Recipients',

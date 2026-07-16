@@ -19,7 +19,10 @@ The source of truth for architecture patterns is:
 ## Package-Specific Documentation
 
 - **`embedded-components/AGENTS.md`** - Package-specific instructions for embedded-components
+- **`embedded-components/docs/README.md`** - Package docs index (recipes, patterns, UX archives)
+- **`embedded-components/README.md`** - Public component inventory and integrator guide
 - **`app/client-next-ts/.cursorrules`** - App-specific configuration
+- **`docs/ptc-feature-plan.md`** - PTC feature design (implemented on OnboardingFlow)
 
 ## Additional Resources
 

@@ -731,11 +731,12 @@ export function DashboardLayout() {
             </div>
           </div>
         );
-      case 'make-payment':
+      case 'payment-flow':
+      case 'make-payment': // legacy alias → PaymentFlow
         return (
           <div className="h-screen p-6">
             <div className="mx-auto max-w-4xl">
-              <h1 className="mb-6 text-2xl font-bold">Make Payment</h1>
+              <h1 className="mb-6 text-2xl font-bold">PaymentFlow</h1>
               <div className="rounded-lg border bg-white p-6">
                 <EBComponentsProvider
                   apiBaseUrl="/ef/do/v1/"
@@ -748,7 +749,7 @@ export function DashboardLayout() {
                     name: selectedLanguage,
                   }}
                 >
-                  <PaymentFlow trigger={<Button>Make Payment</Button>} />
+                  <PaymentFlow trigger={<Button>Send money</Button>} />
                 </EBComponentsProvider>
               </div>
             </div>

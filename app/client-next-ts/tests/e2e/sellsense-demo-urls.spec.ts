@@ -35,15 +35,23 @@ const THEMES = [
 
 const CONTENT_TONES = ['Standard', 'Friendly'];
 
-const VIEWS_ACTIVE = ['wallet', 'overview', 'transactions', 'linked-accounts', 'payout'];
+const VIEWS_ACTIVE = [
+  'wallet',
+  'overview',
+  'transactions',
+  'linked-accounts',
+  'payout',
+];
 
 const FULLSCREEN_COMPONENTS = [
   'accounts',
   'linked-accounts',
   'recipients',
-  'make-payment',
+  'payment-flow',
+  'make-payment', // legacy alias → PaymentFlow
   'transactions',
   'onboarding',
+  'client-details',
 ];
 
 function scenarioToQuery(s: string) {
@@ -121,6 +129,19 @@ test.describe('SellSense Demo – Fullscreen + component (subagent 5)', () => {
       expect(page.url()).toContain('fullscreen=true');
       expect(page.url()).toContain(`component=${component}`);
       await expect(page.locator('body')).toBeVisible();
+
+      // Stronger content check against local showcase (primary slug + legacy alias).
+      // Deployed sites may lag the rename until the next showcase release.
+      const isLocal =
+        BASE_URL.includes('localhost') || BASE_URL.includes('127.0.0.1');
+      if (
+        isLocal &&
+        (component === 'payment-flow' || component === 'make-payment')
+      ) {
+        await expect(
+          page.getByRole('heading', { name: /PaymentFlow/i })
+        ).toBeVisible({ timeout: 15000 });
+      }
     });
   }
 });

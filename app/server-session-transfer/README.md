@@ -232,7 +232,7 @@ const componentProperties = encodeURIComponent(JSON.stringify({
 const iframeUrlWithTheme = `${sessionData.url}?token=${sessionData.token}&themeTokens=${encodedTheme}&componentProperties=${componentProperties}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
 ```
 
-For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming). For the full list of supported `componentProperties`, see the [Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md#url-parameters-for-onboarding-customization).
+For a complete list of available design tokens, refer to the [Embedded Components README](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming). For the full list of supported `componentProperties`, see the [Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md#url-parameters-for-onboarding-customization).
 
 **Characteristics:**
 - ✅ **Full Control**: Complete control over iframe creation and lifecycle
@@ -495,7 +495,7 @@ DEBUG=true
 
 ## 📚 References
 
-- [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md)
+- [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md)
 
 ## 🚀 Production Implementation Guidelines
 
@@ -521,4 +521,4 @@ This demo provides a foundation for production implementation. For production de
 - **Document security controls** for audit and compliance purposes
 - **Regular security assessments** and penetration testing
 
-For detailed implementation guidance, refer to the [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md). 
+For detailed implementation guidance, refer to the [Partially Hosted Onboarding Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md). 

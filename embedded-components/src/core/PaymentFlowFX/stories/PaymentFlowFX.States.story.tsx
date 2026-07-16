@@ -18,7 +18,7 @@ import {
 } from './story-utils';
 
 const meta = {
-  title: 'Core/PaymentFlowFX/States',
+  title: 'Beta/PaymentFlowFX/States',
   component: PaymentFlowFX,
   tags: ['@core', '@payments', 'autodocs'],
   parameters: {

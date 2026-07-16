@@ -174,12 +174,12 @@ export function WalletOverview({
 
   // All available components with their configurations and custom content tokens
   const allComponents: Record<ComponentName, ComponentInfo> = {
-    [AVAILABLE_COMPONENTS.MAKE_PAYMENT]: {
-      title: 'Make Payment',
+    [AVAILABLE_COMPONENTS.PAYMENT_FLOW]: {
+      title: 'PaymentFlow',
       description: 'Send payments to recipients using your linked accounts.',
-      componentName: 'MakePayment',
+      componentName: 'PaymentFlow',
       componentDescription:
-        'A comprehensive widget for making payments to recipients.',
+        'Domestic USD payment flow — select account, payee, method, amount, review, and submit.',
       componentFeatures: [
         'Select recipient from your list',
         'Choose payment amount and account',
@@ -190,11 +190,11 @@ export function WalletOverview({
           <h2
             className={`mb-4 text-xl font-semibold ${themeStyles.getHeaderTextStyles()}`}
           >
-            Make Payment
+            PaymentFlow
           </h2>
           <PaymentFlow
             onTransactionComplete={handleTransactionSettled}
-            trigger={<Button>Make Payment</Button>}
+            trigger={<Button>Send money</Button>}
           />
         </div>
       ),

@@ -119,18 +119,18 @@ export function ExperiencesSection() {
       icon: <Zap className="h-5 w-5" />,
       status: 'testing',
       demoUrl:
-        '/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty',
+        '/sellsense-demo?fullscreen=true&component=payment-flow&theme=Empty',
       githubUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/MakePayment',
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/PaymentFlow',
       steps: [
         'Get debtor account ID from your Embedded account',
         'Create payment request with recipient and amount',
         'Submit transaction with reference ID and memo',
       ],
       npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#4-makepayment',
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-paymentflow',
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/MakePayment/MAKE_PAYMENT_REQUIREMENTS.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/PaymentFlow/REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
     },
@@ -227,7 +227,7 @@ export function ExperiencesSection() {
                 View partially hosted demo →
               </a>
               <a
-                href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md"
+                href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center rounded-full border border-sp-border bg-white px-3 py-1 text-xs font-semibold text-sp-brand shadow-sm transition-colors hover:bg-sp-accent hover:text-sp-brand-700"

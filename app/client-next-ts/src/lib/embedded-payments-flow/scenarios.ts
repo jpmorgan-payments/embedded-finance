@@ -271,13 +271,13 @@ const RECIPE = {
   recipients:
     'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/RecipientWidgets/RecipientsWidget/README.md',
   makePayment:
-    'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/MakePayment/MAKE_PAYMENT_REQUIREMENTS.md',
+    'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/PaymentFlow/REQUIREMENTS.md',
   transactions:
     'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/TransactionsDisplay/TRANSACTIONS_DISPLAY_REQUIREMENTS.md',
   accounts:
     'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/Accounts/ACCOUNTS_REQUIREMENTS.md',
   partiallyHosted:
-    'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md',
+    'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md',
   webhook:
     'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/WEBHOOK_INTEGRATION_RECIPE.md',
 } as const;
