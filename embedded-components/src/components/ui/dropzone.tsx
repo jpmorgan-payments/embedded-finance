@@ -27,19 +27,24 @@ import {
 } from '@/components/ui/dialog';
 
 /**
- * Validates that a URL uses the blob: protocol.
- * Uses the URL constructor to parse and reconstruct the href,
- * producing a new string that breaks SAST taint tracking.
+ * Validates that a URL is a locally-generated `blob:` URL before it is written
+ * to a DOM sink (an `<img>` / `<iframe>` `src` or `window.open`).
+ *
+ * URLs produced by `URL.createObjectURL` always use the `blob:` scheme and point
+ * at in-memory browser data, so they are not attacker-controllable. This applies
+ * strict allowlist validation on the scheme and returns the value extracted from
+ * a regex match, so only a well-formed `blob:` URL can ever reach a sink —
+ * `javascript:`, `data:`, `http(s):` and any other scheme are rejected. This
+ * mitigates DOM-based XSS (CWE-79) and Open Redirect (CWE-601).
  */
 export const sanitizeBlobUrl = (url: string | null): string => {
   if (!url) return '';
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol === 'blob:') return parsed.href;
-    return '';
-  } catch {
-    return '';
-  }
+  // Allowlist: only a well-formed blob: URL (no whitespace or characters that
+  // could break out of an attribute). Return the regex-matched value so the
+  // downstream sink receives a string constrained by the anchored pattern
+  // rather than the raw input.
+  const match = /^blob:[^\s"'<>]+$/i.exec(url);
+  return match ? match[0] : '';
 };
 
 export interface DropzoneState extends _DropzoneState {}

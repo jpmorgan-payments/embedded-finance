@@ -50,9 +50,6 @@ graph LR;
     CORE --> RW[RecipientWidgets/]
     CORE --> TD[TransactionsDisplay/]
     CORE --> CD[ClientDetails/]
-    CORE --> PF[PaymentFlow/]
-    CORE --> PFX[PaymentFlowFX/]
-    CORE --> IO[IndirectOwnership/]
 
     %% API Layer
     C --> D[api/]
@@ -118,14 +115,11 @@ Core provider component that configures the application environment:
 ### 3. Other Core Components
 
 - **Accounts/** — Account management and display
-- **PaymentFlow/** — Domestic USD payment / funds transfer (`PaymentFlow`, `PaymentFlowInline`)
-- **PaymentFlowFX/** — Cross-border / FX payouts (**Beta**: `PaymentFlowFX`, `PaymentFlowFXInline`)
 - **RecipientWidgets/** — Payment recipient and linked account management
   - `LinkedAccountWidget/` — External bank account linking with microdeposit verification
   - `RecipientsWidget/` — Payment recipient management
 - **TransactionsDisplay/** — Transaction history and display
 - **ClientDetails/** — Detailed client information display
-- **IndirectOwnership/** — Ownership hierarchy UI (internal; not yet in public package exports)
 
 - **ContentTokensProvider.tsx**
   - Internationalization support
@@ -143,10 +137,6 @@ Core provider component that configures the application environment:
   - Component documentation
   - Interactive examples
   - Development environment
-
-### Removed components (historical)
-
-Do not document as current APIs: `MakePayment` → `PaymentFlow`; `OnboardingWizardBasic` → `OnboardingFlow`; legacy `Recipients` / `RecipientListWidget` → `RecipientsWidget` / `LinkedAccountWidget`.
 
 - **docs/**
   - Implementation recipes

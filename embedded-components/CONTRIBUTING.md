@@ -23,11 +23,11 @@ embedded-components/
 
 ### Development Tools
 
-- Storybook 10.x for component development
+- Storybook 8.x for component development
 - MSW for API mocking
 - React Query for data management
   - where most of the API hooks are being generated using Orval with types based on the OpenAPI specification
-- Zod for schema validation
+- Zod/Yup for schema validation
 
 ### Testing
 

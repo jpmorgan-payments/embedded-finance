@@ -140,19 +140,15 @@ graph TB
 
 The library currently provides the following components:
 
-| Component                        | Description                                              | Status     |
-| -------------------------------- | -------------------------------------------------------- | ---------- |
-| EBComponentsProvider             | Provider wrapper for all embedded components             | Stable     |
-| OnboardingFlow                   | Screen-based client onboarding (incl. optional PTC)      | Stable     |
-| PaymentFlow / PaymentFlowInline  | Domestic (USD) payment / funds transfer                  | Stable     |
-| PaymentFlowFX / PaymentFlowFXInline | Cross-border / multicurrency payouts                  | Beta       |
-| Accounts                         | Account management and display                           | In Testing |
-| ClientDetails                    | Detailed client information (identity, ownership, KYC)   | In Testing |
-| LinkedAccountWidget              | External bank account linking with microdeposits         | Stable     |
-| RecipientsWidget                 | Payment recipient management                             | Stable     |
-| TransactionsDisplay              | Transaction history and display                          | In Testing |
-
-> **Removed (v0.15+):** `MakePayment` → use `PaymentFlow`. `OnboardingWizardBasic` → use `OnboardingFlow`. Legacy `Recipients` / `RecipientListWidget` → use `RecipientsWidget` / `LinkedAccountWidget`.
+| Component            | Description                                            | Status     |
+| -------------------- | ------------------------------------------------------ | ---------- |
+| EBComponentsProvider | Provider wrapper for all embedded components           | Stable     |
+| OnboardingFlow       | Modern onboarding experience                           | Stable     |
+| Accounts             | Account management and display                         | In Testing |
+| ClientDetails        | Detailed client information (identity, ownership, KYC) | In Testing |
+| LinkedAccountWidget  | External bank account linking with microdeposits       | Stable     |
+| RecipientsWidget     | Payment recipient management (NEW)                     | Stable     |
+| TransactionsDisplay  | Transaction history and display                        | In Testing |
 
 ### EBComponentsProvider
 
@@ -233,7 +229,6 @@ The `OnboardingFlow` component implements the client onboarding process as descr
 | `userEventsHandler`                | `(context: UserEventContext) => void \| number`                                                                                           | No       | Handler for user events with rich context                                                                                                |
 | `userEventsLifecycle`              | `UserEventLifecycle`                                                                                                                      | No       | Optional lifecycle handlers for RUM libraries                                                                                            |
 | `hideLinkedAccountRemoval`         | `boolean`                                                                                                                                 | No       | Hide **Remove** on the **Overview** linked-account card. Does **not** affect `LinkedAccountWidget`; use **`hideRemoveRecipient`** there. |
-| `enablePubliclyTradedCompanies`    | `boolean`                                                                                                                                 | No       | Opt-in PTC (Publicly Traded Companies) flow on the gateway screen (ticker + exchange; default `false`)                                   |
 
 **Leave and back prompts (`alertOnExit`, `alertOnPreviousStep`):**
 
@@ -274,72 +269,7 @@ const OnboardingSection = () => {
 };
 ```
 
-### 2. PaymentFlow
-
-The `PaymentFlow` (dialog) and `PaymentFlowInline` (embedded) components provide a domestic USD funds-transfer experience: select source account, payee, payment method (ACH / WIRE / RTP), amount, review, and submit.
-
-#### Main Features:
-
-- Source account selection with available-balance validation
-- Payee selection (recipients and linked accounts), including inline add-recipient
-- Payment method filtering based on payee-enabled methods
-- Review panel and transaction submission
-- Dialog (`PaymentFlow`) and inline (`PaymentFlowInline`) variants
-
-#### Props (common):
-
-| Prop Name                | Type                                                                 | Required | Description                                      |
-| ------------------------ | -------------------------------------------------------------------- | -------- | ------------------------------------------------ |
-| `trigger`                | `React.ReactNode`                                                    | No       | Element that opens the dialog (`PaymentFlow` only) |
-| `initialRecipientId`     | `string`                                                             | No       | Pre-select a payee by ID                         |
-| `initialAmount`          | `string`                                                             | No       | Pre-fill payment amount                          |
-| `showFees`               | `boolean`                                                            | No       | Show fees in the review panel (default `false`)  |
-| `onTransactionComplete`  | `(response?, error?) => void`                                        | No       | Callback after submit success or failure         |
-
-#### Usage:
-
-```jsx
-import {
-  EBComponentsProvider,
-  PaymentFlow,
-  PaymentFlowInline,
-} from '@jpmorgan-payments/embedded-finance-components';
-
-<EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
-  <PaymentFlow
-    trigger={<button type="button">Send money</button>}
-    onTransactionComplete={(response, error) => {
-      // Handle result
-    }}
-  />
-  {/* Or embed without a dialog: */}
-  <PaymentFlowInline />
-</EBComponentsProvider>
-```
-
-See `src/core/PaymentFlow/REQUIREMENTS.md` and `FUNCTIONAL_REQUIREMENTS.md` for full behaviour rules.
-
-### 3. PaymentFlowFX (Beta)
-
-`PaymentFlowFX` / `PaymentFlowFXInline` extend PaymentFlow for **USD → non-USD** payouts (rate sheet / realtime / provider modes) while preserving domestic USD behaviour.
-
-> **Beta:** API and props may still change. See [`src/core/PaymentFlowFX/README.md`](src/core/PaymentFlowFX/README.md) and [`SPECIFICATION.md`](src/core/PaymentFlowFX/SPECIFICATION.md).
-
-```jsx
-import {
-  EBComponentsProvider,
-  PaymentFlowFX,
-} from '@jpmorgan-payments/embedded-finance-components';
-
-<EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
-  <PaymentFlowFX
-    trigger={<button type="button">Send money</button>}
-    fxConfig={{ mode: 'ratesheet' }}
-  />
-</EBComponentsProvider>
-```
-
-### 4. Accounts
+### 2. Accounts
 
 > **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 
@@ -383,7 +313,66 @@ const AccountsSection = () => {
 };
 ```
 
-### 5. LinkedAccountWidget
+### 3. Recipients (DEPRECATED)
+
+> ⚠️ **DEPRECATED**: The `Recipients` component is deprecated and will be removed in a future release.
+>
+> **Please use the new [`RecipientsWidget`](#4-recipientswidget) component instead.**
+>
+> The `RecipientsWidget` provides a modern, streamlined API for managing payment recipients with better i18n support, improved UX, and shared architecture with `LinkedAccountWidget`.
+
+The `Recipients` component provides comprehensive management of payment recipients, enabling users to create, view, edit, and delete recipient information.
+
+#### Main Features:
+
+- Create, view, edit, and delete payment recipients
+- Support for multiple payment methods (ACH, WIRE, RTP)
+- Dynamic form validation based on selected payment methods
+- Search and filtering capabilities
+- Pagination for large recipient lists
+- Mobile-responsive design
+- Widget mode for compact display in parent applications
+
+#### Props:
+
+| Prop Name                | Type              | Required | Description                                                            |
+| ------------------------ | ----------------- | -------- | ---------------------------------------------------------------------- |
+| `clientId`               | `string`          | No       | Optional client ID filter                                              |
+| `initialRecipientType`   | `string`          | No       | Default recipient type (RECIPIENT, LINKED_ACCOUNT, SETTLEMENT_ACCOUNT) |
+| `showCreateButton`       | `boolean`         | No       | Show/hide create functionality                                         |
+| `config`                 | `object`          | No       | Configuration for payment methods and validation rules                 |
+| `makePaymentComponent`   | `React.ReactNode` | No       | Payment component to render in each recipient card/row                 |
+| `onRecipientCreated`     | `function`        | No       | Callback when recipient is created                                     |
+| `onRecipientUpdated`     | `function`        | No       | Callback when recipient is updated                                     |
+| `onRecipientDeactivated` | `function`        | No       | Callback when recipient is deactivated                                 |
+| `userEventsHandler`      | `function`        | No       | Handler for user events                                                |
+| `isWidget`               | `boolean`         | No       | Force widget layout with minimal columns and no filters                |
+
+#### Usage:
+
+```jsx
+import {
+  EBComponentsProvider,
+  Recipients,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+const RecipientsSection = () => {
+  return (
+    <EBComponentsProvider apiBaseUrl="https://your-api-base-url.com">
+      <Recipients
+        clientId="your-client-id"
+        initialRecipientType="RECIPIENT"
+        showCreateButton={true}
+        onRecipientCreated={(recipient) => {
+          console.log('Recipient created:', recipient);
+        }}
+      />
+    </EBComponentsProvider>
+  );
+};
+```
+
+### 4. LinkedAccountWidget
 
 The `LinkedAccountWidget` component facilitates the process of adding a client's linked account, as described in the [Add Linked Account API documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account).
 
@@ -423,17 +412,17 @@ const LinkedAccountSection = () => {
 };
 ```
 
-### 6. RecipientsWidget
+### 5. RecipientsWidget
 
 The `RecipientsWidget` component enables users to manage payment recipients within your application. Unlike `LinkedAccountWidget`, it provides a simpler flow without microdeposit verification, ideal for managing payees and beneficiaries.
 
 #### Main Features:
 
-- Recipient management: view, add, edit, and remove payment recipients
-- Search and filter
-- Responsive design
-- i18n via `recipients` namespace
-- Themeable via design tokens
+- 👤 **Recipient Management**: View, add, edit, and remove payment recipients
+- 🔍 **Search & Filter**: Quickly find recipients
+- 📱 **Responsive Design**: Works on all device sizes
+- 🌍 **i18n Support**: Full internationalization via `recipients` namespace
+- 🎨 **Themeable**: Follows design token system
 
 #### Props:
 
@@ -464,7 +453,7 @@ const RecipientsSection = () => {
         showCreateButton={true}
         pageSize={10}
         onRecipientAdded={(recipient) => {
-          console.log('Recipient created:', recipient);
+          console.log('Recipient added:', recipient);
         }}
       />
     </EBComponentsProvider>
@@ -472,7 +461,7 @@ const RecipientsSection = () => {
 };
 ```
 
-### 7. TransactionsDisplay
+### 6. TransactionsDisplay
 
 > **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 
@@ -834,7 +823,7 @@ Components automatically track user journeys through:
 ### Basic Usage
 
 ```tsx
-<RecipientsWidget
+<Recipients
   userEventsHandler={(context) => {
     const { actionName, eventType, timestamp, metadata } = context;
     console.log('User journey:', actionName);
@@ -847,7 +836,7 @@ Components automatically track user journeys through:
 ### Integration with Dynatrace
 
 ```tsx
-<RecipientsWidget
+<Recipients
   userEventsHandler={(context) => {
     if (window.dtrum) {
       const actionId = window.dtrum.enterAction(context.actionName);
@@ -876,7 +865,7 @@ Components automatically track user journeys through:
 ```tsx
 import { datadogRum } from '@datadog/browser-rum';
 
-<RecipientsWidget
+<Recipients
   userEventsHandler={(context) => {
     datadogRum.addAction(context.actionName, {
       eventType: context.eventType,
@@ -891,10 +880,9 @@ import { datadogRum } from '@datadog/browser-rum';
 
 Each component documents its tracked journeys in its README file. For example:
 
-- **RecipientsWidget**: `recipient_details_viewed`, `recipient_created`, `recipient_updated`, etc.
+- **Recipients**: `recipient_details_viewed`, `recipient_created`, `recipient_updated`, etc.
 - **OnboardingFlow**: `onboarding_screen_navigation`, `onboarding_form_submit`, etc.
 - **LinkedAccountWidget**: `linked_account_viewed`, `linked_account_link_completed`, etc.
-- **PaymentFlow**: see component stories / requirements for payment journey events
 
 See each component's README for the complete list of tracked journeys.
 
@@ -914,7 +902,6 @@ The library supports internationalization with the following languages:
 
 - **English (US)** - `en-US` (default)
 - **French (Canada)** - `fr-CA`
-- **Spanish (US)** - `es-US`
 
 ### Language Configuration
 

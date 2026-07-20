@@ -1,17 +1,13 @@
 # Embedded Components - Development Backlog
 
-**Last Updated:** July 16, 2026  
+**Last Updated:** May 12, 2026  
 **Status:** Living Document - Updated as work progresses  
 **Source:** UX Testing Report (2025-12-02, 2025-12-09, 2026-01-14, 2026-02-19, 2026-03-06), Development Roadmap, Recent PRs  
-**Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, **payment-flow** [alias `make-payment`], **client-details**); Storybook https://storybook.embedded-finance-dev.com/
-
-> **API renames (v0.15+):** `MakePayment` → `PaymentFlow`; `OnboardingWizardBasic` → `OnboardingFlow`. Legacy `Recipients` was removed earlier — use `RecipientsWidget`. Historical UX reports and older BL items may still use the old names.
+**Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment, **client-details**); Storybook https://storybook.embedded-finance-dev.com/
 
 **Re-tested:** February 19, 2026 — Each open item (Priority 1–5, BL-601, BL-723) was re-verified by **code inspection** (embedded-components and app/client-next-ts). All 7 showcase components were **browser-loaded**; UI-visible issues (e.g. filter labels, pagination, Dialog) were confirmed via code (i18n, component TSX). Full one-by-one in-browser click-through for every BL item was not done. See **`docs/ux-testing/2026-02-19/BACKLOG_VERIFICATION.md`** for item-level verdicts and evidence. Only **open** items are listed; completed/fixed items are not retained.
 
 **Updated:** March 6, 2026 — Git analysis of 60+ commits (Feb 22 – Mar 6, 2026) and full browser UX testing session across all 7 components. Key changes this cycle: ClientDetails error/loading states, content tokens architecture, i18n expansion (es-US/fr-CA), ServerErrorAlert pattern, Mock API Editor enhancements, Empty+ a11y theme, session transfer multi-experience support. See **`docs/ux-testing/2026-03-06/`** for browser test results. New items: BL-800+.
-
-**Updated:** July 16, 2026 — Docs pass aligned backlog references with current public API (`PaymentFlow`, `PaymentFlowFX` Beta, PTC on OnboardingFlow). No bulk BL re-triage in this pass.
 
 **Note on Tracking IDs:** This backlog uses a hierarchical format (BL-001-1, BL-001-1a, etc.) for detailed task breakdown. New items from 2025-12-09 testing use simple sequential IDs (BL-600+). Future backlog updates may migrate to simpler format for consistency.
 
@@ -31,16 +27,17 @@
 
 ### Quick Reference by Component
 
-**RecipientsWidget / LinkedAccountWidget** (legacy `Recipients` removed):
+**Recipients (DEPRECATED - use RecipientsWidget):**
 
-> Use `RecipientsWidget` / `LinkedAccountWidget`. Legacy-only BL items closed in the July 2026 prune (see Priority 2 / Theme 0 notes below).
+> ⚠️ The legacy Recipients component is deprecated. Use `RecipientsWidget` for new implementations.
+> Backlog items below are retained for historical reference and ongoing maintenance.
 
-- BL-060: Filter & label standardization (Transactions + widgets; legacy Recipients closed)
-- BL-061: Pagination text format (widgets + Transactions)
+- BL-060: Filter & label standardization
+- BL-061: Pagination text format
 - BL-062: Default rows per page
 - BL-070: Tooltips & help text
 - BL-080: Responsive design improvements
-- BL-402: Theme 0 enhancements — **retargeted to RecipientsWidget** (conditional attrs, edit/masking, duplicate UX)
+- BL-402: Theme 0 enhancements (Conditional attributes, edit flows, duplicate detection)
 
 **TransactionsDisplay:**
 
@@ -138,7 +135,7 @@ _(Completed items are removed from this document and not listed.)_
 **Theme Alignment:** Theme 6 (Atomic Design), Theme 7 (A11y & UX Testing)  
 **Components Affected:** All  
 **Tracking ID:** BL-001  
-**Reference:** Latest source and deployed showcase (https://embedded-finance-dev.com/sellsense-demo — onboarding, linked-accounts, recipients, transactions, accounts, payment-flow)
+**Reference:** Latest source and deployed showcase (https://embedded-finance-dev.com/sellsense-demo — onboarding, linked-accounts, recipients, transactions, accounts, make-payment)
 
 #### Current State (as of January 2026)
 
@@ -161,7 +158,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 #### Footer Color [BL-009]
 
-- [ ] **BL-009-1:** In the **showcase app** (client-next-ts / SellSense), standardize footer color across fullscreen component views (onboarding, linked-accounts, recipients, transactions, accounts, payment-flow, client-details) if any variance remains.
+- [ ] **BL-009-1:** In the **showcase app** (client-next-ts / SellSense), standardize footer color across fullscreen component views (onboarding, linked-accounts, recipients, transactions, accounts, make-payment) if any variance remains.
 
 ---
 
@@ -172,7 +169,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 **Components Affected:** PaymentFlow  
 **Tracking IDs:** BL-020, BL-030, BL-031, BL-032, BL-033, BL-040, BL-403
 
-**Re-assessed (July 2026):** PaymentFlow uses shared Button, PayeeSelector, ReviewPanel, etc. Field order, tab behavior, fee display, validation, date, and modal a11y are still product/design choices; verify against latest source and deployed `payment-flow` view (embedded-finance-dev.com; alias `make-payment`) for current behavior.
+**Re-assessed (Jan 2026):** PaymentFlow uses shared Button, PayeeSelector, ReviewPanel, etc. Field order, tab behavior, fee display, validation, date, and modal a11y are still product/design choices; verify against latest source and deployed make-payment view (embedded-finance-dev.com) for current behavior.
 
 #### Form Field Ordering Consistency [BL-020]
 
@@ -251,33 +248,33 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 ## 🎯 Priority 2: High Impact UX Improvements
 
-### 2.1 Filter & Label Standardization 🟠 [BL-060] — Re-triaged July 2026
+### 2.1 Filter & Label Standardization 🟠 [BL-060] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Recipients & Transactions Components  
 **Theme Alignment:** Theme 0 (Functional Enhancements)  
-**Components Affected:** TransactionsDisplay; RecipientsWidget (if/when filters are exposed)  
+**Components Affected:** Recipients (legacy), RecipientsWidget table (if filters added), TransactionsDisplay  
 **Tracking ID:** BL-060
 
-**July 2026 prune:** Legacy `Recipients` component removed — drop work that only targeted that surface.
+**Re-assessed (Jan 2026):** Source shows Transactions uses `transactions.json` "All statuses"/"All types" (lowercase); legacy Recipients uses `recipients.json` "All Types"/"All Status". RecipientsWidget table view (RecipientsTableView/BaseRecipientsWidget) does not expose status/type filters in code — filters apply to legacy Recipients and Transactions only.
 
 #### Filter Labels [BL-060]
 
-- [ ] **BL-060-1:** Standardize to "All Statuses" and "All Types" (title case, plural) across components that expose filters
+- [ ] **BL-060-1:** Standardize to "All Statuses" and "All Types" (title case, plural) across components
 - [ ] **BL-060-2:** Update Transactions: `transactions.json` filters.status.all / filters.type.all (currently "All statuses", "All types")
-- [x] **BL-060-3:** ~~Update legacy Recipients i18n~~ — **CLOSED** (component removed; no `recipients.json` filters surface)
+- [ ] **BL-060-3:** Update legacy Recipients: `recipients.json` filters.status.all / filters.type.all (currently "All Status", "All Types")
 
-**Current state:** Transactions: "All statuses", "All types". RecipientsWidget table does not expose status/type filters today. **Remaining:** Align Transactions (and any future widget filters) to one convention.
+**Current state:** Transactions: "All statuses", "All types". Legacy Recipients: "All Types", "All Status". **Remaining:** Pick one convention and apply in both i18n files.
 
 #### Pagination Text Format [BL-061]
 
-- [ ] **BL-061-1:** Standardize pagination copy: either "Showing X to Y of Z" or "X total" (document the chosen pattern)
-- [x] **BL-061-2:** Transactions and RecipientsWidget table already use "Showing {{from}} to {{to}} of {{total}}". ~~Legacy Recipients "{{count}} row(s) total"~~ — **CLOSED** (component removed)
+- [ ] **BL-061-1:** Standardize pagination copy: either "Showing X to Y of Z" or "X total"
+- [ ] **BL-061-2:** Transactions and RecipientsWidget table use "Showing {{from}} to {{to}} of {{total}}" (DataTablePagination / RecipientsTableView). Legacy Recipients uses "{{count}} row(s) total" (RecipientsPagination).
 
-**Current state:** Transactions + RecipientsWidget table share "Showing X to Y of Z". No legacy pagination surface remains.
+**Current state:** Transactions + RecipientsWidget table: "Showing X to Y of Z". Legacy Recipients: "X row(s) total". **Remaining:** Decide single pattern and align legacy Recipients if still in use.
 
 #### Default Rows Per Page [BL-062]
 
-- [ ] **BL-062-1:** Standardize default page size (e.g. 10 or 25) or document intentional difference
+- [ ] **BL-062-1:** Standardize default page size (e.g. 10 or 25)
 - [ ] **BL-062-2:** RecipientsWidget/BaseRecipientsWidget default `pageSize = 10`; Transactions default `pageSize: 25`.
 
 **Current state:** RecipientsWidget 10, Transactions 25. **Remaining:** Document or standardize default; hide pagination when only one page exists (RecipientsWidget already does: `totalCount > pagination.pageSize`).
@@ -399,14 +396,14 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 ---
 
-### 3.4 Timeline & Activity History 🟡 [BL-130] — Re-triaged July 2026
+### 3.4 Timeline & Activity History 🟡 [BL-130] — Re-assessed Jan 2026
 
 **Source:** UX Testing Report - Recipient Details Modal  
 **Theme Alignment:** Theme 0 (Functional Enhancements)  
-**Components Affected:** RecipientsWidget (RecipientDetailsDialog)  
+**Components Affected:** RecipientsWidget (RecipientDetailsDialog), legacy Recipients  
 **Tracking ID:** BL-130
 
-**Re-assessed (July 2026):** Scope is RecipientDetailsDialog only (legacy Recipients removed). Backlog is about naming and content of a "Timeline" section.
+**Re-assessed (Jan 2026):** Scope is RecipientDetailsDialog (and legacy Recipients detail view). Backlog is about naming and content of a "Timeline" section.
 
 - [ ] **BL-130-1:** If RecipientDetailsDialog has a "Timeline" section with limited events, either add more events from API (e.g. last payment, last updated) or rename to "Created" / "Activity" so copy matches behavior
 - [ ] **BL-130-2:** Extend activity/history to other detail views only if product specifies it
@@ -486,7 +483,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 #### Header/Title Pattern Analysis [BL-310]
 
-- [ ] **BL-310-1:** Audit who renders H1 (host vs component) for onboarding, linked-accounts, recipients, transactions, accounts, payment-flow, client-details in the showcase; document which components expose a `title` or slot
+- [ ] **BL-310-1:** Audit who renders H1 (host vs component) for onboarding, linked-accounts, recipients, transactions, accounts, make-payment in the showcase; document which components expose a `title` or slot
 - [ ] **BL-310-2:** Document current patterns: Page title (H1), section/card title, modal title; recommend heading hierarchy (H1 → H2 → H3)
 - [ ] **BL-310-3:** Define convention for page vs section vs card titles and document in design system or AGENTS/ARCHITECTURE
 - [ ] **BL-310-4:** Optional: introduce PageHeader/SectionHeader/CardTitle/ModalTitle primitives if multiple components would share them
@@ -573,8 +570,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 #### OnboardingFlow [BL-400]
 
-- [x] **BL-400-1:** Publicly traded companies (PTC) — **DONE** via `enablePubliclyTradedCompanies` (see `docs/ptc-feature-plan.md`). Remaining entity types (gov / non-profit) stay open under BL-400-1b if needed.
-- [ ] **BL-400-1b:** Additional entity types (government, non-profit) beyond PTC
+- [ ] **BL-400-1:** Add support for new entity types (publicly traded companies, government entities, non-profit entities)
 - [ ] **BL-400-2:** Refine owner/controller flows
 - **March 2026 Progress:** Server error handling added to `OperationalDetailsForm` (additional questions step) — uses `ServerErrorAlert` + `useServerError` pattern. Remaining onboarding forms still need the same treatment (see BL-800).
 
@@ -584,11 +580,11 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [ ] **BL-401-3:** Better status messaging
 - [ ] **BL-401-4:** Robust microdeposit flows (retry/lockout messaging)
 
-#### RecipientsWidget [BL-402] (retargeted from removed legacy Recipients)
+#### Recipients [BL-402]
 
-- [ ] **BL-402-1:** Conditional attributes per payment method (ACH/RTP/WIRE) on shared `BankAccountForm` / widget configs — **Partial progress Mar 2026:** email removed as required field for RTP (`usePaymentMethodConfig.ts`); payment method content token display fix; further work needed for WIRE-specific fields and ACH-only validations
-- [ ] **BL-402-2:** Edit flows parity + masking in RecipientsWidget
-- [ ] **BL-402-3:** Recipient duplicate detection UX — **Partial progress May 2026:** Schema-level duplicate detection in `BankAccountForm.schema.ts`; OnboardingFlow link-account step auto-detects duplicates. Remaining: standalone RecipientsWidget duplicate UX, visual duplicate warning banner
+- [ ] **BL-402-1:** Conditional attributes per payment method (ACH/RTP/WIRE) — **Partial progress Mar 2026:** email removed as required field for RTP (`usePaymentMethodConfig.ts`); payment method content token display fix; further work needed for WIRE-specific fields and ACH-only validations
+- [ ] **BL-402-2:** Edit flows parity + masking
+- [ ] **BL-402-3:** Recipient duplicate detection UX — **Partial progress May 2026:** Schema-level duplicate detection implemented in `BankAccountForm.schema.ts` (validates account number + routing number against `existingAccounts`). OnboardingFlow link-account step auto-detects duplicates and forces editable mode with cleared prefill. i18n messages added (en-US, fr-CA, es-US). Remaining: standalone RecipientsWidget duplicate UX, visual duplicate warning banner
 
 #### RecipientsWidget [BL-406]
 
@@ -600,7 +596,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [ ] **BL-403-1:** Recipient/method filtering logic
 - [ ] **BL-403-2:** Review fee/time ETA display
 - [ ] **BL-403-3:** Review/confirmation UX
-- [x] **BL-403-4:** Cross-currency payment support — **MOVED** to **PaymentFlowFX** (Beta, v0.16.x). Track FX GA / corridor expansion under PaymentFlowFX docs + new BL items as needed; do not re-implement on domestic `PaymentFlow`.
+- [ ] **BL-403-4:** Cross-currency payment support
 
 #### TransactionsDisplay [BL-404]
 
@@ -1019,14 +1015,14 @@ Substantial progress has been made. Re-assessment against latest source and depl
 **Priority:** Medium  
 **Status:** 📋 Planned
 
-**Background:** The session transfer demo app now supports client creation via API integration and handles multiple experience types (onboarding, linked-accounts, payment / make-payment alias, etc.) in both `index.html` and `index-utility.html`. Documentation was also expanded.
+**Background:** The session transfer demo app now supports client creation via API integration and handles multiple experience types (onboarding, linked-accounts, make-payment, etc.) in both `index.html` and `index-utility.html`. Documentation was also expanded.
 
 **Actions:**
 
 - [ ] **BL-805-1:** Test the new `index-utility.html` client creation flow end-to-end in the server-session-transfer demo (verify OAuth2 flow, client provisioning, and redirect to onboarding)
-- [ ] **BL-805-2:** Test `index.html` with each experience type (onboarding, linked-accounts, payment-flow) to confirm session handoff and component initialization
+- [ ] **BL-805-2:** Test `index.html` with each experience type (onboarding, linked-accounts, make-payment) to confirm session handoff and component initialization
 - [ ] **BL-805-3:** Verify error handling in `server.js` for failed client creation (network errors, 4xx/5xx from JPMC API)
-- [ ] **BL-805-4:** Update `embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md` to reflect the new multi-experience patterns
+- [ ] **BL-805-4:** Update `embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md` to reflect the new multi-experience patterns
 
 ---
 
