@@ -388,31 +388,6 @@
       "description": "",
       "infoAlert": "Your data will be saved as you go.",
       "downloadChecklist": "Download Checklist",
-      "deltaToggle": {
-        "ariaLabel": "Overview view mode",
-        "complete": "Complete missing items",
-        "full": "Full overview",
-        "saveAndContinue": "Save & continue",
-        "viewFull": "View full overview"
-      },
-      "deltaView": {
-        "title": "Complete your application",
-        "description": "Complete the remaining details below, then continue to review and submit.",
-        "partnerAlert": "{{partnerName}} has already provided most of your information — just add the items below to finish.",
-        "partnerAlertGeneric": "Most of your information has already been provided — just add the items below to finish.",
-        "reviewAll": "Review all details",
-        "differentIdType": "Use a different ID type",
-        "timeline": {
-          "title": "Your application",
-          "completeTitle": "Complete your details"
-        },
-        "resumeBanner": {
-          "title": "Almost done",
-          "description_one": "You have {{count}} item left to complete before submitting.",
-          "description_other": "You have {{count}} items left to complete before submitting.",
-          "action": "Complete your application"
-        }
-      },
       "verifyBusinessSection": {
         "title": "Verify your business",
         "reviewInProgress": {
@@ -612,10 +587,6 @@
     },
     "reviewAttestSection": {
       "label": "Review and attest",
-      "deltaCombined": {
-        "title": "Review & attest",
-        "description": "Check your details, review the terms, and submit your application."
-      },
       "steps": {
         "review": {
           "title": "Review your details",
@@ -1433,23 +1404,6 @@
   "reviewAndAttest": {
     "businessType": "Business type",
     "notSubmittedYet": "Your application is not submitted yet. Review your data and continue to finish.",
-    "deltaHeader": {
-      "title": "Finish your application",
-      "description": "Complete any missing details, review your information, and agree to the terms."
-    },
-    "deltaCompletion": {
-      "itemsRemaining_one": "{{count}} item left to complete",
-      "itemsRemaining_other": "{{count}} items left to complete",
-      "allComplete": "You're all set",
-      "progressCount": "{{completed}} of {{total}} complete",
-      "ownerSubtitle": "Beneficial owner details",
-      "genericSectionSubtitle": "Complete the required details",
-      "sectionSubtitles": {
-        "personal-section": "Verify the account controller",
-        "business-section": "Confirm your business details",
-        "additional-questions-section": "A few questions about how your business operates"
-      }
-    },
     "thereIsAProblem": "There is a problem",
     "provideMissingDetails": "Please provide missing details before finishing your application.",
     "owners": "Owners",
@@ -1464,15 +1418,6 @@
     "missingDetails": "Missing details",
     "dataAccuracyAttestation": "Data accuracy attestation",
     "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
-    "deltaCombinedAttestation": {
-      "groupLabel": "Accuracy and terms attestation",
-      "checkbox": "I confirm that the information I provided is true, accurate, and complete to the best of my knowledge, and that I have read and agree to the J.P. Morgan Account Terms.",
-      "checkboxWithPlatform": "I confirm that the information I provided is true, accurate, and complete to the best of my knowledge, and that I have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.",
-      "checkboxTermsRead": "I have read and agreed to the J.P. Morgan Embedded Payments Terms and Conditions",
-      "checkboxAccountUse": "I understand that the Embedded Payments account may only be used to receive funds through the platform provider pursuant to my commerce terms with the platform.",
-      "checkboxAgent": "I understand I am appointing the platform provider as a non-discretionary agent for the account. This means that only the platform provider will give instructions on the payment of funds from my Embedded Payments account on a day-to-day basis in accordance with my commerce terms.",
-      "checkboxDataAccuracy": "The data I am providing is true, accurate, current, and complete to the best of my knowledge."
-    },
     "termsAcknowledgements": {
       "intro": "By electronically submitting this application, you agree that:"
     },
@@ -1494,10 +1439,7 @@
       "attestations": "Attestations",
       "agreeToTermsWithPlatform": "You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.",
       "agreeToTerms": "You have read and agree to the J.P. Morgan Account Terms.",
-      "mustReviewDocument": "Open and review the document above before selecting the checkbox.",
-      "mustReviewDocuments": "Open and review all documents above before selecting the checkbox.",
-      "mustReviewDocumentBelow": "Open and review the document below before selecting the checkbox.",
-      "mustReviewDocumentsBelow": "Open and review all documents below before selecting the checkbox."
+      "mustReviewDocuments": "You must open and review all documents before selecting the checkbox"
     },
     "disclosure": {
       "footer": "{{platformName}} is not a bank. Banking services provided by JPMorgan Chase Bank, N.A., Member FDIC (\"J.P. Morgan\").",

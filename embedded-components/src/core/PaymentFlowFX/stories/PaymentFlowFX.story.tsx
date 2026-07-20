@@ -29,7 +29,7 @@ import {
 // ============================================================================
 
 const meta = {
-  title: 'Core/PaymentFlowFX',
+  title: 'Beta/PaymentFlowFX',
   component: PaymentFlowFX,
   tags: ['@core', '@payments', 'autodocs'],
   parameters: {

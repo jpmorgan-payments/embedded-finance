@@ -125,7 +125,7 @@ const openAddRecipientForm = async (step: StepFn) => {
 // ============================================================================
 
 const meta = {
-  title: 'Core/PaymentFlowFX/Interactive',
+  title: 'Beta/PaymentFlowFX/Interactive',
   component: PaymentFlowFX,
   tags: ['@core', '@payments'],
   parameters: {

@@ -59,7 +59,6 @@ export const OwnersSectionScreen = () => {
     clientData,
     onPostPartySettled: onPostPartyResponse,
     organizationType,
-    defaultControllerNotAnOwner,
   } = useOnboardingContext();
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
@@ -102,11 +101,7 @@ export const OwnersSectionScreen = () => {
           ? 'yes'
           : sessionData.isControllerOwnerQuestionAnswered
             ? 'no'
-            : // When the host opts in, pre-answer "No" so the question is not
-              // required to advance (the user can still switch it to "Yes").
-              defaultControllerNotAnOwner
-              ? 'no'
-              : undefined
+            : undefined
         : undefined,
     },
   });
@@ -579,9 +574,8 @@ export const OwnersSectionScreen = () => {
                 form.getValues('controllerIsAnOwner') !== undefined;
 
               // Block advancing until the required 25% ownership question is
-              // answered, showing a required-field validation error — unless
-              // the host opted out via `defaultControllerNotAnOwner`.
-              if (!controllerQuestionAnswered && !defaultControllerNotAnOwner) {
+              // answered, showing a required-field validation error.
+              if (!controllerQuestionAnswered) {
                 form.setError('controllerIsAnOwner', {
                   type: 'required',
                   message: tString('additionalQuestions.validation.required'),

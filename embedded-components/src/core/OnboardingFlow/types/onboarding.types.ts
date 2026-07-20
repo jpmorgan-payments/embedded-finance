@@ -205,36 +205,7 @@ export type OnboardingConfigDefault = UserTrackingProps & {
   height?: string;
 };
 
-/**
- * Distilled onboarding for pre-created clients with few remaining fields.
- *
- * When active (host-enabled and pending fields ≤ {@link maxPendingFields}):
- * - Opens on the review step
- * - Treats the owners section as complete
- * - Surfaces missing fields for inline completion on review
- * - Merges Terms & Conditions acknowledgements into the same review screen
- *
- * Prefer `true` / `{ enabled: true }` only when GET client already has rich data.
- */
-export type OnboardingDeltaModeConfig = {
-  enabled: boolean;
-  /**
-   * Maximum number of pending fields (party schema issues + outstanding questions)
-   * allowed for delta mode to activate. Defaults to `5`.
-   */
-  maxPendingFields?: number;
-};
-
-/** Host prop: boolean shorthand or full config. */
-export type OnboardingDeltaModeProp = boolean | OnboardingDeltaModeConfig;
-
 export type OnboardingConfigUsedInContext = {
-  /**
-   * Enable distilled “delta” completion: review-first, owners treated complete,
-   * missing fields + terms on one screen. Activates only when pending fields
-   * are within {@link OnboardingDeltaModeConfig.maxPendingFields} (default 5).
-   */
-  deltaMode?: OnboardingDeltaModeProp;
   onGetClientSettled?: (
     clientData: ClientResponse | undefined,
     status: 'success' | 'pending' | 'error',
@@ -285,30 +256,6 @@ export type OnboardingConfigUsedInContext = {
   hideSidebar?: boolean;
   /** Whether to show the "Download Checklist" button on the Overview screen. Defaults to false. */
   showDownloadChecklist?: boolean;
-  /**
-   * **Owners** (`OwnersSectionScreen`): when `true`, the "Do you, the controller,
-   * own 25% or more of the business?" question is pre-answered **No** and is no
-   * longer required to advance — the user can continue without explicitly
-   * answering it. They can still change it to **Yes** if the controller is in
-   * fact a beneficial owner.
-   *
-   * Has no effect when the controller is already recorded as a beneficial owner
-   * (the question stays defaulted to **Yes**).
-   *
-   * @default false
-   */
-  defaultControllerNotAnOwner?: boolean;
-  /**
-   * **Terms & attestation** (`useTermsAndConditions`): when `true`, the terms
-   * attestation checkboxes are enabled without first requiring the user to open
-   * every terms & conditions document / platform agreement link. The links are
-   * still shown; opening them is simply not a precondition for checking the
-   * boxes. Useful for delta-mode / partner-hosted flows where acknowledgement
-   * gating is handled elsewhere.
-   *
-   * @default false
-   */
-  skipTermsDocumentAcknowledgment?: boolean;
   /**
    * Enable Publicly Traded Company (PTC) onboarding support.
    *
