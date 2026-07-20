@@ -42,32 +42,32 @@
 
 ```mermaid
 sequenceDiagram
-    participant U as Client (seller UI)
+    participant U as Client seller UI
     participant R as Recipients UX
-    participant P as Payment / FX UX
+    participant P as Payment FX UX
     participant API as Embedded Payments APIs
 
-    Note over U,API: One-time / infrequent setup
-    U->>R: Add FX payee (currency + country + local bank fields)
-    R->>API: POST /recipients (account.currencyCode, countryCode, routing…)
-    API-->>R: recipientId + ACTIVE (when ready)
+    Note over U,API: One-time setup
+    U->>R: Add FX payee with currency country and bank fields
+    R->>API: POST recipients with currencyCode countryCode routing
+    API-->>R: recipientId and ACTIVE when ready
 
     Note over U,API: Each payout
     U->>R: Pay on payee row
-    R->>P: Open payment flow (initialPayeeId, targetCurrency from payee)
-    P->>API: GET accounts (+ balances); filter FX-eligible categories
-    alt ratesheet mode (optional)
-        P->>API: GET ratesheet /accounts/{id}/ratesheets/current
-        API-->>P: rateId + EXECUTABLE / INDICATIVE rates
+    R->>P: Open payment flow with payeeId and targetCurrency
+    P->>API: GET accounts and balances filter FX-eligible
+    alt ratesheet mode optional
+        P->>API: GET current ratesheet for account
+        API-->>P: rateId with EXECUTABLE or INDICATIVE rates
     end
-    U->>P: Enter USD amount, pick FX Low/High-value method, review
-    P->>API: POST /transactions (V3: debtor/creditor, amount string, targetCurrency, optional fxInformation.rateId)
-    API-->>P: 202 minimal (id, transactionReferenceId, …)
+    U->>P: Enter USD amount pick FX Low or High-value review
+    P->>API: POST transactions V3 with targetCurrency and optional rateId
+    API-->>P: 202 with id and transactionReferenceId
     opt Enrich success UI
-        P->>API: GET /transactions/{id}
-        API-->>P: targetAmount, fxInformation, status…
+        P->>API: GET transaction by id
+        API-->>P: targetAmount fxInformation status
     end
-    Note over API: Platform backend also receives TRANSACTION_COMPLETED / FAILED webhooks
+    Note over API: Backend also receives TRANSACTION_COMPLETED or FAILED webhooks
 ```
 
 **WIP note:** Full webhook-driven client toast / activity feed patterns belong in [`WEBHOOK_INTEGRATION_RECIPE.md`](./WEBHOOK_INTEGRATION_RECIPE.md); this recipe only points at the FX-specific payload fields (`targetAmount`, `targetCurrency`, `fxInformation`).
