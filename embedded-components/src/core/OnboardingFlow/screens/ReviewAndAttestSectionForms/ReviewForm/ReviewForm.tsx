@@ -7,11 +7,12 @@ import {
   CheckIcon,
   ChevronDownIcon,
   InfoIcon,
+  Loader2Icon,
   PencilIcon,
   TriangleAlertIcon,
   UsersIcon,
 } from 'lucide-react';
-import { useForm, useFormState } from 'react-hook-form';
+import { useForm, useFormState, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
@@ -69,6 +70,8 @@ import {
   normalizeQuestionId,
 } from '@/core/OnboardingFlow/utils/questionTree';
 
+import { useTermsAndConditions } from '../TermsAndConditionsForm/useTermsAndConditions';
+
 export const ReviewForm: React.FC<StepperStepProps> = ({
   handlePrev,
   handleNext,
@@ -85,13 +88,31 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
 
   const {
     sections,
+    staticScreens,
     goTo,
     sessionData,
     updateSessionData,
     reviewScreenOpenedSectionId,
     currentScreenId,
     savedFormValues,
+    deltaModeActive,
+    setIsFormSubmitting,
   } = useFlowContext();
+
+  // Delta mode merges this Review step and the standalone Terms & conditions
+  // step into a single "Review & attest" page: the review summary below plus
+  // the terms documents and a combined accuracy + terms attestation. Submitting
+  // runs KYC directly and returns to the overview (no separate Terms step).
+  const deltaTerms = useTermsAndConditions({
+    enabled: deltaModeActive,
+    combineAccuracyAttestation: true,
+    onAfterKycSuccess: () => {
+      // Clear the submitting flag before navigating so the overview (and any
+      // subsequent screens) aren't left globally disabled.
+      setIsFormSubmitting(false);
+      goTo('overview', { resetHistory: true });
+    },
+  });
 
   const booleanRequired = z.boolean().refine((value) => value === true, {
     message: tString(
@@ -168,8 +189,12 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         party.active
     ) || [];
 
+  // Owners are collected via the owner stepper (a static screen), not the
+  // owners-section (a component with no stepperConfig). Validate against the
+  // real owner steps + 'owner-stepper' screen so completeness matches the owner
+  // cards and the section status; the old lookup resolved to [] (never flagged).
   const ownerSteps =
-    sections.find((section) => section.id === 'owners-section')?.stepperConfig
+    staticScreens.find((screen) => screen.id === 'owner-stepper')?.stepperConfig
       ?.steps || [];
 
   const ownersValidation = getStepperValidations(
@@ -177,7 +202,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     activeOwners,
     clientData,
     savedFormValues,
-    currentScreenId
+    'owner-stepper'
   );
 
   const sectionIdsToReview: SectionScreenId[] = [
@@ -195,24 +220,36 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
 
+  // The delta terms form and the standalone attestation form have different
+  // field shapes; the provider only needs the RHF methods, so widen the type.
+  const activeForm = (deltaModeActive
+    ? deltaTerms.form
+    : form) as unknown as UseFormReturn<Record<string, unknown>>;
+
   return (
-    <Form {...form}>
+    <Form {...activeForm}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (isMissingDetails) {
             setShouldDisplayAlert(true);
-          } else {
-            form.handleSubmit(() => {
-              updateSessionData({
-                completedStaticStepIds: [
-                  ...(sessionData.completedStaticStepIds ?? []),
-                  'review',
-                ],
-              });
-              handleNext();
-            })(e);
+            return;
           }
+          if (deltaModeActive) {
+            deltaTerms.trySubmit().catch(() => {
+              // Errors are surfaced via ServerErrorAlert / form state
+            });
+            return;
+          }
+          form.handleSubmit(() => {
+            updateSessionData({
+              completedStaticStepIds: [
+                ...(sessionData.completedStaticStepIds ?? []),
+                'review',
+              ],
+            });
+            handleNext();
+          })(e);
         }}
         className="eb-flex eb-flex-auto eb-flex-col"
       >
@@ -240,10 +277,6 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
               </AlertDescription>
             </Alert>
           )}
-          <GatewayReviewCard
-            clientData={clientData}
-            onChangeClick={() => goTo('gateway')}
-          />
           <div>
             <Accordion
               type="single"
@@ -277,16 +310,24 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                       : undefined;
 
                     content = (
-                      <StepsReviewCards
-                        steps={section.stepperConfig.steps}
-                        partyData={sectionPartyData}
-                        onEditClick={(stepId) => {
-                          goTo(section.id, {
-                            initialStepperStepId: stepId,
-                            editingPartyId: sectionPartyData?.id,
-                          });
-                        }}
-                      />
+                      <div className="eb-space-y-4">
+                        {section.id === 'business-section' && (
+                          <GatewayReviewCard
+                            clientData={clientData}
+                            onChangeClick={() => goTo('gateway')}
+                          />
+                        )}
+                        <StepsReviewCards
+                          steps={section.stepperConfig.steps}
+                          partyData={sectionPartyData}
+                          onEditClick={(stepId) => {
+                            goTo(section.id, {
+                              initialStepperStepId: stepId,
+                              editingPartyId: sectionPartyData?.id,
+                            });
+                          }}
+                        />
+                      </div>
                     );
                   } else if (section.id === 'owners-section') {
                     const goToOwners = () => {
@@ -557,7 +598,9 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 })}
             </Accordion>
           </div>
-          {hasDisclosureConfig ? (
+          {deltaModeActive ? (
+            deltaTerms.termsBody
+          ) : hasDisclosureConfig ? (
             <div className="eb-space-y-3">
               <p className="eb-text-sm eb-font-medium">
                 {t(
@@ -637,16 +680,37 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
         </div>
         <div className="eb-mt-6 eb-space-y-6">
           <div className="eb-flex eb-flex-col eb-gap-3">
-            <Button
-              type="submit"
-              variant="default"
-              size="lg"
-              className={cn('eb-w-full eb-text-lg', {
-                'eb-hidden': getNextButtonLabel() === null,
-              })}
-            >
-              {getNextButtonLabel()}
-            </Button>
+            {deltaModeActive ? (
+              <Button
+                type="submit"
+                variant="default"
+                size="lg"
+                className="eb-w-full eb-text-lg"
+                disabled={
+                  deltaTerms.isFormSubmitting ||
+                  (deltaTerms.useHostAckList && !deltaTerms.hostAckComplete)
+                }
+              >
+                {deltaTerms.isFormSubmitting && (
+                  <Loader2Icon className="eb-animate-spin" />
+                )}
+                {tString(
+                  'stepperRenderer.buttons.agreeAndFinish',
+                  'Agree and finish'
+                )}
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                variant="default"
+                size="lg"
+                className={cn('eb-w-full eb-text-lg', {
+                  'eb-hidden': getNextButtonLabel() === null,
+                })}
+              >
+                {getNextButtonLabel()}
+              </Button>
+            )}
             <Button
               type="button"
               onClick={handlePrev}

@@ -1,6 +1,7 @@
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { useQueryClient } from '@tanstack/react-query';
+import { cloneDeep, merge } from 'lodash';
 import {
   AlertCircleIcon,
   AlertTriangleIcon,
@@ -13,11 +14,13 @@ import {
   Clock9Icon,
   DownloadIcon,
   InfoIcon,
+  Loader2Icon,
   LockIcon,
   PencilIcon,
   TrashIcon,
   XIcon,
 } from 'lucide-react';
+import { useFormState } from 'react-hook-form';
 
 import {
   canVerifyMicrodeposits,
@@ -27,8 +30,9 @@ import { cn } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
   Button,
   Card,
@@ -46,9 +50,18 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import {
+  computeCompletedDeltaPendingGroupKeys,
+  countDeltaQuestionProgress,
+  DeltaPendingFieldsPanel,
+  isDeltaQuestionAnswered,
+  useDeltaPendingFieldsForm,
+  useSaveDeltaPendingFields,
+} from '@/core/OnboardingFlow/screens/ReviewAndAttestSectionForms/ReviewForm/DeltaPendingFieldsPanel';
+import {
   getOrganizationParty,
   getPartyByAssociatedPartyFilters,
 } from '@/core/OnboardingFlow/utils/dataUtils';
+import { scrollToDeltaSection } from '@/core/OnboardingFlow/utils/deltaMode';
 import { getLinkAccountEnabled } from '@/core/OnboardingFlow/utils/getLinkAccountEnabled';
 import { RecipientAccountDisplayCard } from '@/core/RecipientWidgets/components/RecipientAccountDisplayCard/RecipientAccountDisplayCard';
 import { RecipientDetailsDialog } from '@/core/RecipientWidgets/components/RecipientDetailsDialog/RecipientDetailsDialog';
@@ -581,18 +594,296 @@ const LinkedBankAccountSection = () => {
   );
 };
 
+/**
+ * Recursively keep only the blurred (touched) leaves of `values`, guided by
+ * RHF's `touchedFields` tree. Used to publish a blur-gated overlay to the
+ * sidebar delta timeline so a party substep reads complete only once its field
+ * is blurred — matching the panel progress bar — never mid-typing.
+ */
+function pickTouchedLeaves(value: unknown, touched: unknown): unknown {
+  if (touched === true) {
+    return value;
+  }
+  if (!touched || typeof touched !== 'object' || value == null) {
+    return undefined;
+  }
+  if (Array.isArray(value)) {
+    const touchedArr = touched as unknown[];
+    const picked = value.map((item, i) =>
+      pickTouchedLeaves(item, touchedArr[i])
+    );
+    return picked.some((v) => v !== undefined) ? picked : undefined;
+  }
+  const touchedObj = touched as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  let any = false;
+  for (const key of Object.keys(value as Record<string, unknown>)) {
+    const picked = pickTouchedLeaves(
+      (value as Record<string, unknown>)[key],
+      touchedObj[key]
+    );
+    if (picked !== undefined) {
+      out[key] = picked;
+      any = true;
+    }
+  }
+  return any ? out : undefined;
+}
+
 export const OverviewScreen = () => {
-  const { clientData, showLinkAccountStep, showDownloadChecklist } =
-    useOnboardingContext();
+  const {
+    clientData,
+    showLinkAccountStep,
+    showDownloadChecklist,
+    disclosureConfig,
+  } = useOnboardingContext();
   const {
     currentScreenId,
     sections,
+    staticScreens,
     goTo,
     sessionData,
     updateSessionData,
     savedFormValues,
+    deltaModeActive,
+    isFormSubmitting,
+    setLiveReviewFormValues,
   } = useFlowContext();
 
+  // -------------------------------------------------------------------------
+  // Delta mode: a focused "complete missing items" view of the overview.
+  // -------------------------------------------------------------------------
+  const {
+    form: deltaForm,
+    allQuestions: deltaAllQuestions,
+    stepSchemas: deltaStepSchemas,
+    baselinePendingGroups: deltaBaselineGroups,
+  } = useDeltaPendingFieldsForm(sections);
+  const {
+    save: saveDeltaFields,
+    saveError: deltaSaveError,
+    partyUpdateError: deltaPartyError,
+    clientUpdateError: deltaClientError,
+  } = useSaveDeltaPendingFields(deltaForm, deltaAllQuestions);
+
+  const deltaOwnerSteps =
+    staticScreens.find((s) => s.id === 'owner-stepper')?.stepperConfig?.steps ??
+    [];
+  const deltaOutstandingQuestionIds =
+    clientData?.outstanding?.questionIds ?? [];
+
+  const hasDeltaItems =
+    deltaBaselineGroups.length > 0 || deltaOutstandingQuestionIds.length > 0;
+  const deltaAvailable = deltaModeActive && hasDeltaItems;
+
+  const overviewViewMode: 'delta' | 'full' = deltaAvailable
+    ? (sessionData.overviewViewMode ?? 'delta')
+    : 'full';
+
+  // Latched while "Save & continue" persists and navigates to review. Saving
+  // resolves the pending items, so `deltaAvailable` flips false the instant the
+  // client refetch lands — without this the FULL overview would render for one
+  // frame before `goTo('review-attest-section')` runs (a visible flash).
+  const [isFinishingDelta, setIsFinishingDelta] = useState(false);
+
+  // While finishing, the post-save refetch resolves the pending fields and the
+  // panel collapses to nothing. To avoid a layout shift, we lock the panel
+  // wrapper to its pre-save height and mask it with a loading overlay until we
+  // navigate to review. Height is captured at click time (fields still shown).
+  const deltaPanelRef = useRef<HTMLDivElement>(null);
+  const [lockedPanelHeight, setLockedPanelHeight] = useState<
+    number | undefined
+  >(undefined);
+
+  const isDeltaView =
+    (deltaAvailable && overviewViewMode === 'delta') || isFinishingDelta;
+
+  // Re-render on touch changes only — a party field blur, or a question
+  // radio/select selection (which marks itself touched via setValue
+  // shouldTouch). Text-question keystrokes no longer re-render this screen
+  // (their completion is blur-gated), matching the isolated party text inputs
+  // and keeping typing lag-free. `touchedFields` also blur-gates the
+  // remaining-count so an item only counts as done once settled.
+  const { touchedFields: deltaTouchedFields } = useFormState({
+    control: deltaForm.control,
+  });
+  const liveDeltaValues = deltaForm.getValues() as Record<string, unknown>;
+
+  // Blur-gated overlay published to the sidebar delta timeline. Every leaf —
+  // party fields AND question answers — is included only once touched. Text
+  // fields become touched on blur; question radios/selects mark themselves
+  // touched on selection (setValue shouldTouch). This keeps the timeline's
+  // substep completion in lockstep with the panel's progress bar (also
+  // blur-gated) — a substep never ticks done mid-typing.
+  const publishedDeltaOverlay = useMemo(() => {
+    const touchedValues: Record<string, unknown> = {};
+    for (const key of Object.keys(liveDeltaValues)) {
+      const picked = pickTouchedLeaves(
+        liveDeltaValues[key],
+        (deltaTouchedFields as Record<string, unknown> | undefined)?.[key]
+      );
+      if (picked !== undefined) {
+        touchedValues[key] = picked;
+      }
+    }
+    return merge(cloneDeep(savedFormValues ?? {}), touchedValues);
+  }, [savedFormValues, liveDeltaValues, deltaTouchedFields]);
+
+  // Publish the blur-gated overlay so the sidebar delta timeline's checklist
+  // tracks settled (blurred) values. Guarded by a signature: setLiveReviewFormValues
+  // updates FlowContext (re-rendering this screen), so without the guard this
+  // would re-publish forever.
+  const publishedDeltaSigRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!isDeltaView) {
+      if (publishedDeltaSigRef.current !== undefined) {
+        publishedDeltaSigRef.current = undefined;
+        setLiveReviewFormValues(undefined);
+      }
+      return;
+    }
+    const sig = JSON.stringify(publishedDeltaOverlay);
+    if (sig !== publishedDeltaSigRef.current) {
+      publishedDeltaSigRef.current = sig;
+      setLiveReviewFormValues(publishedDeltaOverlay);
+    }
+    // Re-publishes whenever this screen re-renders with a changed blur-gated
+    // overlay — i.e. on blur (touchedFields) or a question change — so the
+    // sidebar checklist tracks settled values, not every keystroke.
+  }, [isDeltaView, publishedDeltaOverlay, setLiveReviewFormValues]);
+
+  // Group completeness for the resume banner / remaining-count. Pure safeParse
+  // against the pre-built schemas (no hooks). Memoized on the party-value
+  // signature (excludes `question_*`) so answering an operational-details
+  // question does NOT re-run the safeParse over every pending party schema —
+  // that recompute is the question-input lag. Party edits still invalidate it.
+  const deltaPartyValuesSignature = Object.keys(liveDeltaValues)
+    .filter((key) => !key.startsWith('question_'))
+    .map((key) => `${key}=${JSON.stringify(liveDeltaValues[key])}`)
+    .join('|');
+  const deltaPartyTouchedSignature = deltaBaselineGroups
+    .flatMap((group) => group.fields.map((field) => field.formPath))
+    .filter((path) => !!deltaForm.getFieldState(path as never).isTouched)
+    .join('|');
+  const deltaCompletedGroupKeys = useMemo(
+    () =>
+      computeCompletedDeltaPendingGroupKeys({
+        baselinePendingGroups: deltaBaselineGroups,
+        sections,
+        clientData,
+        ownerSteps: deltaOwnerSteps,
+        liveOverlay: { ...savedFormValues, ...liveDeltaValues },
+        currentScreenId,
+        stepSchemas: deltaStepSchemas,
+        touchedFields: deltaTouchedFields,
+      }),
+    // Keyed on the party value + touched signatures (not the fresh
+    // `liveDeltaValues` / `deltaTouchedFields` objects) so question changes
+    // don't invalidate it.
+    [
+      deltaPartyValuesSignature,
+      deltaPartyTouchedSignature,
+      deltaBaselineGroups,
+      sections,
+      clientData,
+      deltaOwnerSteps,
+      savedFormValues,
+      currentScreenId,
+      deltaStepSchemas,
+    ]
+  );
+  const deltaRemainingCount: number = (() => {
+    if (!deltaAvailable) {
+      return 0;
+    }
+    const groupsRemaining = deltaBaselineGroups.filter(
+      (g) => !deltaCompletedGroupKeys.has(g.key)
+    ).length;
+    // Count questions individually, honoring parent/child reveals (parent +
+    // each revealed child). Blur-gated via the published overlay (touched-only
+    // answers) so a text question doesn't count as done mid-typing — matching
+    // the party fields.
+    const { total, completed } = countDeltaQuestionProgress({
+      rootQuestionIds: deltaOutstandingQuestionIds.map(String),
+      allQuestions: deltaAllQuestions,
+      getAnswerValues: (id) => liveDeltaValues[`question_${id}`],
+      isAnswered: (id) => isDeltaQuestionAnswered(publishedDeltaOverlay, id),
+    });
+    const questionsRemaining = total - completed;
+    return groupsRemaining + questionsRemaining;
+  })();
+
+  const [showDeltaIncompleteAlert, setShowDeltaIncompleteAlert] =
+    useState(false);
+
+  const setOverviewViewMode = (mode: 'delta' | 'full') => {
+    updateSessionData({ overviewViewMode: mode });
+  };
+
+  // Submit via RHF `handleSubmit` (not `trigger`) so `formState.isSubmitted`
+  // flips true — that's what activates `reValidateMode: 'onChange'`, letting
+  // error messages clear live as the user fixes them after a failed submit.
+  // The resolver is delta-scoped (party errors only for baseline pending
+  // groups + outstanding questions), so a full-form submit validates exactly
+  // the delta items — already-valid data can't spuriously block.
+  const handleDeltaSaveAndContinue = () =>
+    deltaForm.handleSubmit(
+      async () => {
+        setShowDeltaIncompleteAlert(false);
+        // Lock the panel height (fields still rendered) and latch the delta view
+        // so the post-save collapse is masked by the overlay instead of shifting
+        // the layout while we await the refetch.
+        setLockedPanelHeight(deltaPanelRef.current?.offsetHeight);
+        setIsFinishingDelta(true);
+        const saved = await saveDeltaFields();
+        if (!saved) {
+          setIsFinishingDelta(false);
+          setLockedPanelHeight(undefined);
+          return;
+        }
+        goTo('review-attest-section');
+      },
+      () => {
+        setShowDeltaIncompleteAlert(true);
+        // First invalid field in visual order: party groups (rendered first),
+        // then the operational-details questions. Scroll its group card into
+        // view AND focus the field itself so the user lands on exactly what's
+        // wrong (questions have no group card, so setFocus brings them in).
+        const orderedFieldNames = [
+          ...deltaBaselineGroups.flatMap((group) =>
+            group.fields.map((field) => field.formPath)
+          ),
+          ...deltaOutstandingQuestionIds.map((id) => `question_${id}`),
+        ];
+        const firstInvalidName = orderedFieldNames.find(
+          (name) => deltaForm.getFieldState(name as never).error
+        );
+        if (firstInvalidName) {
+          const firstErroredGroup = deltaBaselineGroups.find((group) =>
+            group.fields.some((field) => field.formPath === firstInvalidName)
+          );
+          if (firstErroredGroup) {
+            const [sectionId, maybeOwnerId] = firstErroredGroup.key.split(':');
+            scrollToDeltaSection(
+              sectionId === 'owners-section'
+                ? `owners-section:${maybeOwnerId}`
+                : sectionId
+            );
+          }
+          try {
+            deltaForm.setFocus(firstInvalidName as never, {
+              shouldSelect: true,
+            });
+          } catch {
+            // Composite/custom fields may not expose a focusable ref; the group
+            // scroll above already brought the field into view.
+          }
+        }
+      }
+    )();
+
+  // getFlowProgress -> getStepperValidations -> Component.schema() ->
+  // useGetValidationMessage are hook-based; run at the top level of render.
   const { sectionStatuses, stepValidations } = getFlowProgress(
     sections,
     sessionData,
@@ -653,16 +944,37 @@ export const OverviewScreen = () => {
 
   return (
     <StepLayout
-      title={t('screens.overview.title')}
+      title={
+        isDeltaView
+          ? t('screens.overview.deltaView.title', 'Complete your application')
+          : t('screens.overview.title')
+      }
       headerElement={
-        showDownloadChecklist ? (
+        !isDeltaView && showDownloadChecklist ? (
           <Button variant="outline" size="sm">
             <DownloadIcon /> {t('screens.overview.downloadChecklist')}
           </Button>
         ) : undefined
       }
       subTitle={
-        !sessionData.hideOverviewInfoAlert && clientData?.status === 'NEW' ? (
+        isDeltaView ? (
+          <Alert variant="informative" density="sm" noTitle>
+            <InfoIcon className="eb-size-4" />
+            <AlertDescription>
+              {disclosureConfig?.platformName
+                ? t('screens.overview.deltaView.partnerAlert', {
+                    partnerName: disclosureConfig.platformName,
+                    defaultValue:
+                      '{{partnerName}} has already provided most of your information — just add the items below to finish.',
+                  })
+                : t(
+                    'screens.overview.deltaView.partnerAlertGeneric',
+                    'Most of your information has already been provided — just add the items below to finish.'
+                  )}
+            </AlertDescription>
+          </Alert>
+        ) : !sessionData.hideOverviewInfoAlert &&
+          clientData?.status === 'NEW' ? (
           <Alert variant="informative" density="sm" noTitle>
             <InfoIcon className="eb-size-4" />
             <AlertDescription className="eb-pr-6">
@@ -683,124 +995,251 @@ export const OverviewScreen = () => {
           </Alert>
         ) : undefined
       }
-      description={t('screens.overview.description')}
+      description={
+        isDeltaView
+          ? t(
+              'screens.overview.deltaView.description',
+              'Complete the remaining details below, then continue to review and submit.'
+            )
+          : t('screens.overview.description')
+      }
     >
       <div className="eb-flex-auto eb-space-y-6">
-        <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
-          <CardHeader className="eb-p-3">
-            <CardTitle className="eb-font-header eb-text-2xl eb-font-medium">
-              {t(verifyBusinessSectionTitleKey)}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="eb-p-3 eb-pt-0">
-            <VerifyBusinessStatusAlerts
-              status={clientData?.status}
-              docRequestsClosed={docRequestsClosed}
-              hasAnyDocumentRequests={hasAnyDocumentRequests}
+        {isDeltaView && (
+          <div className="eb-mt-6 eb-space-y-6">
+            {showDeltaIncompleteAlert && (
+              <Alert variant="warning">
+                <AlertTriangleIcon className="eb-h-4 eb-w-4" />
+                <AlertTitle>
+                  {t('reviewAndAttest.thereIsAProblem', 'There is a problem')}
+                </AlertTitle>
+                <AlertDescription>
+                  {t(
+                    'reviewAndAttest.provideMissingDetails',
+                    'Please provide missing details before finishing your application.'
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+            <div
+              ref={deltaPanelRef}
+              className="eb-relative"
+              style={
+                isFinishingDelta && lockedPanelHeight
+                  ? { minHeight: lockedPanelHeight }
+                  : undefined
+              }
+            >
+              <DeltaPendingFieldsPanel
+                sections={sections}
+                form={deltaForm}
+                stepSchemas={deltaStepSchemas}
+                baselinePendingGroups={deltaBaselineGroups}
+              />
+              {isFinishingDelta && (
+                <div className="eb-absolute eb-inset-0 eb-flex eb-items-center eb-justify-center eb-bg-background/60">
+                  <Loader2Icon className="eb-size-8 eb-animate-spin eb-text-primary" />
+                </div>
+              )}
+            </div>
+            <ServerErrorAlert
+              error={
+                deltaPartyError ||
+                deltaClientError ||
+                (deltaSaveError
+                  ? ({ message: 'Failed to save remaining details' } as any)
+                  : undefined)
+              }
             />
+            <div className="eb-flex eb-flex-col eb-gap-3">
+              <Button
+                type="button"
+                size="lg"
+                className="eb-w-full eb-text-lg"
+                disabled={isFormSubmitting}
+                onClick={() => {
+                  handleDeltaSaveAndContinue().catch(() => {
+                    // Errors surfaced via ServerErrorAlert / form state
+                  });
+                }}
+              >
+                {isFormSubmitting && (
+                  <Loader2Icon className="eb-animate-spin" />
+                )}
+                {t(
+                  'screens.overview.deltaToggle.saveAndContinue',
+                  'Save & continue'
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="eb-w-full eb-text-lg"
+                onClick={() => setOverviewViewMode('full')}
+              >
+                {t(
+                  'screens.overview.deltaView.reviewAll',
+                  'Review all details'
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
 
-            <div className="eb-space-y-3">
-              {clientData?.status === 'NEW' && <BusinessTypeNewSection />}
+        {overviewViewMode === 'full' && (
+          <>
+            {deltaAvailable && (
+              <Alert variant="informative" className="eb-mt-6">
+                <ClipboardListIcon className="eb-h-4 eb-w-4" />
+                <AlertTitle>
+                  {t(
+                    'screens.overview.deltaView.resumeBanner.title',
+                    'Almost done'
+                  )}
+                </AlertTitle>
+                <AlertDescription className="eb-flex eb-flex-col eb-gap-3 sm:eb-flex-row sm:eb-items-center sm:eb-justify-between">
+                  <span>
+                    {t('screens.overview.deltaView.resumeBanner.description', {
+                      count: deltaRemainingCount,
+                      defaultValue_one:
+                        'You have {{count}} item left to complete before submitting.',
+                      defaultValue_other:
+                        'You have {{count}} items left to complete before submitting.',
+                    })}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="eb-shrink-0"
+                    onClick={() => setOverviewViewMode('delta')}
+                  >
+                    {t(
+                      'screens.overview.deltaView.resumeBanner.action',
+                      'Finish your application'
+                    )}
+                    <ArrowRightIcon />
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
+              <CardHeader className="eb-p-3">
+                <CardTitle className="eb-font-header eb-text-2xl eb-font-medium">
+                  {t(verifyBusinessSectionTitleKey)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="eb-p-3 eb-pt-0">
+                <VerifyBusinessStatusAlerts
+                  status={clientData?.status}
+                  docRequestsClosed={docRequestsClosed}
+                  hasAnyDocumentRequests={hasAnyDocumentRequests}
+                />
 
-              {sections.map((section) => {
-                const sectionStatus = sectionStatuses?.[section.id];
-                const sectionDisabled =
-                  sectionStatus === 'on_hold' ||
-                  sectionStatus === 'completed_disabled';
-                const firstInvalidStep = stepValidations[section.id]
-                  ? section.stepperConfig?.steps.find((step) => {
-                      return (
-                        stepValidations[section.id][step.id] &&
-                        !stepValidations[section.id][step.id].isValid
-                      );
-                    })?.id
-                  : undefined;
+                <div className="eb-space-y-3">
+                  {clientData?.status === 'NEW' && <BusinessTypeNewSection />}
 
-                // const sectionVerifying =
-                //   sectionStatus === 'verifying' ||
-                //   sessionData.mockedVerifyingSectionId === section.id;
+                  {sections.map((section) => {
+                    const sectionStatus = sectionStatuses?.[section.id];
+                    const sectionDisabled =
+                      sectionStatus === 'on_hold' ||
+                      sectionStatus === 'completed_disabled';
+                    const firstInvalidStep = stepValidations[section.id]
+                      ? section.stepperConfig?.steps.find((step) => {
+                          return (
+                            stepValidations[section.id][step.id] &&
+                            !stepValidations[section.id][step.id].isValid
+                          );
+                        })?.id
+                      : undefined;
 
-                const existingPartyData = getPartyByAssociatedPartyFilters(
-                  clientData,
-                  section.stepperConfig?.associatedPartyFilters
-                );
+                    // const sectionVerifying =
+                    //   sectionStatus === 'verifying' ||
+                    //   sessionData.mockedVerifyingSectionId === section.id;
 
-                if (
-                  sectionStatus === 'hidden' ||
-                  sectionStatus === 'completed_disabled'
-                ) {
-                  return null;
-                }
+                    const existingPartyData = getPartyByAssociatedPartyFilters(
+                      clientData,
+                      section.stepperConfig?.associatedPartyFilters
+                    );
 
-                return (
-                  <div key={section.id}>
-                    {sectionStatus === 'on_hold' &&
-                      section.sectionConfig.onHoldTextKey && (
-                        <p
+                    if (
+                      sectionStatus === 'hidden' ||
+                      sectionStatus === 'completed_disabled'
+                    ) {
+                      return null;
+                    }
+
+                    return (
+                      <div key={section.id}>
+                        {sectionStatus === 'on_hold' &&
+                          section.sectionConfig.onHoldTextKey && (
+                            <p
+                              className={cn(
+                                'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
+                                {
+                                  'eb-text-muted-foreground': sectionDisabled,
+                                }
+                              )}
+                            >
+                              <LockIcon className="eb-size-4" />
+                              {t(section.sectionConfig.onHoldTextKey as any)}
+                            </p>
+                          )}
+                        <Card
                           className={cn(
-                            'eb-mb-3 eb-mt-7 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-medium',
+                            'eb-rounded-md eb-border eb-bg-card eb-p-3',
                             {
-                              'eb-text-muted-foreground': sectionDisabled,
+                              'eb-border-dashed eb-border-muted-foreground':
+                                sectionDisabled,
                             }
                           )}
                         >
-                          <LockIcon className="eb-size-4" />
-                          {t(section.sectionConfig.onHoldTextKey as any)}
-                        </p>
-                      )}
-                    <Card
-                      className={cn(
-                        'eb-rounded-md eb-border eb-bg-card eb-p-3',
-                        {
-                          'eb-border-dashed eb-border-muted-foreground':
-                            sectionDisabled,
-                        }
-                      )}
-                    >
-                      <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
-                        <div className="eb-flex eb-items-center eb-gap-2">
-                          <section.sectionConfig.icon
-                            className={cn('eb-size-4', {
-                              'eb-text-muted-foreground': sectionDisabled,
-                            })}
-                            aria-hidden
-                          />
-                          <h3
-                            className={cn(
-                              'eb-font-header eb-text-lg eb-font-medium',
-                              {
-                                'eb-text-muted-foreground': sectionDisabled,
-                              }
-                            )}
-                          >
-                            {t(section.sectionConfig.labelKey as any)}
-                          </h3>
-                        </div>
+                          <div className="eb-flex eb-w-full eb-items-center eb-justify-between">
+                            <div className="eb-flex eb-items-center eb-gap-2">
+                              <section.sectionConfig.icon
+                                className={cn('eb-size-4', {
+                                  'eb-text-muted-foreground': sectionDisabled,
+                                })}
+                                aria-hidden
+                              />
+                              <h3
+                                className={cn(
+                                  'eb-font-header eb-text-lg eb-font-medium',
+                                  {
+                                    'eb-text-muted-foreground': sectionDisabled,
+                                  }
+                                )}
+                              >
+                                {t(section.sectionConfig.labelKey as any)}
+                              </h3>
+                            </div>
 
-                        <div className="eb-flex [&_svg]:eb-size-4">
-                          {sectionStatus === 'completed' && (
-                            <>
-                              <CheckCircle2Icon className="eb-stroke-success" />
-                              <span className="eb-sr-only">Completed</span>
-                            </>
-                          )}
-                          {['not_started', 'on_hold'].includes(
-                            sectionStatus
-                          ) && (
-                            <>
-                              <CircleDashedIcon className="eb-stroke-muted-foreground" />
-                              <span className="eb-sr-only">Not started</span>
-                            </>
-                          )}
-                          {sectionStatus === 'missing_details' && (
-                            <>
-                              <AlertTriangleIcon className="eb-stroke-warning" />
-                              <span className="eb-sr-only">
-                                Missing details
-                              </span>
-                            </>
-                          )}
-                          {/* <Loader2Icon
+                            <div className="eb-flex [&_svg]:eb-size-4">
+                              {sectionStatus === 'completed' && (
+                                <>
+                                  <CheckCircle2Icon className="eb-stroke-success" />
+                                  <span className="eb-sr-only">Completed</span>
+                                </>
+                              )}
+                              {['not_started', 'on_hold'].includes(
+                                sectionStatus
+                              ) && (
+                                <>
+                                  <CircleDashedIcon className="eb-stroke-muted-foreground" />
+                                  <span className="eb-sr-only">
+                                    Not started
+                                  </span>
+                                </>
+                              )}
+                              {sectionStatus === 'missing_details' && (
+                                <>
+                                  <AlertTriangleIcon className="eb-stroke-warning" />
+                                  <span className="eb-sr-only">
+                                    Missing details
+                                  </span>
+                                </>
+                              )}
+                              {/* <Loader2Icon
                       className={cn(
                         'eb-hidden eb-animate-spin eb-stroke-primary',
                         {
@@ -808,94 +1247,100 @@ export const OverviewScreen = () => {
                         }
                       )}
                     /> */}
-                        </div>
+                            </div>
+                          </div>
+                          {(() => {
+                            // Derive requirements from visible steps' requirementSummaryKey,
+                            // falling back to static requirementsListKeys if no steps have summaries
+                            const stepSummaries =
+                              section.stepperConfig?.steps
+                                .map((step) =>
+                                  step.requirementSummaryKey
+                                    ? (t(
+                                        step.requirementSummaryKey as any
+                                      ) as string)
+                                    : undefined
+                                )
+                                .filter(Boolean) ?? [];
+                            const items =
+                              stepSummaries.length > 0
+                                ? stepSummaries
+                                : section.sectionConfig.requirementsListKeys?.map(
+                                    (key) => t(key as any) as string
+                                  );
+                            return items && items.length > 0 ? (
+                              <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
+                                {items.map((item, index) => (
+                                  <li key={index}>{item}</li>
+                                ))}
+                              </ul>
+                            ) : null;
+                          })()}
+                          <div className="eb-flex eb-justify-end">
+                            <Button
+                              variant={
+                                ['completed', 'on_hold'].includes(sectionStatus)
+                                  ? 'secondary'
+                                  : 'default'
+                              }
+                              size="sm"
+                              className="eb-mt-3"
+                              disabled={sectionDisabled}
+                              data-testid={`${section.id}-button`}
+                              aria-label={
+                                ['on_hold', 'not_started'].includes(
+                                  sectionStatus
+                                )
+                                  ? `${t('common:start')} ${t(section.sectionConfig.labelKey as any)}`
+                                  : sectionStatus === 'completed'
+                                    ? `${t('common:edit')} ${t(section.sectionConfig.labelKey as any)}`
+                                    : `${t('common:continue')} ${t(section.sectionConfig.labelKey as any)}`
+                              }
+                              onClick={() => {
+                                goTo(section.id, {
+                                  editingPartyId: existingPartyData.id,
+                                  previouslyCompleted:
+                                    sectionStatus === 'completed',
+                                  initialStepperStepId:
+                                    firstInvalidStep ??
+                                    section.stepperConfig?.steps.at(-1)?.id,
+                                });
+                              }}
+                            >
+                              {['on_hold', 'not_started'].includes(
+                                sectionStatus
+                              ) && (
+                                <>
+                                  {t('common:start')}
+                                  <ChevronRightIcon />
+                                </>
+                              )}
+                              {sectionStatus === 'completed' && (
+                                <>
+                                  {t('common:edit')}
+                                  <PencilIcon />
+                                </>
+                              )}
+                              {sectionStatus === 'missing_details' && (
+                                <>
+                                  {t('common:continue')}
+                                  <ChevronRightIcon />
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </Card>
                       </div>
-                      {(() => {
-                        // Derive requirements from visible steps' requirementSummaryKey,
-                        // falling back to static requirementsListKeys if no steps have summaries
-                        const stepSummaries =
-                          section.stepperConfig?.steps
-                            .map((step) =>
-                              step.requirementSummaryKey
-                                ? (t(
-                                    step.requirementSummaryKey as any
-                                  ) as string)
-                                : undefined
-                            )
-                            .filter(Boolean) ?? [];
-                        const items =
-                          stepSummaries.length > 0
-                            ? stepSummaries
-                            : section.sectionConfig.requirementsListKeys?.map(
-                                (key) => t(key as any) as string
-                              );
-                        return items && items.length > 0 ? (
-                          <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
-                            {items.map((item, index) => (
-                              <li key={index}>{item}</li>
-                            ))}
-                          </ul>
-                        ) : null;
-                      })()}
-                      <div className="eb-flex eb-justify-end">
-                        <Button
-                          variant={
-                            ['completed', 'on_hold'].includes(sectionStatus)
-                              ? 'secondary'
-                              : 'default'
-                          }
-                          size="sm"
-                          className="eb-mt-3"
-                          disabled={sectionDisabled}
-                          data-testid={`${section.id}-button`}
-                          aria-label={
-                            ['on_hold', 'not_started'].includes(sectionStatus)
-                              ? `${t('common:start')} ${t(section.sectionConfig.labelKey as any)}`
-                              : sectionStatus === 'completed'
-                                ? `${t('common:edit')} ${t(section.sectionConfig.labelKey as any)}`
-                                : `${t('common:continue')} ${t(section.sectionConfig.labelKey as any)}`
-                          }
-                          onClick={() => {
-                            goTo(section.id, {
-                              editingPartyId: existingPartyData.id,
-                              previouslyCompleted:
-                                sectionStatus === 'completed',
-                              initialStepperStepId:
-                                firstInvalidStep ??
-                                section.stepperConfig?.steps.at(-1)?.id,
-                            });
-                          }}
-                        >
-                          {['on_hold', 'not_started'].includes(
-                            sectionStatus
-                          ) && (
-                            <>
-                              {t('common:start')}
-                              <ChevronRightIcon />
-                            </>
-                          )}
-                          {sectionStatus === 'completed' && (
-                            <>
-                              {t('common:edit')}
-                              <PencilIcon />
-                            </>
-                          )}
-                          {sectionStatus === 'missing_details' && (
-                            <>
-                              {t('common:continue')}
-                              <ChevronRightIcon />
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </Card>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-        {showLinkAccountStep && <LinkedBankAccountSection />}
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+        {overviewViewMode === 'full' && showLinkAccountStep && (
+          <LinkedBankAccountSection />
+        )}
       </div>
     </StepLayout>
   );

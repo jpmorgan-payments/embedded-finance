@@ -156,8 +156,8 @@ export const LinkAccountScreen = () => {
     const dirty =
       Object.values(acknowledgements.checked).some(Boolean) ||
       (defaultCertShown && prefillCertifyChecked);
-    setFlowUnsavedChanges(dirty);
-    return () => setFlowUnsavedChanges(false);
+    setFlowUnsavedChanges('link-account-prefill', dirty);
+    return () => setFlowUnsavedChanges('link-account-prefill', false);
   }, [
     acknowledgements.checked,
     bankFormConfigForPrefill.requiredFields.certification,
@@ -344,7 +344,9 @@ export const LinkAccountScreen = () => {
           showCard={false}
           embedded
           alert={errorAlert}
-          onDirtyChange={setFlowUnsavedChanges}
+          onDirtyChange={(dirty) =>
+            setFlowUnsavedChanges('link-account-form', dirty)
+          }
           reviewAcknowledgements={acknowledgementItems}
           acknowledgementsIntro={acknowledgementsIntro}
           reviewAcknowledgementsGroupAriaLabel={tString(

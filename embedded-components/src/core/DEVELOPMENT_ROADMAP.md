@@ -2,41 +2,33 @@
 
 Target: Align all core components with API docs, i18n, private labeling (design/content tokens), security (OWASP), performance (Core Web Vitals), a11y (WCAG 2.1 AA), UX-tested flows, and OAS-superset client validation.
 
-**Last Updated:** July 16, 2026  
+**Last Updated:** January 14, 2026  
 **Related Documents:**
 
-- `BACKLOG.md` - Detailed task backlog with priorities and UX testing findings
-- `docs/ux-testing/` - Point-in-time UX testing session archives
-- `docs/README.md` - Docs index for this package
-- `CHANGELOG.md` - Shipped releases (see v0.14–v0.16 for PTC, PaymentFlowFX, legacy removals)
+- `BACKLOG.md` - Detailed task backlog with priorities and UX testing findings (updated with tracking IDs)
+- `docs/ux-testing/2025-12-02/UX_TESTING_REPORT.md` - Comprehensive UX testing results (Dec 2, 2025)
+- `docs/ux-testing/2025-12-09/UX_TESTING_REPORT.md` - UX testing results (Dec 9, 2025)
+- `docs/ux-testing/2025-12-09/PHASE1_CODE_INSPECTION.md` - Code inspection findings (Dec 9, 2025)
 
 ## Components (scope)
 
-**Public:**
-
-- OnboardingFlow (incl. PTC via `enablePubliclyTradedCompanies`)
-- LinkedAccountWidget / RecipientsWidget
-- PaymentFlow / PaymentFlowInline
-- PaymentFlowFX / PaymentFlowFXInline (**Beta**)
+- OnboardingFlow
+- LinkedAccountWidget
+- RecipientsWidget
+- PaymentFlow
 - TransactionsDisplay
 - Accounts
-- ClientDetails
 
-**Internal (not yet package-exported):**
-
-- IndirectOwnership
-
-**Removed — do not plan work against these APIs:**
-
-- `MakePayment` → `PaymentFlow` (removed v0.15)
-- `OnboardingWizardBasic` → `OnboardingFlow` (removed v0.15)
-- Legacy `Recipients` / `RecipientListWidget` → widgets above
+> **Note:** The legacy `Recipients` component has been deprecated in favor of `RecipientsWidget`. See the [RecipientWidgets README](./RecipientWidgets/README.md) for migration guidance.
 
 ## Timeline (visual)
 
 Each theme applies to all components. Within every theme, we will review and enhance each component to meet the revised expectations and target state; many already comply for several themes and will be validated rather than reworked.
 
-Baseline readiness: Basic functionality across foundation themes for core components is ready and verified. This roadmap captures the next iteration of enhancements and evolution.
+Baseline readiness: Basic functionality across all themes for all components is ready and verified. This roadmap captures the next iteration of enhancements and evolution.
+
+**Last Updated:** January 14, 2026  
+**Related Documents:** See `BACKLOG.md` for detailed task breakdown and UX testing findings. All backlog items now have unique tracking IDs (BL-XXX format).
 
 ```mermaid
 gantt
@@ -44,59 +36,80 @@ gantt
     dateFormat  YYYY-MM-DD
 
     section Foundation
-    Theme 0 - Functional Enhancements    :done, t0, 2025-10-15, 2026-06-15
-    Theme 1 - Security & Validation      :active, t1, 2025-10-20, 2026-08-01
-    Theme 2 - i18n & Design Tokens       :done, t2, 2025-11-03, 2026-03-15
+    Theme 0 - Functional Enhancements    :active, t0, 2025-10-15, 2025-12-15
+    Theme 1 - Security & Validation      :active, t1, 2025-10-20, 2025-12-20
+    Theme 2 - i18n & Design Tokens       :active, t2, 2025-11-03, 2025-12-20
 
     section Early Quality Gates
-    Theme 3 - Functional Testing (CAT)   :active, t3, 2025-10-10, 2026-08-01
-    Theme 4 - React 19 Readiness         :active, t4, 2025-12-15, 2026-09-01
+    Theme 3 - Functional Testing (CAT)   :active, t3, 2025-10-10, 2025-12-15
+    Theme 4 - React 19 Readiness         :t4, 2025-12-15, 2026-01-15
 
     section Experience & Perf
-    Theme 5 - RUM & Analytics            :active, t5, 2025-12-15, 2026-08-01
-    Theme 6 - Atomic Design & Perf       :active, t6, 2025-12-15, 2026-09-01
+    Theme 5 - RUM & Analytics            :t5, 2025-12-15, 2026-01-15
+    Theme 6 - Atomic Design & Perf       :t6, 2025-12-15, 2026-01-31
 
     section Compliance & Wrap-up
-    Theme 7 - A11y & UX Testing          :active, t7, 2025-12-02, 2026-08-01
-    Theme 8 - Comprehensive Testing      :active, t8, 2026-01-05, 2026-09-01
-    Theme 9 - Docs & AI Guides           :active, t9, 2026-01-15, 2026-08-01
+    Theme 7 - A11y & UX Testing          :active, t7, 2025-12-02, 2026-01-15
+    Theme 8 - Comprehensive Testing      :t8, 2026-01-05, 2026-01-31
+    Theme 9 - Docs & AI Guides           :t9, 2026-01-15, 2026-02-15
 ```
 
-## Theme 0: Functional Enhancements (largely complete — track residual in BACKLOG)
+## Theme 0: Functional Enhancements (In Progress)
 
 - OnboardingFlow
-  - ✅ Publicly Traded Companies (PTC) gated by `enablePubliclyTradedCompanies` (shipped 2026-05/06)
-  - [ ] Refine owner/controller flows; additional entity types as needed
+  - Add support for new entity types (with focus on publicly traded companies, government entities, and other non-profit entities)
+  - Refine owner/controller flows
 - LinkedAccountWidget
-  - ✅ Handle verification responses, interaction stories, compact/virtualized list
+  - ✅ Handle verification responses (PR #583 - Dec 2, 2025) [BL-401-1]
+  - ✅ Add interaction stories (PR #583 - Dec 2, 2025) [BL-401-1]
+  - ✅ Compact/virtualized list with scrollable mode (PR #609 - Dec 12, 2025) [BL-401-5]
   - [ ] Parity with Recipients payment methods [BL-401-2]
   - [ ] Better status messaging [BL-401-3]
   - [ ] Robust microdeposit flows (retry/lockout messaging) [BL-401-4]
-- RecipientsWidget
+- Recipients (DEPRECATED - use RecipientsWidget)
+  - ⚠️ This component is deprecated in favor of RecipientsWidget
+  - ✅ Server-side pagination implemented (PR #601 - Dec 9, 2025)
+  - ✅ Type filtering implemented (PR #601 - Dec 9, 2025)
+  - ✅ Status formatting refined with normalizeRecipientStatus (PR #601 - Dec 9, 2025)
+  - [ ] Conditional attributes per payment method (ACH/RTP/WIRE) [BL-402-1]
+  - [ ] Edit flows parity + masking [BL-402-2]
+  - [ ] Recipient duplicate detection UX [BL-402-3]
+- RecipientsWidget (NEW - recommended)
   - Shared architecture with LinkedAccountWidget
-  - ✅ Compact-cards default + table view, scrollable virtual list, config-driven forms
+  - Modern API with better i18n support
+  - Streamlined UX without microdeposit verification
+  - ✅ Compact-cards default + table view (PR #622 - Jan 8, 2026)
+  - ✅ Scrollable virtual list + load-more pagination (PR #609 - Dec 12, 2025)
+  - ✅ Config-driven forms aligned to recipient vs linked-account flows (PR #624 - Jan 8, 2026)
 - PaymentFlow
-  - ✅ Core domestic flow shipped; superseded legacy MakePayment
-  - [ ] Recipient/method filtering polish [BL-403-1]
+  - ✅ Recipient mode toggle refactored to RadioGroup (PR #601 - Dec 9, 2025) [BL-010]
+  - ✅ Manual recipient creation with save option (PR #601 - Dec 9, 2025) [BL-010]
+  - ✅ Payment method selector UI overhaul with icons (PR #601 - Dec 9, 2025) [BL-010]
+  - ✅ Section headings standardized to h3 (PR #601 - Dec 9, 2025) [BL-310]
+  - ✅ Account selector error handling and retry (PR #601 - Dec 9, 2025)
+  - ✅ Account list filtered to payment-eligible categories (PR #621 - Jan 7, 2026)
+  - ✅ UUID-based transaction reference IDs + trimmed memos (PR #621 - Jan 7, 2026)
+  - ✅ Preselected recipient fetch by ID for paginated lists (PR #626 - Jan 12, 2026)
+  - ✅ Dialog card header/spacing refresh (PR #626 - Jan 12, 2026)
+  - [ ] Recipient/method filtering logic [BL-403-1]
   - [ ] Review fee/time ETA display [BL-403-2, BL-031]
   - [ ] Review/confirmation UX [BL-403-3]
-- PaymentFlowFX (**Beta**)
-  - ✅ Initial FX / multicurrency payout draft (v0.16.x)
-  - [ ] Stabilize API, expand corridor coverage, exit Beta
+  - [ ] Cross-currency payment support [BL-403-4]
 - TransactionsDisplay
-  - [ ] Pagination / details mapping / PAYIN-PAYOUT derivation [BL-404-*]
+  - [ ] Pagination [BL-404-1]
+  - [ ] Review details attribute mapping [BL-404-2]
   - [ ] Review PAYIN/PAYOUT derivation and counterpart display [BL-404-3]
   - [ ] Fix "$NaN" display for Ledger Balance [BL-050-1]
   - [ ] Replace "N/A" values with meaningful data or hide fields [BL-050-2]
 - Accounts
-  - ✅ Account number masking (`****${number.slice(-4)}`) and browser verification [BL-003]
-  - ✅ Visual refresh, responsive cards, masking/toggle [BL-405-1, BL-405-3]
+  - ✅ Account number masking code updated to `****${number.slice(-4)}` (Dec 3, 2025) [BL-003-1]
+  - ✅ Browser verification completed - all components use `****1098` pattern (Dec 9, 2025) [BL-003-2]
+  - ✅ Visual refresh with updated header and spacing (PR #629 - Jan 13, 2026)
+  - ✅ Responsive cards layout (PR #629 - Jan 13, 2026) [BL-405-1]
   - [ ] Review balance types mapping and tooltips [BL-405-2]
+  - ✅ Masking/toggle for sensitive routing/account info [BL-405-3]
   - [ ] Add "View Transactions" / "Transfer Funds" buttons [BL-090-1, BL-090-2]
   - [ ] Remove redundant "Accounts" heading [BL-091-1]
-- ClientDetails
-  - ✅ Error/loading/skeleton + content tokens (2026-03)
-  - [ ] Full UX audit [BL-810]
 
 ## Theme 1: Security & Validation (In Progress)
 
@@ -104,12 +117,14 @@ gantt
 - Client-side validation: centralize Zod schemas (superset of OAS), strict regex for routing/account numbers, progressive and accessible errors.
 - OAS alignment: verify against latest specs; prefer generated hooks/types; no ad-hoc fetch clients.
 
-## Theme 2: i18n & Tokens (largely complete)
+## Theme 2: i18n & Tokens (In Progress)
 
-- ✅ Locales: `en-US`, `fr-CA`, `es-US` with content-token overrides via `EBComponentsProvider`
-- ✅ Theme configuration aligned with Salt Design System semantic tokens
-- [ ] Continue expanding token coverage for full private labeling [BL-420-3]
-- [ ] Keep Zod / form error messages wired to i18n maps where gaps remain
+- ✅ Enhanced i18n support in Recipients components (PR #599 - Dec 8, 2025) [BL-420]
+- ✅ Updated SellSense themes with new editable properties (PR #600 - Dec 8, 2025) [BL-330]
+- ✅ Theme configuration aligned with Salt Design System (PR #586 - Dec 3, 2025) [BL-330]
+- [ ] Extract content tokens and wire `react-i18next` + `zod-i18n-map` [BL-420-1, BL-420-2]
+- [ ] Expand design tokens for full theming/private labeling [BL-420-3]
+- [ ] Ensure runtime overrides via `EBComponentsProvider` [BL-420-4]
 
 ## Theme 3: Functional Testing (CAT) (In Progress)
 
@@ -141,14 +156,14 @@ gantt
 - [ ] ARIA correctness [BL-470-6]
 - **Key Findings from UX Testing (Dec 2, 2025):**
   - Design system inconsistencies (button styles, colors, labels) [BL-001, BL-002, BL-009]
-  - Make Payment / PaymentFlow form discoverability issues [BL-010]
+  - Make Payment form discoverability issues [BL-010]
   - Missing tooltips and accessibility features [BL-070]
   - Responsive design issues [BL-080]
   - Data quality and display issues [BL-050]
 - **Progress Since Dec 2 Testing:**
   - ✅ Account number masking code standardized and browser verified (Dec 9, 2025) [BL-003]
-  - ✅ Payment form structure improved (PR #601; now `PaymentFlow`) [BL-010]
-  - ✅ RecipientsWidget pagination / list patterns (legacy Recipients removed)
+  - ✅ Make Payment form structure improved (PR #601) [BL-010]
+  - ✅ Recipients server-side pagination implemented (PR #601)
   - ✅ Browser testing completed (Dec 9, 2025) - See `docs/ux-testing/2025-12-09/UX_TESTING_REPORT.md`
 - **New Findings from Dec 9 Testing:**
   - ✅ Recipients data inconsistency (table vs pagination) [BL-600] - **RESOLVED** (Dec 9, 2025 - Re-test confirmed)

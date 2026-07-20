@@ -344,6 +344,31 @@
       "description": "",
       "infoAlert": "Sus datos se guardarán a medida que avance.",
       "downloadChecklist": "Descargar lista de verificación",
+      "deltaToggle": {
+        "ariaLabel": "Modo de vista de resumen",
+        "complete": "Completar datos faltantes",
+        "full": "Resumen completo",
+        "saveAndContinue": "Guardar y continuar",
+        "viewFull": "Ver resumen completo"
+      },
+      "deltaView": {
+        "title": "Complete su solicitud",
+        "description": "Complete los datos restantes a continuación y luego continúe para revisar y enviar.",
+        "partnerAlert": "{{partnerName}} ya ha proporcionado la mayor parte de su información: solo agregue los elementos a continuación para finalizar.",
+        "partnerAlertGeneric": "La mayor parte de su información ya ha sido proporcionada: solo agregue los elementos a continuación para finalizar.",
+        "reviewAll": "Revisar todos los detalles",
+        "differentIdType": "Usar otro tipo de identificación",
+        "timeline": {
+          "title": "Su solicitud",
+          "completeTitle": "Complete sus datos"
+        },
+        "resumeBanner": {
+          "title": "Casi listo",
+          "description_one": "Le queda {{count}} elemento por completar antes de enviar.",
+          "description_other": "Le quedan {{count}} elementos por completar antes de enviar.",
+          "action": "Complete su solicitud"
+        }
+      },
       "verifyBusinessSection": {
         "title": "Verificar su negocio",
         "reviewInProgress": {
@@ -527,6 +552,10 @@
     },
     "reviewAttestSection": {
       "label": "Revisar y atestar",
+      "deltaCombined": {
+        "title": "Revisar y atestar",
+        "description": "Verifique sus datos, revise los términos y envíe su solicitud."
+      },
       "steps": {
         "review": {
           "title": "Revise sus datos",
@@ -1344,6 +1373,23 @@
   "reviewAndAttest": {
     "businessType": "Tipo de negocio",
     "notSubmittedYet": "Su solicitud aún no ha sido enviada. Revise sus datos y continúe para finalizar.",
+    "deltaHeader": {
+      "title": "Finalice su solicitud",
+      "description": "Complete los detalles faltantes, revise su información y acepte los términos."
+    },
+    "deltaCompletion": {
+      "itemsRemaining_one": "{{count}} elemento pendiente por completar",
+      "itemsRemaining_other": "{{count}} elementos pendientes por completar",
+      "allComplete": "Todo listo",
+      "progressCount": "{{completed}} de {{total}} completados",
+      "ownerSubtitle": "Datos del propietario beneficiario",
+      "genericSectionSubtitle": "Complete los datos requeridos",
+      "sectionSubtitles": {
+        "personal-section": "Verifique al controlador de la cuenta",
+        "business-section": "Confirme los datos de su negocio",
+        "additional-questions-section": "Algunas preguntas sobre cómo opera su negocio"
+      }
+    },
     "thereIsAProblem": "Hay un problema",
     "provideMissingDetails": "Proporcione los detalles faltantes antes de finalizar su solicitud.",
     "owners": "Propietarios",
@@ -1358,6 +1404,15 @@
     "missingDetails": "Detalles faltantes",
     "dataAccuracyAttestation": "Atestación de exactitud de datos",
     "dataAccuracyCheckbox": "Los datos que proporciono son verdaderos, precisos y completos según mi leal saber y entender.",
+    "deltaCombinedAttestation": {
+      "groupLabel": "Atestación de exactitud y términos",
+      "checkbox": "Confirmo que la información que proporcioné es verdadera, precisa y completa según mi leal saber y entender, y que he leído y acepto los Términos de cuenta de J.P. Morgan.",
+      "checkboxWithPlatform": "Confirmo que la información que proporcioné es verdadera, precisa y completa según mi leal saber y entender, y que he leído y acepto los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}.",
+      "checkboxTermsRead": "He leído y aceptado los Términos y Condiciones de Embedded Payments de J.P. Morgan",
+      "checkboxAccountUse": "Entiendo que la cuenta de Embedded Payments solo puede utilizarse para recibir fondos a través del proveedor de la plataforma conforme a mis términos comerciales con la plataforma.",
+      "checkboxAgent": "Entiendo que estoy designando al proveedor de la plataforma como agente no discrecional de la cuenta. Esto significa que solo el proveedor de la plataforma dará instrucciones sobre el pago de fondos desde mi cuenta de Embedded Payments de forma cotidiana, de acuerdo con mis términos comerciales.",
+      "checkboxDataAccuracy": "Los datos que proporciono son verdaderos, precisos, actuales y completos según mi leal saber y entender."
+    },
     "termsAcknowledgements": {
       "intro": "Al enviar electrónicamente esta solicitud, usted acepta que:"
     },
@@ -1379,7 +1434,10 @@
       "attestations": "Atestaciones",
       "agreeToTermsWithPlatform": "Ha leído y acepta los Términos de cuenta de J.P. Morgan y el {{platformAgreementLabel}}.",
       "agreeToTerms": "Ha leído y acepta los Términos de cuenta de J.P. Morgan.",
-      "mustReviewDocuments": "Debe abrir y revisar todos los documentos antes de seleccionar la casilla"
+      "mustReviewDocument": "Abra y revise el documento de arriba antes de seleccionar la casilla.",
+      "mustReviewDocuments": "Abra y revise todos los documentos de arriba antes de seleccionar la casilla.",
+      "mustReviewDocumentBelow": "Abra y revise el documento de abajo antes de seleccionar la casilla.",
+      "mustReviewDocumentsBelow": "Abra y revise todos los documentos de abajo antes de seleccionar la casilla."
     },
     "disclosure": {
       "footer": "Servicios bancarios proporcionados por JPMorgan Chase Bank, N.A., Miembro FDIC. {{platformName}} no es un banco.",

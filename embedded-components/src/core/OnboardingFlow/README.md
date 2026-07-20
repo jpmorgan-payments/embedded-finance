@@ -108,17 +108,6 @@ and you want unlink hidden everywhere.
 See also: **`RecipientWidgets/LinkedAccountWidget/README.md`**, repository **`docs/component-implementation.md`**
 (section _Linked accounts: hiding Remove_), and **Storybook** → Core → LinkedAccountWidget → Host configuration.
 
-## Publicly Traded Companies (PTC)
-
-Opt in with **`enablePubliclyTradedCompanies`** (default `false`). When enabled:
-
-- Gateway asks whether the org is publicly traded or a subsidiary of a PTC (hidden for sole props)
-- Collects ticker + stock exchange when applicable
-- Can redirect returning clients to gateway until the PTC question is answered
-- Owners section / identity-document steps may be filtered for PTC orgs per flow config
-
-Design reference: **`docs/ptc-feature-plan.md`** (status: implemented). Storybook: Core → OnboardingFlow → PTC scenarios.
-
 ## Link account step options (`linkAccountStepOptions`)
 
 Pre-populate and configure the **Link bank account** step via `linkAccountStepOptions` on `OnboardingFlow`.

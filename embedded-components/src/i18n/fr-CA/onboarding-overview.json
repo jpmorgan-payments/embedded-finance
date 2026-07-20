@@ -344,6 +344,31 @@
       "description": "",
       "infoAlert": "Vos données seront enregistrées au fur et à mesure.",
       "downloadChecklist": "Télécharger la liste de vérification",
+      "deltaToggle": {
+        "ariaLabel": "Mode d'affichage de l'aperçu",
+        "complete": "Compléter les éléments manquants",
+        "full": "Aperçu complet",
+        "saveAndContinue": "Enregistrer et continuer",
+        "viewFull": "Voir l'aperçu complet"
+      },
+      "deltaView": {
+        "title": "Complétez votre demande",
+        "description": "Complétez les détails restants ci-dessous, puis continuez pour vérifier et soumettre.",
+        "partnerAlert": "{{partnerName}} a déjà fourni la plupart de vos renseignements — ajoutez simplement les éléments ci-dessous pour terminer.",
+        "partnerAlertGeneric": "La plupart de vos renseignements ont déjà été fournis — ajoutez simplement les éléments ci-dessous pour terminer.",
+        "reviewAll": "Voir tous les détails",
+        "differentIdType": "Utiliser un autre type de pièce d'identité",
+        "timeline": {
+          "title": "Votre demande",
+          "completeTitle": "Complétez vos renseignements"
+        },
+        "resumeBanner": {
+          "title": "Presque terminé",
+          "description_one": "Il vous reste {{count}} élément à compléter avant de soumettre.",
+          "description_other": "Il vous reste {{count}} éléments à compléter avant de soumettre.",
+          "action": "Complétez votre demande"
+        }
+      },
       "verifyBusinessSection": {
         "title": "Vérifier votre entreprise",
         "reviewInProgress": {
@@ -527,6 +552,10 @@
     },
     "reviewAttestSection": {
       "label": "Révision et attestation",
+      "deltaCombined": {
+        "title": "Révision et attestation",
+        "description": "Vérifiez vos renseignements, consultez les conditions et soumettez votre demande."
+      },
       "steps": {
         "review": {
           "title": "Révisez vos renseignements",
@@ -1344,6 +1373,23 @@
   "reviewAndAttest": {
     "businessType": "Type d'entreprise",
     "notSubmittedYet": "Votre demande n'a pas encore été soumise. Vérifiez vos données et continuez pour terminer.",
+    "deltaHeader": {
+      "title": "Terminer votre demande",
+      "description": "Complétez les détails manquants, vérifiez vos informations et acceptez les conditions."
+    },
+    "deltaCompletion": {
+      "itemsRemaining_one": "{{count}} élément à compléter",
+      "itemsRemaining_other": "{{count}} éléments à compléter",
+      "allComplete": "Vous êtes prêt",
+      "progressCount": "{{completed}} sur {{total}} complétés",
+      "ownerSubtitle": "Détails du propriétaire véritable",
+      "genericSectionSubtitle": "Complétez les détails requis",
+      "sectionSubtitles": {
+        "personal-section": "Vérifiez le contrôleur du compte",
+        "business-section": "Confirmez les détails de votre entreprise",
+        "additional-questions-section": "Quelques questions sur le fonctionnement de votre entreprise"
+      }
+    },
     "thereIsAProblem": "Il y a un problème",
     "provideMissingDetails": "Veuillez fournir les détails manquants avant de terminer votre demande.",
     "owners": "Propriétaires",
@@ -1358,6 +1404,15 @@
     "missingDetails": "Détails manquants",
     "dataAccuracyAttestation": "Attestation d'exactitude des données",
     "dataAccuracyCheckbox": "Les données que je fournis sont véridiques, exactes et complètes au meilleur de ma connaissance.",
+    "deltaCombinedAttestation": {
+      "groupLabel": "Attestation d'exactitude et des conditions",
+      "checkbox": "Je confirme que les informations que j'ai fournies sont véridiques, exactes et complètes au meilleur de ma connaissance, et que j'ai lu et accepte les conditions de compte J.P. Morgan.",
+      "checkboxWithPlatform": "Je confirme que les informations que j'ai fournies sont véridiques, exactes et complètes au meilleur de ma connaissance, et que j'ai lu et accepte les conditions de compte J.P. Morgan et le {{platformAgreementLabel}}.",
+      "checkboxTermsRead": "J'ai lu et accepté les conditions générales d'Embedded Payments de J.P. Morgan",
+      "checkboxAccountUse": "Je comprends que le compte Embedded Payments ne peut être utilisé que pour recevoir des fonds par l'intermédiaire du fournisseur de la plateforme, conformément à mes conditions commerciales avec la plateforme.",
+      "checkboxAgent": "Je comprends que je désigne le fournisseur de la plateforme comme agent non discrétionnaire du compte. Cela signifie que seul le fournisseur de la plateforme donnera des instructions concernant le paiement des fonds à partir de mon compte Embedded Payments au quotidien, conformément à mes conditions commerciales.",
+      "checkboxDataAccuracy": "Les données que je fournis sont véridiques, exactes, à jour et complètes au meilleur de ma connaissance."
+    },
     "termsAcknowledgements": {
       "intro": "En soumettant électroniquement cette demande, vous acceptez que :"
     },
@@ -1379,7 +1434,10 @@
       "attestations": "Attestations",
       "agreeToTermsWithPlatform": "Vous avez lu et acceptez les conditions de compte J.P. Morgan et le {{platformAgreementLabel}}.",
       "agreeToTerms": "Vous avez lu et acceptez les conditions de compte J.P. Morgan.",
-      "mustReviewDocuments": "Vous devez ouvrir et consulter tous les documents avant de cocher la case"
+      "mustReviewDocument": "Ouvrez et consultez le document ci-dessus avant de cocher la case.",
+      "mustReviewDocuments": "Ouvrez et consultez tous les documents ci-dessus avant de cocher la case.",
+      "mustReviewDocumentBelow": "Ouvrez et consultez le document ci-dessous avant de cocher la case.",
+      "mustReviewDocumentsBelow": "Ouvrez et consultez tous les documents ci-dessous avant de cocher la case."
     },
     "disclosure": {
       "footer": "Services bancaires fournis par JPMorgan Chase Bank, N.A., membre de la FDIC. {{platformName}} n'est pas une banque.",

@@ -1,7 +1,5 @@
 # PaymentFlowFX
 
-> **Status: Beta** — exported and usable, but API / behaviour may still change before GA. Prefer `PaymentFlow` for domestic USD-only hosts until FX is required.
-
 `PaymentFlowFX` (dialog) and `PaymentFlowFXInline` (embedded) are the cross-border /
 multicurrency payout counterparts to [`PaymentFlow`](../PaymentFlow/PaymentFlow.tsx). They
 preserve **all** existing `PaymentFlow` behaviour (USD → USD payments are byte-for-byte the
@@ -41,7 +39,7 @@ PaymentFlowFX/
 │   ├── format.ts                  # Intl currency / countdown formatting helpers
 │   ├── referenceId.ts             # generateTransactionReferenceId
 │   └── transactionErrors.ts       # V3 + rate-sheet error parsing (additive over PaymentFlow)
-├── stories/                       # Beta/PaymentFlowFX Storybook stories (see below)
+├── stories/                       # Core/PaymentFlowFX Storybook stories (see below)
 ├── index.ts                       # Public exports
 ├── README.md                      # This file
 └── SPECIFICATION.md               # Full requirements & design
@@ -197,7 +195,7 @@ component tests with `yarn vitest run src/core/PaymentFlowFX`.
 
 ## Storybook
 
-Stories are titled `Beta/PaymentFlowFX` with tags `['@core', '@payments', 'autodocs']`:
+Stories are titled `Core/PaymentFlowFX` with tags `['@core', '@payments', 'autodocs']`:
 
 | File                                  | Focus                                                                                                          |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------- |

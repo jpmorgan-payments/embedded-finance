@@ -67,7 +67,10 @@ export type StaticScreenId =
   | 'overview'
   | 'owner-stepper'
   | 'document-upload-form'
-  | 'link-account';
+  | 'link-account'
+  // Virtual id for the delta completion stage shown in the delta sidebar
+  // timeline (not a navigable flowConfig screen).
+  | 'complete-your-details';
 
 export type SectionScreenId =
   | 'personal-section'
@@ -106,7 +109,10 @@ export type SectionScreenConfig = BaseScreenConfig & {
       clientData: ClientResponse | undefined,
       allStepsValid: boolean,
       stepValidationMap: StepValidationMap,
-      savedFormValues: Partial<OnboardingFormValuesSubmit> | undefined,
+      savedFormValues:
+        | Partial<OnboardingFormValuesSubmit>
+        | Record<string, unknown>
+        | undefined,
       screenId: ScreenId
     ) => SectionStatus;
   };
@@ -181,6 +187,8 @@ export type FlowSessionData = {
   linkAccountJustCreated?: boolean;
   /** Set when the user answers the PTC question on the gateway screen. */
   isPTCQuestionAnswered?: boolean;
+  /** Delta mode: which Overview view the user last selected ('delta' pending-fields vs 'full' section list). */
+  overviewViewMode?: 'delta' | 'full';
 };
 
 export type StepperStepProps = {

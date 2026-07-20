@@ -56,7 +56,7 @@ Confirmed with the product owner — **not** open for re-litigation during imple
 | D2  | FX rate handling         | **Config-driven** — default is real-time market rate (no `rateId`, indicative display). Two opt-in rate sources: (a) **built-in Rate Sheet mode** using the generated `getCurrentRatesheet` client (spec now in repo), (b) **custom provider callback** supplied by the host.                                                        |
 | D3  | Amount entry side        | **Debit (USD) side only** — user enters the USD amount; target-currency amount is an estimate. `targetAmount` does not even exist on the V3 request schema, so this is also an API constraint.                                                                                                                                       |
 | D4  | Recipient scope          | **Existing recipients + FX metadata** — FX to saved recipients carrying currency/country data; inline add-recipient form extended with country/currency/international routing. One-time (unsaved) cross-border recipients out of scope for v1 (domestic one-time behaviour preserved).                                               |
-| D5  | **Naming**               | Component: **`PaymentFlowFX`** / **`PaymentFlowFXInline`**, directory `src/core/PaymentFlowFX/`. All internal names use the `FX` suffix (`PaymentFlowFXProps`, `paymentflow-fx` test ids, `Beta/PaymentFlowFX` story title).                                                                                                         |
+| D5  | **Naming**               | Component: **`PaymentFlowFX`** / **`PaymentFlowFXInline`**, directory `src/core/PaymentFlowFX/`. All internal names use the `FX` suffix (`PaymentFlowFXProps`, `paymentflow-fx` test ids, `Core/PaymentFlowFX` story title).                                                                                                         |
 | D6  | **Non-breaking mandate** | Every change outside `src/core/PaymentFlowFX/` must be provably non-breaking: no existing export changes signature or behaviour; shared components gain only optional props with defaults reproducing today's behaviour; codegen is additive (new output files; existing generated files untouched); existing tests pass unmodified. |
 | D7  | Quality bars             | Clean, well-structured code (no new 3,000-line files — see §5 module budget); RTL test coverage for all new behaviour; Storybook stories following the existing PaymentFlow patterns.                                                                                                                                                |
 
@@ -788,7 +788,7 @@ branch coverage since they carry the money logic.
 ## 14. Storybook Stories
 
 Mirror the PaymentFlow story organisation and utilities
-([stories/](../PaymentFlow/stories/)): `Beta/PaymentFlowFX` title, tags
+([stories/](../PaymentFlow/stories/)): `Core/PaymentFlowFX` title, tags
 `['@core', '@payments', 'autodocs']`, MSW handlers from a `story-utils.tsx` factory.
 
 | File                                          | Stories                                                                                                                                                                                                                                                                                                                                                                                                                   |
