@@ -12,6 +12,7 @@ import { storyHasLlmSource } from '@/lib/story-llm-sources';
 const storySearchSchema = z.object({
   storyId: z.enum([
     'core-functional-requirements-index',
+    'cross-border-fx-payout-client-recipe',
     'webhook-integration-recipe',
     'date-selector-challenges',
     'important-date-selector-component',
@@ -22,6 +23,9 @@ const storySearchSchema = z.object({
 // Dynamic imports for stories
 const CoreFunctionalRequirementsIndex = lazy(
   () => import('@/content/stories/core-functional-requirements-index')
+);
+const CrossBorderFxPayoutClientRecipe = lazy(
+  () => import('@/content/stories/cross-border-fx-payout-client-recipe')
 );
 const WebhookIntegrationRecipe = lazy(
   () => import('@/content/stories/webhook-integration-recipe')
@@ -43,6 +47,12 @@ const storyMeta = {
     date: '2026-04-15',
     readTime: '5 min read',
     tags: ['Documentation', 'Requirements', 'Core'],
+  },
+  'cross-border-fx-payout-client-recipe': {
+    title: 'Cross-border FX payout — Client UX wiring (DRAFT)',
+    date: '2026-07-20',
+    readTime: '15 min read',
+    tags: ['DRAFT', 'FX', 'Payouts', 'UX'],
   },
   'partially-hosted-onboarding': {
     title: 'Partially Hosted UI Integration Guide',
@@ -73,6 +83,7 @@ const storyMeta = {
 // Component mapping (separate from serializable data)
 const storyComponents = {
   'core-functional-requirements-index': CoreFunctionalRequirementsIndex,
+  'cross-border-fx-payout-client-recipe': CrossBorderFxPayoutClientRecipe,
   'webhook-integration-recipe': WebhookIntegrationRecipe,
   'date-selector-challenges': DateSelectorChallenges,
   'important-date-selector-component': ImportantDateSelectorComponent,

@@ -127,6 +127,9 @@ export interface RecipientsTableViewProps {
   /** When true, hides Remove from the row overflow menu */
   hideRemoveRecipient?: boolean;
 
+  /** When true, shows the Currency column (FX hosts). @default false */
+  showRecipientCurrency?: boolean;
+
   /** Optional additional CSS classes */
   className?: string;
 }
@@ -174,6 +177,7 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
   onMicrodepositVerifySettled,
   onRemoveSuccess,
   hideRemoveRecipient = false,
+  showRecipientCurrency = false,
   className,
 }) => {
   // Get config for recipient type
@@ -310,7 +314,10 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
       // View Details menu item
       const viewDetailsMenuItem = (
         <>
-          <RecipientDetailsDialog recipient={recipient}>
+          <RecipientDetailsDialog
+            recipient={recipient}
+            showRecipientCurrency={showRecipientCurrency}
+          >
             <DropdownMenuItem
               onSelect={(e) => e.preventDefault()}
               className="eb-cursor-pointer"
@@ -356,7 +363,10 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
           */}
           <div className="eb-hidden eb-items-center eb-gap-1 @2xl:eb-flex">
             {/* Details button - inline at @2xl+ (icon only, full label at @3xl+) */}
-            <RecipientDetailsDialog recipient={recipient}>
+            <RecipientDetailsDialog
+              recipient={recipient}
+              showRecipientCurrency={showRecipientCurrency}
+            >
               <Button
                 variant="ghost"
                 size="sm"
@@ -435,8 +445,15 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
         renderActionsCell: renderRowActionsCell,
         visibleAccountNumbers,
         onToggleAccountNumber: handleToggleAccountNumber,
+        showRecipientCurrency,
       }),
-    [t, renderRowActionsCell, visibleAccountNumbers, handleToggleAccountNumber]
+    [
+      t,
+      renderRowActionsCell,
+      visibleAccountNumbers,
+      handleToggleAccountNumber,
+      showRecipientCurrency,
+    ]
   );
 
   // Initialize table instance

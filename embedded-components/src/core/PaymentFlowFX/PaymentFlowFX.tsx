@@ -75,7 +75,7 @@ import type {
   PaymentFlowFXInlineProps,
   PaymentFlowFXProps,
 } from './PaymentFlowFX.types';
-import { getTargetCurrencyForPayee } from './utils/eligibility';
+import { getTargetCurrencyForPayee, isFxActive } from './utils/eligibility';
 import { parseTransactionError } from './utils/transactionErrors';
 
 const DEFAULT_LOCALE = 'en-US';
@@ -467,6 +467,32 @@ function PaymentFlowFXContent({
       }
     }
   }, [allPayees, initialPayeeId, isPayeesLoaded, setFormData]);
+
+  // Keep payee + targetCurrency in sync whenever payeeId resolves to a loaded
+  // payee (initialPayeeId and resetKey reopens). Only update when values differ
+  // to avoid infinite setFormData loops.
+  useEffect(() => {
+    if (!isPayeesLoaded || !formData.payeeId) return;
+    const payee = allPayees.find((p) => p.id === formData.payeeId);
+    if (!payee) return;
+    const nextTargetCurrency = getTargetCurrencyForPayee(payee);
+    const payeeMissingOrStale =
+      !formData.payee || formData.payee.id !== payee.id;
+    const currencyOutOfSync = formData.targetCurrency !== nextTargetCurrency;
+    if (payeeMissingOrStale || currencyOutOfSync) {
+      setFormData({
+        payee,
+        targetCurrency: nextTargetCurrency,
+      });
+    }
+  }, [
+    allPayees,
+    formData.payee,
+    formData.payeeId,
+    formData.targetCurrency,
+    isPayeesLoaded,
+    setFormData,
+  ]);
 
   // ---- Handlers ----
   const handlePayeeSelect = useCallback(
@@ -915,6 +941,47 @@ function PaymentFlowFXContent({
 }
 
 /**
+ * ReviewPanel wrapper that relabels ACH/WIRE as FX value-tier rails when the
+ * live form's targetCurrency is a non-USD FX payout. Must render inside
+ * FlowContainer (useFlowContext).
+ */
+function FxAwareReviewPanel({
+  paymentMethods,
+  ...rest
+}: Omit<React.ComponentProps<typeof ReviewPanel>, 'mobileConfig'>) {
+  const { formData } = useFlowContext();
+  const { tString } = useTranslationWithTokens(['make-payment']);
+  const fxActive = isFxActive(
+    (formData as PaymentFlowFXFormData).targetCurrency
+  );
+
+  const resolvedMethods = useMemo(() => {
+    if (!fxActive || !paymentMethods) return paymentMethods;
+    const fxLabels: Partial<Record<PaymentMethodType, string>> = {
+      ACH: tString('fx.rails.label.ACH', 'FX Low-value'),
+      WIRE: tString('fx.rails.label.WIRE', 'FX High-value'),
+    };
+    const fxDescriptions: Partial<Record<PaymentMethodType, string>> = {
+      ACH: tString(
+        'fx.rails.desc.ACH',
+        'Non-urgent cross-currency payouts (two to five business days)'
+      ),
+      WIRE: tString(
+        'fx.rails.desc.WIRE',
+        'Time-critical cross-currency payouts (same or next business day)'
+      ),
+    };
+    return paymentMethods.map((m) => ({
+      ...m,
+      ...(fxLabels[m.id] ? { name: fxLabels[m.id]! } : {}),
+      ...(fxDescriptions[m.id] ? { description: fxDescriptions[m.id]! } : {}),
+    }));
+  }, [fxActive, paymentMethods, tString]);
+
+  return <ReviewPanel {...rest} paymentMethods={resolvedMethods} />;
+}
+
+/**
  * PaymentFlowFX — dialog mode.
  */
 export function PaymentFlowFX({
@@ -1038,7 +1105,7 @@ export function PaymentFlowFX({
       isSubmitting={isSubmitting}
       reviewPanel={
         showReviewPanel ? (
-          <ReviewPanel
+          <FxAwareReviewPanel
             accounts={{
               items: accounts,
               metadata: { page: 0, limit: 10, total_items: accounts.length },
@@ -1222,7 +1289,7 @@ export function PaymentFlowFXInline({
       className={className}
       reviewPanel={
         showReviewPanel ? (
-          <ReviewPanel
+          <FxAwareReviewPanel
             accounts={{
               items: accounts,
               metadata: { page: 0, limit: 10, total_items: accounts.length },

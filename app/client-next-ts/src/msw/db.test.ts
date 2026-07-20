@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   applyOverridesToDb,
+  createTransactionWithBalanceUpdate,
   db,
   DB_SCENARIOS,
   getDbStatus,
@@ -23,6 +24,70 @@ describe('msw db', () => {
     const r = resetDb(DB_SCENARIOS.EMPTY);
     expect(r.success).toBe(true);
     expect(r.scenario).toBe(DB_SCENARIOS.EMPTY);
+  });
+
+  it('seeds foreign-currency FX payouts for active-with-fx-recipients', () => {
+    resetDb(DB_SCENARIOS.ACTIVE_WITH_FX_RECIPIENTS);
+    const transactions = db.transaction.getAll() as Array<{
+      currency?: string;
+      creditorName?: string;
+    }>;
+    const fxCurrencies = new Set(
+      transactions
+        .map((t) => t.currency)
+        .filter((c): c is string => !!c && c !== 'USD')
+    );
+    expect(fxCurrencies.has('EUR')).toBe(true);
+    expect(fxCurrencies.has('GBP')).toBe(true);
+    expect(fxCurrencies.has('SGD')).toBe(true);
+    expect(transactions.some((t) => t.creditorName === 'Isabelle Moreau')).toBe(
+      true
+    );
+    expect(
+      transactions.some((t) => t.creditorName === 'Thames Trading Ltd')
+    ).toBe(true);
+    expect(transactions.some((t) => t.creditorName === 'Wei Tan')).toBe(true);
+  });
+
+  it('createTransactionWithBalanceUpdate uses seller org name for V3 FX body', () => {
+    resetDb(DB_SCENARIOS.ACTIVE_WITH_FX_RECIPIENTS);
+    const recipients = db.recipient.getAll() as Array<{ id: string }>;
+    expect(recipients.length).toBeGreaterThan(0);
+
+    const created = createTransactionWithBalanceUpdate({
+      type: 'WIRE',
+      status: 'COMPLETED',
+      amount: '100.00',
+      currency: 'USD',
+      targetCurrency: 'EUR',
+      transactionReferenceId: 'fx-ref-1',
+      debtor: {
+        account: {
+          type: 'REGISTERED_ACCOUNT',
+          registeredAccount: { id: 'acc-002' },
+        },
+      },
+      creditor: { id: recipients[0].id },
+    });
+
+    expect(created.debtorName).toBe('Neverland Books');
+    expect(created.debtorAccountId).toBe('acc-002');
+    expect(created.debtorName).not.toBe('Mock Customer');
+    expect(created.debtorName).not.toBe('MAIN1098');
+  });
+
+  it('createTransactionWithBalanceUpdate uses seller org name for V2 domestic body', () => {
+    resetDb(DB_SCENARIOS.ACTIVE_WITH_RECIPIENTS);
+    const created = createTransactionWithBalanceUpdate({
+      type: 'ACH',
+      status: 'COMPLETED',
+      amount: 50,
+      currency: 'USD',
+      debtorAccountId: 'acc-002',
+      recipientId: (db.recipient.getAll()[0] as { id: string }).id,
+    });
+
+    expect(created.debtorName).toBe('Neverland Books');
   });
 
   it('getDbStatus aggregates entity counts', () => {

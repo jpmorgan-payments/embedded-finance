@@ -108,6 +108,12 @@ export interface RecipientCardProps {
   hideRemoveRecipient?: boolean;
 
   /**
+   * When true, shows currency badges on the card and in details.
+   * @default false
+   */
+  showRecipientCurrency?: boolean;
+
+  /**
    * Heading level for the recipient card title.
    * Should be one level below the parent widget's heading.
    *
@@ -405,18 +411,23 @@ const SharedMenuItems: React.FC<SharedMenuItemsProps> = ({
 interface ViewDetailsMenuItemProps {
   recipient: Recipient;
   i18nNamespace: RecipientI18nNamespace;
+  showRecipientCurrency?: boolean;
 }
 
 /** View Details dropdown item followed by a separator. */
 const ViewDetailsMenuItem: React.FC<ViewDetailsMenuItemProps> = ({
   recipient,
   i18nNamespace,
+  showRecipientCurrency = false,
 }) => {
   const { t } = useTranslationWithTokens(i18nNamespace);
 
   return (
     <>
-      <RecipientDetailsDialog recipient={recipient}>
+      <RecipientDetailsDialog
+        recipient={recipient}
+        showRecipientCurrency={showRecipientCurrency}
+      >
         <DropdownMenuItem
           onSelect={(e) => e.preventDefault()}
           className="eb-cursor-pointer"
@@ -481,6 +492,7 @@ interface RecipientCardActionsProps {
   hidePayButton: boolean;
   recipientType: SupportedRecipientType;
   hideRemoveRecipient: boolean;
+  showRecipientCurrency?: boolean;
   i18nNamespace: RecipientI18nNamespace;
 }
 
@@ -499,6 +511,7 @@ const RecipientCardActions: React.FC<RecipientCardActionsProps> = ({
   hidePayButton,
   recipientType,
   hideRemoveRecipient,
+  showRecipientCurrency = false,
   i18nNamespace,
 }) => {
   const { t, tString } = useTranslationWithTokens(i18nNamespace);
@@ -522,7 +535,11 @@ const RecipientCardActions: React.FC<RecipientCardActionsProps> = ({
     />
   );
   const viewDetailsItem = (
-    <ViewDetailsMenuItem recipient={recipient} i18nNamespace={i18nNamespace} />
+    <ViewDetailsMenuItem
+      recipient={recipient}
+      i18nNamespace={i18nNamespace}
+      showRecipientCurrency={showRecipientCurrency}
+    />
   );
 
   const renderManageMenu = (
@@ -588,7 +605,10 @@ const RecipientCardActions: React.FC<RecipientCardActionsProps> = ({
             - Medium+ (@md): Buttons on same row, more space → VISIBLE
         */}
         {showInlineViewDetails && (
-          <RecipientDetailsDialog recipient={recipient}>
+          <RecipientDetailsDialog
+            recipient={recipient}
+            showRecipientCurrency={showRecipientCurrency}
+          >
             <Button
               variant="ghost"
               size="sm"
@@ -653,6 +673,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
   recipientType = 'LINKED_ACCOUNT',
   headingLevel = 3,
   hideRemoveRecipient = false,
+  showRecipientCurrency = false,
   showAccountToggle,
   showPaymentMethods,
   allowDetailedPaymentMethods,
@@ -703,6 +724,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
       hidePayButton={hidePayButton}
       recipientType={recipientType}
       hideRemoveRecipient={hideRemoveRecipient}
+      showRecipientCurrency={showRecipientCurrency}
       i18nNamespace={i18nNamespace}
     />
   ) : undefined;
@@ -731,6 +753,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
       showAccountToggle={showAccountToggle}
       showPaymentMethods={showPaymentMethods}
       allowDetailedPaymentMethods={allowDetailedPaymentMethods}
+      showRecipientCurrency={showRecipientCurrency}
     />
   );
 };

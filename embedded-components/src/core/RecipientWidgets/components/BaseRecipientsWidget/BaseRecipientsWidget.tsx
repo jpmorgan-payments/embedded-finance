@@ -36,6 +36,7 @@ import type {
   ApiError,
   GetAllRecipientsParams,
 } from '@/api/generated/ep-recipients.schemas';
+import type { TransactionResponseV3 } from '@/api/generated/ep-transactions-v3.schemas';
 import type {
   ApiErrorV2,
   TransactionResponseV2,
@@ -47,6 +48,8 @@ import { useServerError } from '@/components/ServerErrorAlert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { PaymentFlow } from '@/core/PaymentFlow';
 import type { PaymentMethod } from '@/core/PaymentFlow/PaymentFlow.types';
+import { PaymentFlowFX } from '@/core/PaymentFlowFX';
+import type { FxConfig } from '@/core/PaymentFlowFX/PaymentFlowFX.types';
 import type {
   BankAccountFormConfig,
   LinkAccountReviewAcknowledgement,
@@ -161,6 +164,34 @@ export interface BaseRecipientsWidgetProps
   paymentMethods?: PaymentMethod[];
 
   /**
+   * Which payment flow the default Pay action opens.
+   * - `'domestic'` (default) — {@link PaymentFlow}
+   * - `'fx'` — {@link PaymentFlowFX} for cross-border / multicurrency payouts
+   *
+   * @default 'domestic'
+   */
+  paymentFlowVariant?: 'domestic' | 'fx';
+
+  /**
+   * Show recipient account currency (flag + code) in the table column, card
+   * badges, and details dialog. Defaults to `true` when `paymentFlowVariant`
+   * is `'fx'`, otherwise `false` (non-breaking for existing domestic hosts).
+   */
+  showRecipientCurrency?: boolean;
+
+  /**
+   * FX rate & payment-purpose configuration. Only used when
+   * `paymentFlowVariant` is `'fx'`.
+   */
+  fxConfig?: FxConfig;
+
+  /**
+   * Restrict selectable target currencies in PaymentFlowFX.
+   * Only used when `paymentFlowVariant` is `'fx'`.
+   */
+  supportedTargetCurrencies?: string[];
+
+  /**
    * Whether to show fees in the PaymentFlow review panel.
    * @default false
    */
@@ -168,9 +199,10 @@ export interface BaseRecipientsWidgetProps
 
   /**
    * Callback when a payment transaction completes.
+   * Accepts domestic (V2) or FX (V3) transaction responses.
    */
   onPaymentComplete?: (
-    response?: TransactionResponseV2,
+    response?: TransactionResponseV2 | TransactionResponseV3,
     error?: ApiErrorV2
   ) => void;
 
@@ -585,6 +617,7 @@ interface RecipientsListContentProps {
   i18nNamespace: RecipientI18nNamespace;
   childHeadingLevel: HeadingLevelProps['headingLevel'];
   hideRemoveRecipient: boolean;
+  showRecipientCurrency: boolean;
   effectiveRenderPaymentAction: (recipient: Recipient) => React.ReactNode;
   cardHandlers: RecipientCardHandlers;
   // Table pagination
@@ -615,6 +648,7 @@ const RecipientsListContent: React.FC<RecipientsListContentProps> = ({
   i18nNamespace,
   childHeadingLevel,
   hideRemoveRecipient,
+  showRecipientCurrency,
   effectiveRenderPaymentAction,
   cardHandlers,
   pagination,
@@ -643,6 +677,7 @@ const RecipientsListContent: React.FC<RecipientsListContentProps> = ({
       recipientType={recipientType}
       headingLevel={childHeadingLevel}
       hideRemoveRecipient={hideRemoveRecipient}
+      showRecipientCurrency={showRecipientCurrency}
       className={cn({ 'eb-border-b-0': isCompact && isLast })}
     />
   );
@@ -666,6 +701,7 @@ const RecipientsListContent: React.FC<RecipientsListContentProps> = ({
           onMicrodepositVerifySettled={cardHandlers.onMicrodepositVerifySettled}
           onRemoveSuccess={cardHandlers.onRemoveSuccess}
           hideRemoveRecipient={hideRemoveRecipient}
+          showRecipientCurrency={showRecipientCurrency}
         />
       </div>
     );
@@ -804,6 +840,10 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   headingLevel = 2,
   renderPaymentAction,
   paymentMethods,
+  paymentFlowVariant = 'domestic',
+  showRecipientCurrency,
+  fxConfig,
+  supportedTargetCurrencies,
   showPaymentFees = false,
   onPaymentComplete,
   onAccountSettled,
@@ -821,6 +861,10 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   const config = getRecipientTypeConfig(recipientType);
   const userJourneys = getUserJourneys(config.eventPrefix);
   const queryClient = useQueryClient();
+
+  // Currency UI is opt-in; defaults on only for the FX payment-flow variant
+  const shouldShowRecipientCurrency =
+    showRecipientCurrency ?? paymentFlowVariant === 'fx';
 
   // Hook-based request function for imperative (non-hook) API calls
   const getAllRecipients = useGetAllRecipientsHook();
@@ -1194,7 +1238,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     setPaymentPayeeId(undefined);
   }, []);
 
-  // Default payment action renderer - uses PaymentFlow
+  // Default payment action renderer - uses PaymentFlow / PaymentFlowFX
   const defaultRenderPaymentAction = React.useCallback(
     (recipient: Recipient) => {
       return (
@@ -1215,6 +1259,13 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   // Use custom renderer if provided, otherwise use default
   const effectiveRenderPaymentAction =
     renderPaymentAction ?? defaultRenderPaymentAction;
+
+  const handleFxTransactionComplete = React.useCallback(
+    (response?: TransactionResponseV3, error?: unknown) => {
+      onPaymentComplete?.(response, error as ApiErrorV2 | undefined);
+    },
+    [onPaymentComplete]
+  );
 
   return (
     <div id="recipient-widget" className="eb-w-full eb-@container">
@@ -1260,17 +1311,32 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         />
       )}
 
-      {/* PaymentFlow Dialog - Single instance for all recipients */}
-      <PaymentFlow
-        open={paymentDialogOpen}
-        onOpenChange={setPaymentDialogOpen}
-        onClose={handlePaymentDialogClose}
-        initialPayeeId={paymentPayeeId}
-        paymentMethods={paymentMethods}
-        showFees={showPaymentFees}
-        onTransactionComplete={onPaymentComplete}
-        resetKey={paymentResetKey}
-      />
+      {/* Payment dialog - domestic PaymentFlow or cross-border PaymentFlowFX */}
+      {paymentFlowVariant === 'fx' ? (
+        <PaymentFlowFX
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          onClose={handlePaymentDialogClose}
+          initialPayeeId={paymentPayeeId}
+          paymentMethods={paymentMethods}
+          showFees={showPaymentFees}
+          fxConfig={fxConfig}
+          supportedTargetCurrencies={supportedTargetCurrencies}
+          onTransactionComplete={handleFxTransactionComplete}
+          resetKey={paymentResetKey}
+        />
+      ) : (
+        <PaymentFlow
+          open={paymentDialogOpen}
+          onOpenChange={setPaymentDialogOpen}
+          onClose={handlePaymentDialogClose}
+          initialPayeeId={paymentPayeeId}
+          paymentMethods={paymentMethods}
+          showFees={showPaymentFees}
+          onTransactionComplete={onPaymentComplete}
+          resetKey={paymentResetKey}
+        />
+      )}
 
       <Card
         className={cn(
@@ -1407,6 +1473,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
               i18nNamespace={config.i18nNamespace}
               childHeadingLevel={childHeadingLevel}
               hideRemoveRecipient={hideRemoveRecipient}
+              showRecipientCurrency={shouldShowRecipientCurrency}
               effectiveRenderPaymentAction={effectiveRenderPaymentAction}
               cardHandlers={{
                 onEditRecipient: handleEditRecipient,

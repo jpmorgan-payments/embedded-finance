@@ -61,6 +61,14 @@ export interface RecipientsWidgetProps
  * <RecipientsWidget scrollable maxHeight={500} />
  * ```
  *
+ * @example Compact cards with FX payment flow
+ * ```tsx
+ * <RecipientsWidget
+ *   viewMode="compact-cards"
+ *   paymentFlowVariant="fx"
+ * />
+ * ```
+ *
  * @example Compact cards with custom payment action
  * ```tsx
  * <RecipientsWidget

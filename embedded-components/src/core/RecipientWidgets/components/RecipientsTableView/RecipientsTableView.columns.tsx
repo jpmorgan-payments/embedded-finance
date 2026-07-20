@@ -9,7 +9,9 @@ import {
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { getRecipientPaymentMethodDisplayLabel } from '@/core/PaymentFlowFX/fxRecipientRequirements';
 
+import { RecipientCurrencyBadge } from '../RecipientCurrencyBadge';
 import { StatusBadge } from '../StatusBadge/StatusBadge';
 
 /**
@@ -99,6 +101,8 @@ export interface GetRecipientsColumnsOptions {
   renderActionsCell?: (recipient: Recipient) => React.ReactNode;
   visibleAccountNumbers: Set<string>;
   onToggleAccountNumber: (id: string) => void;
+  /** When true, include the Currency column (FX hosts). @default false */
+  showRecipientCurrency?: boolean;
 }
 
 /**
@@ -109,10 +113,11 @@ export const getRecipientsColumns = ({
   renderActionsCell,
   visibleAccountNumbers,
   onToggleAccountNumber,
+  showRecipientCurrency = false,
 }: GetRecipientsColumnsOptions): ColumnDef<Recipient, unknown>[] => {
   const naText = 'N/A';
 
-  return [
+  const columns: ColumnDef<Recipient, unknown>[] = [
     // Account Holder Name
     {
       id: 'accountHolder',
@@ -159,7 +164,25 @@ export const getRecipientsColumns = ({
         );
       },
     },
+  ];
 
+  if (showRecipientCurrency) {
+    columns.push({
+      id: 'currency',
+      accessorFn: (row) => row.account?.currencyCode ?? 'USD',
+      header: () => (
+        <span className="eb-font-medium">
+          {t('table.columns.currency', { defaultValue: 'Currency' })}
+        </span>
+      ),
+      cell: ({ row }) => {
+        const currency = row.original.account?.currencyCode ?? 'USD';
+        return <RecipientCurrencyBadge currency={currency} />;
+      },
+    });
+  }
+
+  columns.push(
     // Status
     {
       id: 'status',
@@ -193,6 +216,7 @@ export const getRecipientsColumns = ({
       ),
       cell: ({ row }) => {
         const methods = getSupportedPaymentMethods(row.original);
+        const currency = row.original.account?.currencyCode;
         if (methods.length === 0) {
           return <span className="eb-text-muted-foreground">{naText}</span>;
         }
@@ -200,7 +224,7 @@ export const getRecipientsColumns = ({
           <div className="eb-flex eb-flex-wrap eb-gap-1">
             {methods.map((method) => (
               <Badge key={method} variant="outline" className="eb-text-xs">
-                {method}
+                {getRecipientPaymentMethodDisplayLabel(method, currency)}
               </Badge>
             ))}
           </div>
@@ -242,6 +266,8 @@ export const getRecipientsColumns = ({
         return null;
       },
       enableHiding: false,
-    },
-  ];
+    }
+  );
+
+  return columns;
 };

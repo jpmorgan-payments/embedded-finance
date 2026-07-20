@@ -35,7 +35,14 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import {
+  getFxCurrencyRequirement,
+  getRecipientPaymentMethodDisplayLabel,
+  getRecipientRoutingFieldDisplayLabel,
+  isFxCreditCurrency,
+} from '@/core/PaymentFlowFX/fxRecipientRequirements';
 
+import { RecipientCurrencyBadge } from '../RecipientCurrencyBadge';
 import { StatusBadge } from '../StatusBadge/StatusBadge';
 
 export interface RecipientDetailsDialogProps {
@@ -43,6 +50,11 @@ export interface RecipientDetailsDialogProps {
   recipient: Recipient;
   /** The trigger element to open the dialog */
   children: React.ReactNode;
+  /**
+   * When true, shows account currency (flag + label). Used by FX hosts.
+   * @default false
+   */
+  showRecipientCurrency?: boolean;
 }
 
 /**
@@ -52,6 +64,7 @@ export interface RecipientDetailsDialogProps {
 export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
   recipient,
   children,
+  showRecipientCurrency = false,
 }) => {
   const { t, tString } = useTranslationWithTokens('linked-accounts');
   const [showFullAccount, setShowFullAccount] = useState(false);
@@ -60,6 +73,16 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
   const paymentMethods = getSupportedPaymentMethods(recipient);
   const fullAccountNumber = recipient.account?.number || maskedAccount;
   const isIndividual = recipient.partyDetails?.type === 'INDIVIDUAL';
+  const currencyCode = recipient.account?.currencyCode;
+  const fxRequirement = getFxCurrencyRequirement(currencyCode);
+  const isFxRecipient = isFxCreditCurrency(currencyCode);
+  const accountNumberLabel = fxRequirement?.accountNumberLabel
+    ? fxRequirement.accountNumberLabel
+    : t('accountDetails.accountNumber');
+  const showAccountType =
+    !!recipient.account?.type &&
+    (!isFxRecipient || fxRequirement?.requiresAccountType !== false);
+  const routingFieldLabel = getRecipientRoutingFieldDisplayLabel(currencyCode);
 
   // Get the actual account holder name (not the transformed display name)
   const accountHolderName = isIndividual
@@ -188,7 +211,7 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
                 {/* Account Number */}
                 <div className="eb-flex eb-items-center eb-justify-between">
                   <span className="eb-text-sm eb-text-muted-foreground">
-                    {t('accountDetails.accountNumber')}
+                    {accountNumberLabel}
                   </span>
                   <div className="eb-flex eb-items-center eb-gap-2">
                     <span className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide">
@@ -216,11 +239,26 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
                   </div>
                 </div>
 
-                {/* Account Type */}
-                {recipient.account?.type && (
+                {/* Account Type (US-style; hidden for FX markets where it does not apply) */}
+                {showAccountType && (
                   <DetailRow
                     label={t('accountDetails.accountType')}
-                    value={recipient.account.type}
+                    value={recipient.account!.type!}
+                  />
+                )}
+
+                {/* Account Currency (FX hosts) */}
+                {showRecipientCurrency && (
+                  <DetailRow
+                    label={t('accountDetails.accountCurrency', {
+                      defaultValue: 'Account Currency',
+                    })}
+                    value={
+                      <RecipientCurrencyBadge
+                        currency={recipient.account?.currencyCode ?? 'USD'}
+                        showFullLabel
+                      />
+                    }
                   />
                 )}
 
@@ -248,6 +286,17 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
                     {paymentMethods.map((method, index) => {
                       const routing = getRoutingForMethod(method);
                       const isLast = index === paymentMethods.length - 1;
+                      const methodLabel = isFxRecipient
+                        ? tString(
+                            `make-payment:fx.rails.label.${method}`,
+                            getRecipientPaymentMethodDisplayLabel(
+                              method,
+                              currencyCode
+                            )
+                          )
+                        : t(
+                            `bank-account-form:paymentMethods.${method}.label` as any
+                          );
                       return (
                         <div
                           key={method}
@@ -257,14 +306,16 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
                           )}
                         >
                           <span className="eb-text-sm eb-font-medium eb-text-foreground">
-                            {t(
-                              `bank-account-form:paymentMethods.${method}.label` as any
-                            )}
+                            {methodLabel}
                           </span>
                           {routing ? (
                             <div className="eb-text-right">
                               <span className="eb-text-[10px] eb-uppercase eb-tracking-wider eb-text-muted-foreground">
-                                {t('recipients:columns.routingNumber' as any)}
+                                {isFxRecipient
+                                  ? routingFieldLabel
+                                  : t(
+                                      'recipients:columns.routingNumber' as any
+                                    )}
                               </span>
                               <p className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide">
                                 {routing}

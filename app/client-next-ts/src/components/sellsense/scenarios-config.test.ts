@@ -8,6 +8,7 @@ import {
   getHeaderDescriptionForScenario,
   getHeaderTitleForScenario,
   getNextScenario,
+  getRecipientsPaymentFlowVariant,
   getScenarioByKey,
   getScenarioKeyByDisplayName,
   getScenarioNumber,
@@ -33,9 +34,9 @@ describe('scenarios-config', () => {
     });
 
     it('wraps from last to first', () => {
-      expect(
-        getNextScenario(SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA_PAYMENTS)
-      ).toBe(SCENARIO_KEYS.NEW_SELLER_ONBOARDING);
+      expect(getNextScenario(SCENARIO_KEYS.ACTIVE_SELLER_FX_PAYMENTS)).toBe(
+        SCENARIO_KEYS.NEW_SELLER_ONBOARDING
+      );
     });
   });
 
@@ -54,7 +55,7 @@ describe('scenarios-config', () => {
   });
 
   describe('getClientStatusOverrideForScenario', () => {
-    it('returns APPROVED for the last three active scenarios', () => {
+    it('returns APPROVED for active scenarios', () => {
       expect(getClientStatusOverrideForScenario('Linked Bank Account')).toBe(
         'APPROVED'
       );
@@ -63,6 +64,9 @@ describe('scenarios-config', () => {
       ).toBe('APPROVED');
       expect(
         getClientStatusOverrideForScenario('Seller with Payments DDA')
+      ).toBe('APPROVED');
+      expect(
+        getClientStatusOverrideForScenario('Seller with FX Payments')
       ).toBe('APPROVED');
     });
 
@@ -81,6 +85,9 @@ describe('scenarios-config', () => {
   describe('shouldShowRecipientsForScenario', () => {
     it('is true only when Recipients is in visibleComponents', () => {
       expect(shouldShowRecipientsForScenario('Seller with Payments DDA')).toBe(
+        true
+      );
+      expect(shouldShowRecipientsForScenario('Seller with FX Payments')).toBe(
         true
       );
       expect(shouldShowRecipientsForScenario('Seller with Limited DDA')).toBe(
@@ -224,13 +231,28 @@ describe('scenarios-config', () => {
   describe('getScenarioNumber', () => {
     it('returns 1-based index in SCENARIO_ORDER', () => {
       expect(getScenarioNumber('New Seller - Onboarding')).toBe(1);
-      expect(getScenarioNumber('Seller with Payments DDA')).toBe(
+      expect(getScenarioNumber('Seller with Payments DDA')).toBe(7);
+      expect(getScenarioNumber('Seller with FX Payments')).toBe(
         SCENARIO_ORDER.length
       );
     });
 
     it('falls back for unknown scenario', () => {
       expect(getScenarioNumber('unknown')).toBe(1);
+    });
+  });
+
+  describe('getRecipientsPaymentFlowVariant', () => {
+    it('returns fx for the FX payments scenario', () => {
+      expect(getRecipientsPaymentFlowVariant('Seller with FX Payments')).toBe(
+        'fx'
+      );
+    });
+
+    it('defaults to domestic for other recipient scenarios', () => {
+      expect(getRecipientsPaymentFlowVariant('Seller with Payments DDA')).toBe(
+        'domestic'
+      );
     });
   });
 });

@@ -31,7 +31,12 @@ import {
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui';
+import {
+  getRecipientPaymentMethodDisplayLabel,
+  getRecipientRoutingFieldDisplayLabel,
+} from '@/core/PaymentFlowFX/fxRecipientRequirements';
 
+import { RecipientCurrencyBadge } from '../RecipientCurrencyBadge';
 import { StatusBadge } from '../StatusBadge/StatusBadge';
 
 export interface RecipientAccountDisplayCardProps {
@@ -69,6 +74,12 @@ export interface RecipientAccountDisplayCardProps {
   compact?: boolean;
 
   /**
+   * When true, shows currency flag badges on the card.
+   * @default false
+   */
+  showRecipientCurrency?: boolean;
+
+  /**
    * Heading level for the card title.
    * Should be one level below the parent widget's heading.
    *
@@ -96,6 +107,7 @@ interface AccountViewProps {
   showAccountToggle: boolean;
   showPaymentMethods: boolean;
   allowDetailedPaymentMethods: boolean;
+  showRecipientCurrency?: boolean;
   renderAddRoutingButton?: (isExpanded: boolean) => ReactNode;
   headingLevel: HeadingLevel;
 }
@@ -257,12 +269,14 @@ const CompactAccountDetails: React.FC<{
   statusMessage?: ReactNode;
   showAccountToggle: boolean;
   showPaymentMethods: boolean;
+  showRecipientCurrency?: boolean;
   headingLevel: HeadingLevel;
 }> = ({
   recipient,
   statusMessage,
   showAccountToggle,
   showPaymentMethods,
+  showRecipientCurrency = false,
   headingLevel,
 }) => {
   const Heading = getHeadingTag(headingLevel);
@@ -284,6 +298,11 @@ const CompactAccountDetails: React.FC<{
         >
           {displayName}
         </Heading>
+        {showRecipientCurrency && (
+          <RecipientCurrencyBadge
+            currency={recipient.account?.currencyCode ?? 'USD'}
+          />
+        )}
         <CompactStatusBadge recipient={recipient} />
       </div>
 
@@ -350,6 +369,7 @@ const CompactAccountRow: React.FC<AccountViewProps> = ({
   actionsContent,
   showAccountToggle,
   showPaymentMethods,
+  showRecipientCurrency = false,
   headingLevel,
 }) => {
   const accountType = getAccountHolderType(recipient);
@@ -402,6 +422,7 @@ const CompactAccountRow: React.FC<AccountViewProps> = ({
           statusMessage={statusMessage}
           showAccountToggle={showAccountToggle}
           showPaymentMethods={showPaymentMethods}
+          showRecipientCurrency={showRecipientCurrency}
           headingLevel={headingLevel}
         />
       </div>
@@ -423,6 +444,11 @@ const CompactRoutingInfo: React.FC<{
   recipient: Recipient;
   paymentMethods: string[];
 }> = ({ recipient, paymentMethods }) => {
+  const currencyCode = recipient.account?.currencyCode;
+  const routingFieldLabel = getRecipientRoutingFieldDisplayLabel(currencyCode);
+  const methodLabel = (method: string) =>
+    getRecipientPaymentMethodDisplayLabel(method, currencyCode);
+
   if (paymentMethods.length === 1) {
     const routing = getRoutingForMethod(recipient, paymentMethods[0]);
     if (!routing) {
@@ -431,7 +457,7 @@ const CompactRoutingInfo: React.FC<{
     return (
       <div className="eb-flex eb-items-center eb-gap-2">
         <span className="eb-text-[10px] eb-uppercase eb-tracking-wider eb-text-muted-foreground">
-          Routing
+          {routingFieldLabel}
         </span>
         <span className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide eb-text-foreground">
           {routing}
@@ -440,7 +466,7 @@ const CompactRoutingInfo: React.FC<{
           variant="outline"
           className="eb-h-4 eb-border-muted-foreground/20 eb-px-1.5 eb-text-[9px] eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground"
         >
-          {paymentMethods[0]}
+          {methodLabel(paymentMethods[0])}
         </Badge>
       </div>
     );
@@ -449,7 +475,7 @@ const CompactRoutingInfo: React.FC<{
   return (
     <div className="eb-flex eb-items-center eb-gap-2">
       <span className="eb-text-[10px] eb-uppercase eb-tracking-wider eb-text-muted-foreground">
-        Routing
+        {routingFieldLabel}
       </span>
       <Popover>
         <PopoverTrigger asChild>
@@ -457,7 +483,7 @@ const CompactRoutingInfo: React.FC<{
             variant="link"
             size="sm"
             className="eb-h-auto eb-gap-1 eb-p-0 eb-text-xs"
-            aria-label={`View routing information for ${paymentMethods.length} payment methods`}
+            aria-label={`View ${routingFieldLabel.toLowerCase()} for ${paymentMethods.length} payment methods`}
           >
             <span>{paymentMethods.length} methods</span>
             <ChevronDownIcon className="eb-h-3 eb-w-3" aria-hidden="true" />
@@ -475,7 +501,7 @@ const CompactRoutingInfo: React.FC<{
                   Method
                 </th>
                 <th className="eb-px-2.5 eb-py-1 eb-text-right eb-text-[10px] eb-font-medium eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                  Routing
+                  {routingFieldLabel}
                 </th>
               </tr>
             </thead>
@@ -492,7 +518,7 @@ const CompactRoutingInfo: React.FC<{
                   >
                     <td className="eb-px-2.5 eb-py-1">
                       <span className="eb-text-[10px] eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-                        {method}
+                        {methodLabel(method)}
                       </span>
                     </td>
                     <td className="eb-px-2.5 eb-py-1 eb-text-right">
@@ -529,6 +555,7 @@ const NormalAccountCard: React.FC<AccountViewProps> = ({
   showAccountToggle,
   showPaymentMethods,
   allowDetailedPaymentMethods,
+  showRecipientCurrency = false,
   renderAddRoutingButton,
   headingLevel,
 }) => {
@@ -543,6 +570,10 @@ const NormalAccountCard: React.FC<AccountViewProps> = ({
   const accountType = getAccountHolderType(recipient);
   const AccountIcon = accountType === 'Individual' ? UserIcon : BuildingIcon;
   const fullAccountNumber = recipient.account?.number || maskedAccount;
+  const currencyCode = recipient.account?.currencyCode;
+  const routingFieldLabel = getRecipientRoutingFieldDisplayLabel(currencyCode);
+  const methodLabel = (method: string) =>
+    getRecipientPaymentMethodDisplayLabel(method, currencyCode);
 
   const showAddRoutingButton = needsAdditionalRouting(recipient);
   const addRoutingButton =
@@ -565,6 +596,11 @@ const NormalAccountCard: React.FC<AccountViewProps> = ({
             <div className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground">
               <AccountIcon className="eb-h-3.5 eb-w-3.5" />
               <span>{accountType}</span>
+              {showRecipientCurrency && (
+                <RecipientCurrencyBadge
+                  currency={recipient.account?.currencyCode ?? 'USD'}
+                />
+              )}
             </div>
           </div>
           {recipient.status && (
@@ -673,7 +709,7 @@ const NormalAccountCard: React.FC<AccountViewProps> = ({
               role="region"
             >
               {showDetailedPaymentMethods ? (
-                // Detailed View with Routing Numbers
+                // Detailed View with bank-identifier / routing values
                 <div className="eb-space-y-1.5">
                   {paymentMethods.map((method) => {
                     const routing = getRoutingForMethod(recipient, method);
@@ -686,23 +722,23 @@ const NormalAccountCard: React.FC<AccountViewProps> = ({
                           variant="outline"
                           className="eb-text-xs eb-font-semibold"
                         >
-                          {method}
+                          {methodLabel(method)}
                         </Badge>
                         {routing ? (
                           <div className="eb-flex eb-items-baseline eb-gap-2">
                             <span className="eb-text-[10px] eb-uppercase eb-text-muted-foreground/70">
-                              Routing
+                              {routingFieldLabel}
                             </span>
                             <span
                               className="eb-font-mono eb-text-xs eb-font-medium"
-                              aria-label={`Routing number ${routing}`}
+                              aria-label={`${routingFieldLabel} ${routing}`}
                             >
                               {routing}
                             </span>
                           </div>
                         ) : (
                           <span className="eb-text-[10px] eb-italic eb-text-muted-foreground">
-                            No routing
+                            No {routingFieldLabel.toLowerCase()}
                           </span>
                         )}
                       </div>
@@ -719,7 +755,7 @@ const NormalAccountCard: React.FC<AccountViewProps> = ({
                       variant="outline"
                       className="eb-text-xs eb-font-semibold"
                     >
-                      {method}
+                      {methodLabel(method)}
                     </Badge>
                   ))}
                   {addRoutingButton}
@@ -777,6 +813,7 @@ export const RecipientAccountDisplayCard: React.FC<
   renderAddRoutingButton,
   className = '',
   compact = false,
+  showRecipientCurrency = false,
   headingLevel = 3,
 }) => {
   const displayName = getRecipientDisplayName(recipient);
@@ -836,6 +873,7 @@ export const RecipientAccountDisplayCard: React.FC<
             showAccountToggle={showAccountToggle}
             showPaymentMethods={showPaymentMethods}
             allowDetailedPaymentMethods={allowDetailedPaymentMethods}
+            showRecipientCurrency={showRecipientCurrency}
             renderAddRoutingButton={renderAddRoutingButton}
             headingLevel={headingLevel}
           />
@@ -848,6 +886,7 @@ export const RecipientAccountDisplayCard: React.FC<
             showAccountToggle={showAccountToggle}
             showPaymentMethods={showPaymentMethods}
             allowDetailedPaymentMethods={allowDetailedPaymentMethods}
+            showRecipientCurrency={showRecipientCurrency}
             renderAddRoutingButton={renderAddRoutingButton}
             headingLevel={headingLevel}
           />

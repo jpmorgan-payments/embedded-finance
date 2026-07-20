@@ -8,6 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export function RecipesSection() {
   const recipes = [
     {
+      id: 'cross-border-fx-payout-client-recipe',
+      title: 'Cross-border FX payout — Client UX wiring (DRAFT)',
+      excerpt:
+        'WIP companion to the PDP FX payout how-to: Recipients + PaymentFlowFX wiring across currencies (CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md).',
+      date: '2026-07-20',
+      readTime: '15 min read',
+      tags: ['DRAFT', 'FX', 'Payouts', 'UX'],
+      link: '/stories/cross-border-fx-payout-client-recipe',
+      external: false,
+      icon: <FileText className="h-5 w-5" />,
+    },
+    {
       id: 'core-functional-requirements-index',
       title: 'Core functional requirements — cross-reference',
       excerpt:

@@ -6,6 +6,9 @@ import {
   getFxAvailableRails,
   getFxCurrencyRequirement,
   getFxRoutingCodeType,
+  getRecipientPaymentMethodDisplayLabel,
+  getRecipientRoutingFieldDisplayLabel,
+  isFxCreditCurrency,
   isIbanCurrency,
 } from './fxRecipientRequirements';
 import { SUPPORTED_TARGET_CURRENCIES } from './PaymentFlowFX.constants';
@@ -144,6 +147,30 @@ describe('fxRecipientRequirements', () => {
     it('describes ACH as the low-value tier and WIRE as the high-value tier', () => {
       expect(FX_RAIL_INFO.ACH.tier).toMatch(/low-value/i);
       expect(FX_RAIL_INFO.WIRE.tier).toMatch(/high-value/i);
+    });
+  });
+
+  describe('recipient display labels', () => {
+    it('uses FX rail tiers and sort-code label for GBP', () => {
+      expect(isFxCreditCurrency('GBP')).toBe(true);
+      expect(getRecipientPaymentMethodDisplayLabel('ACH', 'GBP')).toBe(
+        'FX Low-value'
+      );
+      expect(getRecipientPaymentMethodDisplayLabel('WIRE', 'GBP')).toBe(
+        'FX High-value'
+      );
+      expect(getRecipientRoutingFieldDisplayLabel('GBP')).toBe(
+        'Sort code (or BIC)'
+      );
+    });
+
+    it('keeps domestic ACH/WIRE codes and Routing Number for USD', () => {
+      expect(isFxCreditCurrency('USD')).toBe(false);
+      expect(getRecipientPaymentMethodDisplayLabel('ACH', 'USD')).toBe('ACH');
+      expect(getRecipientPaymentMethodDisplayLabel('WIRE', 'USD')).toBe('WIRE');
+      expect(getRecipientRoutingFieldDisplayLabel('USD')).toBe(
+        'Routing Number'
+      );
     });
   });
 });

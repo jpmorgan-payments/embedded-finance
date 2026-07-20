@@ -125,6 +125,7 @@ describe('SellSense Scenarios', () => {
       'Onboarding - Docs Needed',
       'Seller with Limited DDA',
       'Seller with Payments DDA',
+      'Seller with FX Payments',
     ] as const;
 
     scenarios.forEach((scenario) => {

@@ -214,6 +214,21 @@ OnboardingFlow **and** `LinkedAccountWidget`, pass **`hideLinkedAccountRemoval`*
 **References:** `embedded-components/src/core/OnboardingFlow/README.md`, `embedded-components/src/core/RecipientWidgets/LinkedAccountWidget/README.md`,
 `embedded-components/src/core/RecipientWidgets/README.md`, `embedded-components/README.md` (component sections), and JSDoc on the props in source.
 
+## RecipientsWidget: FX payment variant
+
+`RecipientsWidget` / `LinkedAccountWidget` accept additive, non-breaking payment props on
+`BaseRecipientsWidget`:
+
+| Prop | Default | Behavior |
+| ---- | ------- | -------- |
+| `paymentFlowVariant` | `'domestic'` | `'fx'` opens `PaymentFlowFX` on Pay |
+| `showRecipientCurrency` | Auto (`true` when FX) | Currency column / badges / details |
+| `fxConfig` / `supportedTargetCurrencies` | — | Forwarded to `PaymentFlowFX` when variant is `'fx'` |
+
+Hosts typically only set `paymentFlowVariant="fx"`; currency UI auto-enables. See
+`embedded-components/src/core/RecipientWidgets/RecipientsWidget/README.md` and Storybook
+**Core/RecipientsWidget/FX Payments**.
+
 ## Anti-Patterns to Avoid
 
 ### ❌ Aggregation barrel exports
