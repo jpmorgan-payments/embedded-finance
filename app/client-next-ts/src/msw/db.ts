@@ -36,6 +36,7 @@ import {
   LLCExistingClientOutstandingDocuments,
   SoleProprietorExistingClient,
 } from '../mocks/clientDetails.mock';
+import { mockFxRecipientsResponse } from '../mocks/fx-recipients.mock';
 import { mockLinkedAccounts } from '../mocks/linkedAccounts.mock';
 import { mockRecipientsResponse } from '../mocks/recipients.mock';
 import {
@@ -44,6 +45,7 @@ import {
   testScenario5DashboardRecipients,
   testScenario5DashboardTransactions,
 } from '../mocks/testScenario5Dashboard.mock';
+import { testScenario5FundDocumentRequests } from '../mocks/testScenario5FundDocumentRequests.mock';
 import {
   TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
   testScenarioFasterFulfilmentClient,
@@ -61,14 +63,16 @@ import {
   TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
   testScenarioNaicsCodesClient,
 } from '../mocks/testScenarioNaicsCodesClient.mock';
-import { testScenario5FundDocumentRequests } from '../mocks/testScenario5FundDocumentRequests.mock';
 import {
   TEST_DEMO_SCENARIO_CLIENT_ID,
   TEST_DEMO_SCENARIO_DOC_REQUEST_INDIVIDUAL_ID_BASE,
   TEST_DEMO_SCENARIO_DOC_REQUEST_ORG_ID,
   testScenarioOperator80Client,
 } from '../mocks/testScenarioOperator80Client.mock';
-import { mockTransactionsResponse } from '../mocks/transactions.mock';
+import {
+  mockFxTransactionsResponse,
+  mockTransactionsResponse,
+} from '../mocks/transactions.mock';
 import {
   areAllNaicsCodeQuestionsAnswered,
   isTestScenario5NaicsCode,
@@ -225,6 +229,7 @@ export const MAGIC_VALUES: Record<string, string> = {
 export const DB_SCENARIOS: Record<string, string> = {
   ACTIVE: 'active',
   ACTIVE_WITH_RECIPIENTS: 'active-with-recipients',
+  ACTIVE_WITH_FX_RECIPIENTS: 'active-with-fx-recipients',
   EMPTY: 'empty',
 };
 
@@ -392,19 +397,118 @@ export function processTransaction(transactionData: DbTransaction): void {
   }
 }
 
+/** Showcase seller org name used when party data is unavailable. */
+const DEFAULT_SELLER_ORGANIZATION_NAME = 'Neverland Books';
+
+/**
+ * Resolve the onboarded seller/org display name for a client (CLIENT org party).
+ * Matches seeded mock transaction convention: payouts use the entity name
+ * (Neverland Books), not account labels or "Mock Customer".
+ */
+function getOrganizationDisplayNameForClient(
+  clientId: string | undefined
+): string | undefined {
+  if (!clientId) return undefined;
+  const client = db.client.findFirst({
+    where: { id: { equals: clientId } },
+  }) as { parties?: string[] } | null;
+  for (const partyId of client?.parties ?? []) {
+    const party = db.party.findFirst({
+      where: { id: { equals: partyId } },
+    }) as
+      | {
+          partyType?: string;
+          roles?: string[];
+          organizationDetails?: {
+            organizationName?: string;
+            dbaName?: string;
+          };
+        }
+      | null;
+    if (!party) continue;
+    if (party.partyType !== 'ORGANIZATION') continue;
+    if (!party.roles?.includes('CLIENT')) continue;
+    const name =
+      party.organizationDetails?.organizationName ||
+      party.organizationDetails?.dbaName;
+    if (name?.trim()) return name.trim();
+  }
+  return undefined;
+}
+
+/**
+ * Normalize V2 flat + V3 nested transaction create bodies into shared fields.
+ * PaymentFlowFX (V3) sends `debtor.account.registeredAccount.id` and
+ * `creditor.id` rather than top-level `debtorAccountId` / `recipientId`.
+ */
+function normalizeCreateTransactionInput(transactionData: Record<string, unknown>): {
+  debtorAccountId?: string;
+  debtorName?: string;
+  recipientId?: string;
+  creditorAccountId?: string;
+  creditorName?: string;
+  amount: unknown;
+  currency?: string;
+  type?: unknown;
+  status?: unknown;
+  paymentDate?: string;
+  effectiveDate?: string;
+  postingVersion?: number;
+  reference?: string;
+  transactionReferenceId?: string;
+  description?: string;
+  memo?: string;
+} {
+  const debtor = transactionData.debtor as
+    | {
+        account?: {
+          registeredAccount?: { id?: string };
+        };
+      }
+    | undefined;
+  const creditor = transactionData.creditor as { id?: string } | undefined;
+
+  const debtorAccountId =
+    (transactionData.debtorAccountId as string | undefined) ||
+    debtor?.account?.registeredAccount?.id;
+
+  const recipientId =
+    (transactionData.recipientId as string | undefined) || creditor?.id;
+
+  return {
+    debtorAccountId,
+    debtorName: transactionData.debtorName as string | undefined,
+    recipientId,
+    creditorAccountId: transactionData.creditorAccountId as string | undefined,
+    creditorName: transactionData.creditorName as string | undefined,
+    amount: transactionData.amount,
+    currency: transactionData.currency as string | undefined,
+    type: transactionData.type,
+    status: transactionData.status,
+    paymentDate: transactionData.paymentDate as string | undefined,
+    effectiveDate: transactionData.effectiveDate as string | undefined,
+    postingVersion: transactionData.postingVersion as number | undefined,
+    reference: transactionData.reference as string | undefined,
+    transactionReferenceId: transactionData.transactionReferenceId as
+      | string
+      | undefined,
+    description: transactionData.description as string | undefined,
+    memo: transactionData.memo as string | undefined,
+  };
+}
+
 export function createTransactionWithBalanceUpdate(
   transactionData: Record<string, unknown>
 ): DbTransaction {
   const transactionId = `txn-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const input = normalizeCreateTransactionInput(transactionData);
 
-  let creditorAccountId =
-    (transactionData.creditorAccountId as string) || 'acc-001';
-  let creditorName =
-    (transactionData.creditorName as string) || 'SellSense Marketplace';
+  let creditorAccountId = input.creditorAccountId || 'acc-001';
+  let creditorName = input.creditorName || 'SellSense Marketplace';
 
-  if (transactionData.recipientId) {
+  if (input.recipientId) {
     const recipient = db.recipient.findFirst({
-      where: { id: { equals: transactionData.recipientId as string } },
+      where: { id: { equals: input.recipientId } },
     });
 
     if (recipient) {
@@ -436,41 +540,43 @@ export function createTransactionWithBalanceUpdate(
     }
   }
 
-  let debtorName = (transactionData.debtorName as string) || 'Mock Customer';
-  if (transactionData.debtorAccountId) {
-    const debtorAccount = db.account.findFirst({
-      where: { id: { equals: transactionData.debtorAccountId as string } },
-    });
-    if (debtorAccount?.label) {
-      debtorName = debtorAccount.label;
-    }
-  }
+  const debtorAccountId = input.debtorAccountId || 'acc-002';
+  const debtorAccount = db.account.findFirst({
+    where: { id: { equals: debtorAccountId } },
+  }) as { clientId?: string; label?: string } | null;
+
+  // Seller → recipient payouts: From = onboarded entity name (not account label).
+  const debtorName =
+    input.debtorName ||
+    getOrganizationDisplayNameForClient(debtorAccount?.clientId) ||
+    DEFAULT_SELLER_ORGANIZATION_NAME;
+
+  const amountRaw = input.amount;
+  const amount =
+    typeof amountRaw === 'string'
+      ? Number.parseFloat(amountRaw) || 0
+      : (amountRaw as number) || 0;
 
   const newTransaction: Record<string, unknown> = {
     id: transactionId,
-    type: transactionData.type || 'ACH',
-    status: transactionData.status || 'COMPLETED',
-    amount: transactionData.amount || 0,
-    currency: transactionData.currency || 'USD',
+    type: input.type || 'ACH',
+    status: input.status || 'COMPLETED',
+    amount,
+    currency: input.currency || 'USD',
     paymentDate:
-      (transactionData.paymentDate as string) ||
-      new Date().toISOString().slice(0, 10),
+      input.paymentDate || new Date().toISOString().slice(0, 10),
     effectiveDate:
-      (transactionData.effectiveDate as string) ||
-      new Date().toISOString().slice(0, 10),
+      input.effectiveDate || new Date().toISOString().slice(0, 10),
     creditorAccountId,
-    debtorAccountId: (transactionData.debtorAccountId as string) || 'acc-002',
+    debtorAccountId,
     creditorName,
     debtorName,
-    postingVersion: (transactionData.postingVersion as number) ?? 1,
+    postingVersion: input.postingVersion ?? 1,
     reference:
-      (transactionData.reference as string) ||
-      (transactionData.transactionReferenceId as string) ||
+      input.reference ||
+      input.transactionReferenceId ||
       `Sale #${Math.floor(Math.random() * 100000)}`,
-    description:
-      (transactionData.description as string) ||
-      (transactionData.memo as string) ||
-      'New transaction',
+    description: input.description || input.memo || 'New transaction',
     createdAt: new Date().toISOString(),
   };
 
@@ -1466,7 +1572,8 @@ export function applyTestDemoScenario(
 
   seedPredefinedClientFromShape(clientId, shape, {
     useTestDemoFixedDocumentRequestIds: mode === 'doc-request',
-    skipInformationRequestedDocumentRequests: mode === 'naics-codes-doc-request',
+    skipInformationRequestedDocumentRequests:
+      mode === 'naics-codes-doc-request',
   });
   if (mode === 'doc-request') {
     syncTestDemoClientOutstandingDocumentIds(clientId);
@@ -1632,6 +1739,11 @@ export function initializeDb(
         recipientsToInitialize = mockLinkedAccounts.recipients ?? [];
       } else if (scenario === DB_SCENARIOS.EMPTY) {
         recipientsToInitialize = [];
+      } else if (scenario === DB_SCENARIOS.ACTIVE_WITH_FX_RECIPIENTS) {
+        recipientsToInitialize = [
+          ...(mockFxRecipientsResponse.recipients ?? []),
+          ...(mockLinkedAccounts.recipients ?? []),
+        ];
       } else {
         recipientsToInitialize = [
           ...(mockRecipientsResponse.recipients ?? []),
@@ -1661,6 +1773,7 @@ export function initializeDb(
       if (scenario === DB_SCENARIOS.ACTIVE || scenario === DB_SCENARIOS.EMPTY) {
         accountsToInitialize = mockActiveAccounts.items;
       } else {
+        // active-with-recipients and active-with-fx-recipients use Payments DDA
         accountsToInitialize = mockActiveWithRecipientsAccounts.items;
       }
 
@@ -1713,10 +1826,14 @@ export function initializeDb(
       // Transactions
       console.log('\n=== Initializing Transactions ===');
 
-      const transactionsToInitialize =
-        scenario === DB_SCENARIOS.EMPTY
-          ? []
-          : (mockTransactionsResponse.items ?? []);
+      let transactionsToInitialize: DbTransaction[] = [];
+      if (scenario === DB_SCENARIOS.EMPTY) {
+        transactionsToInitialize = [];
+      } else if (scenario === DB_SCENARIOS.ACTIVE_WITH_FX_RECIPIENTS) {
+        transactionsToInitialize = mockFxTransactionsResponse.items ?? [];
+      } else {
+        transactionsToInitialize = mockTransactionsResponse.items ?? [];
+      }
 
       transactionsToInitialize.forEach((transaction) => {
         try {

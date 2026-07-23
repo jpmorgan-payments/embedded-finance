@@ -8,6 +8,7 @@ export const SCENARIO_KEYS = {
   FRESH_START: 'fresh-start',
   ACTIVE_SELLER_LIMITED_DDA: 'active-seller-limited-dda',
   ACTIVE_SELLER_LIMITED_DDA_PAYMENTS: 'active-seller-limited-dda-payments',
+  ACTIVE_SELLER_FX_PAYMENTS: 'active-seller-fx-payments',
 } as const;
 
 export type ScenarioKey = (typeof SCENARIO_KEYS)[keyof typeof SCENARIO_KEYS];
@@ -32,6 +33,9 @@ export interface ComponentPosition {
   y: number; // Column number (0-based)
 }
 
+/** When true, Recipients Pay action opens PaymentFlowFX instead of PaymentFlow */
+export type PaymentFlowVariantOption = 'domestic' | 'fx';
+
 // Optional display options per component (e.g. viewMode for LinkedAccountWidget)
 export type ViewModeOption = 'cards' | 'compact-cards' | 'table';
 
@@ -43,6 +47,8 @@ export interface ComponentConfig {
   fullWidth?: boolean;
   /** Default viewMode for components that support it (e.g. LinkedAccountWidget) */
   viewMode?: ViewModeOption;
+  /** Payment flow for Recipients Pay action */
+  paymentFlowVariant?: PaymentFlowVariantOption;
 }
 
 // Scenario configuration with display names and metadata
@@ -182,6 +188,45 @@ export const SCENARIOS_CONFIG = {
     headerDescription:
       'Manage your embedded finance wallet, linked accounts, transactions and recipients.',
   },
+  [SCENARIO_KEYS.ACTIVE_SELLER_FX_PAYMENTS]: {
+    displayName: 'Seller with FX Payments',
+    shortName: 'FX Payments',
+    description:
+      'US LLC with Payments DDA and international (FX) recipients for cross-border payouts',
+    clientId: '0030000132',
+    scenarioId: 'scenario2',
+    category: 'active' as const,
+    resetDbScenario: 'active-with-fx-recipients' as const,
+    visibleComponents: [
+      {
+        component: AVAILABLE_COMPONENTS.CLIENT_DETAILS,
+        position: { x: 0, y: 0 },
+        fullWidth: false,
+      },
+      {
+        component: AVAILABLE_COMPONENTS.ACCOUNTS,
+        position: { x: 0, y: 1 },
+      },
+      {
+        component: AVAILABLE_COMPONENTS.LINKED_ACCOUNTS,
+        position: { x: 1, y: 0 },
+        fullWidth: true,
+        viewMode: 'table',
+      },
+      {
+        component: AVAILABLE_COMPONENTS.RECIPIENTS,
+        position: { x: 2, y: 0 },
+        paymentFlowVariant: 'fx',
+      },
+      {
+        component: AVAILABLE_COMPONENTS.TRANSACTIONS,
+        position: { x: 3, y: 0 },
+      },
+    ] as ComponentConfig[],
+    headerTitle: 'FX Payments Account',
+    headerDescription:
+      'Manage cross-border recipients and send multicurrency payouts from your Payments DDA.',
+  },
 } as const;
 
 // Scenario order for cycling
@@ -193,16 +238,17 @@ export const SCENARIO_ORDER: ScenarioKey[] = [
   SCENARIO_KEYS.FRESH_START,
   SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA,
   SCENARIO_KEYS.ACTIVE_SELLER_LIMITED_DDA_PAYMENTS,
+  SCENARIO_KEYS.ACTIVE_SELLER_FX_PAYMENTS,
 ];
 
-/** Display names for scenarios that should get client status APPROVED in mocks (last 3 active scenarios). */
-export const SCENARIOS_WITH_APPROVED_CLIENT = SCENARIO_ORDER.slice(-3).map(
-  (key) => SCENARIOS_CONFIG[key].displayName
-);
+/** Display names for active scenarios that should get client status APPROVED in mocks. */
+export const SCENARIOS_WITH_APPROVED_CLIENT = SCENARIO_ORDER.filter(
+  (key) => SCENARIOS_CONFIG[key].category === 'active'
+).map((key) => SCENARIOS_CONFIG[key].displayName);
 
 /**
  * Returns client status override for mock API when scenario is provided (e.g. via X-Scenario header).
- * Only the last 3 scenarios (Fresh Start, Limited DDA, Payments DDA) return APPROVED; others use DB as-is.
+ * Active scenarios return APPROVED; onboarding scenarios use DB as-is.
  */
 export function getClientStatusOverrideForScenario(
   scenarioDisplayName: string | null | undefined
@@ -307,6 +353,18 @@ export const getVisibleComponentsForScenario = (
     return [];
   }
   return (scenario as any).visibleComponents || [];
+};
+
+/** Utility: payment flow variant for Recipients in a scenario (default domestic). */
+export const getRecipientsPaymentFlowVariant = (
+  scenarioDisplayName: string
+): PaymentFlowVariantOption => {
+  const visibleComponents =
+    getVisibleComponentsForScenario(scenarioDisplayName);
+  const recipientsConfig = visibleComponents.find(
+    (config) => config.component === AVAILABLE_COMPONENTS.RECIPIENTS
+  );
+  return recipientsConfig?.paymentFlowVariant ?? 'domestic';
 };
 
 // Utility function to get just component names (for backward compatibility)

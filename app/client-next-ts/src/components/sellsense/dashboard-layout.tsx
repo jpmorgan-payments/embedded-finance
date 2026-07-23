@@ -49,6 +49,7 @@ import {
 import { PayoutSettings } from './payout-settings';
 import {
   getClientIdForScenario,
+  getRecipientsPaymentFlowVariant,
   getResetDbScenario,
   getScenarioByKey,
   getScenarioDisplayNames,
@@ -676,7 +677,20 @@ export function DashboardLayout() {
                     name: selectedLanguage,
                   }}
                 >
-                  <RecipientsWidget mode="list" viewMode="table" />
+                  <RecipientsWidget
+                    mode="list"
+                    viewMode="table"
+                    paymentFlowVariant={getRecipientsPaymentFlowVariant(
+                      fullscreenClientScenario
+                    )}
+                    fxConfig={
+                      getRecipientsPaymentFlowVariant(
+                        fullscreenClientScenario
+                      ) === 'fx'
+                        ? { mode: 'ratesheet' }
+                        : undefined
+                    }
+                  />
                 </EBComponentsProvider>
               </div>
             </div>

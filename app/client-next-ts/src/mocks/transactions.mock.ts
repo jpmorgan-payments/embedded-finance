@@ -165,7 +165,7 @@ export const createMockTransaction = (
     creditorAccountId: 'd3371713f14e423f82065c9486ebe15b',
     debtorAccountId: 'debtor-account-mock',
     creditorName: 'SellSense Marketplace',
-    debtorName: 'Mock Customer',
+    debtorName: ENTITY_NAME,
     postingVersion: 1,
     transactionReferenceId: `Sale #${Math.floor(Math.random() * 100000)}`,
     memo: 'Mock transaction',
@@ -192,4 +192,123 @@ export const createMockTransactionsResponse = (
       total_items: transactions.length,
     },
   };
+};
+
+/**
+ * Cross-border (FX) payout history for SellSense scenario #8.
+ * Debits the seller DDA and credits international recipients in EUR / GBP / SGD.
+ * Account IDs follow the same showcase filter convention as {@link mockTransactions}.
+ */
+export const mockFxTransactions: TransactionsSearchResponseV2[] = [
+  {
+    id: 'txn-fx-eur-001',
+    type: 'WIRE' as PaymentTypeResponse,
+    status: 'COMPLETED' as TransactionStatus,
+    amount: 1250.0,
+    currency: 'EUR',
+    paymentDate: '2024-02-18',
+    effectiveDate: '2024-02-19',
+    creditorAccountId: 'recipient-eur-isabelle',
+    debtorAccountId: SELLER_ACCOUNT_ID,
+    creditorName: 'Isabelle Moreau',
+    debtorName: ENTITY_NAME,
+    postingVersion: 1,
+    transactionReferenceId: 'FX-WIRE-EUR-2201',
+    memo: 'FX High-value payout to Isabelle Moreau (EUR)',
+  },
+  {
+    id: 'txn-fx-gbp-001',
+    type: 'ACH' as PaymentTypeResponse,
+    status: 'COMPLETED' as TransactionStatus,
+    amount: 890.5,
+    currency: 'GBP',
+    paymentDate: '2024-02-16',
+    effectiveDate: '2024-02-20',
+    creditorAccountId: 'recipient-gbp-thames',
+    debtorAccountId: SELLER_ACCOUNT_ID,
+    creditorName: 'Thames Trading Ltd',
+    debtorName: ENTITY_NAME,
+    postingVersion: 1,
+    transactionReferenceId: 'FX-ACH-GBP-1844',
+    memo: 'FX Low-value payout to Thames Trading Ltd (GBP)',
+  },
+  {
+    id: 'txn-fx-sgd-001',
+    type: 'WIRE' as PaymentTypeResponse,
+    status: 'PENDING' as TransactionStatus,
+    amount: 2100.0,
+    currency: 'SGD',
+    paymentDate: '2024-02-21',
+    effectiveDate: '2024-02-22',
+    creditorAccountId: 'recipient-sgd-tan',
+    debtorAccountId: SELLER_ACCOUNT_ID,
+    creditorName: 'Wei Tan',
+    debtorName: ENTITY_NAME,
+    postingVersion: 1,
+    transactionReferenceId: 'FX-WIRE-SGD-3310',
+    memo: 'FX High-value payout to Wei Tan (SGD)',
+  },
+  {
+    id: 'txn-fx-eur-002',
+    type: 'WIRE' as PaymentTypeResponse,
+    status: 'COMPLETED' as TransactionStatus,
+    amount: 475.25,
+    currency: 'EUR',
+    paymentDate: '2024-02-12',
+    effectiveDate: '2024-02-13',
+    creditorAccountId: 'recipient-eur-isabelle',
+    debtorAccountId: SELLER_ACCOUNT_ID,
+    creditorName: 'Isabelle Moreau',
+    debtorName: ENTITY_NAME,
+    postingVersion: 1,
+    transactionReferenceId: 'FX-WIRE-EUR-2188',
+    memo: 'FX High-value payout to Isabelle Moreau (EUR)',
+  },
+  {
+    id: 'txn-fx-gbp-002',
+    type: 'WIRE' as PaymentTypeResponse,
+    status: 'REJECTED' as TransactionStatus,
+    amount: 1500.0,
+    currency: 'GBP',
+    paymentDate: '2024-02-10',
+    effectiveDate: '2024-02-11',
+    creditorAccountId: 'recipient-gbp-thames',
+    debtorAccountId: SELLER_ACCOUNT_ID,
+    creditorName: 'Thames Trading Ltd',
+    debtorName: ENTITY_NAME,
+    postingVersion: 1,
+    transactionReferenceId: 'FX-WIRE-GBP-1770',
+    memo: 'Failed FX High-value payout to Thames Trading Ltd (GBP)',
+  },
+  {
+    id: 'txn-fx-sgd-002',
+    type: 'WIRE' as PaymentTypeResponse,
+    status: 'COMPLETED' as TransactionStatus,
+    amount: 640.0,
+    currency: 'SGD',
+    paymentDate: '2024-02-08',
+    effectiveDate: '2024-02-09',
+    creditorAccountId: 'recipient-sgd-tan',
+    debtorAccountId: SELLER_ACCOUNT_ID,
+    creditorName: 'Wei Tan',
+    debtorName: ENTITY_NAME,
+    postingVersion: 1,
+    transactionReferenceId: 'FX-WIRE-SGD-3291',
+    memo: 'FX High-value payout to Wei Tan (SGD)',
+  },
+];
+
+/** Scenario #8 seed: marketplace USD activity plus cross-border FX payouts. */
+export const mockFxScenarioTransactions: TransactionsSearchResponseV2[] = [
+  ...mockFxTransactions,
+  ...mockTransactions.slice(0, 3),
+];
+
+export const mockFxTransactionsResponse: ListTransactionsSearchResponseV2 = {
+  items: mockFxScenarioTransactions,
+  metadata: {
+    page: 0,
+    limit: 10,
+    total_items: mockFxScenarioTransactions.length,
+  },
 };

@@ -370,12 +370,15 @@ export function WalletOverview({
         />
       );
     } else if (componentConfig.componentName === 'Recipients') {
+      const isFxPayments = componentConfig.paymentFlowVariant === 'fx';
       renderedComponent = (
         <RecipientsWidget
           onRecipientAdded={handleLinkedAccountSettled}
           mode={recipientsMode}
           viewMode={recipientsViewMode}
           onPaymentComplete={handleTransactionSettled}
+          paymentFlowVariant={isFxPayments ? 'fx' : 'domestic'}
+          fxConfig={isFxPayments ? { mode: 'ratesheet' } : undefined}
         />
       );
     }

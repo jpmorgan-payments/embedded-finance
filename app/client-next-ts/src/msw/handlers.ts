@@ -13,7 +13,6 @@ import type {
 import type {
   ListTransactionsSearchResponseV2,
   ListTransactionsV2Params,
-  PostTransactionRequestV2,
   TransactionGetResponseV2,
   TransactionsSearchResponseV2,
 } from '@ef-api/ep-transactions-schemas';
@@ -30,6 +29,7 @@ import {
   usesMicrodepositLinkedAccountMock,
 } from '../components/sellsense/scenarios-config';
 import { efClientQuestionsMock, efDocumentClientDetail } from '../mocks';
+import { buildMockRateSheet, MOCK_FX_RATES } from '../mocks/fx-rates.mock';
 import { testScenarioNaicsCodesQuestionsMock } from '../mocks/testScenarioNaicsCodesQuestions.mock';
 import {
   applyOverridesToDb,
@@ -439,6 +439,30 @@ async function handlePostDocumentRequestSubmit(
     { acceptedAt: new Date().toISOString() },
     { status: 202 }
   );
+}
+
+/** In-memory FX create payloads for V3 post-submit enrichment (PaymentFlowFX). */
+const createdFxTransactions = new Map<
+  string,
+  { amount: string; currency: string; targetCurrency: string }
+>();
+
+function buildV3FxEnrichedResponse(id: string) {
+  const created = createdFxTransactions.get(id);
+  const targetCurrency = created?.targetCurrency ?? 'EUR';
+  const sourceAmount = parseFloat(created?.amount ?? '100.00') || 0;
+  const rate = MOCK_FX_RATES[targetCurrency] ?? 0.92;
+  return {
+    id,
+    transactionReferenceId: id,
+    status: 'COMPLETED',
+    amount: created?.amount ?? '100.00',
+    currency: created?.currency ?? 'USD',
+    targetCurrency,
+    targetAmount: (sourceAmount * rate).toFixed(2),
+    fxInformation: { exchangeRate: rate.toString() },
+    createdAt: new Date().toISOString(),
+  };
 }
 
 export const createHandlers = (apiUrl: string): RequestHandler[] => [
@@ -1041,6 +1065,12 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
           description: 'Both regular recipients and linked accounts (default)',
           recipients: 'all-recipients',
         },
+        'active-with-fx-recipients': {
+          name: 'Active with FX Recipients',
+          description:
+            'International (EUR/GBP/SGD) + USD recipients and linked accounts for FX payments demo',
+          recipients: 'fx-recipients',
+        },
         empty: {
           name: 'Empty',
           description:
@@ -1437,6 +1467,12 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
   // Add handler for GET /ef/do/v1/transactions/:id using the mock
   http.get(`${apiUrl}/ef/do/v1/transactions/:id`, (req) => {
     const { id } = req.params as IdParams;
+
+    // PaymentFlowFX enrichment after V3 create
+    if (createdFxTransactions.has(id)) {
+      return HttpResponse.json(buildV3FxEnrichedResponse(id), { status: 200 });
+    }
+
     const transaction = db.transaction.findFirst({
       where: { id: { equals: id } },
     });
@@ -1451,9 +1487,9 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     );
   }),
 
-  // Create new transaction with balance updates
+  // Create new transaction with balance updates (V2 domestic + V3 FX)
   http.post(`${apiUrl}/ef/do/v1/transactions`, async ({ request }) => {
-    const data = (await request.json()) as PostTransactionRequestV2 | null;
+    const data = (await request.json()) as Record<string, unknown> | null;
     console.log('Creating new transaction with balance updates:', data);
 
     try {
@@ -1464,6 +1500,40 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         'Created transaction with balance updates:',
         createdTransaction
       );
+
+      // PaymentFlowFX (V3) submits with targetCurrency for cross-border payouts
+      const targetCurrency =
+        typeof data?.targetCurrency === 'string'
+          ? data.targetCurrency
+          : undefined;
+      const isFx = !!targetCurrency && targetCurrency.toUpperCase() !== 'USD';
+
+      if (isFx) {
+        const amount =
+          typeof data?.amount === 'string'
+            ? data.amount
+            : String(createdTransaction.amount ?? '0');
+        const currency =
+          typeof data?.currency === 'string' ? data.currency : 'USD';
+        createdFxTransactions.set(createdTransaction.id, {
+          amount,
+          currency,
+          targetCurrency,
+        });
+
+        return HttpResponse.json(
+          {
+            id: createdTransaction.id,
+            transactionReferenceId:
+              (data?.transactionReferenceId as string) || createdTransaction.id,
+            status: 'PENDING',
+          },
+          {
+            status: 202,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
 
       return HttpResponse.json(createdTransaction, {
         status: 201,
@@ -1589,6 +1659,14 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       },
     };
     return HttpResponse.json(response, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }),
+
+  // PaymentFlowFX rate sheet (fxConfig.mode = 'ratesheet')
+  http.get(`${apiUrl}/ef/do/v1/accounts/:accountId/ratesheets/current`, () => {
+    console.log('FX rate sheet API call');
+    return HttpResponse.json(buildMockRateSheet(), {
       headers: { 'Content-Type': 'application/json' },
     });
   }),

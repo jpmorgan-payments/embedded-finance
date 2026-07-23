@@ -1,3 +1,4 @@
+import fxPayoutClientRecipe from '@ef-docs/CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md?raw';
 import dateParsingGuide from '@ef-docs/DATE_PARSING_GUIDE.md?raw';
 import importantDateRecipe from '@ef-docs/IMPORTANT_DATE_SELECTOR_RECIPE.md?raw';
 import hostedOnboardingGuide from '@ef-docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md?raw';
@@ -43,6 +44,12 @@ export const STORY_LLM_SOURCES = {
   'core-functional-requirements-index': {
     githubViewUrl: EMBEDDED_COMPONENTS_README_BLOB,
     getMarkdownCopy: buildCoreFunctionalRequirementsMarkdown,
+  },
+  'cross-border-fx-payout-client-recipe': {
+    githubViewUrl: embeddedComponentsDocBlob(
+      'CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md'
+    ),
+    getMarkdownCopy: () => fxPayoutClientRecipe,
   },
   'partially-hosted-onboarding': {
     githubViewUrl: embeddedComponentsDocBlob(

@@ -12,6 +12,15 @@ export const Route = createFileRoute('/stories/')({
 // Latest first.
 const stories = [
   {
+    id: 'cross-border-fx-payout-client-recipe' as const,
+    title: 'Cross-border FX payout — Client UX wiring (DRAFT)',
+    excerpt:
+      'WIP companion to the PDP cross-border FX payout how-to: how Recipients + PaymentFlowFX wire UX to APIs across currencies. Source: CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md.',
+    date: '2026-07-20',
+    readTime: '15 min read',
+    tags: ['DRAFT', 'FX', 'Payouts', 'UX'],
+  },
+  {
     id: 'core-functional-requirements-index' as const,
     title: 'Core functional requirements — cross-reference',
     excerpt:
