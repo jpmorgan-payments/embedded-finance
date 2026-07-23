@@ -19,12 +19,20 @@ yarn test:coverage      # With coverage report
 ## ✨ Code Quality
 
 ```bash
-yarn typecheck          # TypeScript type checking
-yarn lint               # Check linting
+yarn typecheck          # TypeScript type checking (authoritative type gate)
+yarn lint               # Fast lint — syntactic rules only (no type-aware, no Tailwind)
 yarn lint:fix           # Auto-fix linting issues
+yarn lint:styles        # Opt-in Tailwind / eb- prefix checks (slow, non-blocking)
 yarn format             # Format all code
 yarn format:check       # Check formatting (CI)
 ```
+
+> **Linting model (non-functional decisions):** `yarn lint` is deliberately fast
+> and syntactic-only. Type safety is owned by `yarn typecheck` (ESLint is _not_
+> type-aware), and the slow Tailwind / `eb-` prefix rules are opt-in via
+> `yarn lint:styles` (`ESLINT_STYLES=1`). Together this cut clean lint time ~10x
+> (≈429s → ≈41s). See the `eslint.config.mjs` header and BACKLOG **BL-505** for
+> the full rationale, tech-debt burn-down, and next-wave backlog.
 
 ## 🔒 Security
 
@@ -70,6 +78,7 @@ yarn generate-api       # Generate API client from OpenAPI specs
 - `yarn build:analyze` - Build with bundle visualization
 - `yarn test:coverage` - Generate coverage reports
 - `yarn lint:fix` - Auto-fix linting issues
+- `yarn lint:styles` - Opt-in Tailwind/eb- prefix checks (kept out of the fast default lint)
 - `yarn format` - Format all files (including JSON, MD)
 - `yarn format:check` - Check formatting
 - `yarn audit` - Security audit

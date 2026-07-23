@@ -35,6 +35,7 @@ This document describes the implementation and design decisions behind the `Onbo
     - [Navigation State](#navigation-state)
     - [Session Data](#session-data)
     - [Context Propagation](#context-propagation)
+    - [Validation and step schemas](#validation-and-step-schemas)
   - [UX Best Practices Implemented](#ux-best-practices-implemented)
   - [Error Handling](#error-handling)
   - [Configuration and Customization](#configuration-and-customization)
@@ -95,7 +96,7 @@ graph TD
 ### `FlowProvider` & `useFlowContext`
 
 - **Purpose**: Manages the navigation state within the flow.
-- **Context Value**: Likely includes `currentScreenId`, `sessionData` (for temporary state between screens or flow-specific flags), navigation functions (`goTo`, `goBack`), and potentially history.
+- **Context Value**: Includes `currentScreenId`, `sessionData` (for temporary state between screens or flow-specific flags), navigation functions (`goTo`, `goBack`), history, and the derived screen lists: `staticScreens`, `sections` (section screens after `isVisible` filtering, for display / progress), and `allSections` (the same section screens with their **unfiltered** step lists, used only to build a stable, hook-safe set of step schemas — see [Validation and step schemas](#validation-and-step-schemas)).
 - **Usage**: Used by `FlowRenderer` to determine which screen to render and by individual screens/components to navigate between steps or sections.
 
 ### `OnboardingOverviewContext.Provider` & `useOnboardingOverviewContext`
@@ -128,7 +129,7 @@ graph TD
 - **Properties**:
   - `label`: Display name of the section.
   - `icon`: Icon associated with the section.
-  - `statusResolver`: (Optional) A function `(sessionData, clientData) => status` that dynamically calculates the completion status ('not_started', 'completed', 'on_hold', etc.) of the section based on current `sessionData` and fetched `clientData`. This allows the Overview screen to reflect real-time progress.
+  - `statusResolver`: (Optional) A function `(sessionData, clientData, allStepsValid, stepValidationMap, savedFormValues, screenId, stepSchemas?) => status` that dynamically calculates the completion status ('not_started', 'completed', 'on_hold', etc.) of the section based on current `sessionData` and fetched `clientData`. This allows the Overview screen to reflect real-time progress. Resolvers that re-run `getStepperValidation` internally (e.g. the owners resolver, which validates each active owner) **must forward** the optional `stepSchemas` so those nested calls stay hook-free (see [Validation and step schemas](#validation-and-step-schemas)).
   - `helpText`: Optional additional descriptive text.
 
 ### Stepper Configuration (`stepperConfig`)
@@ -213,7 +214,13 @@ These represent the core data collection areas, displayed on the `OverviewScreen
 ### Context Propagation
 
 - `OnboardingOverviewContext`: Provides global onboarding state (`clientData`, `organizationType`, `setClientId`).
-- `FlowContext`: Provides navigation state (`currentScreenId`, `goTo`, `sessionData`).
+- `FlowContext`: Provides navigation state (`currentScreenId`, `goTo`, `sessionData`), the visibility-filtered `sections`, and the unfiltered `allSections`.
+
+### Validation and step schemas
+
+- **Where status comes from**: Section/step statuses shown on the Overview and sidebar timeline are computed by `getFlowProgress` (→ `getStepperValidation` → `step.Component.schema()` → `safeParse`). Owner cards use `getStepperValidations` (one validation per active owner).
+- **Hook-ordering constraint**: `step.Component.schema()` is **hook-based** (it calls `useGetValidationMessage`, which reads context). React's Rules of Hooks require a **constant** number of hook calls per render, so validating the _visibility-filtered_ step set (or looping over a variable number of owners) would break when a step's `isVisible` toggles (e.g. `identity-document` for a US-exchange PTC) or an owner is added/removed.
+- **The stable-schema pattern**: `useStableStepSchemas()` (in `hooks/`) builds every step schema **once per render** from `FlowContext.allSections` (the **unfiltered** step set) plus the owner steps, returning a `StepSchemaMap` keyed by step object. Each screen calls this hook and threads the map into `getFlowProgress` / `getStepperValidation` / `getStepperValidations` (and the owners `statusResolver` forwards it). When a pre-built schema is present, those helpers run pure `safeParse` and invoke **no** schema hooks — so the hook-call count is fixed regardless of step visibility or owner count. The map is keyed by step object, so lookups for the filtered subset still resolve. The builder (`buildStepSchemas`) lives in `utils/flowUtils.ts`.
 
 ## UX Best Practices Implemented
 

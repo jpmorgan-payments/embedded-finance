@@ -41,8 +41,8 @@ function FieldRow({ labelId, path, party, transform }: FieldRowProps) {
   // Handle boolean values with i18n
   if (typeof value === 'boolean') {
     value = value
-      ? t('booleanValues.true' as 'booleanValues.true')
-      : t('booleanValues.false' as 'booleanValues.false');
+      ? t('booleanValues.true' as const)
+      : t('booleanValues.false' as const);
   }
 
   if (

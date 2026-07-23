@@ -2,6 +2,29 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.16.10] - 2026-07-23
+
+### Changes
+
+#### Features
+
+- **onboarding:** update delta mode to handle more field types, refactor overall pattern
+- **docs:** update DEVELOPMENT_ROADMAP, OnboardingFlow, and PaymentFlowFX documentation; add PaymentFlow README
+- **onboarding:** prevent layout shifts upon navigating to review screen in delta mode
+- **onboarding:** move business type card into business details accordion
+- **onboarding:** track number of questions in delta mode
+- **onboarding:** add more attestation checkboxes and fix an issue with operational details on delta mode
+- **onboarding:** update mock outstanding question ids
+- **onboarding:** update delta mode draft
+- **onboarding:** delta mode draft
+
+#### Bug Fixes
+
+- **onboarding:** remove red asterisk on operational details questions for consistency
+- **docs:** rename file typo
+- **onboarding:** fix issue where overview screen would show on navigation
+- **onboarding:** fix terms and conditions styling
+
 ## [0.16.9] - 2026-07-16
 
 ### Changes

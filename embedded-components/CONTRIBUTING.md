@@ -23,11 +23,11 @@ embedded-components/
 
 ### Development Tools
 
-- Storybook 10.x for component development
+- Storybook 8.x for component development
 - MSW for API mocking
 - React Query for data management
   - where most of the API hooks are being generated using Orval with types based on the OpenAPI specification
-- Zod for schema validation
+- Zod/Yup for schema validation
 
 ### Testing
 
@@ -111,10 +111,11 @@ git checkout -b feature/your-feature
 2. Run quality checks:
 
 ```bash
-yarn typecheck   # TypeScript check
-yarn lint        # ESLint
-yarn prettier    # Code formatting
-yarn test        # Full test suite
+yarn typecheck    # TypeScript check (owns type safety; ESLint is not type-aware)
+yarn lint         # Fast ESLint (syntactic rules only)
+yarn lint:styles  # Optional: Tailwind / eb- prefix checks (slow, non-blocking)
+yarn format:check # Code formatting
+yarn test         # Full test suite (typecheck + lint + unit tests)
 ```
 
 3. Submit PR with:

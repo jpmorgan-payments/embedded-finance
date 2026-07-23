@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link2 } from 'lucide-react';

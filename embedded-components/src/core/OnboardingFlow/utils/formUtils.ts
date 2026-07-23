@@ -35,6 +35,7 @@ import {
   ClientContext,
   CombinedFieldConfiguration,
   FieldContentTokenKey,
+  FieldPresentation,
   FieldRule,
   OnboardingFormValuesInitial,
   OnboardingFormValuesSubmit,
@@ -77,6 +78,21 @@ export function getPartyFieldConfig<K extends keyof OnboardingFormValuesSubmit>(
     throw new Error(`"${fieldName}" is not mapped in fieldMap`);
   }
   return fieldConfig;
+}
+
+/**
+ * Resolve a field's declarative presentation descriptor (input type, mask,
+ * obfuscation, etc.) from its form name. Reads the root key from the (possibly
+ * nested) name and returns `undefined` for unmapped fields — never throws — so
+ * callers can fall back to their own defaults.
+ */
+export function getFieldPresentation(
+  fieldName: string
+): FieldPresentation | undefined {
+  const baseFieldName = fieldName.split(
+    '.'
+  )[0] as keyof OnboardingFormValuesSubmit;
+  return partyFieldMap[baseFieldName]?.presentation;
 }
 
 /**
@@ -1224,14 +1240,25 @@ export type ValidationMessageKeysFor<Field extends FieldKey> =
  * Uses useTranslation internally for internationalization support
  */
 export const useGetFieldContentToken = (
-  fieldName: FieldPath<OnboardingFormValuesSubmit>
+  fieldName: FieldPath<OnboardingFormValuesSubmit>,
+  // Resolve the field rule (and thus its `contentTokenOverrideKey`) as if the
+  // current screen were this one. Delta mode renders owner fields on the
+  // `overview` screen, but their content-token variant (e.g. the address
+  // legend "Owner's personal address") is gated on `screenId: 'owner-stepper'`
+  // in the field config — so callers pass that here to get the right copy.
+  screenIdOverride?: ScreenId
 ) => {
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
     'common',
   ]);
 
-  const { getFieldRule } = useFormUtils();
+  const { clientData } = useOnboardingContext();
+  const { currentScreenId } = useFlowContext();
+  const { getFieldRule } = useFormUtilsWithClientContext(
+    clientData,
+    screenIdOverride ?? currentScreenId
+  );
   const { fieldRule } = getFieldRule(fieldName);
 
   /**

@@ -15,7 +15,7 @@ Components to test:
 1. Onboarding: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=onboarding&theme=Empty
 2. Linked Accounts: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty
 3. Recipients: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=recipients&theme=Empty
-4. PaymentFlow: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=payment-flow&theme=Empty (legacy alias: `make-payment`)
+4. Make Payment: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=make-payment&theme=Empty
 5. Transactions: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=transactions&theme=Empty
 6. Accounts: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=accounts&theme=Empty
 7. Client Details: https://embedded-finance-dev.com/sellsense-demo?fullscreen=true&component=client-details&theme=Empty

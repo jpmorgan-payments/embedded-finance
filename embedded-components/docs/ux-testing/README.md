@@ -36,15 +36,11 @@ Please conduct comprehensive UX testing for the following embedded finance compo
 
 ## Testing Components
 
-1. **OnboardingFlow** — Client onboarding (incl. optional PTC)
-2. **LinkedAccountWidget** — External bank account management
-3. **RecipientsWidget** — Payment recipient management
-4. **PaymentFlow** / **PaymentFlowFX (Beta)** — Payment form and workflow
-5. **TransactionsDisplay** — Transaction history and details
-6. **Accounts** — Account overview and details
-7. **ClientDetails** — Client identity / ownership / KYC summary
-
-> Historical session reports may still say **Make Payment** or legacy **Recipients** — those APIs were removed in favor of `PaymentFlow` and `RecipientsWidget` (v0.15+). Treat those mentions as historical evidence, not current product surface.
+1. **Linked Accounts** - External bank account management
+2. **Recipients** - Payment recipient management
+3. **Make Payment** - Payment form and workflow
+4. **Transactions** - Transaction history and details
+5. **Accounts** - Account overview and details
 
 ## Testing Scope
 

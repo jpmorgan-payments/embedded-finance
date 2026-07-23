@@ -5,7 +5,7 @@
  * `renderExtraContent` hook) for cross-border payouts. Presentational: it reads
  * the live form data passed by the ReviewPanel. See SPECIFICATION.md FR-FX-7.
  */
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { Clock, Lock } from 'lucide-react';
 

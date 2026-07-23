@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { cn } from '@/lib/utils';
 import { CurrencyFlag } from '@/core/PaymentFlowFX/components/CurrencyFlag';
 import { CURRENCY_LABELS } from '@/core/PaymentFlowFX/PaymentFlowFX.constants';

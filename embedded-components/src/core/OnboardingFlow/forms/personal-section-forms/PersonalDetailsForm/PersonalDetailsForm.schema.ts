@@ -108,6 +108,7 @@ export const usePersonalDetailsFormSchema = () => {
 export const refinePersonalDetailsFormSchema = (
   schema: z.ZodObject<Record<string, z.ZodType<any>>>
 ) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: i18n hook used inside a schema-refine helper invoked during render; tracked as debt.
   const v = useGetValidationMessage();
   return schema.superRefine((values, context) => {
     if (

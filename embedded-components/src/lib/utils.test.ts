@@ -18,6 +18,7 @@ describe('utils', () => {
     });
 
     it('handles conditional classes', () => {
+      // eslint-disable-next-line no-constant-binary-expression -- intentional: verifies cn() drops falsy conditional classes.
       const result = cn('eb-base', false && 'eb-hidden', 'eb-flex');
       expect(result).toContain('eb-base');
       expect(result).toContain('eb-flex');

@@ -334,7 +334,8 @@ const sectionScreens: SectionScreenConfig[] = [
         _allStepsValid,
         _stepValidationMap,
         savedFormValues,
-        screenId
+        _screenId,
+        stepSchemas
       ) => {
         const activeOwners = getActiveOwners(clientData);
         const allOwnersValid = activeOwners?.every((owner) => {
@@ -343,7 +344,17 @@ const sectionScreens: SectionScreenConfig[] = [
             owner,
             clientData,
             savedFormValues,
-            screenId
+            // Owners are always collected/edited via the owner stepper, so their
+            // field rules are keyed to 'owner-stepper'. Validate against that
+            // screen (not the current one) so the section status matches the
+            // owner cards, the edit-navigation target, and delta mode — all of
+            // which use 'owner-stepper'. Using the current screen id here made
+            // owners read as "missing details" on review/overview.
+            'owner-stepper',
+            // Pre-built schemas (from getFlowProgress). Passing them keeps this
+            // per-owner loop hook-free, so the schema-hook count does not vary
+            // with the number of owners.
+            stepSchemas
           );
           return allStepsValid;
         });

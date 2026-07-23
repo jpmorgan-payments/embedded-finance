@@ -95,11 +95,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
             <OnboardingFormField
               control={form.control}
               name="organizationIdEin"
-              type="text"
-              maskFormat="## - #######"
-              maskChar="_"
               required
-              obfuscateWhenUnfocused
             />
           )}
         </div>

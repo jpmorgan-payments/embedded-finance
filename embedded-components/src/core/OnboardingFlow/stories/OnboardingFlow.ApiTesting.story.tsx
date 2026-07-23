@@ -21,7 +21,6 @@
  * questions, document-requests, documents) stay on `/do/v1/`.
  */
 
-import React from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';

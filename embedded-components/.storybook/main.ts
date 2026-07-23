@@ -21,8 +21,10 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
-  viteFinal: async (config, { configType }) => {
-    config.plugins = await withoutVitePlugins(config.plugins, ['vite:dts']);
+  viteFinal: async (config) => {
+    // vite-plugin-dts 5 registers under the name 'unplugin-dts' (was 'vite:dts').
+    // Storybook doesn't need declaration output, so strip it to save build time.
+    config.plugins = await withoutVitePlugins(config.plugins, ['unplugin-dts']);
     return mergeConfig(config, {
       resolve: {
         alias: {

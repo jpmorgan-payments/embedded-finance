@@ -518,4 +518,4 @@ const { data, error, refetch } = useListTransactionsV2(params, {
 
 - [Webhook Integration Recipe](./WEBHOOK_INTEGRATION_RECIPE.md) — Real-time event notifications
 - [Linked Accounts Recipe](./LINKED_ACCOUNTS_RECIPE.md) — Recipient/linked account management
-- [Digital Onboarding Flow Recipe](./DIGITAL_ONBOARDING_FLOW_RECIPE.md) — Client onboarding workflow (`OnboardingFlow`)
+- [Digital Onboarding Recipe](./DIGITAL_ONBOARDING_RECIPE.md) — Client onboarding workflow
