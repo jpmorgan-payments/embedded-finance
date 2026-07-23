@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 
 import { useGetRecipient } from '@/api/generated/ep-recipients';

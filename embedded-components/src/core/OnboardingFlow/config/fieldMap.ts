@@ -98,6 +98,7 @@ export const partyFieldMap: PartyFieldMap = {
   // #endregion
   countryOfFormation: {
     path: 'organizationDetails.countryOfFormation',
+    presentation: { type: 'combobox', optionsSource: 'countries' },
     baseRule: {
       display: 'visible',
       required: true,
@@ -117,6 +118,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationEmail: {
     path: 'email',
+    presentation: { type: 'email' },
     baseRule: {
       display: 'visible',
       required: true,
@@ -135,6 +137,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   controllerEmail: {
     path: 'email',
+    presentation: { type: 'email' },
     baseRule: {
       display: 'visible',
       required: false,
@@ -185,6 +188,12 @@ export const partyFieldMap: PartyFieldMap = {
   },
   solePropSsn: {
     path: 'individualDetails.individualIds',
+    presentation: {
+      type: 'text',
+      maskFormat: '### - ## - ####',
+      maskChar: '_',
+      obfuscateWhenUnfocused: true,
+    },
     baseRule: {
       display: 'hidden',
       required: false,
@@ -227,6 +236,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   yearOfFormation: {
     path: 'organizationDetails.yearOfFormation',
+    presentation: { type: 'text', maxLength: 4 },
     baseRule: {
       display: 'visible',
       required: true,
@@ -252,6 +262,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationDescription: {
     path: 'organizationDetails.organizationDescription',
+    presentation: { type: 'textarea' },
     baseRule: {
       display: 'visible',
       required: true,
@@ -260,6 +271,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   industry: {
     path: 'organizationDetails.industry',
+    presentation: { type: 'industrySelect' },
     baseRule: {
       display: 'visible',
       required: true,
@@ -332,6 +344,13 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationIdEin: {
     path: 'organizationDetails.organizationIds',
+    presentation: {
+      type: 'text',
+      maskFormat: '## - #######',
+      maskChar: '_',
+      obfuscateWhenUnfocused: true,
+    },
+    deltaEligibility: { party: 'organization', usOnly: true },
     baseRule: {
       display: 'visible',
       required: true,
@@ -460,6 +479,7 @@ export const partyFieldMap: PartyFieldMap = {
   // },
   organizationPhone: {
     path: 'organizationDetails.phone',
+    presentation: { type: 'phone', pathSuffix: '.phoneNumber' },
     baseRule: {
       display: 'visible',
       required: false,
@@ -623,6 +643,8 @@ export const partyFieldMap: PartyFieldMap = {
   // },
   birthDate: {
     path: 'individualDetails.birthDate',
+    presentation: { type: 'importantDate' },
+    deltaEligibility: { party: 'individual' },
     baseRule: {
       display: 'visible',
       required: true,
@@ -652,6 +674,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   countryOfResidence: {
     path: 'individualDetails.countryOfResidence',
+    presentation: { type: 'combobox', optionsSource: 'countries' },
     baseRule: { display: 'visible', required: true, defaultValue: 'US' },
     conditionalRules: [
       {
@@ -765,6 +788,8 @@ export const partyFieldMap: PartyFieldMap = {
   // },
   controllerIds: {
     path: 'individualDetails.individualIds',
+    presentation: { customEditor: 'identity' },
+    deltaEligibility: { party: 'individual', usOnly: true },
     baseRule: {
       display: 'visible',
       minItems: 1,
@@ -948,6 +973,13 @@ export const partyFieldMap: PartyFieldMap = {
   // },
   controllerJobTitle: {
     path: 'individualDetails.jobTitle',
+    presentation: {
+      type: 'combobox',
+      optionsSource: 'jobTitles',
+      revealsFields: [
+        { name: 'controllerJobTitleDescription', whenValueIn: ['Other'] },
+      ],
+    },
     baseRule: { display: 'visible', required: true, defaultValue: '' },
     conditionalRules: [
       {
@@ -991,6 +1023,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   individualAddress: {
     path: 'individualDetails.addresses',
+    presentation: { customEditor: 'address' },
     toStringFn: (address) => {
       if (!address) {
         return undefined;
@@ -1087,6 +1120,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   organizationAddress: {
     path: 'organizationDetails.addresses',
+    presentation: { customEditor: 'address' },
     toStringFn: (address) => {
       if (!address) {
         return undefined;
@@ -1400,6 +1434,7 @@ export const partyFieldMap: PartyFieldMap = {
   // },
   controllerPhone: {
     path: 'individualDetails.phone',
+    presentation: { type: 'phone', pathSuffix: '.phoneNumber' },
     baseRule: {
       display: 'visible',
       required: false,

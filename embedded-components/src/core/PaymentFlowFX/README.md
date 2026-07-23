@@ -207,6 +207,9 @@ Stories are titled `Beta/PaymentFlowFX` with tags `['@core', '@payments', 'autod
 | `PaymentFlowFX.Interactive.story.tsx` | End-to-end journeys: `CreateInternationalRecipientEndToEnd` and `CompleteFxPaymentEndToEnd` (run as CI tests). |
 | `PaymentFlowFXInline.story.tsx`       | Inline variant defaults, `hideHeader`, `showContainer`.                                                        |
 
-```
+## Related docs
 
-```
+- **As-built specification:** [SPECIFICATION.md](./SPECIFICATION.md)
+- **DRAFT / WIP client UX recipe** (complements the PDP cross-border FX how-to):
+  [`docs/CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md`](../../../docs/CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md)
+- **Official PDP:** [Make a cross-border FX payout](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/payouts/how-to/cross-border-fx-payout)

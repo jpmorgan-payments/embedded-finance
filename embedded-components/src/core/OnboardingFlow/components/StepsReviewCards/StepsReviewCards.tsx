@@ -9,6 +9,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useStableStepSchemas } from '@/core/OnboardingFlow/hooks/useStableStepSchemas';
 import { StepConfig } from '@/core/OnboardingFlow/types/flow.types';
 import { OnboardingFormValuesInitial } from '@/core/OnboardingFlow/types/form.types';
 import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
@@ -34,6 +35,9 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   const { clientData } = useOnboardingContext();
   const { currentScreenId, savedFormValues } = useFlowContext();
 
+  // Stable, unfiltered step schemas so getStepperValidation runs pure safeParse.
+  const stableStepSchemas = useStableStepSchemas();
+
   const orgParty = getOrganizationParty(clientData);
   const visibleSteps = steps.filter(
     (step) =>
@@ -50,7 +54,8 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
     partyData,
     clientData,
     savedFormValues,
-    currentScreenId
+    currentScreenId,
+    stableStepSchemas
   );
 
   const { modifySchema, getFieldRule } = useFormUtilsWithClientContext(

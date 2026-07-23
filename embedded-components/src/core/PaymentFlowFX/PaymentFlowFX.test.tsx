@@ -411,6 +411,32 @@ describe('PaymentFlowFXInline', () => {
     ).toBeInTheDocument();
   });
 
+  it('syncs FX rail labels from initialPayeeId without clicking the payee', async () => {
+    render(<PaymentFlowFXInline initialPayeeId="rec-eur-001" />);
+
+    await screen.findByText('Operating Account');
+    await waitFor(() =>
+      expect(screen.getAllByText(/\$5,000/).length).toBeGreaterThan(0)
+    );
+
+    // EUR recipient is preselected — targetCurrency syncs and FX labels appear
+    // without a manual payee click.
+    expect(await screen.findByText('FX Low-value')).toBeInTheDocument();
+    expect(screen.queryByText('ACH Transfer')).not.toBeInTheDocument();
+  });
+
+  it('keeps domestic ACH labels when initialPayeeId is a USD recipient', async () => {
+    render(<PaymentFlowFXInline initialPayeeId="rec-usd-001" />);
+
+    await screen.findByText('Operating Account');
+    await waitFor(() =>
+      expect(screen.getAllByText(/\$5,000/).length).toBeGreaterThan(0)
+    );
+
+    expect(await screen.findByText('ACH Transfer')).toBeInTheDocument();
+    expect(screen.queryByText('FX Low-value')).not.toBeInTheDocument();
+  });
+
   it('submits an FX payment end-to-end and shows the success view', async () => {
     const onTransactionComplete = vi.fn();
 

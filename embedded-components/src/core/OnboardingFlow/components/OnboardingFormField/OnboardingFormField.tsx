@@ -44,29 +44,20 @@ import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/Imp
 import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
+import type { ScreenId } from '@/core/OnboardingFlow/types';
 import {
   FieldContentTokenKey,
+  FieldPresentation,
   FieldRule,
+  OnboardingFieldInputType,
   OnboardingFormValuesSubmit,
   OptionalDefaults,
 } from '@/core/OnboardingFlow/types/form.types';
-import { useFormUtils } from '@/core/OnboardingFlow/utils/formUtils';
-
-type FieldType =
-  | 'text'
-  | 'email'
-  | 'select'
-  | 'radio-group'
-  | 'radio-group-blocks'
-  | 'checkbox'
-  | 'checkbox-basic'
-  | 'array'
-  | 'date'
-  | 'textarea'
-  | 'combobox'
-  | 'industrySelect'
-  | 'phone'
-  | 'importantDate';
+import {
+  getFieldPresentation,
+  useFormUtils,
+  useFormUtilsWithClientContext,
+} from '@/core/OnboardingFlow/utils/formUtils';
 
 interface BaseProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -75,7 +66,7 @@ interface BaseProps<
     ControllerProps<TFieldValues, TName>,
     'render' | 'rules' | 'defaultValue'
   > {
-  type?: FieldType;
+  type?: OnboardingFieldInputType;
   label?: string | React.ReactNode;
   placeholder?: string;
   description?: string | React.ReactNode;
@@ -86,6 +77,21 @@ interface BaseProps<
   inputButton?: React.ReactNode;
   noOptionalLabel?: boolean;
   disableFieldRuleMapping?: boolean;
+  /**
+   * Resolve the field's config (field rule + content tokens) as if it were this
+   * logical field, while react-hook-form still binds to `name`. Use when the
+   * RHF path is prefixed away from the config path — e.g. a beneficial owner's
+   * `owners.{partyId}.individualAddress.city` should resolve the tokens/rule of
+   * `individualAddress.city`. Defaults to `name`.
+   */
+  logicalName?: string;
+  /**
+   * Resolve the field rule under this screen instead of the current one.
+   * Use for owner fields rendered on the `overview` screen in delta mode
+   * that need the `owner-stepper` conditional rules (content-token variant,
+   * visibility, etc.).
+   */
+  screenIdOverride?: ScreenId;
   inputProps?: React.ComponentProps<typeof Input>;
   maskFormat?: string;
   maskChar?: string;
@@ -115,7 +121,15 @@ interface OtherFieldProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > extends BaseProps<TFieldValues, TName> {
-  type: Exclude<FieldType, 'select' | 'radio-group' | 'combobox'>;
+  /**
+   * Optional for non-options inputs: when omitted, the input type is resolved
+   * from the field's declarative `presentation` descriptor (see fieldMap),
+   * falling back to `'text'`.
+   */
+  type?: Exclude<
+    OnboardingFieldInputType,
+    'select' | 'radio-group' | 'combobox'
+  >;
   options?: never;
 }
 
@@ -126,7 +140,7 @@ type OnboardingFormFieldProps<T extends FieldValues> =
 export function OnboardingFormField<TFieldValues extends FieldValues>({
   control,
   name,
-  type = 'text',
+  type: typeProp,
   options,
   label,
   placeholder,
@@ -139,10 +153,12 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   inputButton,
   noOptionalLabel,
   disableFieldRuleMapping,
+  logicalName,
+  screenIdOverride,
   inputProps,
-  maskFormat,
-  maskChar,
-  obfuscateWhenUnfocused,
+  maskFormat: maskFormatProp,
+  maskChar: maskCharProp,
+  obfuscateWhenUnfocused: obfuscateWhenUnfocusedProp,
   shouldUnregister,
   valueOverride,
   onChange: onChangeProp,
@@ -150,10 +166,18 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   popoutTooltip = false,
 }: OnboardingFormFieldProps<TFieldValues>) {
   const form = useFormContext();
-  const { getFieldRule } = useFormUtils();
-  // Pulled here (top-level hook call) and forwarded to `industrySelect` below.
-  // Only the `industrySelect` field reads it today.
-  const { priorityIndustryCodes } = useOnboardingContext();
+  const { getFieldRule: getFieldRuleDefault } = useFormUtils();
+  const { clientData, priorityIndustryCodes } = useOnboardingContext();
+  const { getFieldRule: getFieldRuleOverride } = useFormUtilsWithClientContext(
+    clientData,
+    screenIdOverride ?? 'overview'
+  );
+  // Use the screen-override rule resolver when provided; otherwise the default
+  // (current screen). This lets owner fields rendered on the `overview` screen
+  // resolve their `owner-stepper` conditional rules (content-token variant etc.)
+  const getFieldRule = screenIdOverride
+    ? getFieldRuleOverride
+    : getFieldRuleDefault;
 
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
@@ -161,15 +185,33 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   ]);
 
   let fieldRule: OptionalDefaults<FieldRule> = {};
+  let fieldPresentation: FieldPresentation | undefined;
+  // The field's config (rule + content tokens) is keyed by the logical field
+  // name, which can differ from the RHF `name` when the path is prefixed (e.g.
+  // owner fields in the delta panel: `owners.{id}.individualAddress.city`).
+  const configName = logicalName ?? name;
   if (!disableFieldRuleMapping) {
     const fieldRuleConfig = getFieldRule(
-      name as FieldPath<OnboardingFormValuesSubmit>
+      configName as FieldPath<OnboardingFormValuesSubmit>
     );
     if (fieldRuleConfig.ruleType !== 'single') {
-      throw new Error(`Field ${name} is not configured as a single field.`);
+      throw new Error(
+        `Field ${configName} is not configured as a single field.`
+      );
     }
     fieldRule = fieldRuleConfig.fieldRule;
+    fieldPresentation = getFieldPresentation(configName);
   }
+
+  // Explicit props always win; the field's declarative `presentation` fills in
+  // the input type / mask when the caller omits them, so a field's rendering
+  // can be defined once in the config instead of at every call site.
+  const type: OnboardingFieldInputType =
+    typeProp ?? fieldPresentation?.type ?? 'text';
+  const maskFormat = maskFormatProp ?? fieldPresentation?.maskFormat;
+  const maskChar = maskCharProp ?? fieldPresentation?.maskChar;
+  const obfuscateWhenUnfocused =
+    obfuscateWhenUnfocusedProp ?? fieldPresentation?.obfuscateWhenUnfocused;
 
   const fieldRequired = required ?? fieldRule.required ?? false;
   const fieldDisplay = fieldRule.display ?? 'visible';
@@ -188,8 +230,10 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
         ? 'disabled'
         : (fieldRule.interaction ?? 'enabled');
 
-  // Split the name into a name and index for the translation function
-  const nameParts = name.split('.');
+  // Split the name into a name and index for the translation function. Uses the
+  // logical config name (not the RHF path) so a prefixed owner path resolves the
+  // same content tokens as the unprefixed field.
+  const nameParts = configName.split('.');
   const tName = nameParts
     .filter((part) => Number.isNaN(Number(part)))
     .join('.');
@@ -274,12 +318,14 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
       shouldUnregister={shouldUnregister}
       render={({ field }) => {
         const { onBlur, ...fieldWithoutBlur } = field;
+        // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: hooks inside a render prop; tracked as debt.
         const [open, setOpen] = useState(false);
 
         // Typeahead state for combobox — lets the user type to select
         // an option while the dropdown is closed, like a native <select>.
         // Uses a plain mutable object (not useRef) since this is inside
         // a render prop where hooks cannot be called.
+        // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: hooks inside a render prop; tracked as debt.
         const [typeahead] = useState(() => ({ search: '', timer: 0 }));
 
         // When the current value doesn't match any available option

@@ -4,7 +4,6 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import { libInjectCss } from 'vite-plugin-lib-inject-css';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(({ mode }) => {
   const isAnalyze = mode === 'analyze';
@@ -12,8 +11,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
-      tsconfigPaths(),
-      dts({ rollupTypes: true }),
+      // `bundleTypes` (renamed from `rollupTypes` in vite-plugin-dts 5 /
+      // unplugin-dts) rolls all declarations into a single dist/index.d.ts via
+      // @microsoft/api-extractor (an optional peer dep that must be installed).
+      dts({ bundleTypes: true }),
       libInjectCss(),
       isAnalyze &&
         visualizer({
@@ -25,8 +26,12 @@ export default defineConfig(({ mode }) => {
         }),
     ].filter(Boolean),
     resolve: {
-      // Required for files outside tsconfig include (e.g. vitest.setup.mjs).
-      // tsconfigPaths() only resolves '@/*' for files within the tsconfig scope.
+      // Vite 8 resolves tsconfig `paths` natively, replacing the
+      // vite-tsconfig-paths plugin (which dominated build-plugin time). Covers
+      // '@/*', '@test-utils', and '@storybook-themes' from tsconfig.json.
+      tsconfigPaths: true,
+      // Manual '@' alias for files outside the tsconfig `include` scope
+      // (e.g. vitest.setup.mjs), which native tsconfigPaths does not resolve.
       alias: {
         '@': resolve(__dirname, './src'),
       },

@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { ArrowLeft } from 'lucide-react';
 

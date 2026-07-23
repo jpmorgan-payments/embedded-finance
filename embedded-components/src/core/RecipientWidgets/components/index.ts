@@ -20,5 +20,8 @@ export type { FriendlyErrorAlertProps } from './FriendlyErrorAlert/FriendlyError
 export { RecipientAccountDisplayCard } from './RecipientAccountDisplayCard';
 export type { RecipientAccountDisplayCardProps } from './RecipientAccountDisplayCard';
 
+export { RecipientCurrencyBadge } from './RecipientCurrencyBadge';
+export type { RecipientCurrencyBadgeProps } from './RecipientCurrencyBadge';
+
 export { RecipientDetailsDialog } from './RecipientDetailsDialog';
 export type { RecipientDetailsDialogProps } from './RecipientDetailsDialog';

@@ -1135,6 +1135,25 @@ export const commonArgTypes = {
       defaultValue: { summary: 'false' },
     },
   },
+  paymentFlowVariant: {
+    control: { type: 'select' as const },
+    options: ['domestic', 'fx'],
+    description:
+      'Payment flow opened by Pay: "domestic" uses PaymentFlow; "fx" uses PaymentFlowFX. Non-breaking; default "domestic".',
+    table: {
+      category: 'Payment / FX',
+      defaultValue: { summary: 'domestic' },
+    },
+  },
+  showRecipientCurrency: {
+    control: { type: 'boolean' as const },
+    description:
+      'Show currency column/badges/details. Defaults to true when paymentFlowVariant is "fx", otherwise false. Override explicitly if needed.',
+    table: {
+      category: 'Payment / FX',
+      defaultValue: { summary: 'auto (true when FX)' },
+    },
+  },
   showRejectedAccounts: {
     control: { type: 'boolean' as const },
     description:

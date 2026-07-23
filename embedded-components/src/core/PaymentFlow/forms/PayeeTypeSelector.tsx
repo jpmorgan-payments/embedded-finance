@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { Building2, Link2 } from 'lucide-react';
 

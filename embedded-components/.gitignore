@@ -53,6 +53,10 @@ web_modules/
 
 # Optional eslint cache
 .eslintcache
+.eslintcache*
+
+# Scratch lint reports (benchmarking / triage output)
+eslint-*.txt
 
 # Optional stylelint cache
 .stylelintcache

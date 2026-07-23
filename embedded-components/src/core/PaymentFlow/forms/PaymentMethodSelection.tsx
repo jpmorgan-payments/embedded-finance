@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { Banknote, Building2, Zap } from 'lucide-react';
 
 import { DEFAULT_PAYMENT_METHODS } from '../PaymentFlow.constants';

@@ -241,6 +241,90 @@ function App() {
   </tbody>
 </table>
 
+### Payment / FX (non-breaking)
+
+Additive props for multicurrency payouts. Defaults preserve existing domestic
+behavior — omit them and the widget behaves as before.
+
+<table>
+  <thead>
+    <tr>
+      <th>Prop</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>paymentFlowVariant</code>
+      </td>
+      <td>
+        <code>'domestic' | 'fx'</code>
+      </td>
+      <td>
+        <code>'domestic'</code>
+      </td>
+      <td>
+        Which flow Pay opens: domestic <code>PaymentFlow</code> or{' '}
+        <code>PaymentFlowFX</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>showRecipientCurrency</code>
+      </td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        Auto: <code>true</code> when FX, else <code>false</code>
+      </td>
+      <td>
+        Show currency column, card badges, and details. Override explicitly if
+        needed; usually omit and rely on <code>paymentFlowVariant="fx"</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>fxConfig</code>
+      </td>
+      <td>
+        <code>FxConfig</code>
+      </td>
+      <td>—</td>
+      <td>
+        Forwarded to <code>PaymentFlowFX</code> (rate mode, callbacks). Only
+        used when <code>paymentFlowVariant</code> is <code>'fx'</code>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <code>supportedTargetCurrencies</code>
+      </td>
+      <td>
+        <code>string[]</code>
+      </td>
+      <td>—</td>
+      <td>
+        Restrict FX target currencies. Only used when{' '}
+        <code>paymentFlowVariant</code> is <code>'fx'</code>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+```tsx
+<RecipientsWidget
+  viewMode="table"
+  paymentFlowVariant="fx"
+  fxConfig={{ mode: 'ratesheet' }}
+/>
+```
+
+> 👉 See the **FX Payments** story for a live demo with EUR/GBP recipients.
+
 ### Custom Actions
 
 <table>
@@ -461,6 +545,15 @@ Use the Storybook sidebar to explore different configurations:
         <strong>Default, SingleRecipientMode, EmptyState</strong>
       </td>
       <td>Basic layout configurations</td>
+    </tr>
+    <tr>
+      <td>
+        <strong>FX Payments</strong>
+      </td>
+      <td>
+        <code>paymentFlowVariant="fx"</code> with currency column and
+        PaymentFlowFX on Pay
+      </td>
     </tr>
     <tr>
       <td>

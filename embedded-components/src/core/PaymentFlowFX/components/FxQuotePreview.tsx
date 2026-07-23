@@ -6,7 +6,7 @@
  * expiry countdown chip, a collapsible disclaimer, and a market-rate fallback
  * notice (SPECIFICATION.md FR-FX-7).
  */
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangle, ChevronDown, Clock, Info, Lock } from 'lucide-react';
 

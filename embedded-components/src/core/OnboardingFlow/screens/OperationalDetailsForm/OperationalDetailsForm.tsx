@@ -193,7 +193,6 @@ export const OperationalDetailsForm = () => {
         {question.description?.split('\n')?.map((line, index) => (
           <div key={`${question.id}-label-${index}`}>
             <FormLabel
-              asterisk={index === 0}
               className={cn({
                 'eb-ml-4': index > 0,
               })}
