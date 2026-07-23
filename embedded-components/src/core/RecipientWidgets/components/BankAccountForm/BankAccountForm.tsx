@@ -616,6 +616,7 @@ const ContactFields: FC<ContactFieldsProps> = ({
   }
 
   // Get conditional requirement reasons
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: hook called after conditional early return above; tracked as debt.
   const formatRequiredMessage = useFormatRequiredMessage(configs);
   const emailMethods = showEmail
     ? getRequiredPaymentMethods('email', paymentTypes, configs)

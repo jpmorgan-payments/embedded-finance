@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { defaultResources } from '@/i18n/config';
 import type { Decorator } from '@storybook/react';
 import { Preview } from '@storybook/react-vite';
@@ -30,8 +30,6 @@ function MswStatusIndicator() {
   const [failureCount, setFailureCount] = useState(0);
 
   useEffect(() => {
-    let intervalId: ReturnType<typeof setInterval>;
-
     const checkMswHealth = async () => {
       try {
         // Check if service worker is registered and active
@@ -94,7 +92,7 @@ function MswStatusIndicator() {
     const initialTimeout = setTimeout(checkMswHealth, 5000);
 
     // Periodic health checks every 30 seconds
-    intervalId = setInterval(checkMswHealth, 30000);
+    const intervalId = setInterval(checkMswHealth, 30000);
 
     return () => {
       clearTimeout(initialTimeout);

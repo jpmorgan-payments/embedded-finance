@@ -189,6 +189,8 @@
     "title": "Account Details",
     "accountName": "Account Name",
     "accountType": "Account Type",
+    "accountCurrency": "Account Currency",
+    "accountCountry": "Account Country",
     "status": "Status",
     "accountNumber": "Account Number",
     "paymentMethods": "Payment Methods",

@@ -1127,7 +1127,10 @@ describe('LinkAccountScreen', () => {
         })
       );
 
-      expect(mockSetFlowUnsavedChanges).toHaveBeenCalledWith(true);
+      expect(mockSetFlowUnsavedChanges).toHaveBeenCalledWith(
+        'link-account-prefill',
+        true
+      );
     });
   });
 });

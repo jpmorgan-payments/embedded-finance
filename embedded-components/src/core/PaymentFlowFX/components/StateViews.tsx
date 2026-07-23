@@ -5,7 +5,6 @@
  * (rather than imported) because the originals are not exported, and this keeps
  * PaymentFlowFX self-contained per the non-breaking mandate.
  */
-import React from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 

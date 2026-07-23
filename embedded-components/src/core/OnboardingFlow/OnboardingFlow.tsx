@@ -27,8 +27,17 @@ import {
   OnboardingContext,
   useOnboardingContext,
 } from './contexts/OnboardingContext';
+import { useStableStepSchemas } from './hooks/useStableStepSchemas';
 import { ONBOARDING_FLOW_USER_JOURNEYS } from './OnboardingFlow.constants';
+import {
+  buildDeltaSectionSummaries,
+  collectBaselineDeltaPendingGroups,
+  computeDeltaFieldProgressByGroup,
+  countDeltaQuestionProgress,
+  isDeltaQuestionAnswered,
+} from './screens/ReviewAndAttestSectionForms/ReviewForm/DeltaPendingFieldsPanel';
 import { OnboardingFlowProps } from './types/onboarding.types';
+import { isDeltaModeActive, scrollToDeltaSection } from './utils/deltaMode';
 import {
   getFlowProgress,
   getStepperValidation,
@@ -102,13 +111,21 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     clientData?.status === 'NEW' &&
     !ptcAnswered;
 
+  const deltaModeEligible =
+    !props.docUploadOnlyMode &&
+    !!organizationType &&
+    !needsPTCGateway &&
+    isDeltaModeActive(props.deltaMode, clientData);
+
   const flowProviderInitialScreenId = props.docUploadOnlyMode
     ? 'upload-documents-section'
-    : canUseFlowEntry
-      ? flowEntry.screenId
-      : organizationType && !needsPTCGateway
-        ? 'overview'
-        : 'gateway';
+    : deltaModeEligible
+      ? 'overview'
+      : canUseFlowEntry
+        ? flowEntry.screenId
+        : organizationType && !needsPTCGateway
+          ? 'overview'
+          : 'gateway';
 
   const flowProviderSeedStepperStepId =
     canUseFlowEntry && flowEntry.stepperStepId ? flowEntry.stepperStepId : null;
@@ -165,6 +182,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
             initialScreenId={flowProviderInitialScreenId}
             flowConfig={flowConfig}
             seedInitialStepperStepId={flowProviderSeedStepperStepId}
+            deltaModeActive={deltaModeEligible}
           >
             <FlowRenderer />
           </FlowProvider>
@@ -181,7 +199,7 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   // Resolve step title through content tokens at render time using titleKey.
   const resolveStepTitle = (step: { id: string; titleKey: string }) => {
-    return t(step.titleKey as any) as string;
+    return t(step.titleKey, '') as string;
   };
 
   const {
@@ -205,11 +223,20 @@ const FlowRenderer: React.FC = React.memo(() => {
     staticScreens,
     editingPartyIds,
     savedFormValues,
+    liveReviewFormValues,
+    deltaQuestionProgress,
+    deltaModeActive,
     currentStepperStepId,
     currentStepperGoTo,
     setCurrentStepperStepIdFallback,
     isFormSubmitting,
   } = useFlowContext();
+
+  // Build every step schema once from the UNFILTERED step set so the
+  // schema-hook count is constant across renders. Threaded into the validation
+  // helpers below (which then run pure safeParse) so a step's `isVisible`
+  // toggling or the owner count changing can't vary the hook count.
+  const stableStepSchemas = useStableStepSchemas();
 
   // When viewing a sub-screen (e.g. owner-stepper), highlight its parent
   // section in the sidebar instead of leaving no section highlighted.
@@ -240,8 +267,11 @@ const FlowRenderer: React.FC = React.memo(() => {
       ? (originScreenId ?? currentScreenId)
       : currentScreenId;
 
-  // Owner sidebar data — supports the list view (each owner by name)
-  // and the edit view (current owner's form steps).
+  // Sidebar section-timeline progress/validation use saved values (stable) so
+  // they don't re-validate on every keystroke. The delta timeline consumes live
+  // values directly in its own memo above.
+  const progressFormValues = savedFormValues;
+
   const deriveOwnerData = () => {
     const isInOwnerStepper = currentScreenId === 'owner-stepper';
     const ownerStepperConfig = staticScreens.find(
@@ -262,8 +292,9 @@ const FlowRenderer: React.FC = React.memo(() => {
           ownerStepperConfig.steps,
           activeOwners,
           clientData,
-          savedFormValues,
-          'owner-stepper'
+          progressFormValues,
+          'owner-stepper',
+          stableStepSchemas
         )
       : {};
 
@@ -278,8 +309,9 @@ const FlowRenderer: React.FC = React.memo(() => {
             ownerStepperConfig.steps,
             editingOwnerParty ?? {},
             clientData,
-            savedFormValues,
-            'owner-stepper'
+            progressFormValues,
+            'owner-stepper',
+            stableStepSchemas
           )
         : undefined;
 
@@ -308,6 +340,12 @@ const FlowRenderer: React.FC = React.memo(() => {
     editingOwnerParty,
     ownerStepValidation,
     isAddingNewOwner,
+    // Not memoized: deriveOwnerData() transitively calls step schema hooks
+    // (Component.schema() -> useGetValidationMessage -> useFormContext). React
+    // 19 warns when hooks run inside useMemo, so this is computed at the top
+    // level of render — the same uncached pattern StepperRenderer and
+    // StepsReviewCards already use. The schema hooks only read context, so
+    // recomputing per render is safe.
   } = deriveOwnerData();
 
   const { sectionStatuses, stepValidations } = getFlowProgress(
@@ -315,7 +353,8 @@ const FlowRenderer: React.FC = React.memo(() => {
     sessionData,
     clientData,
     savedFormValues,
-    currentScreenId
+    currentScreenId,
+    stableStepSchemas
   );
 
   const linkAccountEnabled = getLinkAccountEnabled(
@@ -345,7 +384,13 @@ const FlowRenderer: React.FC = React.memo(() => {
       initialRender.current = false;
       return;
     }
-    mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Instant (not smooth) scroll: on a screen swap the outgoing screen can be
+    // much taller than the incoming one (e.g. the delta view collapsing into
+    // the review step), so a smooth animation leaves the viewport parked at the
+    // old scroll position — showing the empty area "below" the freshly-mounted
+    // shorter screen — for the whole animation. Jumping instantly avoids that
+    // transition flash.
+    mainRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
 
     // Track screen navigation
     if (userEventsHandler) {
@@ -468,8 +513,9 @@ const FlowRenderer: React.FC = React.memo(() => {
             ? 'on_hold'
             : sectionStatuses[section.id] || 'not_started',
           title: t(
-            (section.sectionConfig.shortLabelKey ??
-              section.sectionConfig.labelKey) as any
+            section.sectionConfig.shortLabelKey ??
+              section.sectionConfig.labelKey,
+            ''
           ),
           steps: [
             ...activeOwners.map((owner) => {
@@ -544,8 +590,8 @@ const FlowRenderer: React.FC = React.memo(() => {
           ? 'on_hold'
           : sectionStatuses[section.id] || 'not_started',
         title: t(
-          (section.sectionConfig.shortLabelKey ??
-            section.sectionConfig.labelKey) as any
+          section.sectionConfig.shortLabelKey ?? section.sectionConfig.labelKey,
+          ''
         ),
         steps: (section.stepperConfig?.steps ?? []).map((step, stepIndex) => {
           // Check if this static step was explicitly
@@ -596,17 +642,141 @@ const FlowRenderer: React.FC = React.memo(() => {
       : []),
   ];
 
-  const timelineSections = buildTimelineSections();
+  // Delta completion view: swap the section timeline for a delta-specific
+  // journey — "Complete your details" (with a checklist of what's outstanding)
+  // followed by the combined "Review & attest" stage. Delta mode merges the
+  // review + terms into a single step, so the journey is exactly two steps.
+  // Derived synchronously (no effect) so the sidebar shows the right timeline
+  // on first paint.
+  //
+  // collectBaselineDeltaPendingGroups + computeDeltaFieldProgressByGroup
+  // transitively call step schema hooks (getStepperValidation ->
+  // Component.schema() -> useGetValidationMessage -> useFormContext). They MUST
+  // run UNCONDITIONALLY at the top level of render — the same number of times
+  // every render, on every screen. Gating them behind showDeltaTimeline (which
+  // depends on sessionData.overviewViewMode / currentScreenId) changes the hook
+  // count when toggling delta -> full view or navigating screens, tripping
+  // "change in the order of Hooks". React 19 also warns when hooks run inside
+  // useMemo, so a plain top-level call is used. The schema hooks only read
+  // context, so recomputing per render is safe.
+  const deltaTimelineOwnerSteps =
+    staticScreens.find((s) => s.id === 'owner-stepper')?.stepperConfig?.steps ??
+    [];
+  const deltaTimelineBaselineGroups = collectBaselineDeltaPendingGroups({
+    sections,
+    clientData,
+    savedFormValues,
+    currentScreenId,
+    ownerSteps: deltaTimelineOwnerSteps,
+  });
+  const deltaTimelineLiveOverlay = {
+    ...savedFormValues,
+    ...(liveReviewFormValues ?? {}),
+  };
+  const deltaTimelineFieldProgress = computeDeltaFieldProgressByGroup({
+    baselinePendingGroups: deltaTimelineBaselineGroups,
+    sections,
+    clientData,
+    ownerSteps: deltaTimelineOwnerSteps,
+    liveOverlay: deltaTimelineLiveOverlay,
+    currentScreenId,
+  });
+
+  const deltaTimelineSections: TimelineSection[] | undefined = (() => {
+    const onOverview = currentScreenId === 'overview';
+    const onReviewAttest = currentScreenId === 'review-attest-section';
+    const showDeltaTimeline =
+      deltaModeActive &&
+      (onOverview || onReviewAttest) &&
+      sessionData.overviewViewMode !== 'full';
+    if (!showDeltaTimeline) {
+      return undefined;
+    }
+    const baselineGroups = deltaTimelineBaselineGroups;
+    const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
+    // On the overview delta view, only show the delta timeline when there are
+    // actually outstanding items. On the combined Review & attest step the
+    // details are already saved (so nothing may remain pending) — keep showing
+    // the 2-step delta journey there regardless.
+    if (
+      onOverview &&
+      baselineGroups.length === 0 &&
+      outstandingQuestionIds.length === 0
+    ) {
+      return undefined;
+    }
+    const fieldProgressByGroup = deltaTimelineFieldProgress;
+    // Operational-details progress is published by the pending-fields panel
+    // (which owns the fetched question tree) so this matches the panel card
+    // exactly — including revealed child questions. Falls back to a root-only
+    // count only if the panel hasn't mounted/published yet.
+    const questionProgress =
+      deltaQuestionProgress ??
+      countDeltaQuestionProgress({
+        rootQuestionIds: outstandingQuestionIds.map(String),
+        allQuestions: [],
+        getAnswerValues: (id) => liveReviewFormValues?.[`question_${id}`],
+        isAnswered: (id) => isDeltaQuestionAnswered(liveReviewFormValues, id),
+      });
+    const summaries = buildDeltaSectionSummaries({
+      baselinePendingGroups: baselineGroups,
+      fieldProgressByGroup,
+      sections,
+      questionProgress,
+      clientData,
+    });
+    const allComplete =
+      summaries.length > 0 && summaries.every((s) => s.completed >= s.total);
+    // Once on the Review & attest step, the details stage is behind us.
+    const detailsComplete = onReviewAttest || allComplete;
+
+    return [
+      {
+        id: 'complete-your-details',
+        title: t(
+          'screens.overview.deltaView.timeline.completeTitle',
+          'Complete your details'
+        ),
+        status: detailsComplete ? 'completed' : 'missing_details',
+        steps: summaries.map((summary) => ({
+          id: summary.key,
+          title: summary.titleIsLiteral
+            ? summary.titleKey
+            : (t(summary.titleKey, '') as string),
+          status:
+            onReviewAttest || summary.completed >= summary.total
+              ? 'completed'
+              : 'not_started',
+        })),
+      },
+      {
+        id: 'review-attest-section',
+        title: t('screens.reviewAttestSection.label', 'Review and attest'),
+        // Active (current) on the review step; locked while still completing
+        // details on the overview.
+        status: onReviewAttest ? 'not_started' : 'on_hold',
+        steps: [],
+      },
+    ] satisfies TimelineSection[];
+  })();
+
+  const isDeltaTimeline = !!deltaTimelineSections;
+  const timelineSections = deltaTimelineSections ?? buildTimelineSections();
+  const effectiveSidebarSectionId = isDeltaTimeline
+    ? currentScreenId === 'review-attest-section'
+      ? 'review-attest-section'
+      : 'complete-your-details'
+    : sidebarSectionId;
 
   const frozenSidebarRef = useRef({
-    sectionId: sidebarSectionId,
+    sectionId: effectiveSidebarSectionId,
     stepId: timelineCurrentStepId,
     subStepId: timelineCurrentSubStepId,
     sections: timelineSections,
   });
   if (!isFormSubmitting) {
     frozenSidebarRef.current = {
-      sectionId: sidebarSectionId,
+      sectionId: effectiveSidebarSectionId,
       stepId: timelineCurrentStepId,
       subStepId: timelineCurrentSubStepId,
       sections: timelineSections,
@@ -623,12 +793,32 @@ const FlowRenderer: React.FC = React.memo(() => {
         <div className="eb-hidden eb-shrink-0 @3xl:eb-block">
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
-            title={t('onboarding-overview:documentUpload.onboardingProgress')}
+            title={
+              isDeltaTimeline
+                ? t(
+                    'screens.overview.deltaView.timeline.title',
+                    'Your application'
+                  )
+                : t('onboarding-overview:documentUpload.onboardingProgress')
+            }
             disableInteraction={isFormSubmitting}
             currentSectionId={frozenSidebarRef.current.sectionId}
             currentStepId={frozenSidebarRef.current.stepId}
             currentSubStepId={frozenSidebarRef.current.subStepId}
             onSectionClick={(screenId) => {
+              if (isDeltaTimeline) {
+                // From the combined "Review & attest" step, clicking the
+                // completed "Complete your details" stage returns to the
+                // overview so the user can adjust their answers. Otherwise the
+                // active/locked stages have nothing to navigate to.
+                if (
+                  screenId === 'complete-your-details' &&
+                  currentScreenId === 'review-attest-section'
+                ) {
+                  goTo('overview');
+                }
+                return;
+              }
               const section = sections.find((s) => s.id === screenId);
               if (!section || section.type !== 'stepper') {
                 goTo(screenId, {
@@ -668,6 +858,11 @@ const FlowRenderer: React.FC = React.memo(() => {
               setCurrentStepperStepIdFallback(targetStepId);
             }}
             onStepClick={(sectionId, stepId) => {
+              if (isDeltaTimeline) {
+                // Checklist items scroll to their group card and flash it.
+                scrollToDeltaSection(stepId);
+                return;
+              }
               // Owners section: clicking an owner name opens their editor
               if (sectionId === 'owners-section') {
                 // Already editing this exact owner (or new-owner placeholder)

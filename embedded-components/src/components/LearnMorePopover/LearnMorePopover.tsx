@@ -33,7 +33,7 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:eb-max-w-[425px]">
+        <DialogContent className="eb-gap-4 sm:eb-max-w-[425px]">
           {content}
           <DialogFooter>
             <DialogClose asChild>
@@ -50,7 +50,7 @@ export const LearnMorePopoverTrigger: FC<LearnMorePopoverTriggerProps> = ({
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
-      <DrawerContent className="eb-px-12">
+      <DrawerContent className="eb-gap-4 eb-px-12">
         <div>{content}</div>
         <DrawerFooter className="eb-px-0">
           <DrawerClose asChild>

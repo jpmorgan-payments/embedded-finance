@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 import type { FlowViewProps, PaymentFlowView } from '../PaymentFlow.types';
 import { useFlowContext } from './FlowContext';
 

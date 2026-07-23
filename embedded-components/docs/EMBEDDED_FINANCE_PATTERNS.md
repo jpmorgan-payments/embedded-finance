@@ -1522,9 +1522,12 @@ const flowConfig = {
 // Flow context with navigation
 const { currentScreenId, goTo, sessionData, updateSessionData } = useFlowContext();
 
-// Progress tracking
+// Pre-built step schemas (constant hook-call count across renders)
+const stepSchemas = useStableStepSchemas();
+
+// Progress tracking (pass stepSchemas so validation runs pure `safeParse`)
 const { sectionStatuses, stepValidations } = getFlowProgress(
-  sections, sessionData, clientData, savedFormValues, currentScreenId
+  sections, sessionData, clientData, savedFormValues, currentScreenId, stepSchemas
 );
 ```
 
@@ -1534,6 +1537,7 @@ const { sectionStatuses, stepValidations } = getFlowProgress(
 - Step validation before progression
 - Progress tracking and status
 - Conditional step visibility
+- Hook-safe validation via pre-built step schemas (`useStableStepSchemas` → `getFlowProgress` / `getStepperValidation`), so the hook-based `Component.schema()` runs a constant number of times per render
 - Form state persistence
 - Back/forward navigation
 - Sidebar timeline (optional)

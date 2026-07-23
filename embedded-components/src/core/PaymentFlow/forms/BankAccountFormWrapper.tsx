@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { ArrowLeft, Loader2, Save, UserX } from 'lucide-react';
 

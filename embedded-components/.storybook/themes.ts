@@ -5,8 +5,6 @@
  * across all component stories for consistent theming.
  */
 
-import { defaultTheme } from '@/core/EBComponentsProvider/defaultTheme';
-
 import { EBTheme } from '../src/core/EBComponentsProvider/config.types';
 
 /**

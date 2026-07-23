@@ -43,6 +43,7 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
+import { useStableStepSchemas } from '@/core/OnboardingFlow/hooks/useStableStepSchemas';
 import {
   asPlainString,
   getPartyName,
@@ -59,6 +60,7 @@ export const OwnersSectionScreen = () => {
     clientData,
     onPostPartySettled: onPostPartyResponse,
     organizationType,
+    defaultControllerNotAnOwner,
   } = useOnboardingContext();
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
@@ -84,12 +86,17 @@ export const OwnersSectionScreen = () => {
     savedFormValues,
   } = useFlowContext();
 
+  // Stable, unfiltered step schemas so the validation helpers below stay
+  // hook-free (constant schema-hook count regardless of visibility / owners).
+  const stableStepSchemas = useStableStepSchemas();
+
   const { sectionStatuses } = getFlowProgress(
     sections,
     sessionData,
     clientData,
     savedFormValues,
-    currentScreenId
+    currentScreenId,
+    stableStepSchemas
   );
 
   const reviewMode = originScreenId === 'review-attest-section';
@@ -101,7 +108,11 @@ export const OwnersSectionScreen = () => {
           ? 'yes'
           : sessionData.isControllerOwnerQuestionAnswered
             ? 'no'
-            : undefined
+            : // When the host opts in, pre-answer "No" so the question is not
+              // required to advance (the user can still switch it to "Yes").
+              defaultControllerNotAnOwner
+              ? 'no'
+              : undefined
         : undefined,
     },
   });
@@ -229,7 +240,8 @@ export const OwnersSectionScreen = () => {
     activeOwners,
     clientData,
     savedFormValues,
-    'owner-stepper'
+    'owner-stepper',
+    stableStepSchemas
   );
 
   const handleEditBeneficialOwner = (beneficialOwnerId: string | null) => {
@@ -574,8 +586,9 @@ export const OwnersSectionScreen = () => {
                 form.getValues('controllerIsAnOwner') !== undefined;
 
               // Block advancing until the required 25% ownership question is
-              // answered, showing a required-field validation error.
-              if (!controllerQuestionAnswered) {
+              // answered, showing a required-field validation error — unless
+              // the host opted out via `defaultControllerNotAnOwner`.
+              if (!controllerQuestionAnswered && !defaultControllerNotAnOwner) {
                 form.setError('controllerIsAnOwner', {
                   type: 'required',
                   message: tString('additionalQuestions.validation.required'),

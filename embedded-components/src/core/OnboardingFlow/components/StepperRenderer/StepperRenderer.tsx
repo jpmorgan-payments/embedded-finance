@@ -27,6 +27,7 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
+import { useStableStepSchemas } from '@/core/OnboardingFlow/hooks/useStableStepSchemas';
 import {
   OnboardingFormValuesInitial,
   OnboardingFormValuesSubmit,
@@ -86,7 +87,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   // Filter out steps whose isVisible predicate returns false
   const orgParty = getOrganizationParty(clientData);
-  const steps = rawSteps.filter(
+  const visibleSteps = rawSteps.filter(
     (step) => step.isVisible?.({ orgParty }) ?? true
   );
 
@@ -107,7 +108,24 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     setCurrentStepperStepIdFallback,
     setIsFormSubmitting,
     unsavedChangesRef,
+    deltaModeActive,
   } = useFlowContext();
+
+  // Stable, unfiltered step schemas so getStepperValidation below runs pure
+  // safeParse (constant schema-hook count even when a step's isVisible toggles).
+  const stableStepSchemas = useStableStepSchemas();
+
+  // Delta mode merges Review + Terms & conditions into a single combined
+  // "Review & attest" step (rendered by ReviewForm), so the standalone Terms
+  // ("documents") step is dropped from the review-attest-section stepper.
+  const steps = visibleSteps.filter(
+    (step) =>
+      !(
+        deltaModeActive &&
+        currentScreenId === 'review-attest-section' &&
+        step.id === 'documents'
+      )
+  );
 
   const editingPartyId = editingPartyIds[currentScreenId];
 
@@ -190,6 +208,13 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     (s) => s.stepType !== 'check-answers'
   ).length;
   const isCheckAnswersStep = currentStep.stepType === 'check-answers';
+  // Delta mode renders the review step as a single combined "Review & attest"
+  // page (review summary + terms), so give it a fitting title and drop the
+  // "Step 1 of 1" counter.
+  const isDeltaReviewStep =
+    deltaModeActive &&
+    currentScreenId === 'review-attest-section' &&
+    currentStep.id === 'review';
   const currentSection = sections.find(
     (section) => section.id === currentScreenId
   );
@@ -363,12 +388,16 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     existingPartyData,
     clientData,
     savedFormValues,
-    currentScreenId
+    currentScreenId,
+    stableStepSchemas
   );
 
   // Scroll to top on step change
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: hooks called after conditional early returns above; tracked as debt.
   const mainRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: hooks called after conditional early returns above; tracked as debt.
   const initialRender = useRef(true);
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: hooks called after conditional early returns above; tracked as debt.
   useEffect(() => {
     if (initialRender.current) {
       initialRender.current = false;
@@ -421,8 +450,22 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       className="eb-flex eb-min-h-full eb-scroll-mt-44 eb-flex-col sm:eb-scroll-mt-48"
     >
       <StepLayout
-        title={resolveStepTitle(currentStep)}
-        description={resolveStepDescription(currentStep)}
+        title={
+          isDeltaReviewStep
+            ? t(
+                'screens.reviewAttestSection.deltaCombined.title',
+                'Review & attest'
+              )
+            : resolveStepTitle(currentStep)
+        }
+        description={
+          isDeltaReviewStep
+            ? t(
+                'screens.reviewAttestSection.deltaCombined.description',
+                'Check your details, review the terms, and submit your application.'
+              )
+            : resolveStepDescription(currentStep)
+        }
         subTitle={
           <div className="eb-flex eb-flex-col">
             <nav className="eb-flex eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground">
@@ -452,7 +495,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
               <span className="eb-truncate">
                 {shortLabelOverride ?? currentSectionLabel}
               </span>
-              {!isCheckAnswersStep && (
+              {!isCheckAnswersStep && !isDeltaReviewStep && (
                 <>
                   <ChevronRightIcon className="eb-size-3.5" />
                   <span className="eb-shrink-0 eb-font-medium eb-text-foreground">

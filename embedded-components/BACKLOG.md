@@ -95,16 +95,14 @@
 - BL-340: Typography system
 - BL-350: Spacing system
 
-**Tech Debt & Dependencies:**
+**Tech Debt & Dependencies (Theme 10) — refreshed 2026-07-23:**
 
-- BL-500: Dependency audit & security
-- BL-501: TypeScript & toolchain updates
-- BL-502: Build/test infrastructure (Vite 7.x, Vitest 4.x — see Theme 10 for pinned ranges)
-- BL-503: Orval & API dependencies
-- BL-505: ESLint upgrade to v9
-- BL-506: Tailwind CSS upgrade to v4
-- BL-507: React & UI library updates
-- BL-508: Other dependency updates
+- BL-500: Dependency audit & security (ongoing)
+- BL-501: TypeScript — on 5.9.3; TS 6/7 assessed & **deferred** (BL-501-4/5)
+- BL-502: ✅ Build/test infra — Vite 8 (Rolldown) + Vitest 4.1 + Storybook 10.5 **done**
+- BL-503 / BL-507 / BL-508: Dependency updates — **consolidated** current-state assessment (`npm outdated`, 2026-07-23)
+- BL-505: ✅ ESLint **v10** flat config **done** (+ next-wave BL-505-N)
+- BL-506: Tailwind CSS v4 (planned)
 
 Completed items are not listed in this document.
 
@@ -752,38 +750,50 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [ ] **BL-500-4:** Run security audit: `yarn audit --level moderate` and address vulnerabilities
 - [ ] **BL-500-5:** Verify package integrity after recent npm supply chain attacks (eslint-config-prettier, etc.)
 
-#### ESLint Upgrade to v9 [BL-505]
+#### ESLint Upgrade to v10 [BL-505]
 
-**Current Version:** 8.53.0  
-**Target Version:** 9.39.1 (latest stable, v10.0.0-alpha.1 available but not recommended for production)  
-**Priority:** 🟠 High  
-**Breaking Changes:** Flat config format (new default), removed legacy config support
+**Delivered Version:** 10.7.0 (flat config) — migrated from 8.53.0
+**Status:** ✅ Core migration DONE (2026-07); follow-up "next wave" tracked below
+**Priority:** 🟠 High
 
-- [ ] **BL-505-1:** Upgrade ESLint core and plugins to v9
-  - [ ] **BL-505-1a:** Update `eslint` to v9.39.1 (latest stable)
-  - [ ] **BL-505-1b:** Update `@typescript-eslint/eslint-plugin` to latest v8.x (compatible with ESLint 9)
-  - [ ] **BL-505-1c:** Update `@typescript-eslint/parser` to latest v8.x
-  - [ ] **BL-505-1d:** Update all ESLint plugins to ESLint 9 compatible versions
-- [ ] **BL-505-2:** Migrate to ESLint flat config format
-  - [ ] **BL-505-2a:** Convert `eslintrc` config to `eslint.config.js|ts` (flat config)
-  - [ ] **BL-505-2b:** Update plugin imports and configurations
-  - [ ] **BL-505-2c:** Remove deprecated `extends` and `parserOptions` patterns
-- [ ] **BL-505-3:** Review and update ESLint rule configurations
-  - [ ] **BL-505-3a:** Test all linting rules with new config format
-  - [ ] **BL-505-3b:** Address any rule deprecations or changes
-  - [ ] **BL-505-3c:** Update custom rules if applicable
-- [ ] **BL-505-4:** Update CI/CD and development scripts
-  - [ ] **BL-505-4a:** Verify `yarn lint` works with new config
-  - [ ] **BL-505-4b:** Verify `yarn lint:fix` works correctly
-  - [ ] **BL-505-4c:** Update pre-commit hooks if applicable
-- [ ] **BL-505-5:** Consider ESLint v10 upgrade path (monitor for stable release)
-  - [ ] **BL-505-5a:** Track ESLint v10.0.0 stable release
-  - [ ] **BL-505-5b:** Plan v10 upgrade once stable (breaking changes expected)
+**What shipped:**
+
+- [x] **BL-505-1:** ESLint core + plugins on v10-compatible versions (`eslint@10.7`, `typescript-eslint@8.64` meta package, react / react-hooks / jsx-a11y / import / tailwindcss / storybook updated). Removed the dead `eslint-config-mantine` + airbnb base and the standalone `@typescript-eslint/{parser,eslint-plugin}` (now bundled by the meta package).
+- [x] **BL-505-2:** Migrated to flat config (`eslint.config.mjs`); deleted `.eslintrc.cjs`; `lint` script drops the removed `--ext` flag.
+- [x] **BL-505-3:** Rule triage (see decisions below) — repo lints clean at **0 errors**.
+- [x] **BL-505-4:** `yarn lint` / `yarn lint:fix` verified; added `yarn lint:styles`.
+
+**Non-functional linting decisions (read before changing `eslint.config.mjs`):**
+
+1. **ESLint is NOT type-aware.** `parserOptions.projectService` is intentionally omitted. Type safety is owned by `tsc` (`yarn typecheck`), which already runs in CI ahead of lint. Type-aware linting roughly doubled lint time (429s → 208s when removed) to power a single rule (`no-floating-promises`, only ever a warning).
+2. **Tailwind / eb- prefix rules are opt-in** (`yarn lint:styles`, `ESLINT_STYLES=1`). `eslint-plugin-tailwindcss@3`'s `no-custom-classname` alone was **~65% of total lint time (~119s)**; the plugin targets ESLint ≤9 and is shimmed via `@eslint/compat`. All its rules are non-blocking (`warn`), so they were removed from the hot path. The plugin stays *registered* so inline `eslint-disable tailwindcss/*` directives remain valid.
+3. **`import/extensions` disabled.** It ran full module resolution per import (**~24% of lint time**) for **0 violations** — TypeScript (no `allowImportingTsExtensions`) + the bundler already reject bad/extensioned paths.
+4. **"Critical errors only" policy.** The modern presets promote ~471 rules to `error` that were warnings under the old base. Only genuine correctness rules stay `error` (`react-hooks/rules-of-hooks`, `@typescript-eslint/no-unused-vars`, `no-constant-binary-expression`, `prefer-const`, `@typescript-eslint/prefer-as-const`, `@typescript-eslint/no-unused-expressions`); everything else (type-strictness, style, a11y) is `warn`. Warnings do not block CI.
+
+**Performance result:** clean `yarn lint` **≈429s → ≈41s (~10×)**; `tsc` typecheck ≈48s runs separately.
+
+**Known tech debt surfaced (burn-down candidates):**
+
+- **~540 non-blocking warnings**, dominated by:
+  - `@typescript-eslint/no-explicit-any` (~412) — replace `any` with real types.
+  - `react-hooks/exhaustive-deps` (~82) — audit effect dependencies.
+  - `@typescript-eslint/ban-ts-comment` (~5), `no-empty-object-type` (~3), `react/display-name` (~9), assorted a11y.
+- **9 ratcheted `react-hooks/rules-of-hooks` violations** (real debt, suppressed inline with `-- pre-existing … tracked as debt`): hooks in a render prop (`OnboardingFormField`), conditional hooks after early returns (`StepperRenderer`, `BankAccountForm`), and i18n hooks inside `refine*FormSchema` helpers.
+
+**Next wave — linting improvements [BL-505-N]:**
+
+- [ ] **BL-505-N1:** Add an opt-in `lint:types` step (type-aware config) restoring `@typescript-eslint/no-floating-promises` (+ `no-misused-promises`, `await-thenable`) for CI/nightly only, without slowing the default lint.
+- [ ] **BL-505-N2:** After Tailwind v4 (BL-506), switch to a fast, ESLint 9/10-native Tailwind linter (the v4 plugin or `eslint-plugin-better-tailwindcss`) and fold the `eb-` prefix check back into the default `lint`.
+- [ ] **BL-505-N3:** Re-introduce import hygiene via `eslint-plugin-import-x` (faster resolver) if extension/cycle checks are wanted back.
+- [ ] **BL-505-N4:** Burn down the warning backlog (start with `no-explicit-any`), then promote burned-down rules from `warn` → `error`.
+- [ ] **BL-505-N5:** Fix the 9 pre-existing `rules-of-hooks` violations and remove the ratchet `eslint-disable` comments.
+- [ ] **BL-505-N6 (proposal):** Custom architectural rules — import boundaries (e.g. `components/ui` must not import from `core`) via `no-restricted-imports`, and an i18n hardcoded-JSX-string check. Wire as `warn` first.
+- [x] **BL-505-5:** ~~Consider ESLint v10 upgrade path~~ — DONE (shipped v10.7).
 
 **Migration Resources:**
 
-- ESLint v9 migration guide: https://eslint.org/docs/latest/use/migrate-to-9.0.0
-- Flat config documentation: https://eslint.org/docs/latest/use/configure/configuration-files-new
+- ESLint flat config: https://eslint.org/docs/latest/use/configure/configuration-files
+- typescript-eslint typed-linting trade-offs: https://typescript-eslint.io/getting-started/typed-linting
 
 #### Tailwind CSS Upgrade to v4 [BL-506]
 
@@ -824,85 +834,78 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 #### TypeScript & Toolchain [BL-501]
 
-- [ ] **BL-501-1:** Consider bumping TypeScript and related type utilities to latest compatible versions
-  - [ ] **BL-501-1a:** Check latest TypeScript version (current: 5.9.3)
-  - [ ] **BL-501-1b:** Update `typescript` to latest 5.x stable
-  - [ ] **BL-501-1c:** Update `@types/react` and `@types/react-dom` to latest
-  - [ ] **BL-501-1d:** Update other `@types/*` packages to latest
-- [ ] **BL-501-2:** Validate build output and generated d.ts after bump
-- [ ] **BL-501-3:** Fix any strictness regressions
-- [ ] **BL-501-4:** Consider TypeScript 6.x upgrade path (when stable)
+**Current:** `typescript` **5.9.3** (latest 5.x; healthy). `@types/node` on 25.x. `@types/react` / `@types/react-dom` intentionally held at **18.x** to match React 18 — the 19.x type packages move with the React 19 upgrade (see BL-507 · React 19). Latest `typescript` is **7.0.2**, held (BL-501-5).
+
+- [ ] **BL-501-1:** Keep `@types/*` in step with their runtime libs (`@types/node` → 25.9.5, `@types/lodash` → 4.17.24). Hold `@types/react*` at 18.x until React 19.
+- [ ] **BL-501-4:** TypeScript 6.0 (transitional JS compiler) as an optional stepping stone — within toolchain support (typescript-eslint peer `<6.1.0` includes `6.0.x`). Surfaces the `baseUrl` / `esModuleInterop=false` deprecations as warnings before they become hard removals in 7.x. Lower reward.
+
+##### BL-501-5: TypeScript 7 (native Go compiler) — assessed, **DEFERRED** (blocked on tooling, not code)
+
+**Context (July 2026):** `typescript@7.0.2` is npm's `latest` (since 2026-07-08). TS 7 is **Project Corsa** — a line-by-line Go port of the compiler (~10× faster), _not_ a rewrite. `node_modules/typescript/lib/tsc.js` is a shim that execs the Go binary from `@typescript/typescript-<platform>`. The **programmatic compiler API is not stable until 7.1** (everything programmatic sits under `./unstable/*` in 7.0's `exports`).
+
+**Empirical finding — the CODE is ready, the TOOLCHAIN is not.** Ran TS 7.0.2 `tsc --noEmit` against our real `tsconfig.json` (isolated temp install, project `@types`): **0 code errors**, **~9s vs ~40s** for TS 5.9 (~4× faster). The only two failures are removed compiler options — `esModuleInterop=false` (TS5108) and `baseUrl` (TS5102) — both trivial `tsconfig` edits, not code changes (`paths` resolve relative to the tsconfig in TS 7, so `baseUrl` is obsolete).
+
+**Hard blockers — do NOT bump `typescript` to 7.x yet:**
+
+- [ ] **BL-501-5a:** **typescript-eslint** peer range `>=4.8.4 <6.1.0`; `typescript@7` triggers npm ERESOLVE, and forcing it crashes inside `typescript-estree`. No TS 7 release exists (latest `8.65`). Upstream: typescript-eslint #12518 (closed _not planned_ — fix is TS-side, awaiting the 7.1 API). Our `yarn lint` runs in CI's Test stage → this breaks the pipeline.
+- [ ] **BL-501-5b:** **dts bundling** — `@microsoft/api-extractor` (bundled TS `5.8.2`) + `unplugin-dts` are programmatic-API consumers; `bundleTypes: true` (our single `dist/index.d.ts`) would break.
+- Note: we do **not** use ts-jest or ts-morph (Vitest transforms via esbuild/Vite — no `tsc` in the test path), so those article-cited breakages don't apply here.
+
+**Recommended path — side-by-side compilers** (ref: [dev.to: Why your TS 7 upgrade broke ESLint/ts-jest/ts-morph](https://dev.to/dev_encyclopedia/why-your-typescript-7-upgrade-broke-eslint-ts-jest-and-ts-morph-385k)):
+
+- [ ] **BL-501-5c:** Keep the main `typescript` on the JS-based line (5.x now, 6.0 later) so typescript-eslint + vite-plugin-dts + api-extractor keep working.
+- [ ] **BL-501-5d:** _Optionally_ add the Go compiler under an **alias** (e.g. `typescript7@npm:typescript@7`) and expose `typecheck:fast` = `node_modules/typescript7/bin/tsc --noEmit` as an **advisory** early CI pre-filter for the ~4× speedup. ⚠️ Keep the JS-based `tsc` as the **authoritative** gate — the Go port can disagree (drops generic params from `@template` JSDoc; `skipLibCheck` doesn't suppress some third-party `.d.ts` parse errors), so tsgo must be a pre-filter, never the merge gate.
+- [ ] **BL-501-5e:** **Cut over fully** to a single `typescript@7` once **7.1 ships the stable programmatic API** and typescript-eslint + api-extractor/unplugin-dts publish TS 7-compatible releases. Re-run the isolated `tsc --noEmit` check plus full `lint` / `build` / dts validation at that point.
 
 #### Build/Test Infrastructure [BL-502]
 
-**Current (April 2026, `embedded-components/package.json`):** `vite` ^7.3.1, `vitest` ^4.0.18, `@vitest/ui` ^4.0.18, `@vitejs/plugin-react` ^5.1.4. The backlog previously listed Vite 6 / Vitest 2 — those upgrades are **done**; remaining work is **ongoing** minor bumps and CI baselines.
+**Current (July 2026, `embedded-components/package.json`):** `vite` ^8.1.5, `vitest`/`@vitest/ui`/`@vitest/coverage-v8` ^4.1.10, `@vitejs/plugin-react` ^6.0.3, `vite-plugin-dts` ^5.0.3, `rollup-plugin-visualizer` ^7.0.1, Storybook + addons ^10.5.x. The Vite 7→8 major (Rolldown default bundler) and Storybook 10.2→10.5 upgrades are **done**; remaining work is **ongoing** minor bumps and CI baselines.
 
-- [ ] **BL-502-1:** Keep Vite on latest compatible 7.x
-  - [ ] **BL-502-1a:** Update `vite` to latest 7.x when safe (current: ^7.3.1)
-  - [ ] **BL-502-1b:** Update `@vitejs/plugin-react` to latest compatible
-  - [ ] **BL-502-1c:** Update `vite-plugin-dts` and other Vite plugins
-- [ ] **BL-502-2:** Keep Vitest on latest compatible 4.x
-  - [ ] **BL-502-2a:** Update `vitest` to latest 4.x (current: ^4.0.18)
-  - [ ] **BL-502-2b:** Update `@vitest/ui` and `@vitest/coverage-v8` to match
-  - [ ] **BL-502-2c:** Verify test compatibility after upgrade
-- [ ] **BL-502-3:** Verify Vite/Storybook compatibility after bumps
-- [ ] **BL-502-4:** Adjust configs if needed
+- [x] **BL-502-1:** Vite 8 upgrade
+  - [x] **BL-502-1a:** `vite` ^8.1.5 — Rolldown is now the default bundler; Node engine unchanged (`^20.19.0 || >=22.12.0`)
+  - [x] **BL-502-1b:** `@vitejs/plugin-react` ^6.0.3 (peer requires Vite 8)
+  - [x] **BL-502-1c:** `vite-plugin-dts` ^5.0.3, `rollup-plugin-visualizer` ^7.0.1; **dropped `vite-tsconfig-paths`** in favour of Vite 8 native `resolve.tsconfigPaths` (it dominated build-plugin time). ⚠️ **dts type-bundling gotcha:** vite-plugin-dts 5 renamed the option `rollupTypes` → `bundleTypes` and moved `@microsoft/api-extractor` to an *optional* peer dep. Without **both** `bundleTypes: true` **and** an installed `@microsoft/api-extractor` (^7.57.7), bundling silently no-ops and emits a 713-file `.d.ts` tree (entry at `dist/src/index.d.ts`) instead of the single bundled `dist/index.d.ts` that `package.json#types` points to.
+- [x] **BL-502-2:** Vitest 4.1.10
+  - [x] **BL-502-2a:** `vitest` ^4.1.10
+  - [x] **BL-502-2b:** `@vitest/ui` + `@vitest/coverage-v8` ^4.1.10
+  - [x] **BL-502-2c:** Test compatibility verified — 143 files / 1429 tests pass
+- [x] **BL-502-3:** Vite/Storybook compatibility verified (Storybook ^10.5, `@storybook/builder-vite` supports Vite 8; `storybook:build` green)
+- [x] **BL-502-4:** Configs adjusted (native tsconfigPaths; fixed Storybook dts-plugin exclusion name `vite:dts`→`unplugin-dts` so Storybook builds skip declaration generation)
 - [ ] **BL-502-5:** Rebaseline CI (typecheck/lint/test/storybook build) performance and caching
+- [ ] **BL-502-6:** dts declaration emit + api-extractor bundle (`bundleTypes: true`, ~85–90s) dominates the library build; the JS bundle itself is fast under Rolldown. `bundleTypes: false` is **not** faster (~same emit cost) and breaks the published single `dist/index.d.ts`, so it is not a viable speedup. Cutting dts time would need a different approach (e.g. `isolatedDeclarations`, a dedicated `tsc --emitDeclarationOnly` pass, or trimming the compiled surface) — larger effort, deferred.
 
-#### React & UI Library Updates [BL-507]
+#### Dependency Updates — current-state assessment [BL-507 / BL-503 / BL-508]
 
-- [ ] **BL-507-1:** Review React 19 upgrade readiness (Theme 4)
-  - [ ] **BL-507-1a:** Current: React 18.3.1 (peer allows 18.2.0 || 19)
-  - [ ] **BL-507-1b:** Test React 19 compatibility with all components
-  - [ ] **BL-507-1c:** Plan React 19 upgrade timeline (see Theme 4)
-- [ ] **BL-507-2:** Update Radix UI packages to latest versions
-  - [ ] **BL-507-2a:** Audit all `@radix-ui/react-*` packages for updates
-  - [ ] **BL-507-2b:** Update to latest compatible versions
-  - [ ] **BL-507-2c:** Test all Radix-based components after updates
-- [ ] **BL-507-3:** Update TanStack React Query to latest v5
-  - [ ] **BL-507-3a:** Update `@tanstack/react-query` to latest 5.x (current: 5.90.5)
-  - [ ] **BL-507-3b:** Update `@tanstack/react-query-devtools` to latest
-  - [ ] **BL-507-3c:** Update `@tanstack/react-table` to latest 8.x (current: 8.21.3)
-- [ ] **BL-507-4:** Update MSW to latest version
-  - [ ] **BL-507-4a:** Update `msw` to latest 2.x (current: 2.11.6)
-  - [ ] **BL-507-4b:** Update `@mswjs/data` to latest
-  - [ ] **BL-507-4c:** Update `msw-storybook-addon` to latest
-  - [ ] **BL-507-4d:** Test all MSW handlers after upgrade
+_Baseline: `npm outdated`, 2026-07-23. Vite/Vitest/Storybook (BL-502), ESLint (BL-505), Tailwind (BL-506) and TypeScript (BL-501) are tracked in their own items and excluded here._
 
-#### Orval & Dependencies [BL-503]
+**A. Safe minor/patch bumps — batch when convenient (same major, low risk):**
 
-- [ ] **BL-503-2:** Ensure React Query v5 generators and axios mutator are configured
-- [ ] **BL-503-3:** Regenerate from latest OAS in `api-specs/`
-- [ ] **BL-503-4:** Dependency policy: prioritize security patches
-- [ ] **BL-503-5:** Keep React 18.3 baseline now, React 19 in Theme 4
-- [ ] **BL-503-6:** Track axios/react-query/radix/msw/storybook/vite minors
-- [ ] **BL-503-7:** Package manager: optional evaluation — **this repo uses Yarn** (`embedded-components` declares `packageManager: yarn@4.12.0`). pnpm migration is **low priority** unless team standardizes on pnpm; if pursued, update docs/CI accordingly
-- [ ] **BL-503-8:** If migrating package managers, update docs/CI (currently Yarn/npm-style scripts per package)
-- [ ] **BL-503-9:** Upgrade Orval to v8 when stable (tech task)
-  - Orval v8 is a breaking change: ESM config (`.mjs` or `type: "module"`), Node 22.18+, default `httpClient` switched from axios to fetch, removed/renamed options. Current package: **orval ^7.21.0** — stay on 7.x until v8 ecosystem is stable; plan migration per [Orval migration guide v8](https://orval.dev/guides/migration-v8).
+- [ ] **BL-507-A (runtime):** all `@radix-ui/react-*` to latest 1.x/2.x (e.g. `react-select` 2.2.6→2.3.5, `react-radio-group` 1.3.8→1.4.5, `react-slot` 1.2.3→1.3.1); `@tanstack/react-query` 5.90→5.101 (+`-devtools`), `@tanstack/react-virtual` 3.13→3.14; `react-hook-form` 7.65→7.82 (**code already version-agnostic** after the `FieldArray` fix); `libphonenumber-js` 1.12→1.13, `react-phone-number-input` 3.4.12→3.4.17, `react-number-format` 5.4.4→5.4.5, `dompurify` 3.4.11→3.4.12, `geist` 1.5→1.7, `json-diff-ts` 4.8→4.10, `uuid` 14.0.0→14.0.1.
+- [ ] **BL-508-A (dev/build):** `prettier` 3.6→3.9, `@ianvs/prettier-plugin-sort-imports` 4.7.0→4.7.1, `typescript-eslint` 8.64→8.65, `postcss` 8.5.10→8.5.22, `autoprefixer` 10.4→10.5, `ajv` 8.17→8.20, `@faker-js/faker` 10.1→10.4, `mermaid` 11.15→11.16, `rimraf` 6.1.2→6.1.3, `baseline-browser-mapping` 2.10→2.11, `@types/lodash` 4.17.20→4.17.24, `msw` 2.11.6→2.15 (also update the `msw` **pin + `resolutions`** entry).
 
-#### Other Dependency Updates [BL-508]
+**B. Major upgrades — own initiatives, do NOT batch:**
 
-- [ ] **BL-508-1:** Update form libraries
-  - [ ] **BL-508-1a:** Update `react-hook-form` to latest 7.x (current: 7.65.0)
-  - [ ] **BL-508-1b:** Update `@hookform/resolvers` to latest
-  - [ ] **BL-508-1c:** Update `zod` to latest 3.x (current: 3.25.76)
-  - [ ] **BL-508-1d:** Update `zod-i18n-map` to latest
-- [ ] **BL-508-2:** Update i18n libraries
-  - [ ] **BL-508-2a:** Update `i18next` to latest (current: 24.2.1)
-  - [ ] **BL-508-2b:** Update `react-i18next` to latest (current: 15.1.1)
-- [ ] **BL-508-3:** Update utility libraries
-  - [ ] **BL-508-3a:** Update `date-fns` to latest 3.x (current: 3.6.0)
-  - [ ] **BL-508-3b:** Update `axios` to latest 1.x (current: 1.12.2)
-  - [ ] **BL-508-3c:** Update `clsx` and `tailwind-merge` to latest
-- [ ] **BL-508-4:** Update development tools
-  - [ ] **BL-508-4a:** Update `prettier` to latest 3.x (current: 3.6.2)
-  - [ ] **BL-508-4b:** Update `prettier-plugin-tailwindcss` to latest
-  - [ ] **BL-508-4c:** Review and update other dev dependencies
-- [ ] **BL-508-5:** Remove or replace deprecated packages
-  - [ ] **BL-508-5a:** Audit for deprecated packages
-  - [ ] **BL-508-5b:** Find alternatives for deprecated packages
-  - [ ] **BL-508-5c:** Update or remove as needed
+- [ ] **BL-507-React19:** React 18.3 → **19** — `react`, `react-dom`, `@types/react` 18→19, `@types/react-dom` 18→19, `@testing-library/react` 14→16, `@testing-library/dom` 9→10. Peer already allows `^19`. Largest effort (Theme 4); revalidate every component, all 1429 tests, and Storybook.
+- [ ] **BL-506 (see above):** Tailwind 3.4 → **4** — `tailwindcss` + `tailwind-merge` 2→3; CSS-first config rewrite.
+- [ ] **BL-501-5 (see above):** TypeScript **7** — deferred on toolchain.
+
+**C. Standalone majors — evaluate individually (breaking; each needs a spike):**
+
+- [ ] **BL-508-zod4:** `zod` 3.25 → **4** — validation is core (every form schema, `zod-i18n-map`, `@hookform/resolvers`). Blocked until `@hookform/resolvers` + `zod-i18n-map` support Zod 4; high blast radius.
+- [ ] **BL-508-resolvers:** `@hookform/resolvers` 3.10 → **5** — coupled to the Zod 4 decision; do together with zod4.
+- [ ] **BL-508-datefns:** `date-fns` 3.6 → **4** — v4 reworks timezone handling; audit all date format/parse call sites.
+- [ ] **BL-508-i18n:** `i18next` 24 → **26** + `react-i18next` 15 → **17** — bump together; verify namespaces, content-token architecture, es-US/fr-CA locales.
+- [ ] **BL-508-misc-majors:** individually — `sonner` 1→2, `react-error-boundary` 5→6, `react-window` 1→2, `react-dropzone` 14→15, `lucide-react` 0.418→**1.x** (verify icon names/tree-shaking), `public-ip` 7→8, `next-themes` 0.3→0.4, `jsdom` 24→29 (dev/test env).
+
+**D. Cleanup:**
+
+- [ ] **BL-508-cleanup:** Remove `@types/dompurify` — DOMPurify 3.x ships its own types (the `@types/dompurify` `latest` is an older `3.0.5` stub). Drop the devDep.
+
+**E. Done (kept for context, no longer "planned"):**
+
+- [x] **BL-503 · Orval:** on **orval ^8.5.3** (v8 migration complete — ESM config, mutator per `orval.config.mjs`). Ongoing: regenerate from `api-specs/*` as the OAS changes.
+- [x] **BL-503 · Package manager:** standardized on **Yarn 4.12** (`packageManager` pinned); CI moved to `buildType: yarn` (immutable, lockfile-respecting installs). pnpm not pursued.
+- [x] **BL-503 · Security policy:** prioritize security patches; `resolutions` pin remediated advisories (lodash, js-yaml, form-data, tar, glob, etc.).
 
 ---
 
@@ -1089,7 +1092,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 **High Priority:** Filter/label/tooltips/responsive, Accounts enhancements, ServerErrorAlert extension (BL-800), ClientDetails UX audit (BL-810)  
 **Medium Priority:** Status badge, date formatting, menu/dialog, timeline, i18n locale completion (BL-802), Empty+ a11y (BL-804), session transfer (BL-805), onboarding error handling (BL-811)  
 **Low Priority:** Performance optimization, Mock API Editor scenario mgmt (BL-803)  
-**Tech Debt:** ESLint v9, Tailwind v4, TypeScript, Vite 7 / Vitest 4 maintenance, React/UI libraries, Orval 7→8 path, other dependencies
+**Tech Debt:** ESLint v9, Tailwind v4, TypeScript, Vite 8 / Vitest 4 maintenance, React/UI libraries, Orval 7→8 path, other dependencies
 
 **In Progress:**
 

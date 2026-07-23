@@ -2,8 +2,8 @@ import React from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import {
-  FieldArray,
   FieldArrayPath,
+  FieldArrayPathValue,
   FieldArrayWithId,
   FieldValue,
   FieldValues,
@@ -22,6 +22,23 @@ import {
   OptionalDefaults,
 } from '@/core/OnboardingFlow/types/form.types';
 import { useFormUtilsWithClientContext } from '@/core/OnboardingFlow/utils/formUtils';
+
+// react-hook-form >= 7.66 also exports `FieldArray` as a runtime value (the
+// declarative `<FieldArray>` component), which shadows the type of the same
+// name when imported from the package root, breaking `FieldArray<...>` in type
+// position. Reconstruct the field-array item type locally (mirroring
+// react-hook-form's own definition) so it resolves regardless of which
+// react-hook-form version is installed.
+type FieldArrayValue<
+  TFieldValues extends FieldValues,
+  TFieldArrayName extends FieldArrayPath<TFieldValues>,
+> =
+  FieldArrayPathValue<TFieldValues, TFieldArrayName> extends
+    | ReadonlyArray<infer TItem>
+    | null
+    | undefined
+    ? TItem
+    : never;
 
 type ButtonProps = {
   className?: string;
@@ -56,7 +73,7 @@ interface OnboardingArrayFieldProps<
 > extends Omit<UseFieldArrayProps<TFieldValues, TFieldArrayName>, 'rules'> {
   minItems?: number;
   maxItems?: number;
-  appendValue?: FieldArray<TFieldValues, TFieldArrayName>;
+  appendValue?: FieldArrayValue<TFieldValues, TFieldArrayName>;
   disabled?: boolean;
   readonly?: boolean;
   renderItem: (

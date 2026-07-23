@@ -380,6 +380,65 @@ export function getFxCurrencyRequirement(
 }
 
 /**
+ * True when `currency` is a supported FX credit currency (not USD / domestic).
+ * Use to switch recipient detail / list copy off US-domestic ACH/Wire wording.
+ */
+export function isFxCreditCurrency(currency?: string | null): boolean {
+  return getFxCurrencyRequirement(currency) != null;
+}
+
+/**
+ * Product-tier label for an FX settlement rail (`ACH` → "FX Low-value",
+ * `WIRE` → "FX High-value"). Returns `undefined` for unknown methods so callers
+ * can fall back to domestic labels.
+ */
+export function getFxRailDisplayLabel(method: string): string | undefined {
+  if (method === 'ACH' || method === 'WIRE') {
+    return FX_RAIL_INFO[method].tier;
+  }
+  return undefined;
+}
+
+/**
+ * Currency-specific bank-identifier field label (e.g. "Sort code (or BIC)",
+ * "BSB code", "BIC / SWIFT"). Falls back to `undefined` for domestic / unknown.
+ */
+export function getFxRoutingDisplayLabel(
+  currency?: string | null
+): string | undefined {
+  return getFxCurrencyRequirement(currency)?.routingCode?.label;
+}
+
+/**
+ * Display label for a payment method on a recipient row/details surface.
+ * FX credit currencies use product rail tiers; domestic keeps the stored
+ * method code (ACH / WIRE / RTP) so list badges stay compact.
+ */
+export function getRecipientPaymentMethodDisplayLabel(
+  method: string,
+  currency?: string | null
+): string {
+  if (isFxCreditCurrency(currency)) {
+    return getFxRailDisplayLabel(method) ?? method;
+  }
+  return method;
+}
+
+/**
+ * Display label for the routing / bank-id value on recipient details.
+ * FX destinations use the per-currency routing label; domestic uses
+ * "Routing Number".
+ */
+export function getRecipientRoutingFieldDisplayLabel(
+  currency?: string | null
+): string {
+  return (
+    getFxRoutingDisplayLabel(currency) ??
+    (isFxCreditCurrency(currency) ? 'Bank identifier' : 'Routing Number')
+  );
+}
+
+/**
  * Returns the de-duplicated union of rails available for a currency across both
  * funding account types (or, when `debtorAccountType` is given, just that type).
  * Order is stable: WIRE before ACH.

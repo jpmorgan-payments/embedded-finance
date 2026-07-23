@@ -7,7 +7,7 @@
  * rate (SPECIFICATION.md FR-FX-9). Enrichment is best-effort; the screen
  * degrades gracefully when it is unavailable.
  */
-import React, { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { Check, Copy, Loader2 } from 'lucide-react';
 

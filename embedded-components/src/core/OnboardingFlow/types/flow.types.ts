@@ -8,6 +8,7 @@ import {
   PartyResponse,
 } from '@/api/generated/smbdo.schemas';
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types/form.types';
+import type { StepSchemaMap } from '@/core/OnboardingFlow/utils/flowUtils';
 
 type DefaultSchema = z.ZodObject<Record<string, z.ZodType<any>>>;
 
@@ -67,7 +68,10 @@ export type StaticScreenId =
   | 'overview'
   | 'owner-stepper'
   | 'document-upload-form'
-  | 'link-account';
+  | 'link-account'
+  // Virtual id for the delta completion stage shown in the delta sidebar
+  // timeline (not a navigable flowConfig screen).
+  | 'complete-your-details';
 
 export type SectionScreenId =
   | 'personal-section'
@@ -106,8 +110,16 @@ export type SectionScreenConfig = BaseScreenConfig & {
       clientData: ClientResponse | undefined,
       allStepsValid: boolean,
       stepValidationMap: StepValidationMap,
-      savedFormValues: Partial<OnboardingFormValuesSubmit> | undefined,
-      screenId: ScreenId
+      savedFormValues:
+        | Partial<OnboardingFormValuesSubmit>
+        | Record<string, unknown>
+        | undefined,
+      screenId: ScreenId,
+      // Pre-built step schemas threaded from `getFlowProgress`. Resolvers that
+      // re-run `getStepperValidation` (e.g. the per-owner loop) MUST forward
+      // this so those nested calls stay hook-free and the schema-hook count
+      // does not vary with the number of owners.
+      stepSchemas?: StepSchemaMap
     ) => SectionStatus;
   };
 };
@@ -181,6 +193,8 @@ export type FlowSessionData = {
   linkAccountJustCreated?: boolean;
   /** Set when the user answers the PTC question on the gateway screen. */
   isPTCQuestionAnswered?: boolean;
+  /** Delta mode: which Overview view the user last selected ('delta' pending-fields vs 'full' section list). */
+  overviewViewMode?: 'delta' | 'full';
 };
 
 export type StepperStepProps = {

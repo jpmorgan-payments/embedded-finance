@@ -132,9 +132,7 @@ function App() {
       <td>
         <code>'cards'</code>
       </td>
-      <td>
-        Visual display style for accounts
-      </td>
+      <td>Visual display style for accounts</td>
     </tr>
     <tr>
       <td>
@@ -271,6 +269,13 @@ function App() {
   </tbody>
 </table>
 
+### Payment / FX (non-breaking)
+
+Same additive props as [RecipientsWidget](?path=/docs/core-recipientswidget--docs):
+`paymentFlowVariant` (default `'domestic'`), auto `showRecipientCurrency` when FX,
+plus optional `fxConfig` / `supportedTargetCurrencies`. See that docs page and the
+**FX Payments** story for details.
+
 ### Custom Actions
 
 <table>
@@ -326,7 +331,8 @@ function App() {
         <code>(context) =&gt; void</code>
       </td>
       <td>
-        Handler called for each user interaction event. Use for RUM/analytics integration
+        Handler called for each user interaction event. Use for RUM/analytics
+        integration
       </td>
     </tr>
     <tr>
@@ -337,7 +343,8 @@ function App() {
         <code>{'{ onEnter, onLeave }'}</code>
       </td>
       <td>
-        Lifecycle hooks for action tracking (e.g., Dynatrace enterAction/leaveAction)
+        Lifecycle hooks for action tracking (e.g., Dynatrace
+        enterAction/leaveAction)
       </td>
     </tr>
   </tbody>
