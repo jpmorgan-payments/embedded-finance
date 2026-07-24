@@ -5,9 +5,10 @@ import { defineConfig, esmExternalRequirePlugin } from 'vite';
 import dts from 'vite-plugin-dts';
 import { libInjectCss } from 'vite-plugin-lib-inject-css';
 
-// Peer deps that must stay external. Include react/jsx-runtime — Vite 8 /
-// Rolldown leaves require() for externals as-is; without converting those to
-// ESM imports, browser consumers throw:
+// Peer deps that must stay external for the *library* build only. Include
+// react/jsx-runtime and react-dom/client — Vite 8 / Rolldown leaves require()
+// for externals as-is; without converting those to ESM imports, browser
+// consumers throw:
 // "Calling `require` for \"react\" in an environment that doesn't expose require".
 const reactExternals = [
   'react',
@@ -19,22 +20,27 @@ const reactExternals = [
 
 export default defineConfig(({ mode }) => {
   const isAnalyze = mode === 'analyze';
+  // Storybook merges this config. Library externals must NOT apply there —
+  // otherwise the static Storybook build leaves bare `import "react"` and the
+  // browser throws "Failed to resolve module specifier \"react\"".
+  const isStorybook = process.env.STORYBOOK === 'true';
 
   return {
     plugins: [
       react(),
-      // Vite 8 (Rolldown): convert require('react') from bundled CJS deps into
-      // ESM imports so the library ESM/UMD builds work in the browser.
-      esmExternalRequirePlugin({
-        external: reactExternals,
-        // Also listed under build.rolldownOptions.external for globals / UMD.
-        skipDuplicateCheck: true,
-      }),
+      // Library-only: convert require('react') from bundled CJS deps into ESM
+      // imports so the published ESM/UMD builds work in the browser.
+      !isStorybook &&
+        esmExternalRequirePlugin({
+          external: reactExternals,
+          // Also listed under build.rolldownOptions.external for globals / UMD.
+          skipDuplicateCheck: true,
+        }),
       // `bundleTypes` (renamed from `rollupTypes` in vite-plugin-dts 5 /
       // unplugin-dts) rolls all declarations into a single dist/index.d.ts via
       // @microsoft/api-extractor (an optional peer dep that must be installed).
-      dts({ bundleTypes: true }),
-      libInjectCss(),
+      !isStorybook && dts({ bundleTypes: true }),
+      !isStorybook && libInjectCss(),
       isAnalyze &&
         visualizer({
           open: true,
@@ -83,42 +89,45 @@ export default defineConfig(({ mode }) => {
         ],
       },
     },
-    build: {
-      // Use es2020 for compatibility with webpack-based consumers.
-      // 'esnext' emits native private class fields (#field) which older webpack
-      // versions can't re-bundle correctly, causing "Super constructor null" errors.
-      target: 'es2020',
-      lib: {
-        entry: [resolve(__dirname, 'src/index.tsx')],
-        name: 'ef-components',
-        formats: ['esm', 'umd'],
-        fileName: (format) => `${format}/ef-components.js`,
-      },
-      // Vite 8: prefer rolldownOptions (rollupOptions remains a deprecated alias).
-      rolldownOptions: {
-        external: reactExternals,
-        output: {
-          globals: {
-            react: 'React',
-            'react-dom': 'ReactDOM',
-            'react-dom/client': 'ReactDOM',
-            'react/jsx-runtime': 'jsxRuntime',
-            'react/jsx-dev-runtime': 'jsxRuntime',
+    build: isStorybook
+      ? {}
+      : {
+          // Use es2020 for compatibility with webpack-based consumers.
+          // 'esnext' emits native private class fields (#field) which older webpack
+          // versions can't re-bundle correctly, causing "Super constructor null" errors.
+          target: 'es2020',
+          lib: {
+            entry: [resolve(__dirname, 'src/index.tsx')],
+            name: 'ef-components',
+            formats: ['esm', 'umd'],
+            fileName: (format) => `${format}/ef-components.js`,
+          },
+          // Vite 8: prefer rolldownOptions (rollupOptions remains a deprecated alias).
+          rolldownOptions: {
+            external: reactExternals,
+            output: {
+              globals: {
+                react: 'React',
+                'react-dom': 'ReactDOM',
+                'react-dom/client': 'ReactDOM',
+                'react/jsx-runtime': 'jsxRuntime',
+                'react/jsx-dev-runtime': 'jsxRuntime',
+              },
+            },
+            onLog(level, log, handler) {
+              // Suppress sourcemap warnings from transformed files (e.g. from dts, react plugin).
+              // These are informational and don't affect the build output.
+              if (
+                log.cause &&
+                log.cause.message ===
+                  `Can't resolve original location of error.`
+              ) {
+                return;
+              }
+              handler(level, log);
+            },
           },
         },
-        onLog(level, log, handler) {
-          // Suppress sourcemap warnings from transformed files (e.g. from dts, react plugin).
-          // These are informational and don't affect the build output.
-          if (
-            log.cause &&
-            log.cause.message === `Can't resolve original location of error.`
-          ) {
-            return;
-          }
-          handler(level, log);
-        },
-      },
-    },
     define: {
       // Only replace process.env.NODE_ENV — NOT the whole process.env object.
       // The previous `'process.env': loadEnv(mode)` replaced the entire object with
