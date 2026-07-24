@@ -22,9 +22,27 @@ const config: StorybookConfig = {
     options: {},
   },
   viteFinal: async (config) => {
-    // vite-plugin-dts 5 registers under the name 'unplugin-dts' (was 'vite:dts').
-    // Storybook doesn't need declaration output, so strip it to save build time.
-    config.plugins = await withoutVitePlugins(config.plugins, ['unplugin-dts']);
+    // Library-mode plugins/externals from vite.config.mjs must not apply here.
+    // Leaving react externalized produces bare `import "react"` in the static
+    // build and the browser throws "Failed to resolve module specifier \"react\"".
+    config.plugins = await withoutVitePlugins(config.plugins, [
+      'unplugin-dts', // vite-plugin-dts 5 (was 'vite:dts')
+      'builtin:esm-external-require',
+      'vite:lib-inject-css',
+    ]);
+
+    // Clear any leaked library externals (Vite 8 uses rolldownOptions).
+    if (config.build?.rolldownOptions) {
+      config.build.rolldownOptions.external = [];
+    }
+    if (config.build?.rollupOptions) {
+      config.build.rollupOptions.external = [];
+    }
+    // Storybook is an app build — never use library mode.
+    if (config.build) {
+      delete config.build.lib;
+    }
+
     return mergeConfig(config, {
       resolve: {
         alias: {
