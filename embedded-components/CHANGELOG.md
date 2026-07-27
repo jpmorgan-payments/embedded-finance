@@ -2,6 +2,12 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.0] - 2026-07-24
+
+### Changes
+
+- Maintenance release
+
 ## [0.16.10] - 2026-07-23
 
 ### Changes
