@@ -96,6 +96,7 @@ export default defineConfig(({ mode }) => {
           // 'esnext' emits native private class fields (#field) which older webpack
           // versions can't re-bundle correctly, causing "Super constructor null" errors.
           target: 'es2020',
+          minify: { mangle: { toplevel: false }, compress: true },
           lib: {
             entry: [resolve(__dirname, 'src/index.tsx')],
             name: 'ef-components',
