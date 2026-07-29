@@ -30,6 +30,8 @@ import { LinkAccountAcknowledgementsGroup } from '@/core/RecipientWidgets/compon
 export type LinkAccountPrefillSummaryViewProps = {
   title: ReactNode;
   description?: ReactNode;
+  /** When false, content is rendered without StepLayout (Overview inline). Default true. */
+  wrapInStepLayout?: boolean;
   /** Optional pre-selector element (e.g. account preset dropdown) rendered above the summary. */
   preSelector?: ReactNode;
   data: BankAccountFormData;
@@ -48,11 +50,12 @@ export type LinkAccountPrefillSummaryViewProps = {
   certifyChecked: boolean;
   onCertifyCheckedChange: (checked: boolean) => void;
   onSubmit: (payload: BankAccountFormData) => void;
-  onCancel: () => void;
+  /** When omitted, the cancel button is hidden. */
+  onCancel?: () => void;
   isSubmitting: boolean;
   errorAlert?: React.ReactNode;
   submitLabel: string;
-  cancelLabel: string;
+  cancelLabel?: string;
   groupAriaLabel: string;
   /** Label above the read-only account holder line */
   accountHolderLabel: string;
@@ -86,6 +89,7 @@ function achRoutingNumber(data: BankAccountFormData): string {
 export function LinkAccountPrefillSummaryView({
   title,
   description,
+  wrapInStepLayout = true,
   preSelector,
   data,
   displayedPaymentTypes,
@@ -140,194 +144,204 @@ export function LinkAccountPrefillSummaryView({
     (!showDefaultCertification || certifyChecked) &&
     !hasValidationErrors;
 
-  return (
-    <StepLayout title={title} description={description}>
-      <div className="eb-mt-6 eb-space-y-6">
-        {preSelector}
-        {errorAlert}
+  const body = (
+    <div className={wrapInStepLayout ? 'eb-mt-6 eb-space-y-6' : 'eb-space-y-6'}>
+      {preSelector}
+      {errorAlert}
 
-        {hasValidationErrors ? (
-          <Alert variant="destructive">
-            <AlertTriangleIcon className="eb-h-4 eb-w-4" />
-            <AlertTitle>
-              {t('prefillValidation.title', 'Invalid prefilled account data')}
-            </AlertTitle>
-            <AlertDescription>
-              <ul className="eb-mt-1 eb-list-disc eb-pl-4 eb-text-sm">
-                {validationErrors.map((msg) => (
-                  <li key={msg}>{msg}</li>
-                ))}
-              </ul>
+      {hasValidationErrors ? (
+        <Alert variant="destructive">
+          <AlertTriangleIcon className="eb-h-4 eb-w-4" />
+          <AlertTitle>
+            {t('prefillValidation.title', 'Invalid prefilled account data')}
+          </AlertTitle>
+          <AlertDescription>
+            <ul className="eb-mt-1 eb-list-disc eb-pl-4 eb-text-sm">
+              {validationErrors.map((msg) => (
+                <li key={msg}>{msg}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+          {tString('prefillValidation.footnote') && (
+            <AlertDescription className="eb-mt-2 eb-text-xs eb-text-red-800">
+              {t('prefillValidation.footnote')}
             </AlertDescription>
-            {tString('prefillValidation.footnote') && (
-              <AlertDescription className="eb-mt-2 eb-text-xs eb-text-red-800">
-                {t('prefillValidation.footnote')}
-              </AlertDescription>
-            )}
-          </Alert>
-        ) : null}
+          )}
+        </Alert>
+      ) : null}
 
-        <div className="eb-space-y-2">
-          <Label className="eb-text-sm eb-font-medium">
-            {t('paymentMethods.selectAtLeastOne')}
-          </Label>
-          <div className="eb-space-y-3">
-            {displayedPaymentTypes.map((type) => {
-              const cfg = bankFormConfig.paymentMethods.configs[type];
-              const isSelected = selectedTypes.has(type);
-              return (
-                <div key={type} className="eb-flex eb-items-center eb-gap-2">
-                  <div
-                    className={`eb-flex eb-flex-1 eb-items-start eb-gap-3 eb-rounded-lg eb-border eb-p-4 ${
-                      isSelected
-                        ? 'eb-border-primary eb-bg-primary/5'
-                        : 'eb-border-border eb-bg-muted/40 eb-opacity-70'
-                    }`}
-                  >
-                    <div className="eb-pt-0.5 eb-text-primary">
-                      {paymentIcon(type)}
-                    </div>
-                    <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1">
-                      <span className="eb-font-medium">{cfg?.label}</span>
-                      {isSelected ? (
-                        <span className="eb-inline-flex eb-items-center eb-gap-1 eb-self-start eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative">
-                          <LockIcon className="eb-h-3 eb-w-3 eb-shrink-0" />
-                          <span>
-                            {t('paymentMethods.requiredForLinkedAccount')}
-                          </span>
+      <div className="eb-space-y-2">
+        <Label className="eb-text-sm eb-font-medium">
+          {t('paymentMethods.selectAtLeastOne')}
+        </Label>
+        <div className="eb-space-y-3">
+          {displayedPaymentTypes.map((type) => {
+            const cfg = bankFormConfig.paymentMethods.configs[type];
+            const isSelected = selectedTypes.has(type);
+            return (
+              <div key={type} className="eb-flex eb-items-center eb-gap-2">
+                <div
+                  className={`eb-flex eb-flex-1 eb-items-start eb-gap-3 eb-rounded-lg eb-border eb-p-4 ${
+                    isSelected
+                      ? 'eb-border-primary eb-bg-primary/5'
+                      : 'eb-border-border eb-bg-muted/40 eb-opacity-70'
+                  }`}
+                >
+                  <div className="eb-pt-0.5 eb-text-primary">
+                    {paymentIcon(type)}
+                  </div>
+                  <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1">
+                    <span className="eb-font-medium">{cfg?.label}</span>
+                    {isSelected ? (
+                      <span className="eb-inline-flex eb-items-center eb-gap-1 eb-self-start eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative">
+                        <LockIcon className="eb-h-3 eb-w-3 eb-shrink-0" />
+                        <span>
+                          {t('paymentMethods.requiredForLinkedAccount')}
                         </span>
-                      ) : null}
-                    </div>
+                      </span>
+                    ) : null}
                   </div>
                 </div>
-              );
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="eb-space-y-2">
+        <Label
+          htmlFor="eb-prefill-account-holder"
+          className="eb-text-sm eb-font-medium"
+        >
+          {accountHolderLabel}
+        </Label>
+        <Input
+          id="eb-prefill-account-holder"
+          value={accountHolderName || '—'}
+          readOnly
+          disabled
+          className="eb-bg-muted/50"
+          aria-readonly
+        />
+      </div>
+
+      <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2">
+        <div className="eb-space-y-2">
+          <Label htmlFor="eb-prefill-routing">
+            {t('routingNumbers.singleMethodLabel', {
+              method: tString('paymentMethods.ACH.shortLabel'),
             })}
-          </div>
-        </div>
-
-        <div className="eb-space-y-2">
-          <Label
-            htmlFor="eb-prefill-account-holder"
-            className="eb-text-sm eb-font-medium"
-          >
-            {accountHolderLabel}
           </Label>
           <Input
-            id="eb-prefill-account-holder"
-            value={accountHolderName || '—'}
+            id="eb-prefill-routing"
+            value={routing}
             readOnly
             disabled
             className="eb-bg-muted/50"
             aria-readonly
           />
         </div>
-
-        <div className="eb-grid eb-grid-cols-1 eb-gap-4 md:eb-grid-cols-2">
-          <div className="eb-space-y-2">
-            <Label htmlFor="eb-prefill-routing">
-              {t('routingNumbers.singleMethodLabel', {
-                method: tString('paymentMethods.ACH.shortLabel'),
-              })}
-            </Label>
-            <Input
-              id="eb-prefill-routing"
-              value={routing}
-              readOnly
-              disabled
-              className="eb-bg-muted/50"
-              aria-readonly
-            />
-          </div>
-          <div className="eb-space-y-2">
-            <Label htmlFor="eb-prefill-account">
-              {t('fields.accountNumber.label')}
-            </Label>
-            <Input
-              id="eb-prefill-account"
-              value={data.accountNumber ?? ''}
-              readOnly
-              disabled
-              className="eb-bg-muted/50"
-              aria-readonly
-            />
-          </div>
-        </div>
-
         <div className="eb-space-y-2">
-          <Label htmlFor="eb-prefill-bank-type">
-            {t('fields.accountType.label')}
+          <Label htmlFor="eb-prefill-account">
+            {t('fields.accountNumber.label')}
           </Label>
           <Input
-            id="eb-prefill-bank-type"
-            value={
-              data.bankAccountType === 'SAVINGS'
-                ? tString('accountTypes.savings')
-                : tString('accountTypes.checking')
-            }
+            id="eb-prefill-account"
+            value={data.accountNumber ?? ''}
             readOnly
             disabled
             className="eb-bg-muted/50"
             aria-readonly
           />
         </div>
+      </div>
 
-        {acknowledgements?.length ? (
-          <LinkAccountAcknowledgementsGroup
-            items={acknowledgements}
-            checked={acknowledgementChecked}
-            onCheckedChange={onAcknowledgementChange}
-            disabled={isSubmitting}
-            groupAriaLabel={groupAriaLabel}
-            intro={acknowledgementsIntro}
-          />
-        ) : null}
+      <div className="eb-space-y-2">
+        <Label htmlFor="eb-prefill-bank-type">
+          {t('fields.accountType.label')}
+        </Label>
+        <Input
+          id="eb-prefill-bank-type"
+          value={
+            data.bankAccountType === 'SAVINGS'
+              ? tString('accountTypes.savings')
+              : tString('accountTypes.checking')
+          }
+          readOnly
+          disabled
+          className="eb-bg-muted/50"
+          aria-readonly
+        />
+      </div>
 
-        {showDefaultCertification ? (
-          <>
-            <Separator />
-            <div className="eb-flex eb-items-start eb-space-x-2">
-              <Checkbox
-                id="eb-link-prefill-certify"
-                className="eb-mt-0.5"
-                checked={certifyChecked}
-                onCheckedChange={(checked) =>
-                  onCertifyCheckedChange(checked === true)
-                }
-                disabled={isSubmitting}
-              />
-              <Label
-                htmlFor="eb-link-prefill-certify"
-                className="eb-cursor-pointer eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
-              >
-                {bankFormConfig.content.certificationText}
-              </Label>
-            </div>
-          </>
-        ) : null}
+      {acknowledgements?.length ? (
+        <LinkAccountAcknowledgementsGroup
+          items={acknowledgements}
+          checked={acknowledgementChecked}
+          onCheckedChange={onAcknowledgementChange}
+          disabled={isSubmitting}
+          groupAriaLabel={groupAriaLabel}
+          intro={acknowledgementsIntro}
+        />
+      ) : null}
 
-        <div className="eb-flex eb-flex-wrap eb-gap-2">
-          <Button
-            type="button"
-            className="eb-inline-flex eb-items-center eb-gap-2"
-            disabled={isSubmitting || !canSubmit}
-            onClick={() =>
-              onSubmit({
-                ...data,
-                certify: showDefaultCertification ? certifyChecked : true,
-              })
-            }
-          >
-            {isSubmitting ? (
-              <Loader2Icon className="eb-size-4 eb-animate-spin" aria-hidden />
-            ) : null}
-            {submitLabel}
-          </Button>
+      {showDefaultCertification ? (
+        <>
+          <Separator />
+          <div className="eb-flex eb-items-start eb-space-x-2">
+            <Checkbox
+              id="eb-link-prefill-certify"
+              className="eb-mt-0.5"
+              checked={certifyChecked}
+              onCheckedChange={(checked) =>
+                onCertifyCheckedChange(checked === true)
+              }
+              disabled={isSubmitting}
+            />
+            <Label
+              htmlFor="eb-link-prefill-certify"
+              className="peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70 eb-cursor-pointer eb-text-sm eb-font-normal eb-text-foreground"
+            >
+              {bankFormConfig.content.certificationText}
+            </Label>
+          </div>
+        </>
+      ) : null}
+
+      <div className="eb-flex eb-flex-wrap eb-gap-2">
+        <Button
+          type="button"
+          className="eb-inline-flex eb-items-center eb-gap-2"
+          disabled={isSubmitting || !canSubmit}
+          onClick={() =>
+            onSubmit({
+              ...data,
+              certify: showDefaultCertification ? certifyChecked : true,
+            })
+          }
+        >
+          {isSubmitting ? (
+            <Loader2Icon className="eb-size-4 eb-animate-spin" aria-hidden />
+          ) : null}
+          {submitLabel}
+        </Button>
+        {onCancel ? (
           <Button variant="outline" size="sm" type="button" onClick={onCancel}>
             <ArrowLeftIcon className="eb-size-4" />
             {cancelLabel}
           </Button>
-        </div>
+        ) : null}
       </div>
+    </div>
+  );
+
+  if (!wrapInStepLayout) {
+    return body;
+  }
+
+  return (
+    <StepLayout title={title} description={description}>
+      {body}
     </StepLayout>
   );
 }

@@ -5,8 +5,8 @@
  * statuses allow the user to initiate account linking.
  *
  * `showLinkAccountStep` controls whether the section is shown.
- * `linkAccountEnabledStatuses` controls whether the "Start" button is enabled
- * for the current client status.
+ * `linkAccountEnabledStatuses` controls whether linking is enabled
+ * for the current client status (locked empty state vs inline form).
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -83,7 +83,7 @@ export const ApprovedOnly: Story = {
 /**
  * **Disabled by status mismatch** — The section is shown (`showLinkAccountStep`)
  * but linking is disabled because the client is `REVIEW_IN_PROGRESS` and only
- * `APPROVED` is in the allowed list. The "Start" button is locked.
+ * `APPROVED` is in the allowed list. Linking is locked (empty locked state).
  */
 export const DisabledByStatusMismatch: Story = {
   loaders: [
@@ -111,7 +111,7 @@ export const DisabledByStatusMismatch: Story = {
 /**
  * **Multiple statuses** — Linking enabled for `APPROVED`,
  * `REVIEW_IN_PROGRESS`, and `INFORMATION_REQUESTED`. Client is in
- * `INFORMATION_REQUESTED` status so the "Start" button is active.
+ * `INFORMATION_REQUESTED` status so the inline link form is active.
  */
 export const MultipleStatuses: Story = {
   loaders: [

@@ -281,6 +281,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isLoading={status === 'pending'}
+            layout={isCreatingLinkedAccount ? 'singlePage' : 'wizard'}
             alert={
               formError ? (
                 <FriendlyErrorAlert
