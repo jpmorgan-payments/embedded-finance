@@ -21,5 +21,8 @@
     "cross-env": "^7.0.3",
     "prettier": "2.3.2"
   },
+  "resolutions": {
+    "brace-expansion": "1.1.16"
+  },
   "license": "LICENSE"
 }
