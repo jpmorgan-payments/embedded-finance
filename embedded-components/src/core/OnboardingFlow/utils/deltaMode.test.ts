@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+import type {
+  ClientResponse,
+  QuestionResponse,
+} from '@/api/generated/smbdo.schemas';
 
 import {
   countPendingOnboardingFields,
@@ -86,19 +89,89 @@ describe('resolveDeltaModeConfig', () => {
     expect(resolveDeltaModeConfig(true)).toEqual({
       enabled: true,
       maxPendingFields: DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+      defaultControllerNotAnOwner: false,
+      reviewSectionsDisplay: 'collapsible',
     });
     expect(
       resolveDeltaModeConfig({ enabled: true, maxPendingFields: 3 })
     ).toEqual({
       enabled: true,
       maxPendingFields: 3,
+      defaultControllerNotAnOwner: false,
+      reviewSectionsDisplay: 'collapsible',
     });
+  });
+
+  it('preserves an explicit defaultControllerNotAnOwner opt-in', () => {
+    expect(
+      resolveDeltaModeConfig({
+        enabled: true,
+        defaultControllerNotAnOwner: true,
+      })
+    ).toEqual({
+      enabled: true,
+      maxPendingFields: DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+      defaultControllerNotAnOwner: true,
+      reviewSectionsDisplay: 'collapsible',
+    });
+  });
+
+  it('preserves an explicit reviewSectionsDisplay', () => {
+    expect(
+      resolveDeltaModeConfig({
+        enabled: true,
+        reviewSectionsDisplay: 'expanded',
+      })
+    ).toEqual({
+      enabled: true,
+      maxPendingFields: DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+      defaultControllerNotAnOwner: false,
+      reviewSectionsDisplay: 'expanded',
+    });
+    expect(
+      resolveDeltaModeConfig({
+        enabled: true,
+        reviewSectionsDisplay: 'requireReview',
+      })?.reviewSectionsDisplay
+    ).toBe('requireReview');
   });
 });
 
 describe('countPendingOnboardingFields', () => {
   it('counts outstanding questions', () => {
     expect(countPendingOnboardingFields(richClient)).toBe(1);
+  });
+
+  it('excludes conditional sub-questions when definitions are provided', () => {
+    const client = {
+      ...richClient,
+      outstanding: {
+        ...richClient.outstanding,
+        // A parent (30158) plus its conditional child (30162).
+        questionIds: ['30158', '30162'],
+      },
+    } as unknown as ClientResponse;
+
+    // Child identified via its own parentQuestionId.
+    const definitionsWithParentRef = [
+      { id: '30158' },
+      { id: '30162', parentQuestionId: '30158' },
+    ] as QuestionResponse[];
+    expect(countPendingOnboardingFields(client, definitionsWithParentRef)).toBe(
+      1
+    );
+
+    // Child identified via the parent's subQuestions reference.
+    const definitionsWithSubQuestionRef = [
+      { id: '30158', subQuestions: [{ questionIds: ['30162'] }] },
+      { id: '30162' },
+    ] as QuestionResponse[];
+    expect(
+      countPendingOnboardingFields(client, definitionsWithSubQuestionRef)
+    ).toBe(1);
+
+    // Without definitions, both count (safe fallback / prior behavior).
+    expect(countPendingOnboardingFields(client)).toBe(2);
   });
 
   it('counts missing business EIN and controller tax ID', () => {

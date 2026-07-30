@@ -2,6 +2,29 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.2] - 2026-07-30
+
+### Changes
+
+#### Features
+
+- **onboarding:** update delta mode validation to support stricter question display logic
+- **onboarding:** refine animations for onboarding timeline
+- **onboarding:** fix visual glitches and add transitions to timeline sidebar
+- **onboarding:** remove incomplete warning alert for delta mode
+- **onboarding:** update labels for personal section title and legal structure in review form
+- **onboarding:** update look of owners section in review form
+- **onboarding:** move accuracy attestation checkbox outside checkbox group & add disabled hover cursor styling
+- **onboarding:** update review layout and add "expanded" and "requireReview" display configuration for deltaMode
+- **onboarding:** update deltaMode config to have defaultControllerNotAnOwner and remove related top level prop
+- **onboarding:** reorder attestation checkboxes
+- **onboarding:** add delta mode config to treat owners sectionas complete by default
+
+#### Bug Fixes
+
+- **onboarding:** hide sub-questions not in outstanding ids
+- **onboarding:** fix incorrect description for EIN field
+
 ## [0.17.1] - 2026-07-27
 
 ### Changes

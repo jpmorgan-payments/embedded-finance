@@ -26,6 +26,7 @@ import {
   getOrganizationParty,
   isUSExchangePTC,
 } from '@/core/OnboardingFlow/utils/dataUtils';
+import { resolveDeltaModeConfig } from '@/core/OnboardingFlow/utils/deltaMode';
 import { shouldSuppressOnboardingLeaveWarnings } from '@/core/OnboardingFlow/utils/flowLeaveWarnings';
 
 type EditingPartyIds = {
@@ -197,8 +198,16 @@ export const FlowProvider: React.FC<{
     alertOnExit,
     clientData,
     enablePubliclyTradedCompanies,
-    defaultControllerNotAnOwner,
+    deltaMode,
   } = useOnboardingContext();
+
+  // When delta mode is active and the host declares the controller is not a
+  // beneficial owner, pre-answer the 25% ownership question "No" and mark the
+  // owners section done up front (see the sessionData seed below). This only
+  // applies while delta mode is active — there is no standalone prop.
+  const deltaDefaultControllerNotAnOwner =
+    deltaModeActiveProp &&
+    (resolveDeltaModeConfig(deltaMode)?.defaultControllerNotAnOwner ?? false);
 
   const [history, setHistory] = useState<ScreenId[]>([initialScreenId]);
   const [editingPartyIds, setEditingPartyIds] = useState<EditingPartyIds>({});
@@ -215,12 +224,13 @@ export const FlowProvider: React.FC<{
     null
   );
   const [sessionData, setSessionData] = useState<FlowSessionData>(() =>
-    // When the host declares the controller is not a beneficial owner, the
+    // When delta mode declares the controller is not a beneficial owner, the
     // owners "25% ownership" question is pre-answered "No" and the section is
     // treated as done up front, so the user isn't re-prompted (e.g. on the
     // review screen). The owners-section statusResolver still downgrades to
-    // "missing_details" if any actual beneficial owner is incomplete.
-    defaultControllerNotAnOwner
+    // "missing_details" if any actual beneficial owner is incomplete, so the
+    // validity check is preserved.
+    deltaDefaultControllerNotAnOwner
       ? { isControllerOwnerQuestionAnswered: true, isOwnersSectionDone: true }
       : {}
   );

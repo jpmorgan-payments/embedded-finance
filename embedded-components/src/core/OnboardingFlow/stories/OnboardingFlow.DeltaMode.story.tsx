@@ -39,7 +39,7 @@ function createDeltaModeOperationalOnlyClient(
   client.id = clientId;
   client.outstanding = {
     ...client.outstanding,
-    questionIds: ['30005', '30158'],
+    questionIds: ['30005', '30158', '30162'],
     partyIds: [],
     partyRoles: [],
   };
@@ -60,7 +60,7 @@ function createDeltaModeOperationalAndTaxIdsClient(
   client.id = clientId;
   client.outstanding = {
     ...client.outstanding,
-    questionIds: ['30005', '30158'],
+    questionIds: ['30005', '30158', '30162'],
     partyIds: [],
     partyRoles: [],
   };
@@ -106,7 +106,7 @@ function createDeltaModeBirthdateAndOwnerSsnsClient(
   client.id = clientId;
   client.outstanding = {
     ...client.outstanding,
-    questionIds: ['30005', '30158'],
+    questionIds: ['30005', '30158', '30162'],
     partyIds: [],
     partyRoles: [],
   };
@@ -200,10 +200,15 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
   },
   args: {
     ...commonArgsWithCallbacks,
-    deltaMode: true,
-    // Delta mode targets partner-provided clients, so the controller-owner
-    // question is pre-answered "No" and not required by default here.
-    defaultControllerNotAnOwner: true,
+    // Full delta-mode config block (preferred over the `true` shorthand) so the
+    // options are discoverable in the Controls panel. `defaultControllerNotAnOwner`
+    // pre-answers the controller-owner question "No", which keeps the owners
+    // section from being required on the review screen.
+    deltaMode: {
+      enabled: true,
+      maxPendingFields: 5,
+      defaultControllerNotAnOwner: true,
+    },
     // Delta mode: attestation checkboxes are enabled without forcing the user
     // to open every terms document first (links still render).
     skipTermsDocumentAcknowledgment: true,
@@ -212,15 +217,9 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
   argTypes: {
     ...commonArgTypes,
     deltaMode: {
-      control: { type: 'boolean' as const },
+      control: { type: 'object' as const },
       description:
-        'Enable distilled delta completion (review-first, owners complete, terms merged). Activates only when pending fields ≤ maxPendingFields (default 5).',
-      table: { category: 'Configuration' },
-    },
-    defaultControllerNotAnOwner: {
-      control: { type: 'boolean' as const },
-      description:
-        'Pre-answer the controller "owns 25% or more?" question as No and do not require the user to answer it.',
+        'Distilled delta completion config (review-first, terms merged). Accepts `{ enabled, maxPendingFields, defaultControllerNotAnOwner, reviewSectionsDisplay }` (or `true` shorthand). Activates only when pending fields ≤ maxPendingFields (default 5). `defaultControllerNotAnOwner` (default false) pre-answers the controller "owns 25%?" question No, which marks the owners section complete on review. `reviewSectionsDisplay` (`collapsible` | `requireReview` | `expanded`, default `collapsible`) controls the Review & attest section layout.',
       table: { category: 'Configuration' },
     },
     skipTermsDocumentAcknowledgment: {
@@ -257,7 +256,6 @@ export const OperationalDetailsOnly: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -280,7 +278,6 @@ export const OperationalDetailsAndTaxIds: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -303,7 +300,6 @@ export const BirthdateAndOwnerSsns: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -543,7 +539,7 @@ function createDeltaModeAllSectionsClient(
   client.id = clientId;
   client.outstanding = {
     ...client.outstanding,
-    questionIds: ['30005', '30158'],
+    questionIds: ['30005', '30158', '30162'],
     partyIds: [],
     partyRoles: [],
   };
@@ -611,7 +607,6 @@ export const BusinessIdentityDetails: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -633,7 +628,6 @@ export const BusinessIndustry: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -655,7 +649,6 @@ export const BusinessContact: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -677,7 +670,6 @@ export const ControllerPersonalDetails: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -699,7 +691,6 @@ export const ControllerContact: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -722,7 +713,6 @@ export const OwnerFullProfile: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 5 },
   },
 };
 
@@ -743,6 +733,75 @@ export const AllSectionsCombined: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
-    deltaMode: { enabled: true, maxPendingFields: 10 },
+    deltaMode: {
+      enabled: true,
+      maxPendingFields: 10,
+      defaultControllerNotAnOwner: true,
+    },
+  },
+};
+
+// ============================================================================
+// Review & attest — section display modes
+//
+// `deltaMode.reviewSectionsDisplay` controls how the Review & attest section
+// summary is laid out. Reach the Review & attest step from the delta overview
+// via "Save & continue" (complete any pending fields first).
+// ============================================================================
+
+/**
+ * **Review display — require section review**
+ *
+ * `deltaMode.reviewSectionsDisplay: 'requireReview'`. On the **Review & attest**
+ * step, each section is a collapsible accordion and the "data is complete and
+ * true" attestation checkbox stays **disabled** — with a helper line — until the
+ * user has opened **every** section at least once.
+ */
+export const ReviewRequireSectionReview: Story = {
+  name: 'Review display — require section review',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        createDeltaModeOperationalOnlyClient(),
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    deltaMode: {
+      enabled: true,
+      maxPendingFields: 5,
+      defaultControllerNotAnOwner: true,
+      reviewSectionsDisplay: 'requireReview',
+    },
+  },
+};
+
+/**
+ * **Review display — expanded sections**
+ *
+ * `deltaMode.reviewSectionsDisplay: 'expanded'`. On the **Review & attest** step,
+ * every section is expanded up front in one tidy layout, so the user can read
+ * everything without opening each accordion.
+ */
+export const ReviewExpandedSections: Story = {
+  name: 'Review display — expanded sections',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        createDeltaModeOperationalOnlyClient(),
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    deltaMode: {
+      enabled: true,
+      maxPendingFields: 5,
+      defaultControllerNotAnOwner: true,
+      reviewSectionsDisplay: 'expanded',
+    },
   },
 };

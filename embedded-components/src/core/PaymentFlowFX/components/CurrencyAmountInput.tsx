@@ -81,6 +81,40 @@ function sanitizeAmountValue(value: string, fractionDigits: number): string {
   return sanitized;
 }
 
+/**
+ * The rate to use for conversions: the live quote when valid, otherwise the
+ * last sticky rate captured for the same currency, otherwise none.
+ */
+function resolveEffectiveRate(
+  fxRate: number | undefined,
+  stickyRate: { currency: string; rate: number } | null,
+  targetCurrency: string | undefined
+): number | undefined {
+  if (fxRate !== undefined && fxRate > 0) return fxRate;
+  if (stickyRate && stickyRate.currency === targetCurrency) {
+    return stickyRate.rate;
+  }
+  return undefined;
+}
+
+/**
+ * The value shown in the "Recipient gets" field: the user's live draft while
+ * they own the field, else the amount derived from the effective FX rate.
+ */
+function resolveCreditValue(args: {
+  lastEdited: 'debit' | 'credit';
+  creditDraft: string | null;
+  computedCredit: number;
+  targetFractionDigits: number;
+}): string {
+  const { lastEdited, creditDraft, computedCredit, targetFractionDigits } =
+    args;
+  if (lastEdited === 'credit' && creditDraft !== null) {
+    return creditDraft;
+  }
+  return computedCredit > 0 ? computedCredit.toFixed(targetFractionDigits) : '';
+}
+
 export interface CurrencyAmountInputProps {
   amount: string;
   memo?: string;
@@ -138,12 +172,11 @@ export function CurrencyAmountInput({
     }
   }, [isFxCurrency, targetCurrency, fxRate]);
 
-  const effectiveRate =
-    fxRate !== undefined && fxRate > 0
-      ? fxRate
-      : stickyRate && stickyRate.currency === targetCurrency
-        ? stickyRate.rate
-        : undefined;
+  const effectiveRate = resolveEffectiveRate(
+    fxRate,
+    stickyRate,
+    targetCurrency
+  );
   const hasRate = effectiveRate !== undefined && effectiveRate > 0;
 
   const targetFractionDigits = useMemo(
@@ -186,12 +219,12 @@ export function CurrencyAmountInput({
 
   // "Recipient gets" shows the user's draft while they own the field, else the
   // amount derived live from the FX rate.
-  const creditValue =
-    lastEdited === 'credit' && creditDraft !== null
-      ? creditDraft
-      : computedCredit > 0
-        ? computedCredit.toFixed(targetFractionDigits)
-        : '';
+  const creditValue = resolveCreditValue({
+    lastEdited,
+    creditDraft,
+    computedCredit,
+    targetFractionDigits,
+  });
 
   const convertedAmount =
     hasRate && numericAmount > 0
@@ -228,6 +261,71 @@ export function CurrencyAmountInput({
     // Hard-limit the memo to the FX max length.
     onMemoChange(value.slice(0, FX_MEMO_MAX_LENGTH));
   };
+
+  // Cross-border conversion UI (rate line + editable "Recipient gets" field).
+  // A local closure so it captures `t`, the rate, and the handlers directly.
+  const renderFxConversion = (): React.ReactNode => (
+    <>
+      <div className="eb-my-2 eb-flex eb-items-center eb-gap-2">
+        <span className="eb-flex eb-h-6 eb-w-6 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted eb-text-muted-foreground">
+          <ArrowDownUp className="eb-h-3.5 eb-w-3.5" />
+        </span>
+        <span className="eb-text-xs eb-text-muted-foreground">
+          {hasRate
+            ? t('fx.rateLine', '1 USD = {{rate}} {{currency}}', {
+                rate: (effectiveRate as number).toLocaleString(locale, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 6,
+                }),
+                currency: targetCurrency,
+              })
+            : t('fx.rateLoading', 'Getting the latest rate…')}
+          {hasRate && isIndicativeRate && (
+            <span className="eb-ml-1">
+              {t('fx.indicativeSuffix', '(indicative)')}
+            </span>
+          )}
+        </span>
+      </div>
+
+      <label
+        htmlFor="fx-target-amount"
+        className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
+      >
+        {t('fx.recipientGetsLabel', 'Recipient gets (approx.)')}
+      </label>
+      <div className="eb-relative eb-flex eb-items-center">
+        <Input
+          id="fx-target-amount"
+          type="text"
+          inputMode="decimal"
+          placeholder="0.00"
+          value={creditValue}
+          onChange={(e) => handleCreditChange(e.target.value)}
+          onKeyDown={blockNonNumericKeys}
+          className="eb-w-full eb-pr-16"
+          autoComplete="off"
+          disabled={isSubmitting}
+        />
+        <span className="eb-absolute eb-right-3 eb-text-sm eb-font-medium eb-text-muted-foreground">
+          {targetCurrency}
+        </span>
+      </div>
+
+      {convertedAmount && (
+        <p
+          className="eb-mt-1.5 eb-text-xs eb-text-muted-foreground"
+          aria-live="polite"
+        >
+          {t(
+            'fx.conversionCaption',
+            'Recipient gets ≈ {{amount}}, converted from your USD at the rate above.',
+            { amount: convertedAmount }
+          )}
+        </p>
+      )}
+    </>
+  );
 
   return (
     <div ref={amountSectionRef} className="eb-space-y-4">
@@ -282,68 +380,7 @@ export function CurrencyAmountInput({
         </div>
 
         {/* Cross-border: editable credit-currency amount with a live rate. */}
-        {isFxCurrency && (
-          <>
-            <div className="eb-my-2 eb-flex eb-items-center eb-gap-2">
-              <span className="eb-flex eb-h-6 eb-w-6 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted eb-text-muted-foreground">
-                <ArrowDownUp className="eb-h-3.5 eb-w-3.5" />
-              </span>
-              <span className="eb-text-xs eb-text-muted-foreground">
-                {hasRate
-                  ? t('fx.rateLine', '1 USD = {{rate}} {{currency}}', {
-                      rate: (effectiveRate as number).toLocaleString(locale, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 6,
-                      }),
-                      currency: targetCurrency,
-                    })
-                  : t('fx.rateLoading', 'Getting the latest rate…')}
-                {hasRate && isIndicativeRate && (
-                  <span className="eb-ml-1">
-                    {t('fx.indicativeSuffix', '(indicative)')}
-                  </span>
-                )}
-              </span>
-            </div>
-
-            <label
-              htmlFor="fx-target-amount"
-              className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
-            >
-              {t('fx.recipientGetsLabel', 'Recipient gets (approx.)')}
-            </label>
-            <div className="eb-relative eb-flex eb-items-center">
-              <Input
-                id="fx-target-amount"
-                type="text"
-                inputMode="decimal"
-                placeholder="0.00"
-                value={creditValue}
-                onChange={(e) => handleCreditChange(e.target.value)}
-                onKeyDown={blockNonNumericKeys}
-                className="eb-w-full eb-pr-16"
-                autoComplete="off"
-                disabled={isSubmitting}
-              />
-              <span className="eb-absolute eb-right-3 eb-text-sm eb-font-medium eb-text-muted-foreground">
-                {targetCurrency}
-              </span>
-            </div>
-
-            {convertedAmount && (
-              <p
-                className="eb-mt-1.5 eb-text-xs eb-text-muted-foreground"
-                aria-live="polite"
-              >
-                {t(
-                  'fx.conversionCaption',
-                  'Recipient gets ≈ {{amount}}, converted from your USD at the rate above.',
-                  { amount: convertedAmount }
-                )}
-              </p>
-            )}
-          </>
-        )}
+        {isFxCurrency && renderFxConversion()}
 
         {exceedsBalance && availableBalance !== undefined && (
           <p className="eb-mt-1.5 eb-text-sm eb-text-destructive">

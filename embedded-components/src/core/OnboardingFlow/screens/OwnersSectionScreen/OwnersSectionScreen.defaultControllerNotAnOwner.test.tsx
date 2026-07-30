@@ -75,11 +75,18 @@ const baseContext = {
   showDownloadChecklist: false,
 } as unknown as OnboardingContextType;
 
-function renderOwners(overrides: Partial<OnboardingContextType> = {}) {
+function renderOwners(
+  overrides: Partial<OnboardingContextType> = {},
+  { deltaModeActive = false }: { deltaModeActive?: boolean } = {}
+) {
   return render(
     <QueryClientProvider client={queryClient}>
       <OnboardingContext.Provider value={{ ...baseContext, ...overrides }}>
-        <FlowProvider initialScreenId="owners-section" flowConfig={flowConfig}>
+        <FlowProvider
+          initialScreenId="owners-section"
+          flowConfig={flowConfig}
+          deltaModeActive={deltaModeActive}
+        >
           <OwnersSectionScreen />
         </FlowProvider>
       </OnboardingContext.Provider>
@@ -115,7 +122,10 @@ describe('OwnersSectionScreen — defaultControllerNotAnOwner', () => {
 
   test('pre-answers "No" and does not require an answer when opted in', async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
-    renderOwners({ defaultControllerNotAnOwner: true });
+    renderOwners(
+      { deltaMode: { enabled: true, defaultControllerNotAnOwner: true } },
+      { deltaModeActive: true }
+    );
 
     // "No" is pre-selected.
     expect(screen.getByRole('radio', { name: /^no$/i })).toBeChecked();

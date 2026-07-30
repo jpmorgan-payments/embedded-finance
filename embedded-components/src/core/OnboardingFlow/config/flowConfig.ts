@@ -379,6 +379,10 @@ const sectionScreens: SectionScreenConfig[] = [
           return 'missing_details';
         }
 
+        // `isOwnersSectionDone` clears the "not started" gate once the user has
+        // gone through the owners hub, or delta mode seeded it (via
+        // `deltaMode.defaultControllerNotAnOwner`, default false). It never
+        // bypasses the validity check above.
         if (sessionData.isOwnersSectionDone) {
           return 'completed';
         }

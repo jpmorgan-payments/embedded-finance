@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -627,6 +627,34 @@ function pickTouchedLeaves(value: unknown, touched: unknown): unknown {
   return any ? out : undefined;
 }
 
+/**
+ * Whether the focused "complete missing items" delta view is available, and the
+ * resolved overview view mode. Extracted from the component to keep its
+ * cognitive complexity low.
+ */
+function resolveDeltaAvailability(args: {
+  deltaModeActive: boolean;
+  deltaBaselineGroups: readonly unknown[];
+  deltaOutstandingQuestionIds: readonly unknown[];
+  sessionOverviewViewMode: 'delta' | 'full' | undefined;
+}): { deltaAvailable: boolean; overviewViewMode: 'delta' | 'full' } {
+  const {
+    deltaModeActive,
+    deltaBaselineGroups,
+    deltaOutstandingQuestionIds,
+    sessionOverviewViewMode,
+  } = args;
+
+  const hasDeltaItems =
+    deltaBaselineGroups.length > 0 || deltaOutstandingQuestionIds.length > 0;
+  const deltaAvailable = deltaModeActive && hasDeltaItems;
+  const overviewViewMode: 'delta' | 'full' = deltaAvailable
+    ? (sessionOverviewViewMode ?? 'delta')
+    : 'full';
+
+  return { deltaAvailable, overviewViewMode };
+}
+
 export const OverviewScreen = () => {
   const {
     clientData,
@@ -665,13 +693,12 @@ export const OverviewScreen = () => {
   const deltaOutstandingQuestionIds =
     clientData?.outstanding?.questionIds ?? [];
 
-  const hasDeltaItems =
-    deltaBaselineGroups.length > 0 || deltaOutstandingQuestionIds.length > 0;
-  const deltaAvailable = deltaModeActive && hasDeltaItems;
-
-  const overviewViewMode: 'delta' | 'full' = deltaAvailable
-    ? (sessionData.overviewViewMode ?? 'delta')
-    : 'full';
+  const { deltaAvailable, overviewViewMode } = resolveDeltaAvailability({
+    deltaModeActive,
+    deltaBaselineGroups,
+    deltaOutstandingQuestionIds,
+    sessionOverviewViewMode: sessionData.overviewViewMode,
+  });
 
   // Latched while "Save & continue" persists and navigates to review. Saving
   // resolves the pending items, so `deltaAvailable` flips false the instant the
@@ -745,9 +772,6 @@ export const OverviewScreen = () => {
     // sidebar checklist tracks settled values, not every keystroke.
   }, [isDeltaView, publishedDeltaOverlay, setLiveReviewFormValues]);
 
-  const [showDeltaIncompleteAlert, setShowDeltaIncompleteAlert] =
-    useState(false);
-
   const setOverviewViewMode = (mode: 'delta' | 'full') => {
     updateSessionData({ overviewViewMode: mode });
   };
@@ -761,7 +785,6 @@ export const OverviewScreen = () => {
   const handleDeltaSaveAndContinue = () =>
     deltaForm.handleSubmit(
       async () => {
-        setShowDeltaIncompleteAlert(false);
         // Lock the panel height (fields still rendered) and latch the delta view
         // so the post-save collapse is masked by the overlay instead of shifting
         // the layout while we await the refetch.
@@ -776,7 +799,6 @@ export const OverviewScreen = () => {
         goTo('review-attest-section');
       },
       () => {
-        setShowDeltaIncompleteAlert(true);
         // First invalid field in visual order: party groups (rendered first),
         // then the operational-details questions. Scroll its group card into
         // view AND focus the field itself so the user lands on exactly what's
@@ -944,20 +966,6 @@ export const OverviewScreen = () => {
       <div className="eb-flex-auto eb-space-y-6">
         {isDeltaView && (
           <div className="eb-mt-6 eb-space-y-6">
-            {showDeltaIncompleteAlert && (
-              <Alert variant="warning">
-                <AlertTriangleIcon className="eb-h-4 eb-w-4" />
-                <AlertTitle>
-                  {t('reviewAndAttest.thereIsAProblem', 'There is a problem')}
-                </AlertTitle>
-                <AlertDescription>
-                  {t(
-                    'reviewAndAttest.provideMissingDetails',
-                    'Please provide missing details before finishing your application.'
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
             <div
               ref={deltaPanelRef}
               className="eb-relative"

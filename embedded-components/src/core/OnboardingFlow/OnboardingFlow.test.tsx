@@ -112,7 +112,7 @@ describe('OnboardingFlow', () => {
 
     // Verify overview screen sections are visible
     expect(screen.getByText(/Verify your business/i)).toBeInTheDocument();
-    expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+    expect(screen.getByText(/Controller details/i)).toBeInTheDocument();
     expect(screen.getByText(/Business details/i)).toBeInTheDocument();
     expect(screen.getByText(/Owners/i)).toBeInTheDocument();
     expect(screen.getByText(/Operational details/i)).toBeInTheDocument();

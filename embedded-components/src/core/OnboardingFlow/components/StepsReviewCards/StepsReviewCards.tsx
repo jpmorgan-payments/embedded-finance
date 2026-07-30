@@ -1,6 +1,8 @@
+import { type ElementType } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon, PencilIcon, TriangleAlertIcon } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { PartyResponse } from '@/api/generated/smbdo.schemas';
 import { AlertTitle } from '@/components/ui/alert';
 import { Alert, Button, Card } from '@/components/ui';
@@ -23,12 +25,25 @@ type StepsReviewCardsProps = {
   steps: StepConfig[];
   partyData: PartyResponse | undefined;
   onEditClick: (stepId: string) => void;
+  /**
+   * - `'card'` (default) — each step is a bordered card.
+   * - `'plain'` — borderless blocks separated by dividers, so the steps sit
+   *   flush inside a parent container (e.g. a review section card).
+   */
+  variant?: 'card' | 'plain';
+  /**
+   * `'plain'` only: when true, the first step keeps its top divider + padding
+   * because sibling content (e.g. the business-type block) renders above it.
+   */
+  hasPrecedingContent?: boolean;
 };
 
 export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
   steps,
   partyData,
   onEditClick,
+  variant = 'card',
+  hasPrecedingContent = false,
 }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
 
@@ -63,8 +78,13 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
     currentScreenId
   );
 
+  const StepWrapper: ElementType = variant === 'plain' ? 'div' : Card;
+
   return (
-    <div className="eb-space-y-4" key={partyData?.id}>
+    <div
+      className={variant === 'card' ? 'eb-space-y-4' : undefined}
+      key={partyData?.id}
+    >
       {visibleSteps.map((step) => {
         const { isValid, result } = stepValidationMap[step.id];
 
@@ -98,9 +118,17 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
         }
 
         return (
-          <Card
+          <StepWrapper
             key={step.id}
-            className="eb-grid eb-gap-y-3 eb-rounded-lg eb-border eb-p-4"
+            className={cn(
+              'eb-grid eb-gap-y-3',
+              variant === 'plain'
+                ? cn(
+                    'eb-border-t eb-border-border eb-py-4 last:eb-pb-0',
+                    !hasPrecedingContent && 'first:eb-border-t-0 first:eb-pt-0'
+                  )
+                : 'eb-rounded-lg eb-border eb-p-4'
+            )}
           >
             <div className="eb-mb-1 eb-flex eb-items-start eb-justify-between">
               <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
@@ -228,7 +256,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                 </div>
               );
             })}
-          </Card>
+          </StepWrapper>
         );
       })}
     </div>

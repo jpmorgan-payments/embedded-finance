@@ -206,7 +206,7 @@ describe('OnboardingTimeline', () => {
     const currentIcons = document.querySelectorAll('.eb-border-success');
     expect(currentIcons.length).toBeGreaterThan(0);
 
-    // Check that we have CircleDashed icons for not_started items
+    // not_started items render the dashed CircleDashed icon
     const circleDashedIcons = document.querySelectorAll(
       '.lucide-circle-dashed'
     );

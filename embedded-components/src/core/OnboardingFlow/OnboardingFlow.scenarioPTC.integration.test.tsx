@@ -175,11 +175,10 @@ describe('PTC Feature — End-to-End User Journey', () => {
       );
 
       // Click "Get Started"
-      await waitFor(() => {
-        const btn = screen.getByRole('button', { name: /get started/i });
-        expect(btn).toBeInTheDocument();
-        return user.click(btn);
+      const getStartedBtn = await screen.findByRole('button', {
+        name: /get started/i,
       });
+      await user.click(getStartedBtn);
 
       // Should reach overview
       await waitFor(
@@ -282,11 +281,10 @@ describe('PTC Feature — End-to-End User Journey', () => {
       );
 
       // Get Started
-      await waitFor(() => {
-        const btn = screen.getByRole('button', { name: /get started/i });
-        expect(btn).toBeInTheDocument();
-        return user.click(btn);
+      const getStartedBtn = await screen.findByRole('button', {
+        name: /get started/i,
       });
+      await user.click(getStartedBtn);
 
       // Overview
       await waitFor(
@@ -350,11 +348,10 @@ describe('PTC Feature — End-to-End User Journey', () => {
       ).not.toBeInTheDocument();
 
       // Get Started
-      await waitFor(() => {
-        const btn = screen.getByRole('button', { name: /get started/i });
-        expect(btn).toBeInTheDocument();
-        return user.click(btn);
+      const getStartedBtn = await screen.findByRole('button', {
+        name: /get started/i,
       });
+      await user.click(getStartedBtn);
 
       // Overview
       await waitFor(
@@ -624,11 +621,10 @@ describe('PTC Feature — End-to-End User Journey', () => {
       await user.type(tickerInput, 'SONY');
 
       // Get Started
-      await waitFor(() => {
-        const btn = screen.getByRole('button', { name: /get started/i });
-        expect(btn).toBeInTheDocument();
-        return user.click(btn);
+      const getStartedBtn = await screen.findByRole('button', {
+        name: /get started/i,
       });
+      await user.click(getStartedBtn);
 
       // Should reach overview
       await waitFor(

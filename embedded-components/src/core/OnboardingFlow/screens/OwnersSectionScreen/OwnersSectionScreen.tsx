@@ -48,6 +48,7 @@ import {
   asPlainString,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
+import { resolveDeltaModeConfig } from '@/core/OnboardingFlow/utils/deltaMode';
 import {
   getFlowProgress,
   getStepperValidations,
@@ -60,7 +61,7 @@ export const OwnersSectionScreen = () => {
     clientData,
     onPostPartySettled: onPostPartyResponse,
     organizationType,
-    defaultControllerNotAnOwner,
+    deltaMode,
   } = useOnboardingContext();
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
@@ -84,7 +85,15 @@ export const OwnersSectionScreen = () => {
     sessionData,
     updateSessionData,
     savedFormValues,
+    deltaModeActive,
   } = useFlowContext();
+
+  // Delta-mode host declaration that the controller is not a beneficial owner:
+  // pre-answers the 25% question "No" and drops its required gate. Applies only
+  // while delta mode is active (there is no standalone prop).
+  const defaultControllerNotAnOwner =
+    deltaModeActive &&
+    (resolveDeltaModeConfig(deltaMode)?.defaultControllerNotAnOwner ?? false);
 
   // Stable, unfiltered step schemas so the validation helpers below stay
   // hook-free (constant schema-hook count regardless of visibility / owners).

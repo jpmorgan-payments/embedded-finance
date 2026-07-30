@@ -720,6 +720,182 @@ interface OwnerCardProps {
   onRemoveOwner: (ownerId: string) => void;
 }
 
+/** Status icon for an owner card (complete / pending hierarchy / error). */
+const OwnerStatusIcon: React.FC<{ status: BeneficialOwner['status'] }> = ({
+  status,
+}) => {
+  if (status === 'COMPLETE') {
+    return (
+      <CheckCircle2
+        className="eb-h-5 eb-w-5 eb-text-success"
+        aria-hidden="true"
+      />
+    );
+  }
+  if (status === 'PENDING_HIERARCHY') {
+    return (
+      <Clock className="eb-h-5 eb-w-5 eb-text-warning" aria-hidden="true" />
+    );
+  }
+  return (
+    <AlertTriangle
+      className="eb-h-5 eb-w-5 eb-text-destructive"
+      aria-hidden="true"
+    />
+  );
+};
+
+interface OwnerCardActionsProps {
+  owner: BeneficialOwner;
+  ownerName: string;
+  onBuildHierarchy: (ownerId: string) => void;
+  onEditHierarchy: (ownerId: string) => void;
+  onRemoveOwner: (ownerId: string) => void;
+}
+
+/** Build/Edit chain and remove actions for an owner card. */
+const OwnerCardActions: React.FC<OwnerCardActionsProps> = ({
+  owner,
+  ownerName,
+  onBuildHierarchy,
+  onEditHierarchy,
+  onRemoveOwner,
+}) => (
+  <div className="eb-flex eb-items-center eb-gap-2">
+    {owner.ownershipType === 'INDIRECT' && (
+      <>
+        {owner.status === 'PENDING_HIERARCHY' ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="eb-h-8 eb-px-3 eb-text-xs"
+            data-user-event={
+              INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_STARTED
+            }
+            onClick={() => owner.id && onBuildHierarchy(owner.id)}
+            aria-label={`Build ownership hierarchy for ${ownerName}`}
+          >
+            <Edit className="eb-mr-1 eb-h-3 eb-w-3" aria-hidden="true" />
+            Build Chain
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="eb-h-8 eb-px-3 eb-text-xs"
+            data-user-event={
+              INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_STARTED
+            }
+            onClick={() => owner.id && onEditHierarchy(owner.id)}
+            aria-label={`Edit ownership hierarchy for ${ownerName}`}
+          >
+            <Edit className="eb-mr-1 eb-h-3 eb-w-3" aria-hidden="true" />
+            Edit Chain
+          </Button>
+        )}
+      </>
+    )}
+    <Button
+      variant="ghost"
+      size="sm"
+      className="eb-h-8 eb-w-8 eb-p-0 eb-text-muted-foreground hover:eb-text-destructive"
+      data-user-event={INDIRECT_OWNERSHIP_USER_JOURNEYS.REMOVE_OWNER_STARTED}
+      onClick={() => owner.id && onRemoveOwner(owner.id)}
+      aria-label={`Remove ${ownerName} from ownership list`}
+    >
+      <Trash2 className="eb-h-4 eb-w-4" />
+    </Button>
+  </div>
+);
+
+interface OwnershipChainProps {
+  owner: BeneficialOwner;
+  ownerName: string;
+  ownerIcon: React.ReactNode;
+}
+
+/** Visualizes the ownership chain for an owner with a complete hierarchy. */
+const OwnershipChain: React.FC<OwnershipChainProps> = ({
+  owner,
+  ownerName,
+  ownerIcon,
+}) => (
+  <div className="eb-mt-3 eb-border-t eb-pt-3">
+    <div className="eb-mb-2 eb-text-xs eb-text-muted-foreground">
+      Ownership Chain:
+    </div>
+    <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2 eb-rounded eb-border eb-bg-muted eb-p-2 eb-text-sm">
+      {/* Owner at the start */}
+      <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-1 eb-rounded eb-border eb-border-primary/20 eb-bg-primary/10 eb-px-2 eb-py-1">
+        {ownerIcon}
+        <span className="eb-font-medium eb-text-foreground">{ownerName}</span>
+      </div>
+
+      {/* Company chain */}
+      {(owner.ownershipHierarchy?.steps ?? []).map((step) => {
+        const isDirectOwner = step.ownsRootBusinessDirectly;
+
+        return (
+          <React.Fragment key={step.id}>
+            <span className="eb-shrink-0 eb-text-muted-foreground">→</span>
+            <div
+              className={`eb-flex eb-shrink-0 eb-items-center eb-gap-1 eb-rounded eb-border eb-px-2 eb-py-1 ${
+                isDirectOwner
+                  ? 'eb-border-success eb-bg-success-accent'
+                  : 'eb-border-border eb-bg-card'
+              }`}
+            >
+              <Building
+                className={`eb-h-3 eb-w-3 ${
+                  isDirectOwner ? 'eb-text-success' : 'eb-text-muted-foreground'
+                }`}
+              />
+              <span
+                className={`eb-font-medium ${
+                  isDirectOwner ? 'eb-text-success' : 'eb-text-foreground'
+                }`}
+              >
+                {step.entityName}
+              </span>
+              <Badge
+                variant={isDirectOwner ? 'success' : 'secondary'}
+                className="eb-inline-flex eb-items-center eb-gap-1 eb-px-1 eb-py-0.5 eb-text-xs"
+              >
+                {isDirectOwner ? (
+                  <>
+                    <Building className="eb-h-3.5 eb-w-3.5" />
+                    Direct Owner
+                  </>
+                ) : (
+                  'Intermediary'
+                )}
+              </Badge>
+            </div>
+          </React.Fragment>
+        );
+      })}
+    </div>
+  </div>
+);
+
+/** Renders the list of validation errors for an owner. */
+const OwnerValidationErrors: React.FC<{ errors: string[] }> = ({ errors }) => (
+  <div className="eb-mt-3 eb-space-y-1">
+    {errors.map((error: string, errorIndex: number) => (
+      <div
+        key={errorIndex}
+        className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-destructive"
+      >
+        <AlertTriangle
+          className="eb-h-3 eb-w-3 eb-shrink-0"
+          aria-hidden="true"
+        />
+        <span>{error}</span>
+      </div>
+    ))}
+  </div>
+);
+
 const OwnerCard: React.FC<OwnerCardProps> = ({
   owner,
   index,
@@ -755,22 +931,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
         <div className="eb-flex eb-items-center eb-justify-between">
           <div className="eb-flex eb-items-center eb-gap-3">
             <div className="eb-flex eb-items-center eb-gap-2">
-              {owner.status === 'COMPLETE' ? (
-                <CheckCircle2
-                  className="eb-h-5 eb-w-5 eb-text-success"
-                  aria-hidden="true"
-                />
-              ) : owner.status === 'PENDING_HIERARCHY' ? (
-                <Clock
-                  className="eb-h-5 eb-w-5 eb-text-warning"
-                  aria-hidden="true"
-                />
-              ) : (
-                <AlertTriangle
-                  className="eb-h-5 eb-w-5 eb-text-destructive"
-                  aria-hidden="true"
-                />
-              )}
+              <OwnerStatusIcon status={owner.status} />
               <span id={`owner-${owner.id}-name`} className="eb-font-medium">
                 {ownerName}
               </span>
@@ -808,146 +969,28 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
           </div>
 
           {!readOnly && (
-            <div className="eb-flex eb-items-center eb-gap-2">
-              {owner.ownershipType === 'INDIRECT' && (
-                <>
-                  {owner.status === 'PENDING_HIERARCHY' ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="eb-h-8 eb-px-3 eb-text-xs"
-                      data-user-event={
-                        INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_STARTED
-                      }
-                      onClick={() => owner.id && onBuildHierarchy(owner.id)}
-                      aria-label={`Build ownership hierarchy for ${ownerName}`}
-                    >
-                      <Edit
-                        className="eb-mr-1 eb-h-3 eb-w-3"
-                        aria-hidden="true"
-                      />
-                      Build Chain
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="eb-h-8 eb-px-3 eb-text-xs"
-                      data-user-event={
-                        INDIRECT_OWNERSHIP_USER_JOURNEYS.EDIT_OWNER_STARTED
-                      }
-                      onClick={() => owner.id && onEditHierarchy(owner.id)}
-                      aria-label={`Edit ownership hierarchy for ${ownerName}`}
-                    >
-                      <Edit
-                        className="eb-mr-1 eb-h-3 eb-w-3"
-                        aria-hidden="true"
-                      />
-                      Edit Chain
-                    </Button>
-                  )}
-                </>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="eb-h-8 eb-w-8 eb-p-0 eb-text-muted-foreground hover:eb-text-destructive"
-                data-user-event={
-                  INDIRECT_OWNERSHIP_USER_JOURNEYS.REMOVE_OWNER_STARTED
-                }
-                onClick={() => owner.id && onRemoveOwner(owner.id)}
-                aria-label={`Remove ${ownerName} from ownership list`}
-              >
-                <Trash2 className="eb-h-4 eb-w-4" />
-              </Button>
-            </div>
+            <OwnerCardActions
+              owner={owner}
+              ownerName={ownerName}
+              onBuildHierarchy={onBuildHierarchy}
+              onEditHierarchy={onEditHierarchy}
+              onRemoveOwner={onRemoveOwner}
+            />
           )}
         </div>
 
         {/* Hierarchy visualization for indirect owners with complete hierarchies */}
         {owner.ownershipHierarchy && owner.status === 'COMPLETE' && (
-          <div className="eb-mt-3 eb-border-t eb-pt-3">
-            <div className="eb-mb-2 eb-text-xs eb-text-muted-foreground">
-              Ownership Chain:
-            </div>
-            <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2 eb-rounded eb-border eb-bg-muted eb-p-2 eb-text-sm">
-              {/* Owner at the start */}
-              <div className="eb-flex eb-shrink-0 eb-items-center eb-gap-1 eb-rounded eb-border eb-border-primary/20 eb-bg-primary/10 eb-px-2 eb-py-1">
-                {ownerIcon}
-                <span className="eb-font-medium eb-text-foreground">
-                  {ownerName}
-                </span>
-              </div>
-
-              {/* Company chain */}
-              {owner.ownershipHierarchy.steps.map((step) => {
-                const isDirectOwner = step.ownsRootBusinessDirectly;
-
-                return (
-                  <React.Fragment key={step.id}>
-                    <span className="eb-shrink-0 eb-text-muted-foreground">
-                      →
-                    </span>
-                    <div
-                      className={`eb-flex eb-shrink-0 eb-items-center eb-gap-1 eb-rounded eb-border eb-px-2 eb-py-1 ${
-                        isDirectOwner
-                          ? 'eb-border-success eb-bg-success-accent'
-                          : 'eb-border-border eb-bg-card'
-                      }`}
-                    >
-                      <Building
-                        className={`eb-h-3 eb-w-3 ${
-                          isDirectOwner
-                            ? 'eb-text-success'
-                            : 'eb-text-muted-foreground'
-                        }`}
-                      />
-                      <span
-                        className={`eb-font-medium ${
-                          isDirectOwner
-                            ? 'eb-text-success'
-                            : 'eb-text-foreground'
-                        }`}
-                      >
-                        {step.entityName}
-                      </span>
-                      <Badge
-                        variant={isDirectOwner ? 'success' : 'secondary'}
-                        className="eb-inline-flex eb-items-center eb-gap-1 eb-px-1 eb-py-0.5 eb-text-xs"
-                      >
-                        {isDirectOwner ? (
-                          <>
-                            <Building className="eb-h-3.5 eb-w-3.5" />
-                            Direct Owner
-                          </>
-                        ) : (
-                          'Intermediary'
-                        )}
-                      </Badge>
-                    </div>
-                  </React.Fragment>
-                );
-              })}
-            </div>
-          </div>
+          <OwnershipChain
+            owner={owner}
+            ownerName={ownerName}
+            ownerIcon={ownerIcon}
+          />
         )}
 
         {/* Validation Errors */}
         {owner.validationErrors && owner.validationErrors.length > 0 && (
-          <div className="eb-mt-3 eb-space-y-1">
-            {owner.validationErrors.map((error: string, errorIndex: number) => (
-              <div
-                key={errorIndex}
-                className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-text-destructive"
-              >
-                <AlertTriangle
-                  className="eb-h-3 eb-w-3 eb-shrink-0"
-                  aria-hidden="true"
-                />
-                <span>{error}</span>
-              </div>
-            ))}
-          </div>
+          <OwnerValidationErrors errors={owner.validationErrors} />
         )}
       </div>
     </div>
