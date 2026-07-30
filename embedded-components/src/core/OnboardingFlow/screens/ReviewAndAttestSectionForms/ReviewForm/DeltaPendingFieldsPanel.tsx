@@ -46,7 +46,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Badge, Card } from '@/components/ui';
 import {
   AddressFields,
@@ -536,6 +535,145 @@ export function areDeltaPendingFieldsComplete(args: {
  * issues back onto the editable form paths lets the inline field messages tell
  * the user exactly what to fix.
  */
+type GroupStepValidation = {
+  stepValidationMap:
+    | Record<string, { isValid: boolean; result?: any }>
+    | undefined;
+  stepId: string | undefined;
+  isOwnerGroup: boolean;
+  /** Owner id for owner groups; used to prefix `owners.{id}.` form paths. */
+  ownerKey: string | undefined;
+};
+
+/** Resolve the step validation map + target step for one pending group. */
+function resolveGroupStepValidation(
+  group: PendingStepGroup,
+  args: {
+    sections: SectionScreenConfig[];
+    clientData: Parameters<typeof getStepperValidation>[2];
+    ownerSteps: StepConfig[];
+    liveOverlay: Record<string, unknown> | undefined;
+    currentScreenId: Parameters<typeof getStepperValidation>[4];
+    stepSchemas?: StepSchemaMap;
+  }
+): GroupStepValidation {
+  const {
+    sections,
+    clientData,
+    ownerSteps,
+    liveOverlay,
+    currentScreenId,
+    stepSchemas,
+  } = args;
+  const [sectionId, maybeOwnerOrStep, maybeStep] = group.key.split(':');
+  const isOwnerGroup = sectionId === 'owners-section';
+
+  if (isOwnerGroup) {
+    const ownerId = maybeOwnerOrStep;
+    const owner = (getActiveOwners(clientData) ?? []).find(
+      (o) => o.id === ownerId
+    );
+    if (!owner) {
+      return {
+        stepValidationMap: undefined,
+        stepId: maybeStep,
+        isOwnerGroup,
+        ownerKey: ownerId,
+      };
+    }
+    const { stepValidationMap } = getStepperValidation(
+      ownerSteps,
+      owner,
+      clientData,
+      liveOverlay as Parameters<typeof getStepperValidation>[3],
+      'owner-stepper',
+      stepSchemas
+    );
+    return {
+      stepValidationMap,
+      stepId: maybeStep,
+      isOwnerGroup,
+      ownerKey: ownerId,
+    };
+  }
+
+  const stepId = maybeOwnerOrStep;
+  const section = sections.find((s) => s.id === sectionId);
+  if (section?.type !== 'stepper' || !section.stepperConfig) {
+    return {
+      stepValidationMap: undefined,
+      stepId,
+      isOwnerGroup,
+      ownerKey: undefined,
+    };
+  }
+  const partyData = section.stepperConfig.associatedPartyFilters
+    ? getPartyByAssociatedPartyFilters(
+        clientData,
+        section.stepperConfig.associatedPartyFilters
+      )
+    : undefined;
+  const { stepValidationMap } = getStepperValidation(
+    section.stepperConfig.steps,
+    partyData,
+    clientData,
+    liveOverlay as Parameters<typeof getStepperValidation>[3],
+    currentScreenId,
+    stepSchemas
+  );
+  return { stepValidationMap, stepId, isOwnerGroup, ownerKey: undefined };
+}
+
+/** Append a failing step's Zod issues (mapped to form paths) into `errors`. */
+function appendGroupFieldErrors(args: {
+  validation: { isValid: boolean; result?: { error?: { issues?: unknown[] } } };
+  group: PendingStepGroup;
+  liveOverlay: Record<string, unknown> | undefined;
+  isOwnerGroup: boolean;
+  ownerKey: string | undefined;
+  seen: Set<string>;
+  errors: Array<{ formPath: string; message: string }>;
+}): void {
+  const {
+    validation,
+    group,
+    liveOverlay,
+    isOwnerGroup,
+    ownerKey,
+    seen,
+    errors,
+  } = args;
+  // Include reveal fields (e.g. job-title description when "Other") so their
+  // errors surface and gate submit — not just the baseline fields.
+  const effectiveFields = expandGroupFieldsWithReveals(
+    group.fields,
+    liveOverlay
+  );
+  const issues = (validation.result?.error?.issues ?? []) as {
+    path?: (string | number)[];
+    message?: string;
+  }[];
+
+  for (const issue of issues) {
+    const path = issue.path ?? [];
+    if (!path.length) continue;
+
+    const mapped = issuePathToFormPath(path);
+    const formPath = isOwnerGroup
+      ? `owners.${ownerKey}.${mapped.formPath}`
+      : mapped.formPath;
+    // Only surface errors on fields the delta panel actually renders for this
+    // group (avoids attaching messages to non-editable paths).
+    const belongsToGroup = effectiveFields.some(
+      (field) => field.formPath === formPath
+    );
+    if (belongsToGroup && !seen.has(formPath)) {
+      seen.add(formPath);
+      errors.push({ formPath, message: issue.message ?? '' });
+    }
+  }
+}
+
 export function collectDeltaPendingFieldErrors(args: {
   baselinePendingGroups: PendingStepGroup[];
   sections: SectionScreenConfig[];
@@ -558,88 +696,128 @@ export function collectDeltaPendingFieldErrors(args: {
   const seen = new Set<string>();
 
   for (const group of baselinePendingGroups) {
-    const [sectionId, maybeOwnerOrStep, maybeStep] = group.key.split(':');
-    const isOwnerGroup = sectionId === 'owners-section';
+    const { stepValidationMap, stepId, isOwnerGroup, ownerKey } =
+      resolveGroupStepValidation(group, {
+        sections,
+        clientData,
+        ownerSteps,
+        liveOverlay,
+        currentScreenId,
+        stepSchemas,
+      });
+    if (!stepValidationMap || !stepId) continue;
 
-    let stepValidationMap:
-      | Record<string, { isValid: boolean; result?: any }>
-      | undefined;
-    let stepId: string | undefined;
+    const validation = stepValidationMap[stepId];
+    if (!validation || validation.isValid) continue;
 
-    if (isOwnerGroup) {
-      const ownerId = maybeOwnerOrStep;
-      stepId = maybeStep;
-      const owner = (getActiveOwners(clientData) ?? []).find(
-        (o) => o.id === ownerId
-      );
-      if (owner) {
-        ({ stepValidationMap } = getStepperValidation(
-          ownerSteps,
-          owner,
-          clientData,
-          liveOverlay as Parameters<typeof getStepperValidation>[3],
-          'owner-stepper',
-          stepSchemas
-        ));
-      }
-    } else {
-      stepId = maybeOwnerOrStep;
-      const section = sections.find((s) => s.id === sectionId);
-      if (section?.type === 'stepper' && section.stepperConfig) {
-        const partyData = section.stepperConfig.associatedPartyFilters
-          ? getPartyByAssociatedPartyFilters(
-              clientData,
-              section.stepperConfig.associatedPartyFilters
-            )
-          : undefined;
-        ({ stepValidationMap } = getStepperValidation(
-          section.stepperConfig.steps,
-          partyData,
-          clientData,
-          liveOverlay as Parameters<typeof getStepperValidation>[3],
-          currentScreenId,
-          stepSchemas
-        ));
-      }
-    }
-
-    if (stepValidationMap && stepId) {
-      const validation = stepValidationMap[stepId];
-      if (validation && !validation.isValid) {
-        // Include reveal fields (e.g. job-title description when "Other") so
-        // their errors surface and gate submit — not just the baseline fields.
-        const effectiveFields = expandGroupFieldsWithReveals(
-          group.fields,
-          liveOverlay
-        );
-        const issues = (validation.result?.error?.issues ?? []) as {
-          path?: (string | number)[];
-          message?: string;
-        }[];
-        issues.forEach((issue) => {
-          const path = issue.path ?? [];
-          if (!path.length) {
-            return;
-          }
-          const mapped = issuePathToFormPath(path);
-          const formPath = isOwnerGroup
-            ? `owners.${maybeOwnerOrStep}.${mapped.formPath}`
-            : mapped.formPath;
-          // Only surface errors on fields the delta panel actually renders for
-          // this group (avoids attaching messages to non-editable paths).
-          const belongsToGroup = effectiveFields.some(
-            (field) => field.formPath === formPath
-          );
-          if (belongsToGroup && !seen.has(formPath)) {
-            seen.add(formPath);
-            errors.push({ formPath, message: issue.message ?? '' });
-          }
-        });
-      }
-    }
+    appendGroupFieldErrors({
+      validation,
+      group,
+      liveOverlay,
+      isOwnerGroup,
+      ownerKey,
+      seen,
+      errors,
+    });
   }
 
   return errors;
+}
+
+/**
+ * Baseline pending groups for a single stepper section (skips owners and the
+ * review-attest section, which are handled separately).
+ */
+function collectSectionPendingGroups(
+  section: SectionScreenConfig,
+  args: {
+    clientData: Parameters<typeof getStepperValidation>[2];
+    baselineOverlay: Parameters<typeof getStepperValidation>[3];
+    currentScreenId: Parameters<typeof getStepperValidation>[4];
+    stepSchemas?: StepSchemaMap;
+  }
+): PendingStepGroup[] {
+  if (
+    section.type !== 'stepper' ||
+    !section.stepperConfig ||
+    section.id === 'owners-section' ||
+    section.id === 'review-attest-section'
+  ) {
+    return [];
+  }
+
+  const { clientData, baselineOverlay, currentScreenId, stepSchemas } = args;
+  const partyData = section.stepperConfig.associatedPartyFilters
+    ? getPartyByAssociatedPartyFilters(
+        clientData,
+        section.stepperConfig.associatedPartyFilters
+      )
+    : undefined;
+
+  const { stepValidationMap } = getStepperValidation(
+    section.stepperConfig.steps,
+    partyData,
+    clientData,
+    baselineOverlay,
+    currentScreenId,
+    stepSchemas
+  );
+
+  const fieldsByStep = collectPendingFieldsFromValidation(
+    stepValidationMap,
+    section.stepperConfig.steps,
+    partyData?.id
+  );
+
+  const groups: PendingStepGroup[] = [];
+  for (const step of section.stepperConfig.steps) {
+    const fields = fieldsByStep.get(step.id);
+    if (fields?.length) {
+      groups.push({ key: `${section.id}:${step.id}`, fields });
+    }
+  }
+  return groups;
+}
+
+/** Baseline pending groups for a single (non-controller) beneficial owner. */
+function collectOwnerPendingGroups(
+  owner: NonNullable<ReturnType<typeof getActiveOwners>>[number],
+  args: {
+    clientData: Parameters<typeof getStepperValidation>[2];
+    baselineOverlay: Parameters<typeof getStepperValidation>[3];
+    ownerSteps: StepConfig[];
+    stepSchemas?: StepSchemaMap;
+  }
+): PendingStepGroup[] {
+  if (!owner.id || owner.roles?.includes('CONTROLLER')) {
+    return [];
+  }
+
+  const { clientData, baselineOverlay, ownerSteps, stepSchemas } = args;
+  const { stepValidationMap } = getStepperValidation(
+    ownerSteps,
+    owner,
+    clientData,
+    baselineOverlay,
+    'owner-stepper',
+    stepSchemas
+  );
+
+  const fieldsByStep = collectPendingFieldsFromValidation(
+    stepValidationMap,
+    ownerSteps,
+    owner.id,
+    `owners.${owner.id}`
+  );
+
+  const groups: PendingStepGroup[] = [];
+  for (const step of ownerSteps) {
+    const fields = fieldsByStep.get(step.id);
+    if (fields?.length) {
+      groups.push({ key: `owners-section:${owner.id}:${step.id}`, fields });
+    }
+  }
+  return groups;
 }
 
 /**
@@ -666,75 +844,26 @@ export function collectBaselineDeltaPendingGroups(args: {
   const baselineOverlay = savedFormValues;
 
   for (const section of sections) {
-    if (
-      section.type === 'stepper' &&
-      section.stepperConfig &&
-      section.id !== 'owners-section' &&
-      section.id !== 'review-attest-section'
-    ) {
-      const partyData = section.stepperConfig.associatedPartyFilters
-        ? getPartyByAssociatedPartyFilters(
-            clientData,
-            section.stepperConfig.associatedPartyFilters
-          )
-        : undefined;
-
-      const { stepValidationMap } = getStepperValidation(
-        section.stepperConfig.steps,
-        partyData,
+    groups.push(
+      ...collectSectionPendingGroups(section, {
         clientData,
         baselineOverlay,
         currentScreenId,
-        stepSchemas
-      );
-
-      const fieldsByStep = collectPendingFieldsFromValidation(
-        stepValidationMap,
-        section.stepperConfig.steps,
-        partyData?.id
-      );
-
-      for (const step of section.stepperConfig.steps) {
-        const fields = fieldsByStep.get(step.id);
-        if (fields?.length) {
-          groups.push({
-            key: `${section.id}:${step.id}`,
-            fields,
-          });
-        }
-      }
-    }
+        stepSchemas,
+      })
+    );
   }
 
   const activeOwners = getActiveOwners(clientData) ?? [];
   for (const owner of activeOwners) {
-    if (owner.id && !owner.roles?.includes('CONTROLLER')) {
-      const { stepValidationMap } = getStepperValidation(
-        ownerSteps,
-        owner,
+    groups.push(
+      ...collectOwnerPendingGroups(owner, {
         clientData,
         baselineOverlay,
-        'owner-stepper',
-        stepSchemas
-      );
-
-      const fieldsByStep = collectPendingFieldsFromValidation(
-        stepValidationMap,
         ownerSteps,
-        owner.id,
-        `owners.${owner.id}`
-      );
-
-      for (const step of ownerSteps) {
-        const fields = fieldsByStep.get(step.id);
-        if (fields?.length) {
-          groups.push({
-            key: `owners-section:${owner.id}:${step.id}`,
-            fields,
-          });
-        }
-      }
-    }
+        stepSchemas,
+      })
+    );
   }
 
   return groups;
@@ -832,6 +961,42 @@ function DeltaRevealedFields({
   );
 }
 
+/**
+ * Extract the editable pending fields from a single step's failed validation,
+ * de-duplicated by form path.
+ */
+function collectStepPendingFields(
+  validation: { isValid: boolean; result?: { error?: { issues?: unknown[] } } },
+  partyId: string | undefined,
+  formPathPrefix?: string
+): PendingField[] {
+  const seen = new Set<string>();
+  const fields: PendingField[] = [];
+  const issues = (validation.result?.error?.issues ?? []) as {
+    path?: (string | number)[];
+  }[];
+
+  for (const issue of issues) {
+    const path = (issue.path ?? []) as (string | number)[];
+    if (!path.length) continue;
+
+    const mapped = issuePathToFormPath(path);
+    if (!mapped.fieldKey || seen.has(mapped.formPath)) continue;
+
+    seen.add(mapped.formPath);
+    fields.push({
+      fieldKey: mapped.fieldKey,
+      issuePath: mapped.issuePath,
+      formPath: formPathPrefix
+        ? `${formPathPrefix}.${mapped.formPath}`
+        : mapped.formPath,
+      partyId,
+    });
+  }
+
+  return fields;
+}
+
 function collectPendingFieldsFromValidation(
   stepValidationMap: Record<string, { isValid: boolean; result?: any }>,
   steps: StepConfig[],
@@ -841,33 +1006,20 @@ function collectPendingFieldsFromValidation(
   const byStep = new Map<string, PendingField[]>();
 
   for (const step of steps) {
-    if (step.stepType === 'form') {
-      const validation = stepValidationMap[step.id];
-      if (validation && !validation.isValid && validation.result?.error) {
-        const seen = new Set<string>();
-        const fields: PendingField[] = [];
-        for (const issue of validation.result.error.issues) {
-          const path = (issue.path ?? []) as (string | number)[];
-          if (path.length) {
-            const mapped = issuePathToFormPath(path);
-            if (mapped.fieldKey && !seen.has(mapped.formPath)) {
-              seen.add(mapped.formPath);
-              fields.push({
-                fieldKey: mapped.fieldKey,
-                issuePath: mapped.issuePath,
-                formPath: formPathPrefix
-                  ? `${formPathPrefix}.${mapped.formPath}`
-                  : mapped.formPath,
-                partyId,
-              });
-            }
-          }
-        }
+    if (step.stepType !== 'form') continue;
 
-        if (fields.length > 0) {
-          byStep.set(step.id, fields);
-        }
-      }
+    const validation = stepValidationMap[step.id];
+    if (!validation || validation.isValid || !validation.result?.error) {
+      continue;
+    }
+
+    const fields = collectStepPendingFields(
+      validation,
+      partyId,
+      formPathPrefix
+    );
+    if (fields.length > 0) {
+      byStep.set(step.id, fields);
     }
   }
 
@@ -912,8 +1064,24 @@ export function countDeltaQuestionProgress(args: {
   allQuestions: QuestionResponse[];
   getAnswerValues: (questionId: string) => unknown;
   isAnswered: (questionId: string) => boolean;
+  /**
+   * The client's outstanding question IDs. A revealed sub-question is only
+   * counted when its ID is also outstanding — matching the fetch/render
+   * behavior, which only asks sub-questions whose IDs are in the outstanding
+   * block. When omitted, every revealed sub-question is counted (legacy).
+   */
+  outstandingQuestionIds?: string[];
 }): { total: number; completed: number } {
-  const { rootQuestionIds, allQuestions, getAnswerValues, isAnswered } = args;
+  const {
+    rootQuestionIds,
+    allQuestions,
+    getAnswerValues,
+    isAnswered,
+    outstandingQuestionIds,
+  } = args;
+  const outstandingSet = outstandingQuestionIds
+    ? new Set(outstandingQuestionIds.map(String))
+    : undefined;
   const seen = new Set<string>();
   let total = 0;
   let completed = 0;
@@ -937,6 +1105,10 @@ export function countDeltaQuestionProgress(args: {
     (question.subQuestions ?? [])
       .filter((sq) => answerValues.includes(String(sq.anyValuesMatch)))
       .flatMap((sq) => (sq.questionIds ?? []).map(String))
+      // Only descend into sub-questions the client is actually being asked
+      // (outstanding). Revealed-but-not-outstanding children are never
+      // rendered, so counting them would keep the section "missing details".
+      .filter((childId) => !outstandingSet || outstandingSet.has(childId))
       .forEach(visit);
   };
 
@@ -1130,7 +1302,7 @@ function DeltaPendingFieldsPanelComponent({
   const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
   const existingQuestionResponses = clientData?.questionResponses ?? [];
 
-  const { allQuestions, isLoading: isQuestionsLoading } = useQuestionTree({
+  const { allQuestions } = useQuestionTree({
     outstandingQuestionIds,
     existingQuestionResponses,
   });
@@ -1211,6 +1383,7 @@ function DeltaPendingFieldsPanelComponent({
     allQuestions,
     getAnswerValues: (id) => currentValues[`question_${id}`],
     isAnswered: isQuestionAnswered,
+    outstandingQuestionIds: outstandingQuestionIds.map(String),
   });
 
   // Publish question progress so the sidebar timeline's operational-details
@@ -1253,6 +1426,107 @@ function DeltaPendingFieldsPanelComponent({
   const isQuestionVisible = (question: QuestionResponse): boolean =>
     computeQuestionVisibility(question, allQuestions, getResponseValues);
 
+  const renderAddressField = (field: PendingField): React.ReactNode => {
+    const logicalKey = field.fieldKey;
+    const prefix = field.formPath.slice(0, field.formPath.indexOf(logicalKey));
+    // Owner addresses render on the `overview` screen in delta, but their
+    // "Owner's personal address" legend is gated on `owner-stepper` in the
+    // field config — pass that screen so the right content token resolves.
+    const isOwnerField = field.formPath.startsWith('owners.');
+    // Lock the address country when the step form would:
+    // - organizationAddress: always locked (org has a countryOfFormation).
+    // - individualAddress (controller): locked for sole props whose org has
+    //   a countryOfFormation (mirrors ContactDetailsForm behaviour).
+    // - individualAddress (owner): never locked (owners choose freely).
+    const orgParty = clientData?.parties?.find(
+      (p) => p.partyType === 'ORGANIZATION'
+    );
+    const orgCountry = orgParty?.organizationDetails?.countryOfFormation ?? '';
+    const isSoleProp =
+      orgParty?.organizationDetails?.organizationType === 'SOLE_PROPRIETORSHIP';
+    let countryReadonly = false;
+    if (logicalKey === 'organizationAddress') {
+      countryReadonly = !!orgCountry;
+    } else if (logicalKey === 'individualAddress' && !isOwnerField) {
+      countryReadonly = isSoleProp && !!orgCountry;
+    }
+    return (
+      <AddressFields
+        key={field.formPath}
+        addressName={logicalKey}
+        namePrefix={prefix}
+        contentScreenId={isOwnerField ? 'owner-stepper' : undefined}
+        countryReadonly={countryReadonly}
+      />
+    );
+  };
+
+  const renderOptionsField = (
+    field: PendingField,
+    name: string,
+    control: React.ComponentProps<typeof OnboardingFormField>['control'],
+    ownerProps: { logicalName?: string; screenIdOverride?: 'owner-stepper' },
+    renderField: (field: PendingField) => React.ReactNode
+  ): React.ReactNode => {
+    const logicalKey = field.fieldKey;
+    const presentation =
+      partyFieldMap[logicalKey as keyof typeof partyFieldMap]?.presentation;
+    if (!presentation) return null;
+    // Narrow to the options-based input variants (the caller only invokes this
+    // for select/combobox); satisfies OnboardingFormField's discriminated union.
+    if (presentation.type !== 'select' && presentation.type !== 'combobox') {
+      return null;
+    }
+
+    const options =
+      presentation.optionsSource === 'countries'
+        ? COUNTRIES_OF_FORMATION.map((code) => ({
+            value: code,
+            searchValue: `[${code}] ${tString([`common:countries.${code}`], '')}`,
+            label: (
+              <span>
+                <span className="eb-font-medium">[{code}]</span>{' '}
+                {t([`common:countries.${code}`], '')}
+              </span>
+            ),
+          }))
+        : JOB_TITLES.map((title) => ({
+            value: title,
+            label: t([`jobTitles.${title}`], ''),
+          }));
+    const optionsField = (
+      <OnboardingFormField
+        key={name}
+        control={control}
+        name={name}
+        type={presentation.type}
+        options={options}
+        required
+        {...ownerProps}
+      />
+    );
+    // A dependent field (e.g. job-title description when "Other") reveals
+    // reactively off this field's live value, mirroring the step form.
+    if (!presentation.revealsFields?.length) {
+      return optionsField;
+    }
+    const revealPrefix = field.formPath.slice(
+      0,
+      field.formPath.indexOf(logicalKey)
+    );
+    return (
+      <Fragment key={name}>
+        {optionsField}
+        <DeltaRevealedFields
+          parentName={name}
+          reveals={presentation.revealsFields}
+          namePrefix={revealPrefix}
+          renderField={renderField}
+        />
+      </Fragment>
+    );
+  };
+
   const renderPartyField = (field: PendingField) => {
     const control = form.control as any;
     const logicalKey = field.fieldKey;
@@ -1272,42 +1546,7 @@ function DeltaPendingFieldsPanelComponent({
     // Composite address editor (country + lines + city + state + postal code),
     // reusing the same shared component as the onboarding contact steps.
     if (presentation?.customEditor === 'address') {
-      const prefix = field.formPath.slice(
-        0,
-        field.formPath.indexOf(logicalKey)
-      );
-      // Owner addresses render on the `overview` screen in delta, but their
-      // "Owner's personal address" legend is gated on `owner-stepper` in the
-      // field config — pass that screen so the right content token resolves.
-      const isOwnerField = field.formPath.startsWith('owners.');
-      // Lock the address country when the step form would:
-      // - organizationAddress: always locked (org has a countryOfFormation).
-      // - individualAddress (controller): locked for sole props whose org has
-      //   a countryOfFormation (mirrors ContactDetailsForm behaviour).
-      // - individualAddress (owner): never locked (owners choose freely).
-      const orgParty = clientData?.parties?.find(
-        (p) => p.partyType === 'ORGANIZATION'
-      );
-      const orgCountry =
-        orgParty?.organizationDetails?.countryOfFormation ?? '';
-      const isSoleProp =
-        orgParty?.organizationDetails?.organizationType ===
-        'SOLE_PROPRIETORSHIP';
-      let countryReadonly = false;
-      if (logicalKey === 'organizationAddress') {
-        countryReadonly = !!orgCountry;
-      } else if (logicalKey === 'individualAddress' && !isOwnerField) {
-        countryReadonly = isSoleProp && !!orgCountry;
-      }
-      return (
-        <AddressFields
-          key={field.formPath}
-          addressName={logicalKey}
-          namePrefix={prefix}
-          contentScreenId={isOwnerField ? 'owner-stepper' : undefined}
-          countryReadonly={countryReadonly}
-        />
-      );
+      return renderAddressField(field);
     }
 
     // Resolve the editable control path. Some fields edit a sub-path of the
@@ -1337,52 +1576,12 @@ function DeltaPendingFieldsPanelComponent({
       presentation?.optionsSource &&
       (presentation.type === 'select' || presentation.type === 'combobox')
     ) {
-      const options =
-        presentation.optionsSource === 'countries'
-          ? COUNTRIES_OF_FORMATION.map((code) => ({
-              value: code,
-              searchValue: `[${code}] ${tString([`common:countries.${code}`], '')}`,
-              label: (
-                <span>
-                  <span className="eb-font-medium">[{code}]</span>{' '}
-                  {t([`common:countries.${code}`], '')}
-                </span>
-              ),
-            }))
-          : JOB_TITLES.map((title) => ({
-              value: title,
-              label: t([`jobTitles.${title}`], ''),
-            }));
-      const optionsField = (
-        <OnboardingFormField
-          key={name}
-          control={control}
-          name={name}
-          type={presentation.type}
-          options={options}
-          required
-          {...ownerProps}
-        />
-      );
-      // A dependent field (e.g. job-title description when "Other") reveals
-      // reactively off this field's live value, mirroring the step form.
-      if (!presentation.revealsFields?.length) {
-        return optionsField;
-      }
-      const revealPrefix = field.formPath.slice(
-        0,
-        field.formPath.indexOf(logicalKey)
-      );
-      return (
-        <Fragment key={name}>
-          {optionsField}
-          <DeltaRevealedFields
-            parentName={name}
-            reveals={presentation.revealsFields}
-            namePrefix={revealPrefix}
-            renderField={renderPartyField}
-          />
-        </Fragment>
+      return renderOptionsField(
+        field,
+        name,
+        control,
+        ownerProps,
+        renderPartyField
       );
     }
 
@@ -1664,24 +1863,6 @@ function DeltaPendingFieldsPanelComponent({
         </Fragment>
       ));
 
-  // Placeholder while the operational-details question tree is still being
-  // fetched — mirrors the spacing of a couple of question inputs so the delta
-  // page does not jump when the real questions arrive.
-  const renderQuestionsSkeleton = () => (
-    <div
-      className="eb-space-y-4"
-      role="status"
-      aria-label={tString('common:loading', 'Loading...')}
-    >
-      {[0, 1].map((row) => (
-        <div key={row} className="eb-space-y-2">
-          <Skeleton className="eb-h-4 eb-w-2/3" />
-          <Skeleton className="eb-h-10 eb-w-full" />
-        </div>
-      ))}
-    </div>
-  );
-
   return (
     <FormProvider {...form}>
       <div className="eb-space-y-4">
@@ -1743,9 +1924,7 @@ function DeltaPendingFieldsPanelComponent({
               </div>
               <div className="eb-space-y-6 eb-px-4 eb-pb-4">
                 {summary.isQuestionsSection
-                  ? isQuestionsLoading
-                    ? renderQuestionsSkeleton()
-                    : renderQuestionsList()
+                  ? renderQuestionsList()
                   : summary.groups.flatMap((group) =>
                       dedupeCompositeFields(group.fields).map((field) =>
                         renderPartyField(field)

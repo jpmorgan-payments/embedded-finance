@@ -147,12 +147,14 @@ describe('OverviewScreen delta — Save & continue', () => {
     await user.click(screen.getByRole('button', { name: /save & continue/i }));
 
     // This client is intentionally missing several details, so the gate should
-    // surface the "missing details" alert. The key regression this guards is
-    // that the handler RUNS to that point at all — previously it called the
-    // hook-based party schemas inside the click handler, threw "Invalid hook
-    // call", and the .catch() swallowed it so nothing happened.
+    // fail validation and flag the invalid fields. The key regression this
+    // guards is that the handler RUNS to that point at all — previously it
+    // called the hook-based party schemas inside the click handler, threw
+    // "Invalid hook call", and the .catch() swallowed it so nothing happened.
     await waitFor(() =>
-      expect(screen.getByText(/provide missing details/i)).toBeInTheDocument()
+      expect(
+        document.querySelectorAll('[aria-invalid="true"]').length
+      ).toBeGreaterThan(0)
     );
 
     // And because only a subset is missing, the party PATCH must NOT fire yet.

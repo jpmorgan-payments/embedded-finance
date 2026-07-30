@@ -23,16 +23,18 @@ Delta mode is intended **only** when client data from GET client is already rich
 
 ### 2.1 Public prop
 
-| Prop        | Type                                                           | Description                                               |
-| ----------- | -------------------------------------------------------------- | --------------------------------------------------------- |
-| `deltaMode` | `boolean` \| `{ enabled: boolean; maxPendingFields?: number }` | Host opt-in. `true` is shorthand for `{ enabled: true }`. |
+| Prop        | Type                                                                                                                                                                          | Description                                               |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `deltaMode` | `boolean` \| `{ enabled: boolean; maxPendingFields?: number; defaultControllerNotAnOwner?: boolean; reviewSectionsDisplay?: 'collapsible' \| 'requireReview' \| 'expanded' }` | Host opt-in. `true` is shorthand for `{ enabled: true }`. |
 
 ### 2.2 Defaults
 
-| Setting            | Default | Notes                                                                                     |
-| ------------------ | ------- | ----------------------------------------------------------------------------------------- |
-| `enabled`          | —       | Must be explicitly enabled by the host.                                                   |
-| `maxPendingFields` | `5`     | Configurable. Delta mode activates only when the pending-field count is **≤** this value. |
+| Setting                       | Default         | Notes                                                                                                                                                                                                                          |
+| ----------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `enabled`                     | —               | Must be explicitly enabled by the host.                                                                                                                                                                                        |
+| `maxPendingFields`            | `5`             | Configurable. Delta mode activates only when the pending-field count is **≤** this value.                                                                                                                                      |
+| `defaultControllerNotAnOwner` | `false`         | Pre-answers the controller "owns 25%?" question **No**, which marks the owners section done up front (owner validity is still enforced).                                                                                       |
+| `reviewSectionsDisplay`       | `'collapsible'` | Review & attest section layout: `'collapsible'` (single-open accordion), `'requireReview'` (must open every section before the "data is complete and true" checkbox is enabled), or `'expanded'` (all sections open up front). |
 
 ### 2.3 Activation gate
 
@@ -53,7 +55,7 @@ If the host enables the flag but the client has too many pending fields, the flo
 
 Count without running full Zod schemas (eligibility must be safe outside React form context):
 
-- Each ID in `client.outstanding.questionIds`
+- Each **top-level** ID in `client.outstanding.questionIds` — conditional sub-questions are **excluded** (a child only applies once its parent is answered a triggering way, so counting it up front over-states the work). Parentage isn't in the client payload, so the outstanding question definitions are fetched and a question is treated as a child when its own `parentQuestionId` is set or another question lists it under `subQuestions`. If the definitions haven't loaded, every outstanding ID counts (safe fallback).
 - Missing US business EIN (`organizationIds` empty on US org)
 - Missing US controller tax ID (`individualIds` empty on US controller)
 - Missing controller `birthDate`
@@ -80,10 +82,12 @@ Owners who are also the controller are counted via the controller rules above (n
 
 ### 4.1 Owners
 
-While delta mode is active:
+While delta mode is active **and** `deltaMode.defaultControllerNotAnOwner` is `true` (default `false`):
 
-- The **owners** section is treated as **complete** for progress / review gating, regardless of whether the user previously clicked Continue on the owners hub and regardless of incomplete owner party validation for timeline purposes of “blocking review.”
+- The controller's "owns 25% or more?" question is pre-answered **No** (and no longer required to advance), which marks the **owners** section **done** up front for progress / review gating, so the user isn't routed through the owners hub just to clear the "not started" gate. This does **not** override owner validation — a beneficial owner still missing required fields continues to read "missing details."
 - Missing owner fields that are still required for submission are collected **inline on the delta review panel** (see §5), not by forcing the user through the owners stepper first.
+
+**Implementation:** The owners-section `statusResolver` clears the "not started" gate via `FlowSessionData.isOwnersSectionDone`, which delta mode seeds once at `FlowProvider` mount (alongside `isControllerOwnerQuestionAnswered`) from the latched delta eligibility plus `deltaMode.defaultControllerNotAnOwner` (default `false`). The `!allOwnersValid` validity check still runs ahead of that gate, so an incomplete beneficial owner reads "missing details" on review regardless of this flag.
 
 ### 4.2 Other sections
 

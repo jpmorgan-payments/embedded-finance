@@ -170,6 +170,91 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
       return file.size <= fileMaxSize;
     };
 
+    // Helper to build the human-readable max file size for error messages
+    const getMaxSizeMB = (): string =>
+      fileMaxSize ? (fileMaxSize / (1024 * 1024)).toFixed(2) : 'unknown';
+
+    // Validate a file's size and either keep it or surface a size error.
+    const collectFileWithinSizeLimit = (
+      file: File,
+      processedFiles: File[],
+      exceededMessage: string
+    ): void => {
+      if (validateFileSize(file)) {
+        processedFiles.push(file);
+      } else {
+        setErrorMessage(exceededMessage);
+      }
+    };
+
+    // Compress a single file, validate the result, and record compression info.
+    // Falls back to the original file if compression fails.
+    const processCompressibleFile = async (
+      file: File,
+      compress: (file: File, maxDimension?: number) => Promise<string>,
+      processedFiles: File[],
+      newCompressionInfo: Map<string, FileCompressionInfo>
+    ): Promise<void> => {
+      // Set compression status for this file
+      setCompressionStatus({ isCompressing: true, originalSize: file.size });
+
+      try {
+        const compressedDataUrl = await compress(file, compressionMaxDimension);
+
+        // Convert data URL back to a File object
+        const base64Response = await fetch(compressedDataUrl);
+        const compressedBlob = await base64Response.blob();
+        const compressedFile = new File([compressedBlob], file.name, {
+          type: file.type,
+        });
+
+        // Validate compressed file size
+        if (validateFileSize(compressedFile)) {
+          // Calculate compression ratio
+          const compressionRatio = Math.round(
+            ((file.size - compressedFile.size) / file.size) * 100
+          );
+
+          // Store compression info using the compressed file's properties for lookup
+          const compressedFileKey = `${compressedFile.name}-${compressedFile.size}-${compressedFile.lastModified}`;
+          newCompressionInfo.set(compressedFileKey, {
+            originalSize: file.size,
+            compressedSize: compressedFile.size,
+            compressionRatio: Math.max(0, compressionRatio),
+            wasCompressed: true,
+          });
+
+          processedFiles.push(compressedFile);
+        } else {
+          setErrorMessage(
+            `Even after compression, file size exceeds the maximum allowed size of ${getMaxSizeMB()} MB`
+          );
+        }
+      } catch (compressionError) {
+        console.error(
+          'Image compression failed, using original file:',
+          compressionError
+        );
+
+        // Validate original file size after compression failure
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+        if (validateFileSize(file)) {
+          // Store info indicating compression failed (file stays the same)
+          newCompressionInfo.set(fileKey, {
+            originalSize: file.size,
+            compressedSize: file.size,
+            compressionRatio: 0,
+            wasCompressed: false,
+          });
+          processedFiles.push(file);
+        } else {
+          setErrorMessage(
+            `File size exceeds the maximum allowed size of ${getMaxSizeMB()} MB`
+          );
+        }
+      }
+    };
+
     // Helper function to compress files
     const handleFileCompression = async (files: File[]): Promise<File[]> => {
       if (!files || files.length === 0) {
@@ -181,93 +266,20 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
       const newCompressionInfo = new Map(fileCompressionInfo);
 
       for (const file of files) {
-        const isCompressible = isCompressibleFile(file);
-
-        // For non-compressible files, validate original file size
-        if (!isCompressible || !compressionFunc) {
-          if (validateFileSize(file)) {
-            processedFiles.push(file);
-          } else {
-            const maxSizeMB = fileMaxSize
-              ? (fileMaxSize / (1024 * 1024)).toFixed(2)
-              : 'unknown';
-            setErrorMessage(
-              `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
-            );
-          }
+        // Non-compressible files (or no compressor): validate original size only
+        if (!isCompressibleFile(file) || !compressionFunc) {
+          collectFileWithinSizeLimit(
+            file,
+            processedFiles,
+            `File size exceeds the maximum allowed size of ${getMaxSizeMB()} MB`
+          );
         } else {
-          // Set compression status for this file
-          setCompressionStatus({
-            isCompressing: true,
-            originalSize: file.size,
-          });
-
-          try {
-            const compressedDataUrl = await compressionFunc(
-              file,
-              compressionMaxDimension
-            );
-
-            // Convert data URL back to a File object
-            const base64Response = await fetch(compressedDataUrl);
-            const compressedBlob = await base64Response.blob();
-
-            const compressedFile = new File([compressedBlob], file.name, {
-              type: file.type,
-            });
-
-            // Validate compressed file size
-            if (validateFileSize(compressedFile)) {
-              // Calculate compression ratio
-              const compressionRatio = Math.round(
-                ((file.size - compressedFile.size) / file.size) * 100
-              );
-
-              // Store compression info using the compressed file's properties for lookup
-              const compressedFileKey = `${compressedFile.name}-${compressedFile.size}-${compressedFile.lastModified}`;
-              newCompressionInfo.set(compressedFileKey, {
-                originalSize: file.size,
-                compressedSize: compressedFile.size,
-                compressionRatio: Math.max(0, compressionRatio),
-                wasCompressed: true,
-              });
-
-              processedFiles.push(compressedFile);
-            } else {
-              const maxSizeMB = fileMaxSize
-                ? (fileMaxSize / (1024 * 1024)).toFixed(2)
-                : 'unknown';
-              setErrorMessage(
-                `Even after compression, file size exceeds the maximum allowed size of ${maxSizeMB} MB`
-              );
-            }
-          } catch (compressionError) {
-            console.error(
-              'Image compression failed, using original file:',
-              compressionError
-            );
-
-            // Validate original file size after compression failure
-            if (validateFileSize(file)) {
-              // Store info indicating compression failed (file stays the same)
-              const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-              newCompressionInfo.set(fileKey, {
-                originalSize: file.size,
-                compressedSize: file.size,
-                compressionRatio: 0,
-                wasCompressed: false,
-              });
-
-              processedFiles.push(file);
-            } else {
-              const maxSizeMB = fileMaxSize
-                ? (fileMaxSize / (1024 * 1024)).toFixed(2)
-                : 'unknown';
-              setErrorMessage(
-                `File size exceeds the maximum allowed size of ${maxSizeMB} MB`
-              );
-            }
-          }
+          await processCompressibleFile(
+            file,
+            compressionFunc,
+            processedFiles,
+            newCompressionInfo
+          );
         }
       }
 
@@ -389,6 +401,93 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
       return type.startsWith('image/') || type === 'application/pdf';
     };
 
+    // Render the "compressed" badge for a file when compression info applies
+    const renderCompressionBadge = (fileUploaded: File): React.ReactNode => {
+      const fileKey = `${fileUploaded.name}-${fileUploaded.size}-${fileUploaded.lastModified}`;
+      const compressionInfo = fileCompressionInfo.get(fileKey);
+      const isCompressibleType = isCompressibleFile(fileUploaded);
+
+      const shouldShow =
+        showCompressionInfo &&
+        compressionInfo &&
+        isCompressibleType &&
+        compressionInfo.wasCompressed &&
+        compressionInfo.compressionRatio > 0;
+
+      if (!shouldShow) return null;
+
+      return (
+        <span className="eb-ml-2 eb-inline-flex eb-items-center eb-gap-1 eb-text-blue-600">
+          <Sparkles className="eb-h-3 eb-w-3" />
+          <span>compressed</span>
+        </span>
+      );
+    };
+
+    // Render a single uploaded file row (icon, name, size, and actions)
+    const renderUploadedFileItem = (
+      fileUploaded: File,
+      index: number
+    ): React.ReactNode => (
+      <div
+        key={index}
+        className="eb-mt-2 eb-flex eb-h-16 eb-w-full eb-flex-row eb-items-center eb-justify-between eb-rounded-lg eb-border-2 eb-border-solid eb-border-gray-200 eb-bg-card eb-px-4 eb-shadow-sm"
+      >
+        {' '}
+        <div className="eb-flex eb-h-full eb-flex-row eb-items-center eb-gap-4">
+          {fileUploaded.type === 'application/pdf' ? (
+            <FileText className="eb-h-6 eb-w-6 eb-text-rose-700" />
+          ) : (
+            <Image className="eb-h-6 eb-w-6 eb-text-rose-700" />
+          )}
+          <div className="eb-flex eb-flex-col eb-gap-0">
+            <div className="eb-text-[0.85rem] eb-font-medium eb-leading-snug">
+              {truncate(
+                fileUploaded.name.split('.').slice(0, -1).join('.'),
+                30
+              )}
+            </div>
+            <div className="eb-text-[0.7rem] eb-leading-tight eb-text-gray-500">
+              .{fileUploaded.name.split('.').pop()} •{' '}
+              {(fileUploaded.size / (1024 * 1024)).toFixed(2)} MB
+              {/* Show compression info if available for this specific file */}
+              {renderCompressionBadge(fileUploaded)}
+            </div>
+          </div>
+        </div>
+        <div className="eb-flex eb-items-center eb-gap-2">
+          {isPreviewable(fileUploaded) && enableFilePreview && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="eb-size-8 eb-rounded-full eb-p-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleFilePreview(fileUploaded);
+              }}
+              aria-label="Preview file"
+            >
+              <Eye className="eb-size-4" />
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="eb-size-8 eb-rounded-full eb-p-0 eb-text-destructive"
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteUploadedFile(index);
+            }}
+            aria-label="Delete file"
+          >
+            <Trash2 className="eb-size-4" />
+          </Button>
+        </div>
+      </div>
+    );
+
     // Return:
     return (
       <div
@@ -474,82 +573,9 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
         {showFilesList && filesUploaded.length > 0 && (
           <div className="eb-flex eb-h-fit eb-w-full eb-flex-col eb-gap-2">
             <div className="eb-w-full">
-              {filesUploaded.map((fileUploaded, index) => (
-                <div
-                  key={index}
-                  className="eb-mt-2 eb-flex eb-h-16 eb-w-full eb-flex-row eb-items-center eb-justify-between eb-rounded-lg eb-border-2 eb-border-solid eb-border-gray-200 eb-bg-card eb-px-4 eb-shadow-sm"
-                >
-                  {' '}
-                  <div className="eb-flex eb-h-full eb-flex-row eb-items-center eb-gap-4">
-                    {fileUploaded.type === 'application/pdf' ? (
-                      <FileText className="eb-h-6 eb-w-6 eb-text-rose-700" />
-                    ) : (
-                      <Image className="eb-h-6 eb-w-6 eb-text-rose-700" />
-                    )}
-                    <div className="eb-flex eb-flex-col eb-gap-0">
-                      <div className="eb-text-[0.85rem] eb-font-medium eb-leading-snug">
-                        {truncate(
-                          fileUploaded.name.split('.').slice(0, -1).join('.'),
-                          30
-                        )}
-                      </div>
-                      <div className="eb-text-[0.7rem] eb-leading-tight eb-text-gray-500">
-                        .{fileUploaded.name.split('.').pop()} •{' '}
-                        {(fileUploaded.size / (1024 * 1024)).toFixed(2)} MB
-                        {/* Show compression info if available for this specific file */}
-                        {(() => {
-                          const fileKey = `${fileUploaded.name}-${fileUploaded.size}-${fileUploaded.lastModified}`;
-                          const compressionInfo =
-                            fileCompressionInfo.get(fileKey);
-                          const isCompressibleType =
-                            isCompressibleFile(fileUploaded);
-
-                          return showCompressionInfo &&
-                            compressionInfo &&
-                            isCompressibleType &&
-                            compressionInfo.wasCompressed &&
-                            compressionInfo.compressionRatio > 0 ? (
-                            <span className="eb-ml-2 eb-inline-flex eb-items-center eb-gap-1 eb-text-blue-600">
-                              <Sparkles className="eb-h-3 eb-w-3" />
-                              <span>compressed</span>
-                            </span>
-                          ) : null;
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="eb-flex eb-items-center eb-gap-2">
-                    {isPreviewable(fileUploaded) && enableFilePreview && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="eb-size-8 eb-rounded-full eb-p-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFilePreview(fileUploaded);
-                        }}
-                        aria-label="Preview file"
-                      >
-                        <Eye className="eb-size-4" />
-                      </Button>
-                    )}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="eb-size-8 eb-rounded-full eb-p-0 eb-text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteUploadedFile(index);
-                      }}
-                      aria-label="Delete file"
-                    >
-                      <Trash2 className="eb-size-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+              {filesUploaded.map((fileUploaded, index) =>
+                renderUploadedFileItem(fileUploaded, index)
+              )}
             </div>
           </div>
         )}

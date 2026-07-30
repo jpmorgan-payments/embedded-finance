@@ -29,6 +29,7 @@ import {
 } from './contexts/OnboardingContext';
 import { useStableStepSchemas } from './hooks/useStableStepSchemas';
 import { ONBOARDING_FLOW_USER_JOURNEYS } from './OnboardingFlow.constants';
+import { useQuestionTree } from './screens/OperationalDetailsForm/useQuestionTree';
 import {
   buildDeltaSectionSummaries,
   collectBaselineDeltaPendingGroups,
@@ -36,14 +37,60 @@ import {
   countDeltaQuestionProgress,
   isDeltaQuestionAnswered,
 } from './screens/ReviewAndAttestSectionForms/ReviewForm/DeltaPendingFieldsPanel';
+import type { ScreenId } from './types/flow.types';
 import { OnboardingFlowProps } from './types/onboarding.types';
-import { isDeltaModeActive, scrollToDeltaSection } from './utils/deltaMode';
+import type { OnboardingFlowEntry } from './types/onboarding.types';
+import {
+  isDeltaModeActive,
+  resolveDeltaModeConfig,
+  scrollToDeltaSection,
+} from './utils/deltaMode';
 import {
   getFlowProgress,
   getStepperValidation,
   getStepperValidations,
 } from './utils/flowUtils';
 import { getLinkAccountEnabled } from './utils/getLinkAccountEnabled';
+
+/**
+ * Resolves the FlowProvider's initial screen from the current client/flow
+ * state. The ordered checks mirror the original precedence: doc-upload-only
+ * mode, then delta, then an explicit flow entry, then an existing organization
+ * (unless the PTC gateway is still required), otherwise the gateway.
+ */
+const resolveInitialScreenId = (params: {
+  docUploadOnlyMode?: boolean;
+  deltaModeEligible: boolean;
+  canUseFlowEntry: boolean;
+  flowEntry?: OnboardingFlowEntry;
+  organizationType?: string;
+  needsPTCGateway: boolean;
+}): ScreenId => {
+  const {
+    docUploadOnlyMode,
+    deltaModeEligible,
+    canUseFlowEntry,
+    flowEntry,
+    organizationType,
+    needsPTCGateway,
+  } = params;
+
+  if (docUploadOnlyMode) return 'upload-documents-section';
+  if (deltaModeEligible) return 'overview';
+  if (canUseFlowEntry && flowEntry) return flowEntry.screenId;
+  if (organizationType && !needsPTCGateway) return 'overview';
+  return 'gateway';
+};
+
+/**
+ * The stepper step to seed when a flow entry targets a stepper section;
+ * `null` when there is no usable flow entry or no stepper step is specified.
+ */
+const resolveSeededStepperStepId = (
+  canUseFlowEntry: boolean,
+  flowEntry?: OnboardingFlowEntry
+): string | null =>
+  canUseFlowEntry && flowEntry?.stepperStepId ? flowEntry.stepperStepId : null;
 
 export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   alertOnExit = false,
@@ -111,24 +158,56 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
     clientData?.status === 'NEW' &&
     !ptcAnswered;
 
+  // Delta eligibility must not count conditional operational-details
+  // sub-questions (they only apply once their parent is answered a triggering
+  // way). The parent/child structure isn't in the client payload, so fetch the
+  // full question tree up front and hand its definitions to the counter.
+  // Fetching the WHOLE tree here (not just the root IDs) pre-warms the React
+  // Query cache with the exact keys DeltaPendingFieldsPanel's own
+  // useQuestionTree uses — so once delta mounts the panel gets a full cache hit
+  // and never flashes its question skeleton. Enabled only when delta is
+  // configured and questions are actually outstanding.
+  const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
+  const existingQuestionResponses = clientData?.questionResponses ?? [];
+  const shouldResolveDeltaQuestions =
+    !!resolveDeltaModeConfig(props.deltaMode) &&
+    !props.docUploadOnlyMode &&
+    !!organizationType &&
+    !needsPTCGateway &&
+    outstandingQuestionIds.length > 0;
+
+  const { allQuestions: deltaQuestions, isLoading: deltaQuestionsLoading } =
+    useQuestionTree({
+      outstandingQuestionIds,
+      existingQuestionResponses,
+      enabled: shouldResolveDeltaQuestions,
+    });
+
+  // Until the full tree loads we can't tell which outstanding IDs are
+  // conditional children, so defer the (latched) eligibility decision to avoid
+  // a wrong initial delta verdict — and so the panel's questions are cache-warm
+  // before it mounts.
+  const deltaQuestionsPending =
+    shouldResolveDeltaQuestions && deltaQuestionsLoading;
+
   const deltaModeEligible =
     !props.docUploadOnlyMode &&
     !!organizationType &&
     !needsPTCGateway &&
-    isDeltaModeActive(props.deltaMode, clientData);
+    isDeltaModeActive(props.deltaMode, clientData, deltaQuestions);
 
-  const flowProviderInitialScreenId = props.docUploadOnlyMode
-    ? 'upload-documents-section'
-    : deltaModeEligible
-      ? 'overview'
-      : canUseFlowEntry
-        ? flowEntry.screenId
-        : organizationType && !needsPTCGateway
-          ? 'overview'
-          : 'gateway';
-
-  const flowProviderSeedStepperStepId =
-    canUseFlowEntry && flowEntry.stepperStepId ? flowEntry.stepperStepId : null;
+  const flowProviderInitialScreenId = resolveInitialScreenId({
+    docUploadOnlyMode: props.docUploadOnlyMode,
+    deltaModeEligible,
+    canUseFlowEntry,
+    flowEntry,
+    organizationType,
+    needsPTCGateway,
+  });
+  const flowProviderSeedStepperStepId = resolveSeededStepperStepId(
+    canUseFlowEntry,
+    flowEntry
+  );
 
   const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
@@ -171,7 +250,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         {/* TODO: replace with actual screens / skeletons */}
         {clientGetError ? (
           <ServerErrorAlert error={clientGetError} />
-        ) : clientGetStatus === 'pending' &&
+        ) : (clientGetStatus === 'pending' || deltaQuestionsPending) &&
           clientId &&
           !props.docUploadOnlyMode ? (
           <FormLoadingState
@@ -793,14 +872,7 @@ const FlowRenderer: React.FC = React.memo(() => {
         <div className="eb-hidden eb-shrink-0 @3xl:eb-block">
           <OnboardingTimeline
             className="eb-w-64 eb-rounded-lg eb-border eb-py-2 eb-shadow-sm lg:eb-w-80"
-            title={
-              isDeltaTimeline
-                ? t(
-                    'screens.overview.deltaView.timeline.title',
-                    'Your application'
-                  )
-                : t('onboarding-overview:documentUpload.onboardingProgress')
-            }
+            title={t('onboarding-overview:documentUpload.onboardingProgress')}
             disableInteraction={isFormSubmitting}
             currentSectionId={frozenSidebarRef.current.sectionId}
             currentStepId={frozenSidebarRef.current.stepId}

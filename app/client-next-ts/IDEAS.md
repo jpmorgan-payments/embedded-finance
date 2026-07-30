@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-This document specifies requirements for 8 client-side interactive web applications designed to reduce time-to-value and improve developer adoption of the J.P. Morgan Embedded Payments (EP) API product. Each tool targets a specific adoption bottleneck identified through analysis of the EP documentation surface, existing open-source showcase (github.com/jpmorgan-payments/embedded-finance), the NPM component library (@jpmorgan-payments/embedded-finance-components), the validation SDK (@jpmorgan-payments/embedded-finance-sdk), and the broader Payments Developer Portal.
+This document specifies requirements for 8 client-side interactive web applications designed to reduce time-to-value and improve developer adoption of the J.P. Morgan Embedded Payments (EP) API product. Each tool targets a specific adoption bottleneck identified through analysis of the EP documentation surface, existing open-source showcase (github.com/jpmorgan-payments/embedded-finance), the NPM component library (@jpmorgan-payments/embedded-finance-components), and the broader Payments Developer Portal.
 
 All tools are designed to run entirely client-side with no backend dependencies, using embedded mock data derived from the EP OpenAPI specification and documented sample payloads. This enables zero-friction access — developers can explore without authentication, certificates, or sandbox provisioning.
 
@@ -114,7 +114,7 @@ A fully client-side visual state machine that lets developers walk through every
 
 ### Problem Statement
 
-The POST /clients body is one of the most complex payloads in the EP API — nested parties, organization details, addresses, documents, attestations, questions. JPM's existing @jpmorgan-payments/embedded-finance-sdk handles field validation but the onboarding reference table documents 100+ fields across multiple nested objects. Developers waste days mapping which fields are required for which business types (LLC vs. Sole Proprietor vs. Corporation vs. Publicly Traded Company).
+The POST /clients body is one of the most complex payloads in the EP API — nested parties, organization details, addresses, documents, attestations, questions. The onboarding reference table documents 100+ fields across multiple nested objects. Developers waste days mapping which fields are required for which business types (LLC vs. Sole Proprietor vs. Corporation vs. Publicly Traded Company).
 
 ### Description
 
@@ -134,8 +134,8 @@ A visual, step-by-step form builder that constructs the JSON payload in real-tim
 - Invalid or missing required fields are highlighted in red in both the form and the JSON preview.
 
 #### FR-2.3: Country-Specific Field Rules
-- Leverage the conditional logic engine from @jpmorgan-payments/embedded-finance-sdk.
-- When a country is selected, dynamically adjust which fields are required (e.g., tax identification formats, address structures, document types).
+- Encode country-specific conditional field rules (e.g., tax identification formats, address structures, document types).
+- When a country is selected, dynamically adjust which fields are required.
 - Display inline help text explaining country-specific requirements.
 
 #### FR-2.4: Test Persona Pre-Loading
@@ -159,14 +159,14 @@ A visual, step-by-step form builder that constructs the JSON payload in real-tim
 ### Mock Data Requirements
 
 - Schema derived from the Digital Onboarding OpenAPI spec for `POST /clients` and `POST /parties`.
-- Validation rules from @jpmorgan-payments/embedded-finance-sdk.
+- Validation rules derived from EP OpenAPI schemas and onboarding field documentation.
 - Test persona data from EP core concepts documentation (Fairy Tale Book Shop LLC and additional personas).
 - Field metadata: required/optional/conditional status per business type and country.
 
 ### Technical Approach
 
 - React with controlled form components.
-- Leverage @jpmorgan-payments/embedded-finance-sdk validation rules (bundled client-side or replicated).
+- Client-side validation rules derived from EP OpenAPI schemas (embedded with the tool).
 - JSON diff library for the minimum viable payload comparison.
 - No network requests — all validation and schema data embedded.
 
@@ -705,6 +705,5 @@ A self-service interactive checklist that walks platform developers through ever
 | Embedded Finance Showcase | github.com/jpmorgan-payments/embedded-finance | React component library + SellSense demo app with MSW mocks |
 | Self-Gen SDK Reference | github.com/jpmorgan-payments/ep-selfgen-sdk-reference | OpenAPI Generator setup for Java client |
 | PDP MCP Server | github.com/jpmorgan-payments/pdp-mcp | MCP server for developer portal documentation search |
-| Embedded Finance SDK (NPM) | @jpmorgan-payments/embedded-finance-sdk | Payment data validation and field definition engine |
 | Embedded Components (NPM) | @jpmorgan-payments/embedded-finance-components | Pre-built React components for onboarding, payments, accounts |
 | Live Demo | www.embedded-finance-dev.com | Hosted SellSense marketplace demo |

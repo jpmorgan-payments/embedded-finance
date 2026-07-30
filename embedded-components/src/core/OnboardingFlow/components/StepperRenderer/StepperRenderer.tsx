@@ -66,6 +66,8 @@ type StepperRendererProps = StepperConfig & {
   }>;
 };
 
+type FlowSection = ReturnType<typeof useFlowContext>['sections'][number];
+
 export const StepperRenderer: React.FC<StepperRendererProps> = ({
   steps: rawSteps,
   getDefaultPartyRequestBody,
@@ -414,35 +416,27 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     prevButtonDisabled,
   };
 
-  let ownersSectionLabel: ReturnType<typeof t>;
-  if (currentSection?.sectionConfig.shortLabelKey) {
-    ownersSectionLabel = t(
-      currentSection.sectionConfig
-        .shortLabelKey as ParseKeys<'onboarding-overview'>
-    );
-  } else if (currentSection?.sectionConfig.labelKey) {
-    ownersSectionLabel = t(
-      currentSection.sectionConfig.labelKey as ParseKeys<'onboarding-overview'>
-    );
-  } else {
-    ownersSectionLabel =
-      t('onboarding-overview:screens.ownersSection.shortLabel') ??
-      t('onboarding-overview:screens.ownersSection.label');
-  }
+  // Resolves a section's short label (falling back to its full label), or
+  // `undefined` when neither is configured. A local closure so it captures `t`
+  // directly; keeps the component's own cognitive complexity low.
+  const resolveSectionShortLabel = (
+    section: FlowSection | undefined
+  ): ReturnType<typeof t> | undefined => {
+    const sectionConfig = section?.sectionConfig;
+    if (sectionConfig?.shortLabelKey) {
+      return t(sectionConfig.shortLabelKey as ParseKeys<'onboarding-overview'>);
+    }
+    if (sectionConfig?.labelKey) {
+      return t(sectionConfig.labelKey as ParseKeys<'onboarding-overview'>);
+    }
+    return undefined;
+  };
 
-  let currentSectionLabel: ReturnType<typeof t> | undefined;
-  if (currentSection?.sectionConfig.shortLabelKey) {
-    currentSectionLabel = t(
-      currentSection.sectionConfig
-        .shortLabelKey as ParseKeys<'onboarding-overview'>
-    );
-  } else if (currentSection?.sectionConfig.labelKey) {
-    currentSectionLabel = t(
-      currentSection.sectionConfig.labelKey as ParseKeys<'onboarding-overview'>
-    );
-  } else {
-    currentSectionLabel = undefined;
-  }
+  const currentSectionLabel = resolveSectionShortLabel(currentSection);
+  const ownersSectionLabel =
+    currentSectionLabel ??
+    t('onboarding-overview:screens.ownersSection.shortLabel') ??
+    t('onboarding-overview:screens.ownersSection.label');
 
   return (
     <div
@@ -858,7 +852,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
         onSettled: (data, error) => {
           onPostPartySettled?.(data, error?.response?.data);
         },
-        onSuccess: (response) => {
+        async onSuccess(response) {
           const queryKey = getSmbdoGetClientQueryKey(clientData.id);
 
           // Optimistically merge the updated party so the UI updates
@@ -879,9 +873,13 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
 
           // Then invalidate to refresh client-level fields (e.g.
           // outstanding.questionIds) that the party response can't
-          // carry. The background refetch returns identical party
-          // data, so there's no visible flash.
-          queryClient.invalidateQueries({ queryKey });
+          // carry. Await the refetch before navigating so `clientData`
+          // is fully settled when the sidebar unfreezes. Without the
+          // await, navigation happens a render before the cache update
+          // propagates, so the just-completed section re-validates
+          // against stale data and flashes an empty circle before the
+          // check mark. (Mirrors the create-party path, which awaits.)
+          await queryClient.invalidateQueries({ queryKey });
           handleNext();
         },
         onError: (error) => {

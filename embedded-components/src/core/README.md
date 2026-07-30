@@ -8,16 +8,16 @@ This directory contains the main embedded banking components organized by functi
 
 Exported from `src/index.tsx`:
 
-| Directory            | Components                                      | Notes                                      |
-| -------------------- | ----------------------------------------------- | ------------------------------------------ |
-| `OnboardingFlow/`    | `OnboardingFlow`                                | Stable; optional PTC via `enablePubliclyTradedCompanies` |
-| `PaymentFlow/`       | `PaymentFlow`, `PaymentFlowInline`              | Domestic USD payments                      |
-| `PaymentFlowFX/`     | `PaymentFlowFX`, `PaymentFlowFXInline`          | **Beta** — cross-border / FX payouts       |
-| `Accounts/`          | `Accounts`                                      | In testing                                 |
-| `ClientDetails/`     | `ClientDetails`                                 | In testing                                 |
-| `RecipientWidgets/`  | `LinkedAccountWidget`, `RecipientsWidget`       | Stable                                     |
-| `TransactionsDisplay/` | `TransactionsDisplay`                         | In testing                                 |
-| `EBComponentsProvider/` | `EBComponentsProvider`                       | Required wrapper for all components        |
+| Directory               | Components                                | Notes                                                                                      |
+| ----------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `OnboardingFlow/`       | `OnboardingFlow`                          | Stable; optional PTC via `enablePubliclyTradedCompanies`; delta completion via `deltaMode` |
+| `PaymentFlow/`          | `PaymentFlow`, `PaymentFlowInline`        | Domestic USD payments                                                                      |
+| `PaymentFlowFX/`        | `PaymentFlowFX`, `PaymentFlowFXInline`    | **Beta** — cross-border / FX payouts                                                       |
+| `Accounts/`             | `Accounts`                                | In testing                                                                                 |
+| `ClientDetails/`        | `ClientDetails`                           | In testing                                                                                 |
+| `RecipientWidgets/`     | `LinkedAccountWidget`, `RecipientsWidget` | Stable                                                                                     |
+| `TransactionsDisplay/`  | `TransactionsDisplay`                     | In testing                                                                                 |
+| `EBComponentsProvider/` | `EBComponentsProvider`                    | Required wrapper for all components                                                        |
 
 ### Internal / not yet public
 
@@ -25,12 +25,12 @@ Exported from `src/index.tsx`:
 
 ### Removed (do not reference in new docs)
 
-| Former component         | Replacement                         | Removed |
-| ------------------------ | ----------------------------------- | ------- |
-| `MakePayment`            | `PaymentFlow` / `PaymentFlowInline` | v0.15   |
-| `OnboardingWizardBasic`  | `OnboardingFlow`                    | v0.15   |
-| `Recipients`             | `RecipientsWidget`                  | earlier |
-| `RecipientListWidget`    | `RecipientsWidget`                  | earlier |
+| Former component        | Replacement                         | Removed |
+| ----------------------- | ----------------------------------- | ------- |
+| `MakePayment`           | `PaymentFlow` / `PaymentFlowInline` | v0.15   |
+| `OnboardingWizardBasic` | `OnboardingFlow`                    | v0.15   |
+| `Recipients`            | `RecipientsWidget`                  | earlier |
+| `RecipientListWidget`   | `RecipientsWidget`                  | earlier |
 
 ## Storybook Tags Strategy
 

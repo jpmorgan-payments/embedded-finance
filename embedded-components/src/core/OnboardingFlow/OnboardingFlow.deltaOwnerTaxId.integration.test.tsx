@@ -59,8 +59,11 @@ describe('OnboardingFlow delta — owner tax id round-trip', () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
 
     renderSeededOnboardingFlow(CLIENT_ID, {
-      deltaMode: { enabled: true, maxPendingFields: 5 },
-      defaultControllerNotAnOwner: true,
+      deltaMode: {
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      },
     });
 
     // Delta overview renders Tinker's pending card.
@@ -144,8 +147,11 @@ describe('OnboardingFlow delta — owner tax id round-trip', () => {
 
     const user = userEvent.setup({ pointerEventsCheck: 0 });
     renderSeededOnboardingFlow(CLIENT_ID, {
-      deltaMode: { enabled: true, maxPendingFields: 5 },
-      defaultControllerNotAnOwner: true,
+      deltaMode: {
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      },
     });
 
     const wendyCard = (await waitFor(

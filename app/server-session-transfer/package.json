@@ -23,7 +23,8 @@
   },
   "overrides": {
     "qs": "^6.15.2",
-    "picomatch": "2.3.2"
+    "picomatch": "2.3.2",
+    "body-parser": "1.20.6"
   },
   "keywords": [
     "embedded-finance",

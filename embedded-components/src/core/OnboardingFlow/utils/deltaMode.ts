@@ -1,6 +1,9 @@
 import { objectKeys } from '@/utils/objectEntries';
 
-import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+import type {
+  ClientResponse,
+  QuestionResponse,
+} from '@/api/generated/smbdo.schemas';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
 import type {
   OnboardingDeltaModeConfig,
@@ -26,6 +29,8 @@ export function resolveDeltaModeConfig(
     return {
       enabled: true,
       maxPendingFields: DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+      defaultControllerNotAnOwner: false,
+      reviewSectionsDisplay: 'collapsible',
     };
   }
   if (deltaMode === false || deltaMode == null) {
@@ -38,6 +43,8 @@ export function resolveDeltaModeConfig(
     enabled: true,
     maxPendingFields:
       deltaMode.maxPendingFields ?? DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS,
+    defaultControllerNotAnOwner: deltaMode.defaultControllerNotAnOwner ?? false,
+    reviewSectionsDisplay: deltaMode.reviewSectionsDisplay ?? 'collapsible',
   };
 }
 
@@ -107,6 +114,55 @@ function countMissingEligibilityFields(
 }
 
 /**
+ * IDs of questions that are conditional children (gated by a parent's answer).
+ * A question is a child when another question lists it under `subQuestions`, or
+ * when its own `parentQuestionId` is set.
+ */
+function getConditionalChildQuestionIds(
+  questionDefinitions: QuestionResponse[]
+): Set<string> {
+  const childIds = new Set<string>();
+  for (const question of questionDefinitions) {
+    (question.subQuestions ?? []).forEach((sq) =>
+      (sq.questionIds ?? []).forEach((id) => childIds.add(String(id)))
+    );
+    if (
+      question.parentQuestionId != null &&
+      `${question.parentQuestionId}` !== '' &&
+      question.id != null
+    ) {
+      childIds.add(String(question.id));
+    }
+  }
+  return childIds;
+}
+
+/**
+ * Count outstanding operational-details questions, EXCLUDING conditional
+ * sub-questions. A conditional child only applies once its parent is answered a
+ * triggering way, so counting it up front over-states the remaining work and
+ * can wrongly push a client past `maxPendingFields`. Children are identified
+ * from the fetched question definitions. Without definitions (e.g. unit tests,
+ * or the fetch hasn't resolved) every outstanding ID counts — the prior
+ * behavior — which is safe because undercounting, not overcounting, is the
+ * risk we guard against.
+ */
+function countOutstandingTopLevelQuestions(
+  outstandingQuestionIds: string[] | undefined,
+  questionDefinitions: QuestionResponse[] | undefined
+): number {
+  const ids = outstandingQuestionIds ?? [];
+  if (ids.length === 0) {
+    return 0;
+  }
+  if (!questionDefinitions || questionDefinitions.length === 0) {
+    return ids.length;
+  }
+  const childIds = getConditionalChildQuestionIds(questionDefinitions);
+  return ids.filter((id) => !childIds.has(String(id))).length;
+}
+
+/**
  * Count pending fields for delta-mode eligibility. This is a deliberately light
  * heuristic (see DELTA_MODE_SPEC §5.2) — it does NOT run the Zod schemas
  * (they're hook-based) and does NOT need to match the panel's full Zod-driven
@@ -115,19 +171,25 @@ function countMissingEligibilityFields(
  * `deltaEligibility` (fieldMap is the source of truth), never hard-coded here.
  *
  * Counts:
- * - Outstanding operational question IDs
+ * - Outstanding top-level operational question IDs (conditional sub-questions
+ *   are excluded — their parent answer gates them; see
+ *   {@link countOutstandingTopLevelQuestions})
  * - Missing organization eligibility fields
  * - Missing controller eligibility fields
  * - Missing owner eligibility fields (non-controller beneficial owners)
  */
 export function countPendingOnboardingFields(
-  clientData: ClientResponse | undefined
+  clientData: ClientResponse | undefined,
+  questionDefinitions?: QuestionResponse[]
 ): number {
   if (!clientData) {
     return Number.POSITIVE_INFINITY;
   }
 
-  let count = clientData.outstanding?.questionIds?.length ?? 0;
+  let count = countOutstandingTopLevelQuestions(
+    clientData.outstanding?.questionIds,
+    questionDefinitions
+  );
 
   const orgParty = getOrganizationParty(clientData);
   const orgDetails = orgParty?.organizationDetails;
@@ -172,7 +234,8 @@ export function countPendingOnboardingFields(
  */
 export function isDeltaModeActive(
   deltaMode: OnboardingDeltaModeProp | undefined,
-  clientData: ClientResponse | undefined
+  clientData: ClientResponse | undefined,
+  questionDefinitions?: QuestionResponse[]
 ): boolean {
   const config = resolveDeltaModeConfig(deltaMode);
   if (!config) {
@@ -181,7 +244,10 @@ export function isDeltaModeActive(
   if (!clientData?.id) {
     return false;
   }
-  const pendingCount = countPendingOnboardingFields(clientData);
+  const pendingCount = countPendingOnboardingFields(
+    clientData,
+    questionDefinitions
+  );
   const maxPending =
     config.maxPendingFields ?? DEFAULT_DELTA_MODE_MAX_PENDING_FIELDS;
   return pendingCount <= maxPending;

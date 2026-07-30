@@ -119,22 +119,65 @@ Opt in with **`enablePubliclyTradedCompanies`** (default `false`). When enabled:
 
 Design reference: **`docs/ptc-feature-plan.md`** (status: implemented). Storybook: Core → OnboardingFlow → PTC scenarios.
 
+## Delta mode (`deltaMode`)
+
+**Delta mode is a distilled completion path for when your platform can already provide most of the user's data.** If you pre-create the client through the API — populating business details, controller, owners, identity, etc. — and only a **few fields** remain outstanding, opt in with `deltaMode` to skip the full step-by-step flow. The user lands straight on a single **Review & attest** screen where they complete the remaining fields inline, review their details, agree to the terms, and submit in one action ("Agree and finish").
+
+Use it **only** when `GET /clients/:id` already returns rich data. It is **not** a substitute for onboarding an empty client: if too many fields are still outstanding, the flow automatically falls back to the normal step-by-step path.
+
+### When it activates
+
+Delta mode is **active** only when all of the following hold:
+
+- The host set `deltaMode` (`true`, or `{ enabled: true }`).
+- Client data has loaded and the organization type is known.
+- Doc-upload-only mode is off and the PTC gateway is not required.
+- The number of **pending fields** is **≤ `maxPendingFields`** (default `5`).
+
+Eligibility is **latched** once when the flow mounts, so it does not flip mid-session as the user saves fields.
+
+### Configuration
+
+`deltaMode` accepts `true` (shorthand for `{ enabled: true }`) or a config object:
+
+| Option                        | Type                                             | Default         | Description                                                                                                                                                                                                                                             |
+| ----------------------------- | ------------------------------------------------ | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`                     | `boolean`                                        | —               | Must be explicitly enabled by the host.                                                                                                                                                                                                                 |
+| `maxPendingFields`            | `number`                                         | `5`             | Delta activates only when the pending-field count is ≤ this value.                                                                                                                                                                                      |
+| `defaultControllerNotAnOwner` | `boolean`                                        | `false`         | Declares the controller is **not** a 25%+ beneficial owner — pre-answers the ownership question **No** and marks the owners section complete up front. Owner validation is still enforced (a genuinely incomplete owner still reads "missing details"). |
+| `reviewSectionsDisplay`       | `'collapsible' \| 'requireReview' \| 'expanded'` | `'collapsible'` | How the Review & attest section summary is laid out — a single-open accordion (default), one that requires the user to open **every** section before the "data is complete and true" checkbox enables, or one with every section **expanded** up front. |
+
+```tsx
+<OnboardingFlow
+  availableProducts={['EMBEDDED_PAYMENTS']}
+  availableJurisdictions={['US']}
+  deltaMode={{
+    enabled: true,
+    maxPendingFields: 5,
+    defaultControllerNotAnOwner: true,
+    reviewSectionsDisplay: 'requireReview',
+  }}
+/>
+```
+
+Full behaviour, pending-field counting rules, and section-status overrides: **[DELTA_MODE_SPEC.md](./DELTA_MODE_SPEC.md)**. Storybook: Core → OnboardingFlow → Delta mode.
+
 ## Link account step options (`linkAccountStepOptions`)
 
 Pre-populate and configure the **Link bank account** step via `linkAccountStepOptions` on `OnboardingFlow`.
 
-| Prop                           | Type                                  | Default                                   | Description                                                                                                                                                                   |
-| ------------------------------ | ------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `initialValues`                | `Partial<BankAccountFormData>`        | —                                         | Default form values (partial for `editable`, full for `reviewOnly`).                                                                                                          |
-| `completionMode`               | `'editable' \| 'reviewOnly'`          | `'editable'`                              | `editable` = single-page `BankAccountForm` (party picker + bank details); `reviewOnly` = read-only summary + confirm. Legacy alias `'prefillSummary'` is also accepted.       |
-| `partyId`                      | `string`                              | —                                         | Link to an existing party instead of creating one from form fields.                                                                                                           |
-| `presetAccounts`               | `LinkAccountPresetEntry[]`            | —                                         | Multiple preset accounts; renders a dropdown selector. Each entry may have its own `partyId` and `initialValues`. Preset `partyId` takes precedence over top-level `partyId`. |
-| `allowMultipleAccounts`        | `boolean`                             | `false`                                   | **Overview** shows the linked-account list with **Add account** (opens the link-account step form). After linking, returns to Overview with the updated list.                 |
-| `existingAccountsDisplay`      | `'compact' \| 'detailed'`             | `'detailed'`                              | Card style for existing accounts when `allowMultipleAccounts` is true. `detailed` shows status alerts, Verify action, and full action menus (same as LinkedAccountWidget).    |
-| `reviewAcknowledgements`       | `LinkAccountReviewAcknowledgement[]`  | —                                         | Agreement checkboxes required before submit (both modes).                                                                                                                     |
-| `showAcknowledgementsIntro`    | `boolean`                             | `false`                                   | Show lead-in text above acknowledgement checkboxes.                                                                                                                           |
-| `bankFormConfigOverride`       | `BankAccountFormConfigOverride`       | —                                         | Override linked-account form config (payment methods, field visibility). Deep-partial: `paymentMethods` sub-fields are individually optional.                                 |
-| `summaryDisplayedPaymentTypes` | `RoutingInformationTransactionType[]` | `initialValues.paymentTypes` or `['ACH']` | Payment types shown in reviewOnly summary strip.                                                                                                                              |
+| Prop                           | Type                                  | Default                                   | Description                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------ | ------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `initialValues`                | `Partial<BankAccountFormData>`        | —                                         | Default form values (partial for `editable`, full for `reviewOnly`).                                                                                                                                                                                                                                                                          |
+| `completionMode`               | `'editable' \| 'reviewOnly'`          | `'editable'`                              | `editable` = full two-step form; `reviewOnly` = read-only summary + confirm. Legacy alias `'prefillSummary'` is also accepted.                                                                                                                                                                                                                |
+| `partyId`                      | `string`                              | —                                         | Link to an existing party instead of creating one from form fields.                                                                                                                                                                                                                                                                           |
+| `presetAccounts`               | `LinkAccountPresetEntry[]`            | —                                         | Multiple preset accounts; renders a dropdown selector. Each entry may have its own `partyId` and `initialValues`. Preset `partyId` takes precedence over top-level `partyId`.                                                                                                                                                                 |
+| `allowMultipleAccounts`        | `boolean`                             | `false`                                   | After linking, show "Link another account" instead of redirecting to Overview. Existing accounts display as cards above the form on the **link-account** step only. **Overview** shows a short summary (account count + **Manage linked accounts**) so the full list is not duplicated; open the link-account step to add or manage accounts. |
+| `existingAccountsDisplay`      | `'compact' \| 'detailed'`             | `'detailed'`                              | Card style for existing accounts when `allowMultipleAccounts` is true. `detailed` shows status alerts, Verify action, and full action menus (same as LinkedAccountWidget).                                                                                                                                                                    |
+| `reviewAcknowledgements`       | `LinkAccountReviewAcknowledgement[]`  | —                                         | Agreement checkboxes required before submit (both modes).                                                                                                                                                                                                                                                                                     |
+| `showAcknowledgementsIntro`    | `boolean`                             | `false`                                   | Show lead-in text above acknowledgement checkboxes.                                                                                                                                                                                                                                                                                           |
+| `bankFormConfigOverride`       | `BankAccountFormConfigOverride`       | —                                         | Override linked-account form config (payment methods, field visibility). Deep-partial: `paymentMethods` sub-fields are individually optional.                                                                                                                                                                                                 |
+| `summaryDisplayedPaymentTypes` | `RoutingInformationTransactionType[]` | `initialValues.paymentTypes` or `['ACH']` | Payment types shown in reviewOnly summary strip.                                                                                                                                                                                                                                                                                              |
 
 ## Duplicate account detection
 

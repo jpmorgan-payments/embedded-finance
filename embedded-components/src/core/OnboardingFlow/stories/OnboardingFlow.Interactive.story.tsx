@@ -451,7 +451,7 @@ export const _2_Personal_CompleteSection: Story = {
       await delay(STEP_DELAY);
       const container = getContainer();
       const personalSectionButton = container.getByRole('button', {
-        name: /Your personal details/i,
+        name: /Controller details/i,
       });
       await userEvent.click(personalSectionButton);
     });
