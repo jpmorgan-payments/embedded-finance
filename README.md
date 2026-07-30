@@ -22,12 +22,6 @@ React application demonstrating component usage. Built with Vite, React 18, Type
 
 Main demo: `/sellsense-demo`
 
-### [Embedded Finance SDK](./embedded-finance-sdk/) (not active)
-
-TypeScript SDK for payment data validation and field definitions.
-
-NPM: [@jpmorgan-payments/embedded-finance-sdk](https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-sdk)
-
 ### [API Server](./app/server/)
 
 Express server for proxying requests to J.P. Morgan APIs.

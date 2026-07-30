@@ -35,11 +35,10 @@ Active development is in the `embedded-components/` package:
 ├── app/                    # Showcase web application (not active)
 │   ├── client/            # Frontend React application
 │   └── server/            # Backend server
-├── embedded-components/    # Main UI component library (ACTIVE)
-│   ├── src/               # Source code
-│   ├── .storybook/        # Storybook configuration
-│   └── public/            # Static assets and MSW worker
-└── embedded-finance-sdk/   # TypeScript SDK utilities (not active)
+└── embedded-components/    # Main UI component library (ACTIVE)
+    ├── src/               # Source code
+    ├── .storybook/        # Storybook configuration
+    └── public/            # Static assets and MSW worker
 ```
 
 ## ⚠️ CRITICAL: Follow ARCHITECTURE.md
