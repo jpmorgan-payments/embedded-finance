@@ -1,7 +1,0 @@
-# Ignore everything by default
-*
-
-# But do NOT ignore these files:
-!.gitignore
-!README.md
-!*.py

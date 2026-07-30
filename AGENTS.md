@@ -34,7 +34,6 @@ Before generating component code, review the architecture document for:
 │   ├── client/             # Legacy/archived showcase (minimal content)
 │   ├── server/             # API server for J.P. Morgan Sandbox/UAT APIs
 │   └── server-session-transfer/  # Session transfer demo for partially hosted onboarding
-└── embedded-finance-sdk/   # TypeScript SDK utilities (not active)
 ```
 
 ## Documentation
