@@ -477,8 +477,8 @@
       }
     },
     "personalSection": {
-      "label": "Vos renseignements personnels",
-      "shortLabel": "Renseignements personnels",
+      "label": "Renseignements du dirigeant",
+      "shortLabel": "Renseignements du dirigeant",
       "requirementsList": [
         "Votre nom et titre de poste",
         "Identifiant gouvernemental (p. ex. numéro d'assurance sociale)",
@@ -863,7 +863,7 @@
     "organizationIdEin": {
       "label": "$t(onboarding-overview:idValueLabels.EIN)",
       "description": {
-        "default": "$t(onboarding-overview:idValueLabels.EIN)",
+        "default": "$t(onboarding-overview:idValueDescriptions.EIN)",
         "soleProp": "Mettez à jour votre identifiant dans la section des renseignements personnels"
       },
       "tooltip": "Doit correspondre à la valeur d'identification de vos documents d'enregistrement d'entreprise",
@@ -1037,10 +1037,10 @@
       }
     },
     "dbaName": {
-      "label": "Nom commercial",
+      "label": "Nom commercial (DBA)",
       "placeholder": "Entrer le nom commercial",
       "fieldName": "Nom commercial",
-      "description": "",
+      "description": "Le nom commercial sous lequel votre entreprise exerce ses activités, s'il diffère de son nom légal.",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
@@ -1073,6 +1073,7 @@
       }
     },
     "organizationTypeHierarchy": {
+      "label": "Structure juridique",
       "generalOrganizationType": {
         "label": "Sélectionnez votre type d'entreprise général",
         "description": "",
@@ -1393,6 +1394,7 @@
     "provideMissingDetails": "Veuillez fournir les détails manquants avant de terminer votre demande.",
     "owners": "Propriétaires",
     "noStakeholders": "Aucune partie prenante ajoutée pour le moment.",
+    "manageOwners": "Gérer les propriétaires",
     "owner": "Propriétaire",
     "controller": "Dirigeant",
     "individualMissingDetails": "ⓘ Certains détails de cette personne sont manquants.",
@@ -1401,6 +1403,7 @@
     "response": "Réponse",
     "complete": "Terminé",
     "missingDetails": "Détails manquants",
+    "notReviewed": "Non révisé",
     "dataAccuracyAttestation": "Attestation d'exactitude des données",
     "dataAccuracyCheckbox": "Les données que je fournis sont véridiques, exactes et complètes au meilleur de ma connaissance.",
     "deltaCombinedAttestation": {
@@ -1410,7 +1413,8 @@
       "checkboxTermsRead": "J'ai lu et accepté les conditions générales d'Embedded Payments de J.P. Morgan",
       "checkboxAccountUse": "Je comprends que le compte Embedded Payments ne peut être utilisé que pour recevoir des fonds par l'intermédiaire du fournisseur de la plateforme, conformément à mes conditions commerciales avec la plateforme.",
       "checkboxAgent": "Je comprends que je désigne le fournisseur de la plateforme comme agent non discrétionnaire du compte. Cela signifie que seul le fournisseur de la plateforme donnera des instructions concernant le paiement des fonds à partir de mon compte Embedded Payments au quotidien, conformément à mes conditions commerciales.",
-      "checkboxDataAccuracy": "Les données que je fournis sont véridiques, exactes, à jour et complètes au meilleur de ma connaissance."
+      "checkboxDataAccuracy": "Les données que je fournis sont véridiques, exactes, à jour et complètes au meilleur de ma connaissance.",
+      "reviewSectionsFirst": "Ouvrez et passez en revue chaque section ci-dessus avant de confirmer que vos renseignements sont complets et véridiques."
     },
     "termsAcknowledgements": {
       "intro": "En soumettant électroniquement cette demande, vous acceptez que :"

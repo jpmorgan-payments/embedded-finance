@@ -149,7 +149,24 @@ describe('countDeltaQuestionProgress', () => {
     expect(progress).toEqual({ total: 2, completed: 0 });
   });
 
-  it('adds a revealed child to the count when the parent answer reveals it', () => {
+  it('counts a revealed child when it is itself outstanding', () => {
+    const answers: Record<string, string[]> = {
+      question_30005: ['5000'],
+      question_30158: ['true'],
+    };
+    const progress = countDeltaQuestionProgress({
+      rootQuestionIds: ['30005', '30158', '30162'],
+      allQuestions,
+      getAnswerValues: (id) => answers[`question_${id}`],
+      isAnswered: (id) => (answers[`question_${id}`]?.length ?? 0) > 0,
+      outstandingQuestionIds: ['30005', '30158', '30162'],
+    });
+    // 30005 + 30158 answered, 30162 outstanding + revealed but still blank →
+    // 3 total, 2 done.
+    expect(progress).toEqual({ total: 3, completed: 2 });
+  });
+
+  it('does not count a revealed child that is not outstanding', () => {
     const answers: Record<string, string[]> = {
       question_30005: ['5000'],
       question_30158: ['true'],
@@ -159,9 +176,11 @@ describe('countDeltaQuestionProgress', () => {
       allQuestions,
       getAnswerValues: (id) => answers[`question_${id}`],
       isAnswered: (id) => (answers[`question_${id}`]?.length ?? 0) > 0,
+      outstandingQuestionIds: ['30005', '30158'],
     });
-    // 30005 + 30158 answered, 30162 revealed but still blank → 3 total, 2 done.
-    expect(progress).toEqual({ total: 3, completed: 2 });
+    // 30162 is revealed by the "true" answer but NOT outstanding, so it is not
+    // asked and must not be counted → only the two outstanding roots.
+    expect(progress).toEqual({ total: 2, completed: 2 });
   });
 
   it('does not count the hidden child when the parent answer hides it', () => {
@@ -176,5 +195,53 @@ describe('countDeltaQuestionProgress', () => {
     });
     // 30158 = "false" hides 30162 → only 1 item, and it's answered.
     expect(progress).toEqual({ total: 1, completed: 1 });
+  });
+
+  // 30088 -> 30089 -> 30090: a nested chain, each revealed by a "true" answer.
+  const nestedChain = [
+    {
+      id: '30088',
+      subQuestions: [{ anyValuesMatch: 'true', questionIds: ['30089'] }],
+    },
+    {
+      id: '30089',
+      parentQuestionId: '30088',
+      subQuestions: [{ anyValuesMatch: 'true', questionIds: ['30090'] }],
+    },
+    { id: '30090', parentQuestionId: '30089' },
+  ] as unknown as QuestionResponse[];
+
+  it('counts a fully-outstanding nested chain by depth', () => {
+    const answers: Record<string, string[]> = {
+      question_30088: ['true'],
+      question_30089: ['true'],
+    };
+    const progress = countDeltaQuestionProgress({
+      rootQuestionIds: ['30088', '30089', '30090'],
+      allQuestions: nestedChain,
+      getAnswerValues: (id) => answers[`question_${id}`],
+      isAnswered: (id) => (answers[`question_${id}`]?.length ?? 0) > 0,
+      outstandingQuestionIds: ['30088', '30089', '30090'],
+    });
+    // 30088 + 30089 answered, 30090 revealed by 30089="true" but blank →
+    // 3 total, 2 done.
+    expect(progress).toEqual({ total: 3, completed: 2 });
+  });
+
+  it('stops counting a nested chain at the outstanding boundary', () => {
+    const answers: Record<string, string[]> = {
+      question_30088: ['true'],
+      question_30089: ['true'],
+    };
+    const progress = countDeltaQuestionProgress({
+      rootQuestionIds: ['30088', '30089'],
+      allQuestions: nestedChain,
+      getAnswerValues: (id) => answers[`question_${id}`],
+      isAnswered: (id) => (answers[`question_${id}`]?.length ?? 0) > 0,
+      outstandingQuestionIds: ['30088', '30089'],
+    });
+    // 30090 is revealed by 30089="true" but NOT outstanding, so it is not asked
+    // and must not be counted → only the two outstanding roots.
+    expect(progress).toEqual({ total: 2, completed: 2 });
   });
 });

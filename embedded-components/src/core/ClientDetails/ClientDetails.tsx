@@ -13,6 +13,7 @@ import {
 } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import {
   useServerError,
   type ServerErrorInfo,
@@ -37,6 +38,89 @@ import {
 const KYC_STATUS_TO_SECTION_STATUS: Record<string, SectionInfo['status']> = {
   APPROVED: 'complete',
   INFORMATION_REQUESTED: 'warning',
+};
+
+/** Party/count data derived from a client, consumed by the section builders. */
+type ClientSectionData = {
+  org: ReturnType<typeof getOrganizationParty>;
+  controller: ReturnType<typeof getControllerParty>;
+  beneficialOwners: ReturnType<typeof getBeneficialOwnerParties>;
+  kycStatus: string | undefined;
+  totalPending: number;
+  questionResponsesCount: number;
+};
+
+/** Derives the party groups and outstanding-item counts used by the sections. */
+const extractClientSectionData = (
+  client: ClientResponse
+): ClientSectionData => ({
+  org: getOrganizationParty(client),
+  controller: getControllerParty(client),
+  beneficialOwners: getBeneficialOwnerParties(client),
+  kycStatus: client.results?.customerIdentityStatus,
+  totalPending:
+    (client.outstanding?.documentRequestIds?.length ?? 0) +
+    (client.outstanding?.questionIds?.length ?? 0),
+  questionResponsesCount: client.questionResponses?.length ?? 0,
+});
+
+/** Identity section — always present (business details always exist). */
+const buildIdentitySection = (data: ClientSectionData): SectionInfo => ({
+  id: 'identity',
+  icon: getSectionIcon('identity'),
+  description: data.org?.organizationDetails?.organizationName,
+  status: data.org ? 'complete' : 'pending',
+});
+
+/** Verification section — shown when a KYC status exists. */
+const buildVerificationSection = (
+  data: ClientSectionData
+): SectionInfo | null => {
+  if (!data.kycStatus) return null;
+  return {
+    id: 'verification',
+    icon: getSectionIcon('verification'),
+    description: data.kycStatus.replace(/_/g, ' ').toLowerCase(),
+    status: KYC_STATUS_TO_SECTION_STATUS[data.kycStatus] ?? 'pending',
+  };
+};
+
+/**
+ * Ownership section — shown when beneficial owners or a controller exist.
+ * `description` is resolved by the caller (which owns the `t` instance).
+ */
+const buildOwnershipSection = (
+  data: ClientSectionData,
+  description: SectionInfo['description']
+): SectionInfo | null => {
+  if (data.beneficialOwners.length === 0 && !data.controller) return null;
+  return {
+    id: 'ownership',
+    icon: getSectionIcon('ownership'),
+    badge:
+      data.beneficialOwners.length > 0
+        ? `${data.beneficialOwners.length + (data.controller ? 1 : 0)}`
+        : undefined,
+    description,
+    status: 'complete',
+  };
+};
+
+/**
+ * Compliance section — shown when pending items or question responses exist.
+ * `badge` is resolved by the caller (which owns the `t` instance).
+ */
+const buildComplianceSection = (
+  data: ClientSectionData,
+  badge: SectionInfo['badge']
+): SectionInfo | null => {
+  if (data.totalPending === 0 && data.questionResponsesCount === 0) return null;
+  return {
+    id: 'compliance',
+    icon: getSectionIcon('compliance'),
+    badge,
+    status: data.totalPending > 0 ? 'warning' : 'complete',
+  };
 };
 
 /**
@@ -140,74 +224,32 @@ export function ClientDetails({
   // Parse error for custom rendering
   const errorInfo = useServerError(error);
 
-  // Build section info for navigation - uses t() with template literals for dynamic keys
-  // Sections are data-driven: only include sections that have relevant data
+  // Build section info for navigation. The pure builders above own the
+  // structural include/exclude logic; here we only resolve the two i18n strings
+  // (single-level `t` usage, keeping this memo's cognitive complexity low).
   const sectionInfos = useMemo(() => {
     if (!client) return [];
 
-    const org = getOrganizationParty(client);
-    const controller = getControllerParty(client);
-    const beneficialOwners = getBeneficialOwnerParties(client);
-    const kycStatus = client.results?.customerIdentityStatus;
-    const pendingDocs = client.outstanding?.documentRequestIds?.length ?? 0;
-    const pendingQuestions = client.outstanding?.questionIds?.length ?? 0;
-    const totalPending = pendingDocs + pendingQuestions;
+    const data = extractClientSectionData(client);
 
-    const sections: SectionInfo[] = [];
-
-    // Identity section - always show for a client (business details always exist)
-    sections.push({
-      id: 'identity',
-      icon: getSectionIcon('identity'),
-      description: org?.organizationDetails?.organizationName,
-      status: org ? 'complete' : 'pending',
-    });
-
-    // Verification section - show if KYC status exists
-    if (kycStatus) {
-      sections.push({
-        id: 'verification',
-        icon: getSectionIcon('verification'),
-        description: kycStatus.replace(/_/g, ' ').toLowerCase(),
-        status: KYC_STATUS_TO_SECTION_STATUS[kycStatus] ?? 'pending',
-      });
-    }
-
-    // Ownership section - show if there are beneficial owners or controller
-    if (beneficialOwners.length > 0 || controller) {
-      sections.push({
-        id: 'ownership',
-        icon: getSectionIcon('ownership'),
-        badge:
-          beneficialOwners.length > 0
-            ? `${beneficialOwners.length + (controller ? 1 : 0)}`
-            : undefined,
-        description: controller
-          ? t('sectionDescriptions.controllerWithOwners', {
-              count: beneficialOwners.length,
-            })
-          : undefined,
-        status: 'complete',
-      });
-    }
-
-    // Compliance section - show if there are pending items or question responses
-    if (totalPending > 0 || (client.questionResponses?.length ?? 0) > 0) {
-      sections.push({
-        id: 'compliance',
-        icon: getSectionIcon('compliance'),
-        badge:
-          totalPending > 0
-            ? t('sectionDescriptions.pending', { count: totalPending })
-            : undefined,
-        status: totalPending > 0 ? 'warning' : 'complete',
-      });
-    }
+    const ownershipDescription = data.controller
+      ? t('sectionDescriptions.controllerWithOwners', {
+          count: data.beneficialOwners.length,
+        })
+      : undefined;
+    const complianceBadge =
+      data.totalPending > 0
+        ? t('sectionDescriptions.pending', { count: data.totalPending })
+        : undefined;
 
     // Note: accounts and activity sections are intentionally excluded
     // as they require additional API calls and are future enhancements
-
-    return sections;
+    return [
+      buildIdentitySection(data),
+      buildVerificationSection(data),
+      buildOwnershipSection(data, ownershipDescription),
+      buildComplianceSection(data, complianceBadge),
+    ].filter((section): section is SectionInfo => section !== null);
   }, [client, t]);
 
   if (!clientId) {

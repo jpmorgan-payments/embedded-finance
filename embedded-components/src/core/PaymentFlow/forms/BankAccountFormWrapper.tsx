@@ -287,6 +287,71 @@ function BankAccountFormHeader({
 }
 
 /**
+ * Applies cross-border (FX) overrides to a bank-account form config: relabels
+ * the rails as value tiers, restricts available rails to those the destination
+ * currency supports, and relaxes the US-domestic field rules. Pure transform —
+ * the caller resolves the display strings (it owns the translation function).
+ */
+function applyFxOverrides(
+  config: BankAccountFormConfig,
+  requirement: NonNullable<ReturnType<typeof getFxCurrencyRequirement>>,
+  rails: ReturnType<typeof getFxAvailableRails>,
+  labels: {
+    highValue: string;
+    lowValue: string;
+    wireDescription: string;
+    achDescription: string;
+  }
+): BankAccountFormConfig {
+  return {
+    ...config,
+    paymentMethods: {
+      ...config.paymentMethods,
+      available:
+        rails.length > 0
+          ? rails
+          : config.paymentMethods.available.filter((m) => m !== 'RTP'),
+      defaultSelected:
+        rails.length === 1 ? rails : config.paymentMethods.defaultSelected,
+      configs: {
+        ...config.paymentMethods.configs,
+        WIRE: {
+          ...config.paymentMethods.configs.WIRE,
+          label: labels.highValue,
+          labelString: labels.highValue,
+          shortLabel: labels.highValue,
+          shortLabelString: labels.highValue,
+          description: labels.wireDescription,
+        },
+        ACH: {
+          ...config.paymentMethods.configs.ACH,
+          label: labels.lowValue,
+          labelString: labels.lowValue,
+          shortLabel: labels.lowValue,
+          shortLabelString: labels.lowValue,
+          description: labels.achDescription,
+        },
+      },
+    },
+    content: {
+      ...config.content,
+      fieldLabels: {
+        ...config.content.fieldLabels,
+        accountNumber: requirement.accountNumberLabel,
+      },
+    },
+    internationalFieldConfig: {
+      hideBankAccountType: !requirement.requiresAccountType,
+      accountNumberFormat: requirement.accountNumberFormat,
+      relaxRoutingFormat: true,
+      routingCodeLabel: requirement.routingCode?.label,
+      routingCodeRequired: requirement.routingCode?.required ?? false,
+      hideRoutingNumber: !requirement.routingCode,
+    },
+  };
+}
+
+/**
  * BankAccountFormWrapper
  *
  * Wraps the shared BankAccountForm component for use in PaymentFlow.
@@ -526,64 +591,18 @@ export function BankAccountFormWrapper({
       if (requirement) {
         // In the FX flow the rails are the product's value tiers, not US
         // networks — surface them as "FX High-value" / "FX Low-value".
-        const highValueLabel = tString('fx.rails.label.WIRE', 'FX High-value');
-        const lowValueLabel = tString('fx.rails.label.ACH', 'FX Low-value');
-        nextConfig = {
-          ...nextConfig,
-          paymentMethods: {
-            ...nextConfig.paymentMethods,
-            available:
-              rails.length > 0
-                ? rails
-                : nextConfig.paymentMethods.available.filter(
-                    (m) => m !== 'RTP'
-                  ),
-            defaultSelected:
-              rails.length === 1
-                ? rails
-                : nextConfig.paymentMethods.defaultSelected,
-            configs: {
-              ...nextConfig.paymentMethods.configs,
-              WIRE: {
-                ...nextConfig.paymentMethods.configs.WIRE,
-                label: highValueLabel,
-                labelString: highValueLabel,
-                shortLabel: highValueLabel,
-                shortLabelString: highValueLabel,
-                description: tString(
-                  'fx.rails.desc.WIRE',
-                  'Time-critical cross-currency payouts (same or next business day)'
-                ),
-              },
-              ACH: {
-                ...nextConfig.paymentMethods.configs.ACH,
-                label: lowValueLabel,
-                labelString: lowValueLabel,
-                shortLabel: lowValueLabel,
-                shortLabelString: lowValueLabel,
-                description: tString(
-                  'fx.rails.desc.ACH',
-                  'Non-urgent cross-currency payouts (two to five business days)'
-                ),
-              },
-            },
-          },
-          content: {
-            ...nextConfig.content,
-            fieldLabels: {
-              ...nextConfig.content.fieldLabels,
-              accountNumber: requirement.accountNumberLabel,
-            },
-          },
-          internationalFieldConfig: {
-            hideBankAccountType: !requirement.requiresAccountType,
-            accountNumberFormat: requirement.accountNumberFormat,
-            relaxRoutingFormat: true,
-            routingCodeLabel: requirement.routingCode?.label,
-            routingCodeRequired: requirement.routingCode?.required ?? false,
-            hideRoutingNumber: !requirement.routingCode,
-          },
-        };
+        nextConfig = applyFxOverrides(nextConfig, requirement, rails, {
+          highValue: tString('fx.rails.label.WIRE', 'FX High-value'),
+          lowValue: tString('fx.rails.label.ACH', 'FX Low-value'),
+          wireDescription: tString(
+            'fx.rails.desc.WIRE',
+            'Time-critical cross-currency payouts (same or next business day)'
+          ),
+          achDescription: tString(
+            'fx.rails.desc.ACH',
+            'Non-urgent cross-currency payouts (two to five business days)'
+          ),
+        });
       }
     }
 

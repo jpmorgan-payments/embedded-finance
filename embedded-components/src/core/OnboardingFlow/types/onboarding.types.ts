@@ -206,11 +206,21 @@ export type OnboardingConfigDefault = UserTrackingProps & {
 };
 
 /**
+ * How the section review list is displayed on the delta **Review & attest**
+ * screen. See {@link OnboardingDeltaModeConfig.reviewSectionsDisplay}.
+ */
+export type DeltaReviewSectionsDisplay =
+  | 'collapsible'
+  | 'requireReview'
+  | 'expanded';
+
+/**
  * Distilled onboarding for pre-created clients with few remaining fields.
  *
  * When active (host-enabled and pending fields ≤ {@link maxPendingFields}):
  * - Opens on the review step
- * - Treats the owners section as complete
+ * - Optionally treats the owners section as complete (see
+ *   {@link OnboardingDeltaModeConfig.defaultControllerNotAnOwner})
  * - Surfaces missing fields for inline completion on review
  * - Merges Terms & Conditions acknowledgements into the same review screen
  *
@@ -223,6 +233,39 @@ export type OnboardingDeltaModeConfig = {
    * allowed for delta mode to activate. Defaults to `5`.
    */
   maxPendingFields?: number;
+  /**
+   * When delta mode is active, declare that the controller is **not** a
+   * beneficial owner. The "Do you, the controller, own 25% or more of the
+   * business?" question is pre-answered **No** and is no longer required to
+   * advance, which in turn marks the **owners** section as "done" up front (via
+   * session data) so the user isn't routed through the owners stepper just to
+   * clear the "not started" gate on the review screen.
+   *
+   * It does **not** bypass owner validation: a beneficial owner that is still
+   * missing required fields continues to read "missing details," and those
+   * fields are surfaced inline on the delta pending-fields panel for completion.
+   *
+   * The user can still switch the question to **Yes** if the controller is in
+   * fact a beneficial owner.
+   *
+   * @default false
+   */
+  defaultControllerNotAnOwner?: boolean;
+  /**
+   * Controls how the section review list is displayed on the delta
+   * **Review & attest** screen.
+   *
+   * - `'collapsible'` — single-open accordion; sections start collapsed and the
+   *   user expands them individually. **(default)**
+   * - `'requireReview'` — accordion where the user must open **every** section
+   *   at least once before the "data is complete and true" attestation checkbox
+   *   can be checked (a helper line explains the requirement).
+   * - `'expanded'` — every section is expanded up front in a single, tidy
+   *   layout, so no manual expanding is needed.
+   *
+   * @default 'collapsible'
+   */
+  reviewSectionsDisplay?: DeltaReviewSectionsDisplay;
 };
 
 /** Host prop: boolean shorthand or full config. */
@@ -285,19 +328,6 @@ export type OnboardingConfigUsedInContext = {
   hideSidebar?: boolean;
   /** Whether to show the "Download Checklist" button on the Overview screen. Defaults to false. */
   showDownloadChecklist?: boolean;
-  /**
-   * **Owners** (`OwnersSectionScreen`): when `true`, the "Do you, the controller,
-   * own 25% or more of the business?" question is pre-answered **No** and is no
-   * longer required to advance — the user can continue without explicitly
-   * answering it. They can still change it to **Yes** if the controller is in
-   * fact a beneficial owner.
-   *
-   * Has no effect when the controller is already recorded as a beneficial owner
-   * (the question stays defaulted to **Yes**).
-   *
-   * @default false
-   */
-  defaultControllerNotAnOwner?: boolean;
   /**
    * **Terms & attestation** (`useTermsAndConditions`): when `true`, the terms
    * attestation checkboxes are enabled without first requiring the user to open

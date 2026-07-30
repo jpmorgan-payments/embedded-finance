@@ -121,9 +121,21 @@ export function useTermsAndConditions(options?: {
    * Host ack lists and authorize-sharing (disclosure) stay separate when present.
    */
   combineAccuracyAttestation?: boolean;
+  /**
+   * Extra gate for the combined attestation checkboxes (delta mode). When
+   * explicitly `false`, the checkboxes stay disabled on top of the
+   * document-open gate. Used by the delta review's `requireReview` display mode
+   * to force section review first. `undefined` means no extra gate.
+   */
+  additionalAttestationGate?: boolean;
+  /** Helper text shown above the checkboxes while `additionalAttestationGate` is false. */
+  additionalAttestationGateHelper?: ReactNode;
 }): UseTermsAndConditionsResult {
   const enabled = options?.enabled !== false;
   const combineAccuracyAttestation = !!options?.combineAccuracyAttestation;
+  const additionalAttestationGate = options?.additionalAttestationGate;
+  const additionalAttestationGateHelper =
+    options?.additionalAttestationGateHelper;
   const queryClient = useQueryClient();
   const {
     clientData,
@@ -369,6 +381,13 @@ export function useTermsAndConditions(options?: {
     (documentIds.every((id) => termsDocumentsOpened[id]) &&
       (!hasPlatformAgreement || platformAgreementOpened));
 
+  // The data-accuracy checkbox is interactable only once the required documents
+  // are opened AND any host-supplied extra gate (e.g. the delta review's "open
+  // every section first" requirement) is satisfied. The other attestation
+  // checkboxes are gated by document-open only.
+  const dataAccuracyInteractable =
+    allLinksOpened && additionalAttestationGate !== false;
+
   const handlePlatformAgreementOpen = () => {
     if (disclosureConfig?.platformAgreementUrl) {
       window.open(disclosureConfig.platformAgreementUrl, '_blank')?.focus();
@@ -582,7 +601,7 @@ export function useTermsAndConditions(options?: {
       : 'eb-flex eb-h-14 eb-w-full eb-justify-between eb-rounded-md eb-border eb-bg-card eb-px-4 eb-py-2 eb-font-sans eb-text-sm eb-font-normal eb-shadow-md'
   );
 
-  const documentLinks = (
+  const renderDocumentLinks = (): ReactNode => (
     <div className="eb-flex eb-flex-col eb-gap-2">
       {documentIds.map((id) => {
         const query = documentQueries.find((q) => q.data?.id === id);
@@ -712,62 +731,54 @@ export function useTermsAndConditions(options?: {
       )}
     </div>
   );
+  const documentLinks = renderDocumentLinks();
 
-  const attestedCheckboxLabel = combineAccuracyAttestation
-    ? hasPlatformAgreement
-      ? t('reviewAndAttest.deltaCombinedAttestation.checkboxWithPlatform', {
-          platformAgreementLabel:
-            disclosureConfig?.platformAgreementLabel ??
-            `${disclosureConfig?.platformName}'s Program Agreement`,
-          defaultValue:
-            'I confirm that the information I provided is true, accurate, and complete to the best of my knowledge, and that I have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.',
-        })
-      : t(
-          'reviewAndAttest.deltaCombinedAttestation.checkbox',
-          'I confirm that the information I provided is true, accurate, and complete to the best of my knowledge, and that I have read and agree to the J.P. Morgan Account Terms.'
-        )
-    : hasPlatformAgreement
-      ? t('reviewAndAttest.termsAndConditions.agreeToTermsWithPlatform', {
-          platformAgreementLabel:
-            disclosureConfig?.platformAgreementLabel ??
-            `${disclosureConfig?.platformName}'s Program Agreement`,
-          defaultValue:
-            'You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.',
-        })
-      : t(
-          'reviewAndAttest.termsAndConditions.agreeToTerms',
-          'You have read and agree to the J.P. Morgan Account Terms.'
-        );
-
-  const reviewHelperText =
-    documentIds.length === 1
-      ? t(
-          'reviewAndAttest.termsAndConditions.mustReviewDocument',
-          'Open and review the document above before selecting the checkbox.'
-        )
-      : t(
-          'reviewAndAttest.termsAndConditions.mustReviewDocuments',
-          'Open and review all documents above before selecting the checkbox.'
-        );
-
-  // Delta compact card: helper sits above the doc link, so use "below".
-  const deltaReviewHelperText =
-    documentIds.length === 1
-      ? t(
-          'reviewAndAttest.termsAndConditions.mustReviewDocumentBelow',
-          'Open and review the document below before selecting the checkbox.'
-        )
-      : t(
-          'reviewAndAttest.termsAndConditions.mustReviewDocumentsBelow',
-          'Open and review all documents below before selecting the checkbox.'
-        );
+  const resolveAttestedCheckboxLabel = (): ReactNode =>
+    combineAccuracyAttestation
+      ? hasPlatformAgreement
+        ? t('reviewAndAttest.deltaCombinedAttestation.checkboxWithPlatform', {
+            platformAgreementLabel:
+              disclosureConfig?.platformAgreementLabel ??
+              `${disclosureConfig?.platformName}'s Program Agreement`,
+            defaultValue:
+              'I confirm that the information I provided is true, accurate, and complete to the best of my knowledge, and that I have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.',
+          })
+        : t(
+            'reviewAndAttest.deltaCombinedAttestation.checkbox',
+            'I confirm that the information I provided is true, accurate, and complete to the best of my knowledge, and that I have read and agree to the J.P. Morgan Account Terms.'
+          )
+      : hasPlatformAgreement
+        ? t('reviewAndAttest.termsAndConditions.agreeToTermsWithPlatform', {
+            platformAgreementLabel:
+              disclosureConfig?.platformAgreementLabel ??
+              `${disclosureConfig?.platformName}'s Program Agreement`,
+            defaultValue:
+              'You have read and agree to the J.P. Morgan Account Terms and the {{platformAgreementLabel}}.',
+          })
+        : t(
+            'reviewAndAttest.termsAndConditions.agreeToTerms',
+            'You have read and agree to the J.P. Morgan Account Terms.'
+          );
+  const attestedCheckboxLabel = resolveAttestedCheckboxLabel();
 
   // Render as JSX (not a nested component) so parent re-renders from
   // useWatch(attested) do not remount the checkbox tree and wipe the click.
   // Delta combined attestation: one compact card (docs + checkbox + helper).
-  const termsBody: ReactNode =
-    combineAccuracyAttestation && !useHostAckList ? (
-      <div className="eb-space-y-3">
+  const renderDeltaCombinedTermsBody = (): ReactNode => {
+    // Delta compact card: helper sits above the doc link, so use "below".
+    const deltaReviewHelperText =
+      documentIds.length === 1
+        ? t(
+            'reviewAndAttest.termsAndConditions.mustReviewDocumentBelow',
+            'Open and review the document below before selecting the checkbox.'
+          )
+        : t(
+            'reviewAndAttest.termsAndConditions.mustReviewDocumentsBelow',
+            'Open and review all documents below before selecting the checkbox.'
+          );
+
+    return (
+      <div className="eb-space-y-5">
         {!allLinksOpened && shouldDisplayAlert && (
           <Alert variant="destructive" noTitle>
             <AlertCircleIcon className="eb-h-4 eb-w-4" />
@@ -779,6 +790,47 @@ export function useTermsAndConditions(options?: {
             </AlertDescription>
           </Alert>
         )}
+        <div className="eb-space-y-2">
+          {additionalAttestationGate === false &&
+            additionalAttestationGateHelper && (
+              <p className="eb-text-xs eb-font-medium eb-text-warning">
+                {additionalAttestationGateHelper}
+              </p>
+            )}
+          <FormField
+            control={form.control}
+            name="attestDataAccuracy"
+            disabled={!dataAccuracyInteractable}
+            render={({ field }) => (
+              <FormItem>
+                <div className="eb-flex eb-items-start eb-gap-2">
+                  <FormControl>
+                    <Checkbox
+                      className="eb-mt-0.5"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={field.disabled}
+                    />
+                  </FormControl>
+                  <FormLabel
+                    className={cn(
+                      'eb-text-sm eb-font-normal eb-leading-snug eb-text-foreground',
+                      field.disabled
+                        ? 'eb-cursor-not-allowed eb-opacity-70'
+                        : 'eb-cursor-pointer'
+                    )}
+                  >
+                    {t(
+                      'reviewAndAttest.deltaCombinedAttestation.checkboxDataAccuracy',
+                      'The data I am providing is true, accurate, current, and complete to the best of my knowledge.'
+                    )}
+                  </FormLabel>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <div
           className="eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/30 eb-p-3"
           role="group"
@@ -808,7 +860,14 @@ export function useTermsAndConditions(options?: {
                       disabled={field.disabled}
                     />
                   </FormControl>
-                  <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-snug eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                  <FormLabel
+                    className={cn(
+                      'eb-text-sm eb-font-normal eb-leading-snug eb-text-foreground',
+                      field.disabled
+                        ? 'eb-cursor-not-allowed eb-opacity-70'
+                        : 'eb-cursor-pointer'
+                    )}
+                  >
                     {t(
                       'reviewAndAttest.deltaCombinedAttestation.checkboxTermsRead',
                       'I have read and agreed to the J.P. Morgan Embedded Payments Terms and Conditions'
@@ -834,7 +893,14 @@ export function useTermsAndConditions(options?: {
                       disabled={field.disabled}
                     />
                   </FormControl>
-                  <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-snug eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                  <FormLabel
+                    className={cn(
+                      'eb-text-sm eb-font-normal eb-leading-snug eb-text-foreground',
+                      field.disabled
+                        ? 'eb-cursor-not-allowed eb-opacity-70'
+                        : 'eb-cursor-pointer'
+                    )}
+                  >
                     {t(
                       'reviewAndAttest.deltaCombinedAttestation.checkboxAccountUse',
                       'I understand that the Embedded Payments account may only be used to receive funds through SellSense pursuant to my commerce terms with the platform.'
@@ -860,36 +926,17 @@ export function useTermsAndConditions(options?: {
                       disabled={field.disabled}
                     />
                   </FormControl>
-                  <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-snug eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                  <FormLabel
+                    className={cn(
+                      'eb-text-sm eb-font-normal eb-leading-snug eb-text-foreground',
+                      field.disabled
+                        ? 'eb-cursor-not-allowed eb-opacity-70'
+                        : 'eb-cursor-pointer'
+                    )}
+                  >
                     {t(
                       'reviewAndAttest.deltaCombinedAttestation.checkboxAgent',
                       'I understand I am appointing the platform provider as a non-discretionary agent for the account. This means that only the platform provider will give instructions on the payment of funds from my Embedded Payments account on a day-to-day basis in accordance with my commerce terms.'
-                    )}
-                  </FormLabel>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="attestDataAccuracy"
-            disabled={!allLinksOpened}
-            render={({ field }) => (
-              <FormItem>
-                <div className="eb-flex eb-items-start eb-gap-2">
-                  <FormControl>
-                    <Checkbox
-                      className="eb-mt-0.5"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={field.disabled}
-                    />
-                  </FormControl>
-                  <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-snug eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
-                    {t(
-                      'reviewAndAttest.deltaCombinedAttestation.checkboxDataAccuracy',
-                      'The data I am providing is true, accurate, current, and complete to the best of my knowledge.'
                     )}
                   </FormLabel>
                 </div>
@@ -902,7 +949,22 @@ export function useTermsAndConditions(options?: {
           error={updateClientError || clientVerificationsError}
         />
       </div>
-    ) : (
+    );
+  };
+
+  const renderStandardTermsBody = (): ReactNode => {
+    const reviewHelperText =
+      documentIds.length === 1
+        ? t(
+            'reviewAndAttest.termsAndConditions.mustReviewDocument',
+            'Open and review the document above before selecting the checkbox.'
+          )
+        : t(
+            'reviewAndAttest.termsAndConditions.mustReviewDocuments',
+            'Open and review all documents above before selecting the checkbox.'
+          );
+
+    return (
       <>
         {!allLinksOpened && shouldDisplayAlert && (
           <Alert variant="destructive" noTitle>
@@ -983,7 +1045,14 @@ export function useTermsAndConditions(options?: {
                           disabled={field.disabled}
                         />
                       </FormControl>
-                      <FormLabel className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                      <FormLabel
+                        className={cn(
+                          'eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground',
+                          field.disabled
+                            ? 'eb-cursor-not-allowed eb-opacity-70'
+                            : 'eb-cursor-pointer'
+                        )}
+                      >
                         {attestedCheckboxLabel}
                       </FormLabel>
                     </div>
@@ -1033,6 +1102,12 @@ export function useTermsAndConditions(options?: {
         />
       </>
     );
+  };
+
+  const termsBody: ReactNode =
+    combineAccuracyAttestation && !useHostAckList
+      ? renderDeltaCombinedTermsBody()
+      : renderStandardTermsBody();
 
   return {
     form,

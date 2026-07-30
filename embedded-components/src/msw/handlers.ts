@@ -104,7 +104,15 @@ export const handlers = [
       products: data?.products || ['EMBEDDED_PAYMENTS'],
       outstanding: {
         documentRequestIds: [],
-        questionIds: ['30005', '30026', '30088', '30095'],
+        questionIds: [
+          '30005',
+          '30026',
+          '30027',
+          '30088',
+          '30089',
+          '30090',
+          '30095',
+        ],
         attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
         partyIds: [],
         partyRoles: [],
@@ -222,6 +230,42 @@ export const handlers = [
       updatedClient.outstanding.questionIds = (
         updatedClient.outstanding.questionIds || []
       ).filter((id) => !answeredQuestionIds.includes(id));
+
+      // Reconcile conditional sub-questions against the full set of answers: a
+      // sub-question is outstanding only while its parent is answered with a
+      // value that reveals it AND it hasn't been answered yet. This mirrors the
+      // real backend surfacing conditional follow-ups (the UI only fetches
+      // sub-questions whose IDs are outstanding), so answering a parent "No"
+      // clears its now-irrelevant children instead of leaving them stuck as
+      // outstanding.
+      const answersById = new Map(
+        (updatedClient.questionResponses || []).map((response) => [
+          response.questionId,
+          (response.values || []).map(String),
+        ])
+      );
+      const isQuestionAnswered = (questionId) =>
+        (answersById.get(questionId) || []).some((v) => v.trim() !== '');
+      const outstandingQuestionSet = new Set(
+        updatedClient.outstanding.questionIds || []
+      );
+      efClientQuestionsMock.questions.forEach((question) => {
+        if (!question.subQuestions?.length) return;
+        const parentAnswers = answersById.get(question.id) || [];
+        question.subQuestions.forEach((subQuestion) => {
+          const revealed = parentAnswers.includes(
+            String(subQuestion.anyValuesMatch)
+          );
+          (subQuestion.questionIds || []).forEach((childId) => {
+            if (revealed && !isQuestionAnswered(childId)) {
+              outstandingQuestionSet.add(childId);
+            } else {
+              outstandingQuestionSet.delete(childId);
+            }
+          });
+        });
+      });
+      updatedClient.outstanding.questionIds = [...outstandingQuestionSet];
     }
 
     // Handle adding new attestations if present

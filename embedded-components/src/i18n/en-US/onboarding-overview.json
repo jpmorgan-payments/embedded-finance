@@ -533,8 +533,8 @@
       }
     },
     "personalSection": {
-      "label": "Your personal details",
-      "shortLabel": "Personal details",
+      "label": "Controller details",
+      "shortLabel": "Controller details",
       "requirementsList": [
         "Your name and job title",
         "Government issued identifier (e.g. social security number)",
@@ -923,7 +923,7 @@
     "organizationIdEin": {
       "label": "$t(onboarding-overview:idValueLabels.EIN)",
       "description": {
-        "default": "$t(onboarding-overview:idValueLabels.EIN)",
+        "default": "$t(onboarding-overview:idValueDescriptions.EIN)",
         "soleProp": "Update your ID in the personal details section"
       },
       "tooltip": "Should match your business registration document's ID value",
@@ -1097,10 +1097,10 @@
       }
     },
     "dbaName": {
-      "label": "Doing business as",
+      "label": "Doing business as (DBA name)",
       "placeholder": "Enter DBA name",
       "fieldName": "DBA name",
-      "description": "",
+      "description": "The trade name your business operates under, if it's different from its legal name.",
       "tooltip": "",
       "validation": {
         "required": "$t(validation:required)",
@@ -1133,6 +1133,7 @@
       }
     },
     "organizationTypeHierarchy": {
+      "label": "Legal structure",
       "generalOrganizationType": {
         "label": "Select your general business type",
         "description": "",
@@ -1453,6 +1454,7 @@
     "provideMissingDetails": "Please provide missing details before finishing your application.",
     "owners": "Owners",
     "noStakeholders": "No stakeholders added yet.",
+    "manageOwners": "Manage owners",
     "owner": "Owner",
     "controller": "Controller",
     "individualMissingDetails": "ⓘ This individual is missing some details.",
@@ -1461,6 +1463,7 @@
     "response": "Response",
     "complete": "Complete",
     "missingDetails": "Missing details",
+    "notReviewed": "Not reviewed",
     "dataAccuracyAttestation": "Data accuracy attestation",
     "dataAccuracyCheckbox": "The data I am providing is true, accurate and complete to the best of my knowledge.",
     "deltaCombinedAttestation": {
@@ -1470,7 +1473,8 @@
       "checkboxTermsRead": "I have read and agreed to the J.P. Morgan Embedded Payments Terms and Conditions",
       "checkboxAccountUse": "I understand that the Embedded Payments account may only be used to receive funds through the platform provider pursuant to my commerce terms with the platform.",
       "checkboxAgent": "I understand I am appointing the platform provider as a non-discretionary agent for the account. This means that only the platform provider will give instructions on the payment of funds from my Embedded Payments account on a day-to-day basis in accordance with my commerce terms.",
-      "checkboxDataAccuracy": "The data I am providing is true, accurate, current, and complete to the best of my knowledge."
+      "checkboxDataAccuracy": "The data I am providing is true, accurate, current, and complete to the best of my knowledge.",
+      "reviewSectionsFirst": "Open and review each section above before confirming that your information is complete and true."
     },
     "termsAcknowledgements": {
       "intro": "By electronically submitting this application, you agree that:"

@@ -12,15 +12,24 @@ const normalizeQuestionId = (id: unknown): string =>
   id == null ? '' : String(id);
 
 /**
- * Extract all sub-question IDs referenced by a set of questions.
+ * Extract all sub-question IDs referenced by a set of questions, optionally
+ * limited to an allow-set (the outstanding question IDs). When `allowedIds` is
+ * provided, a referenced sub-question is only included if it is also present in
+ * that set — so nested questions that aren't currently outstanding are never
+ * fetched (they get fetched later, once the API surfaces them as outstanding).
  */
-const extractReferencedIds = (questions: QuestionResponse[]): Set<string> => {
+const extractReferencedIds = (
+  questions: QuestionResponse[],
+  allowedIds?: Set<string>
+): Set<string> => {
   const ids = new Set<string>();
   questions.forEach((q) => {
     q.subQuestions?.forEach((sq) => {
       sq.questionIds?.forEach((id) => {
         const normalizedId = normalizeQuestionId(id);
-        if (normalizedId) ids.add(normalizedId);
+        if (!normalizedId) return;
+        if (allowedIds && !allowedIds.has(normalizedId)) return;
+        ids.add(normalizedId);
       });
     });
   });
@@ -68,6 +77,13 @@ const MAX_FETCH_DEPTH = 5;
 interface UseQuestionTreeOptions {
   outstandingQuestionIds: string[];
   existingQuestionResponses: ClientQuestionResponse[];
+  /**
+   * Gate every fetch in the chain. When `false`, no question requests fire and
+   * `isLoading` stays `false`. Used to pre-warm the tree only when delta mode is
+   * configured (the panel calls this hook with the same keys, so a match yields
+   * a full cache hit). Defaults to `true`.
+   */
+  enabled?: boolean;
 }
 
 interface UseQuestionTreeResult {
@@ -99,6 +115,7 @@ interface UseQuestionTreeResult {
 export const useQuestionTree = ({
   outstandingQuestionIds,
   existingQuestionResponses,
+  enabled = true,
 }: UseQuestionTreeOptions): UseQuestionTreeResult => {
   // Merge outstanding and existing question IDs
   const rootQuestionIds = useMemo(() => {
@@ -110,14 +127,26 @@ export const useQuestionTree = ({
     );
   }, [outstandingQuestionIds, existingQuestionResponses]);
 
+  // Only nested sub-questions that are themselves outstanding should be
+  // fetched. Anything else is deferred until the API returns it as outstanding
+  // (e.g. after a parent answer is submitted), so we don't pull in branches the
+  // client doesn't currently need to answer.
+  const outstandingIdSet = useMemo(
+    () => new Set(outstandingQuestionIds.map(normalizeQuestionId)),
+    [outstandingQuestionIds]
+  );
+
   // --- Level 0: primary fetch ---
   const {
     data: l0Data,
     status: l0Status,
     error: l0Error,
-  } = useSmbdoListQuestions({
-    questionIds: rootQuestionIds.join(','),
-  });
+  } = useSmbdoListQuestions(
+    {
+      questionIds: rootQuestionIds.join(','),
+    },
+    { query: { enabled: enabled && rootQuestionIds.length > 0 } }
+  );
 
   const l0Questions = l0Data?.questions ?? [];
   const l0FetchedIds = useMemo(
@@ -131,8 +160,12 @@ export const useQuestionTree = ({
 
   // --- Level 1 ---
   const l1Ids = useMemo(
-    () => findMissingIds(extractReferencedIds(l0Questions), l0FetchedIds),
-    [l0Questions, l0FetchedIds]
+    () =>
+      findMissingIds(
+        extractReferencedIds(l0Questions, outstandingIdSet),
+        l0FetchedIds
+      ),
+    [l0Questions, l0FetchedIds, outstandingIdSet]
   );
   const { data: l1Data, status: l1Status } = useSmbdoListQuestions(
     { questionIds: l1Ids.join(',') },
@@ -153,9 +186,12 @@ export const useQuestionTree = ({
   const l2Ids = useMemo(
     () =>
       MAX_FETCH_DEPTH >= 2
-        ? findMissingIds(extractReferencedIds(l1Questions), l1FetchedIds)
+        ? findMissingIds(
+            extractReferencedIds(l1Questions, outstandingIdSet),
+            l1FetchedIds
+          )
         : [],
-    [l1Questions, l1FetchedIds]
+    [l1Questions, l1FetchedIds, outstandingIdSet]
   );
   const { data: l2Data, status: l2Status } = useSmbdoListQuestions(
     { questionIds: l2Ids.join(',') },
@@ -176,9 +212,12 @@ export const useQuestionTree = ({
   const l3Ids = useMemo(
     () =>
       MAX_FETCH_DEPTH >= 3
-        ? findMissingIds(extractReferencedIds(l2Questions), l2FetchedIds)
+        ? findMissingIds(
+            extractReferencedIds(l2Questions, outstandingIdSet),
+            l2FetchedIds
+          )
         : [],
-    [l2Questions, l2FetchedIds]
+    [l2Questions, l2FetchedIds, outstandingIdSet]
   );
   const { data: l3Data, status: l3Status } = useSmbdoListQuestions(
     { questionIds: l3Ids.join(',') },
@@ -199,9 +238,12 @@ export const useQuestionTree = ({
   const l4Ids = useMemo(
     () =>
       MAX_FETCH_DEPTH >= 4
-        ? findMissingIds(extractReferencedIds(l3Questions), l3FetchedIds)
+        ? findMissingIds(
+            extractReferencedIds(l3Questions, outstandingIdSet),
+            l3FetchedIds
+          )
         : [],
-    [l3Questions, l3FetchedIds]
+    [l3Questions, l3FetchedIds, outstandingIdSet]
   );
   const { data: l4Data, status: l4Status } = useSmbdoListQuestions(
     { questionIds: l4Ids.join(',') },
@@ -234,11 +276,13 @@ export const useQuestionTree = ({
   }, [rootQuestionIds, l1Ids, l2Ids, l3Ids, l4Ids]);
 
   const isLoading =
-    l0Status === 'pending' ||
-    (l1Ids.length > 0 && l1Status === 'pending') ||
-    (l2Ids.length > 0 && l2Status === 'pending') ||
-    (l3Ids.length > 0 && l3Status === 'pending') ||
-    (l4Ids.length > 0 && l4Status === 'pending');
+    enabled &&
+    rootQuestionIds.length > 0 &&
+    (l0Status === 'pending' ||
+      (l1Ids.length > 0 && l1Status === 'pending') ||
+      (l2Ids.length > 0 && l2Status === 'pending') ||
+      (l3Ids.length > 0 && l3Status === 'pending') ||
+      (l4Ids.length > 0 && l4Status === 'pending'));
 
   return {
     allQuestions,

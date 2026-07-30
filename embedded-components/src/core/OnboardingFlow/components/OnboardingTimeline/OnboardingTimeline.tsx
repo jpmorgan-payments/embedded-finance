@@ -68,84 +68,97 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
   const { tString } = useTranslationWithTokens('onboarding-overview');
   const getStatusIcon = (status: TimelineItemStatus, isSubItem = false) => {
     const iconSize = isSubItem ? 'eb-size-4' : 'eb-size-6';
+    const innerIconSize = isSubItem ? 'eb-size-3' : 'eb-size-4';
+    const isCompleted =
+      status === 'completed' || status === 'completed_disabled';
 
-    switch (status) {
-      case 'completed':
-      case 'completed_disabled':
-        return (
-          <div
-            className={cn(
-              'eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-success eb-text-success-accent',
-              iconSize
-            )}
-          >
+    // A single persistent circle whose fill/border/text morphs between
+    // statuses (transition on the outer element), while the inner glyph is
+    // keyed on `status` so it cross-fades. The completed check additionally
+    // draws its own stroke in via the `draw-check` keyframe.
+    const circleByStatus: Partial<Record<TimelineItemStatus, string>> = {
+      completed: 'eb-border-transparent eb-bg-success eb-text-success-accent',
+      completed_disabled:
+        'eb-border-transparent eb-bg-success eb-text-success-accent',
+      current: 'eb-border-success eb-bg-sidebar eb-text-success',
+      on_hold:
+        'eb-border-transparent eb-bg-transparent eb-text-muted-foreground',
+      missing_details:
+        'eb-border-transparent eb-bg-transparent eb-text-warning',
+      not_started:
+        'eb-border-transparent eb-bg-sidebar eb-text-muted-foreground/80',
+    };
+
+    const renderInner = () => {
+      switch (status) {
+        case 'completed':
+        case 'completed_disabled':
+          return (
             <Check
               className={cn(
-                isSubItem ? 'eb-size-3' : 'eb-size-4',
-                'eb-stroke-[3]'
+                innerIconSize,
+                'eb-stroke-[3]',
+                // Circle fills first (animation-delay), then the tick draws in
+                // at full opacity — no fade, so the stroke stays crisp.
+                'eb-[stroke-dasharray:24] eb-animate-draw-check'
               )}
             />
-          </div>
-        );
-      case 'current':
-        return (
-          <div
-            className={cn(
-              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-border-2 eb-border-success eb-bg-sidebar',
-              iconSize
-            )}
-          >
-            <div
-              className={cn(
-                'eb-rounded-full eb-bg-success',
-                isSubItem ? 'eb-size-2' : 'eb-size-3.5'
-              )}
-            />
-          </div>
-        );
-      case 'on_hold':
-        return (
-          <div
-            className={cn(
-              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-transparent',
-              iconSize
-            )}
-          >
-            <Lock className={cn('eb-text-muted-foreground', iconSize)} />
-          </div>
-        );
-      case 'missing_details':
-        return (
-          <div
-            className={cn(
-              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-transparent',
-              iconSize
-            )}
-          >
-            <AlertTriangle className={cn('eb-text-warning', iconSize)} />
-          </div>
-        );
-      case 'not_started':
-      default:
-        return (
-          <div
-            className={cn(
-              'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-bg-sidebar',
-              iconSize
-            )}
-          >
-            <CircleDashed
-              className={cn('eb-text-muted-foreground/80', iconSize)}
-            />
-          </div>
-        );
-    }
+          );
+        case 'current':
+          // The center dot is rendered as a persistent layer below so it can
+          // grow in / shrink out; nothing to render inline here.
+          return null;
+        case 'on_hold':
+          return <Lock className={iconSize} />;
+        case 'missing_details':
+          return <AlertTriangle className={iconSize} />;
+        case 'not_started':
+        default:
+          return <CircleDashed className={iconSize} />;
+      }
+    };
+
+    // Idle glyphs (dashed/lock/warning) fade in; completed draws its stroke.
+    const innerAnim = isCompleted
+      ? ''
+      : 'eb-animate-in eb-fade-in eb-duration-300';
+
+    return (
+      <div
+        className={cn(
+          'eb-relative eb-z-30 eb-flex eb-items-center eb-justify-center eb-rounded-full eb-border-2',
+          circleByStatus[status] ?? circleByStatus.not_started,
+          iconSize
+        )}
+      >
+        {/* Persistent center dot: grows in on `current`, shrinks out when
+            leaving it — a real bidirectional scale transition (an unmounted
+            element can't animate out). Fades alongside the scale. */}
+        <span
+          aria-hidden="true"
+          className={cn(
+            'eb-absolute eb-left-1/2 eb-top-1/2 -eb-translate-x-1/2 -eb-translate-y-1/2 eb-rounded-full eb-bg-success eb-transition-[transform,opacity] eb-duration-300 eb-ease-out',
+            isSubItem ? 'eb-size-2' : 'eb-size-3.5',
+            status === 'current'
+              ? 'eb-scale-100 eb-opacity-100'
+              : 'eb-scale-0 eb-opacity-0'
+          )}
+        />
+        <span
+          key={status}
+          className={cn('eb-flex eb-items-center eb-justify-center', innerAnim)}
+        >
+          {renderInner()}
+        </span>
+      </div>
+    );
   };
 
   /** Uniform 6px dot indicator for sub-steps. Same size for every state
    *  so they always align horizontally in the list. */
   const getSubStepDot = (status: TimelineItemStatus) => {
-    const base = 'eb-size-1.5 eb-shrink-0 eb-rounded-full';
+    const base =
+      'eb-size-1.5 eb-shrink-0 eb-rounded-full eb-transition-colors eb-duration-300';
     switch (status) {
       case 'completed':
       case 'completed_disabled':
@@ -253,7 +266,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                 }
                 data-section-id={section.id}
                 className={cn(
-                  'eb-peer/menu-button eb-relative eb-flex eb-min-h-[2.5rem] eb-w-full eb-items-start eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[width,height,padding,color,background-color] eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
+                  'eb-peer/menu-button eb-relative eb-flex eb-min-h-[2.5rem] eb-w-full eb-items-start eb-gap-2 eb-overflow-hidden eb-border-0 eb-bg-transparent eb-p-2 eb-pl-4 eb-text-left eb-text-sm eb-outline-none eb-ring-inset eb-ring-ring eb-transition-[color,background-color] eb-duration-200 eb-ease-linear disabled:eb-pointer-events-none disabled:eb-opacity-50 [&>svg]:eb-size-4 [&>svg]:eb-shrink-0',
                   !disableInteraction &&
                     'eb-cursor-pointer hover:eb-bg-sidebar-accent hover:eb-text-sidebar-accent-foreground focus-visible:eb-ring-2 active:eb-bg-sidebar-accent active:eb-text-sidebar-accent-foreground',
                   disableInteraction &&
@@ -270,7 +283,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
               >
                 {/* Current section vertical line - only show if no steps or no current step */}
                 {shouldHighlightSection && (
-                  <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-primary" />
+                  <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-primary eb-duration-300 eb-animate-in eb-fade-in eb-slide-in-from-left-1" />
                 )}
 
                 <div className="eb-flex eb-items-center eb-gap-3">
@@ -354,8 +367,12 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                 : 'pending';
                               const currentStatus = sectionStatus;
 
+                              // Green once the section is active (in progress)
+                              // or completed and its first step has started.
                               const isGreen =
-                                currentStatus === 'completed' &&
+                                (currentStatus === 'current' ||
+                                  currentStatus === 'completed' ||
+                                  currentStatus === 'completed_disabled') &&
                                 (firstStepStatus === 'completed' ||
                                   firstStepStatus === 'current');
 
@@ -473,7 +490,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                         >
                           {/* Current step vertical line — hidden when a sub-step owns the highlight */}
                           {isCurrentStep && !hasActiveSubStep && (
-                            <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-primary" />
+                            <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-z-20 eb-w-1 eb-rounded-r eb-bg-primary eb-duration-300 eb-animate-in eb-fade-in eb-slide-in-from-left-1" />
                           )}
 
                           <div className="eb-ml-1 eb-flex eb-items-center eb-gap-3">
@@ -519,8 +536,14 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                     // Green solid line or gray dashed line
                                     (() => {
                                       const currentStepStatus = stepStatus;
+                                      // Green once the section is active (in
+                                      // progress) or completed and this first
+                                      // step has started.
                                       const isGreen =
-                                        sectionStatus === 'completed' &&
+                                        (sectionStatus === 'current' ||
+                                          sectionStatus === 'completed' ||
+                                          sectionStatus ===
+                                            'completed_disabled') &&
                                         (currentStepStatus === 'completed' ||
                                           currentStepStatus === 'current');
 
@@ -532,7 +555,11 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                 />
                               )}
 
-                              {getStatusIcon(stepStatus, true)}
+                              {/* Zoom + fade the step icon in as the steps
+                                  appear under the active section. */}
+                              <span className="eb-inline-flex eb-duration-300 eb-animate-in eb-fade-in eb-zoom-in-75">
+                                {getStatusIcon(stepStatus, true)}
+                              </span>
 
                               {/* Bottom connecting line to next step */}
                               {section.steps.findIndex(
@@ -681,7 +708,7 @@ export const OnboardingTimeline: React.FC<OnboardingTimelineProps> = ({
                                   }}
                                 >
                                   {isCurrentSub && (
-                                    <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-w-0.5 eb-rounded-r eb-bg-primary" />
+                                    <div className="eb-absolute eb-inset-y-0 eb-left-0 eb-w-0.5 eb-rounded-r eb-bg-primary eb-duration-300 eb-animate-in eb-fade-in eb-slide-in-from-left-1" />
                                   )}
                                   {getSubStepDot(resolvedSubStepStatus)}
                                   <span

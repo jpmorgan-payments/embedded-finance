@@ -3,8 +3,6 @@ import { useTranslationWithTokens } from '@/i18n';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertTriangle,
-  AlertTriangleIcon,
-  CheckIcon,
   ChevronDownIcon,
   InfoIcon,
   Loader2Icon,
@@ -30,8 +28,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Badge,
   Button,
-  Card,
-  CardTitle,
   Checkbox,
   Form,
   FormControl,
@@ -60,6 +56,7 @@ import {
   getOrganizationParty,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
+import { resolveDeltaModeConfig } from '@/core/OnboardingFlow/utils/deltaMode';
 import {
   getFlowProgress,
   getStepperValidations,
@@ -73,13 +70,58 @@ import {
 
 import { useTermsAndConditions } from '../TermsAndConditionsForm/useTermsAndConditions';
 
+// Sections shown (in flow order) on the Review & attest summary.
+const sectionIdsToReview: SectionScreenId[] = [
+  'personal-section',
+  'business-section',
+  'owners-section',
+  'additional-questions-section',
+];
+
+type FlowSection = ReturnType<typeof useFlowContext>['sections'][number];
+
+/**
+ * Accordion behaviour by delta review display mode:
+ * - collapsible (default): single-open, starts collapsed.
+ * - expanded: every section locked open in one tidy layout.
+ * - requireReview: multi-open + tracked so the attestation gate can require
+ *   the user to open each section first.
+ */
+function resolveReviewAccordionProps(args: {
+  reviewSectionsDisplay: string;
+  reviewableSectionIds: string[];
+  openAccordionSections: string[];
+  onValueChange: (value: string[]) => void;
+  defaultOpenSectionId: string | undefined;
+}): React.ComponentProps<typeof Accordion> {
+  const {
+    reviewSectionsDisplay,
+    reviewableSectionIds,
+    openAccordionSections,
+    onValueChange,
+    defaultOpenSectionId,
+  } = args;
+
+  if (reviewSectionsDisplay === 'expanded') {
+    return { type: 'multiple', value: reviewableSectionIds };
+  }
+  if (reviewSectionsDisplay === 'requireReview') {
+    return { type: 'multiple', value: openAccordionSections, onValueChange };
+  }
+  return {
+    type: 'single',
+    collapsible: true,
+    defaultValue: defaultOpenSectionId,
+  };
+}
+
 export const ReviewForm: React.FC<StepperStepProps> = ({
   handlePrev,
   handleNext,
   getPrevButtonLabel,
   getNextButtonLabel,
 }) => {
-  const { clientData, disclosureConfig } = useOnboardingContext();
+  const { clientData, disclosureConfig, deltaMode } = useOnboardingContext();
   const { t, tString } = useTranslationWithTokens([
     'onboarding-overview',
     'common',
@@ -100,6 +142,40 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     setIsFormSubmitting,
   } = useFlowContext();
 
+  // Delta review "section display" mode controls the review accordion. Only
+  // meaningful while delta mode is active.
+  const reviewSectionsDisplay = deltaModeActive
+    ? (resolveDeltaModeConfig(deltaMode)?.reviewSectionsDisplay ??
+      'collapsible')
+    : 'collapsible';
+  const requireSectionReview =
+    deltaModeActive && reviewSectionsDisplay === 'requireReview';
+
+  // Section IDs actually rendered in the review accordion (flow order).
+  const reviewableSectionIds = sections
+    .filter((section) => sectionIdsToReview.includes(section.id))
+    .map((section) => section.id);
+
+  // `requireReview`: track opened sections so the attestation stays disabled
+  // until the user has opened every section at least once.
+  const [openAccordionSections, setOpenAccordionSections] = useState<string[]>(
+    []
+  );
+  const [reviewedSectionIds, setReviewedSectionIds] = useState<Set<string>>(
+    () => new Set()
+  );
+  const handleAccordionValueChange = (value: string[]) => {
+    setOpenAccordionSections(value);
+    setReviewedSectionIds((prev) => {
+      const next = new Set(prev);
+      value.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+  const allSectionsReviewed =
+    reviewableSectionIds.length > 0 &&
+    reviewableSectionIds.every((id) => reviewedSectionIds.has(id));
+
   // Delta mode merges this Review step and the standalone Terms & conditions
   // step into a single "Review & attest" page: the review summary below plus
   // the terms documents and a combined accuracy + terms attestation. Submitting
@@ -107,6 +183,15 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   const deltaTerms = useTermsAndConditions({
     enabled: deltaModeActive,
     combineAccuracyAttestation: true,
+    additionalAttestationGate: requireSectionReview
+      ? allSectionsReviewed
+      : undefined,
+    additionalAttestationGateHelper: requireSectionReview
+      ? t(
+          'reviewAndAttest.deltaCombinedAttestation.reviewSectionsFirst',
+          'Open and review each section above before confirming that your information is complete and true.'
+        )
+      : undefined,
     onAfterKycSuccess: () => {
       // Clear the submitting flag before navigating so the overview (and any
       // subsequent screens) aren't left globally disabled.
@@ -212,13 +297,6 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     stableStepSchemas
   );
 
-  const sectionIdsToReview: SectionScreenId[] = [
-    'personal-section',
-    'business-section',
-    'owners-section',
-    'additional-questions-section',
-  ];
-
   const isMissingDetails = sectionIdsToReview
     .filter((id) => sections.some((section) => section.id === id))
     .some((sectionId) => {
@@ -232,6 +310,260 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
   const activeForm = (deltaModeActive
     ? deltaTerms.form
     : form) as unknown as UseFormReturn<Record<string, unknown>>;
+
+  // Accordion behaviour by delta review display mode:
+  // - collapsible (default): single-open, starts collapsed.
+  // - expanded: every section locked open in one tidy layout.
+  // - requireReview: multi-open + tracked so the attestation gate can require
+  //   the user to open each section first.
+  const reviewAccordionProps = resolveReviewAccordionProps({
+    reviewSectionsDisplay,
+    reviewableSectionIds,
+    openAccordionSections,
+    onValueChange: handleAccordionValueChange,
+    defaultOpenSectionId: reviewScreenOpenedSectionId ?? undefined,
+  });
+
+  // Section-content renderers — one per reviewable section kind. Each is a
+  // local closure so it captures `t`, `clientData`, `goTo`, etc. directly and
+  // is scored by SonarQube as its own small function.
+  const renderStepperReviewContent = (
+    section: FlowSection
+  ): React.ReactNode => {
+    const associatedPartyFilters =
+      section.stepperConfig?.associatedPartyFilters;
+    const sectionPartyData = associatedPartyFilters
+      ? clientData?.parties?.find(
+          (party) =>
+            party?.partyType === associatedPartyFilters.partyType &&
+            associatedPartyFilters.roles?.every((role) =>
+              party?.roles?.includes(role)
+            ) &&
+            party.active
+        )
+      : undefined;
+
+    return (
+      <div>
+        {section.id === 'business-section' && (
+          <GatewayReviewCard
+            clientData={clientData}
+            onChangeClick={() => goTo('gateway')}
+          />
+        )}
+        <StepsReviewCards
+          steps={section.stepperConfig?.steps ?? []}
+          partyData={sectionPartyData}
+          variant="plain"
+          hasPrecedingContent={section.id === 'business-section'}
+          onEditClick={(stepId) => {
+            goTo(section.id, {
+              initialStepperStepId: stepId,
+              editingPartyId: sectionPartyData?.id,
+            });
+          }}
+        />
+      </div>
+    );
+  };
+
+  const renderOwnersReviewContent = (): React.ReactNode => {
+    const goToOwners = () => {
+      goTo('owners-section');
+    };
+    return (
+      <div>
+        {activeOwners.length === 0 ? (
+          <div className="eb-flex eb-flex-col eb-items-center eb-gap-3 eb-py-6 eb-text-center">
+            <div className="eb-flex eb-size-9 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary">
+              <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
+            </div>
+            <p className="eb-text-sm eb-text-muted-foreground">
+              {t(
+                'reviewAndAttest.noStakeholders',
+                'No stakeholders added yet.'
+              )}
+            </p>
+            <Button
+              variant="default"
+              type="button"
+              size="sm"
+              className="eb-bg-warning eb-text-sm hover:eb-bg-warning/90"
+              onClick={goToOwners}
+            >
+              <PencilIcon />
+              {t('common:add', 'Add')}
+            </Button>
+          </div>
+        ) : (
+          activeOwners.map((owner) => {
+            const jobTitle = asPlainString(owner.individualDetails?.jobTitle);
+            const jobTitleDescription = asPlainString(
+              owner.individualDetails?.jobTitleDescription
+            );
+            const ownerHasMissingDetails =
+              !!owner.id && !ownersValidation[owner.id].allStepsValid;
+            return (
+              <div
+                key={owner.id}
+                className="eb-border-t eb-border-border eb-py-4 first:eb-border-t-0 first:eb-pt-0"
+              >
+                <div className="eb-space-y-1">
+                  <p className="eb-text-base eb-font-semibold eb-tracking-tight">
+                    {getPartyName(owner)}
+                  </p>
+                  <p className="eb-text-sm eb-text-muted-foreground">
+                    {jobTitle === 'Other'
+                      ? `${tString('jobTitles.Other', { defaultValue: 'Other' })} - ${jobTitleDescription}`
+                      : t(`jobTitles.${jobTitle}`, {
+                          defaultValue: jobTitle,
+                        })}
+                  </p>
+                  <div className="eb-flex eb-flex-wrap eb-gap-2 eb-pt-1">
+                    <Badge
+                      variant="outline"
+                      className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
+                    >
+                      {t('reviewAndAttest.owner', 'Owner')}
+                    </Badge>
+                    {owner.roles?.includes('CONTROLLER') && (
+                      <Badge
+                        variant="outline"
+                        className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
+                      >
+                        {t('reviewAndAttest.controller', 'Controller')}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                {ownerHasMissingDetails && (
+                  <p className="eb-mt-2 eb-text-sm eb-text-warning">
+                    {t(
+                      'reviewAndAttest.individualMissingDetails',
+                      '\u24d8 This individual is missing some details.'
+                    )}
+                  </p>
+                )}
+              </div>
+            );
+          })
+        )}
+        {activeOwners.length > 0 && (
+          <div className="eb-border-t eb-border-border eb-pt-4">
+            <Button
+              variant="outline"
+              type="button"
+              size="sm"
+              className="eb-text-sm"
+              onClick={goToOwners}
+            >
+              <PencilIcon />
+              {t('reviewAndAttest.manageOwners', 'Manage owners')}
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderQuestionsReviewContent = (): React.ReactNode => {
+    const renderQuestionReview = (q: QuestionResponse) => {
+      const qText = q.description?.split('\n').map((line, idx) => (
+        <p
+          key={idx}
+          className={cn({
+            'eb-ml-4': idx > 0,
+          })}
+        >
+          {line}
+        </p>
+      ));
+
+      if (q.id && clientData?.outstanding.questionIds?.includes(q.id)) {
+        return (
+          <div className="eb-space-y-0.5">
+            <div className="eb-text-sm eb-font-medium">{qText}</div>
+            <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
+              <TriangleAlertIcon className="eb-size-4" />
+              <p className="eb-italic">
+                {t('reviewAndAttest.fieldIsMissing', 'This field is missing')}
+              </p>
+            </div>
+          </div>
+        );
+      }
+
+      const response = existingQuestionResponses?.find(
+        (r) => r.questionId === q.id
+      );
+
+      return (
+        <div className="eb-space-y-0.5">
+          <div className="eb-text-sm eb-font-medium">{qText}</div>
+          <div>
+            <b>{t('reviewAndAttest.response')}:</b>{' '}
+            {(response && formatQuestionResponse(response)) || (
+              <span className="eb-italic eb-text-muted-foreground">
+                {t('common:empty')}
+              </span>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // Recursively render visible sub-questions to arbitrary depth, matching
+    // OperationalDetailsForm's tree rendering.
+    const renderSubQuestionsReview = (
+      parentId: string | undefined
+    ): React.ReactNode => {
+      if (!parentId) return null;
+      const childQuestions = getChildQuestions(parentId, allQuestions).filter(
+        isQuestionVisible
+      );
+
+      return childQuestions.map((subQuestion) => (
+        <Fragment key={subQuestion.id}>
+          {renderQuestionReview(subQuestion)}
+          {renderSubQuestionsReview(subQuestion.id)}
+        </Fragment>
+      ));
+    };
+
+    return (
+      <div className="eb-space-y-3">
+        <div className="eb-flex eb-items-start eb-justify-between">
+          <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
+            {t(
+              'reviewAndAttest.operationalDetailsHeading',
+              'Operational details'
+            )}
+          </h2>
+          <Button
+            variant="ghost"
+            type="button"
+            size="sm"
+            className="eb-h-8 eb-p-2 eb-text-sm"
+            onClick={() => {
+              goTo('additional-questions-section');
+            }}
+          >
+            <PencilIcon />
+            {t('common:change', 'Change')}
+          </Button>
+        </div>
+        {allQuestions
+          .filter((question) => isTopLevelQuestion(question, allQuestions))
+          .filter(isQuestionVisible)
+          .map((question) => (
+            <Fragment key={question.id}>
+              {renderQuestionReview(question)}
+              {renderSubQuestionsReview(question.id)}
+            </Fragment>
+          ))}
+      </div>
+    );
+  };
 
   return (
     <Form {...activeForm}>
@@ -286,10 +618,8 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
           )}
           <div>
             <Accordion
-              type="single"
-              collapsible
-              className="eb-w-full"
-              defaultValue={reviewScreenOpenedSectionId ?? undefined}
+              {...reviewAccordionProps}
+              className="eb-w-full eb-space-y-3"
             >
               {sections
                 .filter((section) => sectionIdsToReview.includes(section.id))
@@ -302,302 +632,89 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                     section.type === 'stepper' &&
                     section.id !== 'review-attest-section'
                   ) {
-                    const associatedPartyFilters =
-                      section.stepperConfig?.associatedPartyFilters;
-                    const sectionPartyData = associatedPartyFilters
-                      ? clientData?.parties?.find(
-                          (party) =>
-                            party?.partyType ===
-                              associatedPartyFilters.partyType &&
-                            associatedPartyFilters.roles?.every((role) =>
-                              party?.roles?.includes(role)
-                            ) &&
-                            party.active
-                        )
-                      : undefined;
-
-                    content = (
-                      <div className="eb-space-y-4">
-                        {section.id === 'business-section' && (
-                          <GatewayReviewCard
-                            clientData={clientData}
-                            onChangeClick={() => goTo('gateway')}
-                          />
-                        )}
-                        <StepsReviewCards
-                          steps={section.stepperConfig.steps}
-                          partyData={sectionPartyData}
-                          onEditClick={(stepId) => {
-                            goTo(section.id, {
-                              initialStepperStepId: stepId,
-                              editingPartyId: sectionPartyData?.id,
-                            });
-                          }}
-                        />
-                      </div>
-                    );
+                    content = renderStepperReviewContent(section);
                   } else if (section.id === 'owners-section') {
-                    const goToOwners = () => {
-                      goTo('owners-section');
-                    };
-                    content = (
-                      <Card className="eb-mt-6 eb-p-4">
-                        <div className="eb-flex eb-items-start eb-justify-between">
-                          <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
-                            {t('reviewAndAttest.owners', 'Owners')}
-                          </h2>
-                          {isSectionCompleted ? (
-                            <Button
-                              variant="ghost"
-                              type="button"
-                              size="sm"
-                              className="eb-h-8 eb-p-2 eb-text-sm"
-                              onClick={goToOwners}
-                            >
-                              <PencilIcon />
-                              {t('common:change', 'Change')}
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="default"
-                              type="button"
-                              size="sm"
-                              className="eb-bg-warning eb-text-sm hover:eb-bg-warning/90"
-                              onClick={goToOwners}
-                            >
-                              <PencilIcon />
-                              {t('common:add', 'Add')}
-                            </Button>
-                          )}
-                        </div>
-                        <div className="eb-mt-4 eb-space-y-4">
-                          {activeOwners.length === 0 && (
-                            <Card className="eb-mt-6 eb-p-4 eb-shadow-md">
-                              <div className="eb-flex eb-flex-col eb-items-center eb-space-y-3">
-                                <div className="eb-flex eb-h-8 eb-w-8 eb-items-center eb-justify-center eb-rounded-full eb-bg-primary eb-stroke-white">
-                                  <UsersIcon className="eb-size-4 eb-fill-white eb-stroke-white" />
-                                </div>
-                                <p className="eb-text-sm">
-                                  {t(
-                                    'reviewAndAttest.noStakeholders',
-                                    'No stakeholders added yet.'
-                                  )}
-                                </p>
-                              </div>
-                            </Card>
-                          )}
-
-                          {activeOwners.map((owner) => {
-                            const jobTitle = asPlainString(
-                              owner.individualDetails?.jobTitle
-                            );
-                            const jobTitleDescription = asPlainString(
-                              owner.individualDetails?.jobTitleDescription
-                            );
-                            return (
-                              <Card
-                                key={owner.id}
-                                className="eb-space-y-4 eb-rounded-lg eb-border eb-p-4"
-                              >
-                                <div className="eb-space-y-1">
-                                  <CardTitle className="eb-text-xl eb-font-bold eb-tracking-tight">
-                                    {getPartyName(owner)}
-                                  </CardTitle>
-                                  <p className="eb-text-sm eb-font-medium">
-                                    {jobTitle === 'Other'
-                                      ? `${tString('jobTitles.Other', { defaultValue: 'Other' })} - ${jobTitleDescription}`
-                                      : t(`jobTitles.${jobTitle}`, {
-                                          defaultValue: jobTitle,
-                                        })}
-                                  </p>
-                                  <div className="eb-flex eb-gap-2 eb-pt-2">
-                                    <Badge
-                                      variant="outline"
-                                      className="eb-border-transparent eb-bg-[#EDF4FF] eb-text-[#355FA1]"
-                                    >
-                                      {t('reviewAndAttest.owner', 'Owner')}
-                                    </Badge>
-                                    {owner.roles?.includes('CONTROLLER') && (
-                                      <Badge
-                                        variant="outline"
-                                        className="eb-border-transparent eb-bg-[#FFEBD9] eb-text-[#8F521F]"
-                                      >
-                                        {t(
-                                          'reviewAndAttest.controller',
-                                          'Controller'
-                                        )}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                {owner.id &&
-                                  !ownersValidation[owner.id].allStepsValid && (
-                                    <p className="eb-mt-1 eb-text-sm eb-font-normal eb-text-orange-500">
-                                      {t(
-                                        'reviewAndAttest.individualMissingDetails',
-                                        '\u24d8 This individual is missing some details.'
-                                      )}
-                                    </p>
-                                  )}
-                              </Card>
-                            );
-                          })}
-                        </div>
-                      </Card>
-                    );
+                    content = renderOwnersReviewContent();
                   } else if (section.id === 'additional-questions-section') {
-                    const renderQuestionReview = (q: QuestionResponse) => {
-                      const qText = q.description
-                        ?.split('\n')
-                        .map((line, idx) => (
-                          <p
-                            key={idx}
-                            className={cn({
-                              'eb-ml-4': idx > 0,
-                            })}
-                          >
-                            {line}
-                          </p>
-                        ));
-
-                      if (
-                        q.id &&
-                        clientData?.outstanding.questionIds?.includes(q.id)
-                      ) {
-                        return (
-                          <div className="eb-space-y-0.5">
-                            <div className="eb-text-sm eb-font-medium">
-                              {qText}
-                            </div>
-                            <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
-                              <TriangleAlertIcon className="eb-size-4" />
-                              <p className="eb-italic">
-                                {t(
-                                  'reviewAndAttest.fieldIsMissing',
-                                  'This field is missing'
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        );
-                      }
-
-                      const response = existingQuestionResponses?.find(
-                        (r) => r.questionId === q.id
-                      );
-
-                      return (
-                        <div className="eb-space-y-0.5">
-                          <div className="eb-text-sm eb-font-medium">
-                            {qText}
-                          </div>
-                          <div>
-                            <b>{t('reviewAndAttest.response')}:</b>{' '}
-                            {(response && formatQuestionResponse(response)) || (
-                              <span className="eb-italic eb-text-muted-foreground">
-                                {t('common:empty')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    };
-
-                    // Recursively render visible sub-questions to arbitrary
-                    // depth, matching OperationalDetailsForm's tree rendering.
-                    const renderSubQuestionsReview = (
-                      parentId: string | undefined
-                    ): React.ReactNode => {
-                      if (!parentId) return null;
-                      const childQuestions = getChildQuestions(
-                        parentId,
-                        allQuestions
-                      ).filter(isQuestionVisible);
-
-                      return childQuestions.map((subQuestion) => (
-                        <Fragment key={subQuestion.id}>
-                          {renderQuestionReview(subQuestion)}
-                          {renderSubQuestionsReview(subQuestion.id)}
-                        </Fragment>
-                      ));
-                    };
-
-                    content = (
-                      <Card className="eb-mt-6 eb-space-y-3 eb-rounded-lg eb-border eb-p-4">
-                        <div className="eb-flex eb-items-start eb-justify-between">
-                          <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
-                            {t(
-                              'reviewAndAttest.operationalDetailsHeading',
-                              'Operational details'
-                            )}
-                          </h2>
-                          <Button
-                            variant="ghost"
-                            type="button"
-                            size="sm"
-                            className="eb-h-8 eb-p-2 eb-text-sm"
-                            onClick={() => {
-                              goTo('additional-questions-section');
-                            }}
-                          >
-                            <PencilIcon />
-                            {t('common:change', 'Change')}
-                          </Button>
-                        </div>
-                        {allQuestions
-                          .filter((question) =>
-                            isTopLevelQuestion(question, allQuestions)
-                          )
-                          .filter(isQuestionVisible)
-                          .map((question) => (
-                            <Fragment key={question.id}>
-                              {renderQuestionReview(question)}
-                              {renderSubQuestionsReview(question.id)}
-                            </Fragment>
-                          ))}
-                      </Card>
-                    );
+                    content = renderQuestionsReviewContent();
                   }
+
+                  const isExpandedLayout = reviewSectionsDisplay === 'expanded';
+                  const isSectionReviewed = reviewedSectionIds.has(section.id);
+                  // "Not reviewed" (neutral) applies only to a section that is
+                  // complete but not yet opened in requireReview. An incomplete
+                  // section always surfaces "Missing details" so the user can't
+                  // overlook it, regardless of review state.
+                  const showNotReviewed =
+                    requireSectionReview &&
+                    !isSectionReviewed &&
+                    isSectionCompleted;
+
+                  const statusBadgeClass = 'eb-border-transparent eb-text-xs';
+                  const statusBadge = !isSectionCompleted ? (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        statusBadgeClass,
+                        'eb-bg-warning-accent eb-text-warning'
+                      )}
+                    >
+                      {t('reviewAndAttest.missingDetails', 'Missing details')}
+                    </Badge>
+                  ) : showNotReviewed ? (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        statusBadgeClass,
+                        'eb-bg-muted eb-text-muted-foreground'
+                      )}
+                    >
+                      {t('reviewAndAttest.notReviewed', 'Not reviewed')}
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        statusBadgeClass,
+                        'eb-bg-success-accent eb-text-success'
+                      )}
+                    >
+                      {t('reviewAndAttest.complete', 'Complete')}
+                    </Badge>
+                  );
 
                   return (
                     <AccordionItem
                       key={section.id}
                       value={section.id}
-                      className={cn({
-                        'eb-border-success': isSectionCompleted,
-                        'eb-border-warning': !isSectionCompleted,
-                      })}
+                      className={cn(
+                        'eb-overflow-hidden eb-rounded-lg eb-border eb-bg-card',
+                        !isSectionCompleted
+                          ? 'eb-border-warning'
+                          : showNotReviewed
+                            ? 'eb-border-border'
+                            : 'eb-border-success'
+                      )}
                     >
                       <AccordionTrigger
-                        className={cn({
-                          'eb-bg-success-accent': isSectionCompleted,
-                          'eb-bg-warning-accent': !isSectionCompleted,
-                        })}
+                        className={cn(
+                          'eb-px-4 hover:eb-no-underline data-[state=open]:eb-border-b data-[state=open]:eb-border-border',
+                          isExpandedLayout
+                            ? 'eb-cursor-default'
+                            : 'hover:eb-bg-muted/50'
+                        )}
                       >
-                        <ChevronDownIcon className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-transition-transform eb-duration-200" />
-                        <div className="eb-ml-2 eb-text-sm">
+                        {!isExpandedLayout && (
+                          <ChevronDownIcon className="eb-mr-3 eb-size-4 eb-shrink-0 eb-text-muted-foreground eb-transition-transform eb-duration-200" />
+                        )}
+                        <span className="eb-text-sm eb-font-semibold eb-text-foreground">
                           {t(section.sectionConfig.labelKey as any)}
-                        </div>
-                        <div className="eb-ml-auto eb-mr-2 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-font-normal eb-text-muted-foreground">
-                          {isSectionCompleted ? (
-                            <>
-                              <p>{t('reviewAndAttest.complete', 'Complete')}</p>
-                              <CheckIcon className="eb-size-4 eb-text-success" />
-                            </>
-                          ) : (
-                            <>
-                              <p>
-                                {t(
-                                  'reviewAndAttest.missingDetails',
-                                  'Missing details'
-                                )}
-                              </p>
-                              <AlertTriangleIcon className="eb-size-4 eb-text-warning" />
-                            </>
-                          )}
+                        </span>
+                        <div className="eb-ml-auto eb-flex eb-items-center">
+                          {statusBadge}
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="eb-mt-4">
+                      <AccordionContent className="eb-px-4 eb-pb-4 eb-pt-4">
                         {content}
                       </AccordionContent>
                     </AccordionItem>
@@ -765,7 +882,7 @@ const GatewayReviewCard: React.FC<{
   );
 
   return (
-    <Card className="eb-rounded-lg eb-border eb-p-4">
+    <div className="eb-pb-4">
       <div className="eb-flex eb-items-start eb-justify-between">
         <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
           {t('reviewAndAttest.businessType', 'Business type')}
@@ -785,7 +902,7 @@ const GatewayReviewCard: React.FC<{
       <div className="eb-mt-3 eb-space-y-2">
         <div className="eb-space-y-0.5">
           <p className="eb-text-label eb-font-label eb-text-label-foreground">
-            {t('fields.organizationTypeHierarchy.label', 'Organization type')}
+            {t('fields.organizationTypeHierarchy.label', 'Legal structure')}
           </p>
           <p className="eb-text-sm">
             {t(`organizationTypes.${orgType}`, orgType)}
@@ -793,32 +910,36 @@ const GatewayReviewCard: React.FC<{
         </div>
 
         {ptcValue !== 'none' && publiclyTraded && (
-          <div className="eb-space-y-0.5">
-            <p className="eb-text-label eb-font-label eb-text-label-foreground">
-              {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
-            </p>
-            <p className="eb-text-sm">
-              {ptcDisplayValue}
-              {publiclyTraded.tickerSymbol && (
-                <>
-                  {' · '}
+          <>
+            <div className="eb-space-y-0.5">
+              <p className="eb-text-label eb-font-label eb-text-label-foreground">
+                {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}
+              </p>
+              <p className="eb-text-sm">{ptcDisplayValue}</p>
+            </div>
+
+            {publiclyTraded.tickerSymbol && (
+              <div className="eb-space-y-0.5">
+                <p className="eb-text-label eb-font-label eb-text-label-foreground">
                   {t('fields.tickerSymbol.label', 'Ticker symbol')}
-                  {': '}
-                  {publiclyTraded.tickerSymbol}
-                </>
-              )}
-              {(publiclyTraded.stockExchangeName ||
-                publiclyTraded.stockExchange) && (
-                <>
-                  {' · '}
+                </p>
+                <p className="eb-text-sm">{publiclyTraded.tickerSymbol}</p>
+              </div>
+            )}
+
+            {(publiclyTraded.stockExchangeName ||
+              publiclyTraded.stockExchange) && (
+              <div className="eb-space-y-0.5">
+                <p className="eb-text-label eb-font-label eb-text-label-foreground">
                   {t('fields.stockExchange.label', 'Stock exchange')}
-                  {': '}
+                </p>
+                <p className="eb-text-sm">
                   {publiclyTraded.stockExchangeName ||
                     publiclyTraded.stockExchange}
-                </>
-              )}
-            </p>
-          </div>
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {ptcValue === 'none' &&
@@ -834,6 +955,6 @@ const GatewayReviewCard: React.FC<{
             </div>
           )}
       </div>
-    </Card>
+    </div>
   );
 };
