@@ -42,6 +42,7 @@ Delta mode is **active** only when all of the following hold:
 
 - Host set `deltaMode` to enabled (`true` or `{ enabled: true }`).
 - A client ID is present and client data has loaded.
+- A **controller party exists** with details. Delta is a "fill in the last few fields" path; if the controller party is absent (or has no `individualDetails`), the entire controller section is still outstanding, so the pending-field count is treated as `Infinity` and the client is ineligible.
 - Organization type is known (so the flow would otherwise land on overview, not gateway).
 - Doc-upload-only mode is **not** enabled.
 - PTC gateway is **not** required (unanswered publicly-traded status when PTC is enabled).
@@ -55,13 +56,14 @@ If the host enables the flag but the client has too many pending fields, the flo
 
 Count without running full Zod schemas (eligibility must be safe outside React form context):
 
+- **If there is no controller party (or it has no details), the count is `Infinity`** — the whole controller section is outstanding, which is more than a delta's worth of work.
 - Each **top-level** ID in `client.outstanding.questionIds` — conditional sub-questions are **excluded** (a child only applies once its parent is answered a triggering way, so counting it up front over-states the work). Parentage isn't in the client payload, so the outstanding question definitions are fetched and a question is treated as a child when its own `parentQuestionId` is set or another question lists it under `subQuestions`. If the definitions haven't loaded, every outstanding ID counts (safe fallback).
-- Missing US business EIN (`organizationIds` empty on US org)
-- Missing US controller tax ID (`individualIds` empty on US controller)
-- Missing controller `birthDate`
-- For each **non-controller** active beneficial owner: missing US tax ID and/or missing `birthDate`
+- Missing **organization** fields: US business EIN (`organizationIds`), business `addresses`, `industry`, `organizationDescription`, `yearOfFormation`.
+- Missing **controller** fields (and, per active non-controller beneficial owner, the same individual fields): US tax ID (`individualIds`), `birthDate`, `firstName`, `lastName`, residential `addresses`.
 
-Owners who are also the controller are counted via the controller rules above (not double-counted as a separate owner for tax ID / birthdate).
+The counted fields are declared in `partyFieldMap` via `deltaEligibility` (fieldMap is the single source of truth) — so they track the fields the panel actually renders, rather than a hard-coded shortlist. `usOnly` flags (EIN, tax ID) are only counted for US parties.
+
+Owners who are also the controller are counted via the controller rules above (not double-counted as a separate owner).
 
 ---
 
@@ -125,7 +127,7 @@ So **any** field that the normal onboarding step schemas treat as missing/invali
 
 Outstanding **operational questions** still come from `client.outstanding.questionIds` (plus the question tree), not from party Zod.
 
-**Eligibility counting** (`countPendingOnboardingFields`) remains a lighter heuristic (questions + EIN + controller/owner tax ID + birthDate) used only to decide whether delta mode activates. Panel contents are the full Zod-driven set.
+**Eligibility counting** (`countPendingOnboardingFields`) remains a lighter heuristic than the panel — it presence-checks the `deltaEligibility` fields (questions + EIN, tax ID, birthDate, names, addresses, industry, description, year of formation) and treats a missing controller as `Infinity` — used only to decide whether delta mode activates. Panel contents are the full Zod-driven set (so a _partially_ filled composite like an address can still surface more granular issues in the panel than the presence check counts).
 
 ### 5.3 Grouping
 

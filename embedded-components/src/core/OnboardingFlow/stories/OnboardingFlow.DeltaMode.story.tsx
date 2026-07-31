@@ -188,6 +188,33 @@ function createDeltaModeBirthdateAndOwnerSsnsClient(
   return client;
 }
 
+/**
+ * Rich LLC client with NO controller party (organization + a beneficial owner
+ * only). Delta mode is intentionally ineligible when the controller is missing
+ * — the entire controller section is still outstanding, which is more than a
+ * delta's worth of work — so seeding this client makes the flow fall back to the
+ * normal (non-delta) onboarding path.
+ * Keep non-exported — Storybook CSF treats named exports as stories.
+ */
+function createDeltaModeMissingControllerClient(
+  clientId = DEFAULT_CLIENT_ID
+): ClientResponse {
+  const client = cloneDeep(mockClientNew);
+  client.id = clientId;
+  client.outstanding = {
+    ...client.outstanding,
+    questionIds: ['30005', '30158', '30162'],
+    partyIds: [],
+    partyRoles: [],
+  };
+  client.questionResponses = [];
+  // Remove the controller party entirely so no CONTROLLER role exists.
+  client.parties = (client.parties ?? []).filter(
+    (party) => !party.roles?.includes('CONTROLLER')
+  );
+  return client;
+}
+
 const meta: Meta<OnboardingFlowStoryArgs> = {
   title: 'Core/OnboardingFlow/Delta mode',
   component: OnboardingFlowTemplate,
@@ -294,6 +321,30 @@ export const BirthdateAndOwnerSsns: Story = {
     () =>
       resetAndSeedClient(
         createDeltaModeBirthdateAndOwnerSsnsClient(),
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
+/**
+ * **No controller (delta ineligible → normal flow)**
+ *
+ * The client has no controller party, so the whole controller section is still
+ * outstanding. Delta mode is deliberately NOT eligible here — a missing
+ * controller is more than a delta's worth of work — so the flow falls back to
+ * the standard step-by-step onboarding instead of the distilled delta review,
+ * even though `deltaMode` is enabled.
+ */
+export const MissingController: Story = {
+  name: 'No controller (falls back to normal flow)',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        createDeltaModeMissingControllerClient(),
         DEFAULT_CLIENT_ID
       ),
   ],
