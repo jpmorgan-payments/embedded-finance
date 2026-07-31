@@ -237,6 +237,7 @@ export const partyFieldMap: PartyFieldMap = {
   yearOfFormation: {
     path: 'organizationDetails.yearOfFormation',
     presentation: { type: 'text', maxLength: 4 },
+    deltaEligibility: { party: 'organization' },
     baseRule: {
       display: 'visible',
       required: true,
@@ -263,6 +264,7 @@ export const partyFieldMap: PartyFieldMap = {
   organizationDescription: {
     path: 'organizationDetails.organizationDescription',
     presentation: { type: 'textarea' },
+    deltaEligibility: { party: 'organization' },
     baseRule: {
       display: 'visible',
       required: true,
@@ -272,6 +274,7 @@ export const partyFieldMap: PartyFieldMap = {
   industry: {
     path: 'organizationDetails.industry',
     presentation: { type: 'industrySelect' },
+    deltaEligibility: { party: 'organization' },
     baseRule: {
       display: 'visible',
       required: true,
@@ -700,6 +703,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   controllerFirstName: {
     path: 'individualDetails.firstName',
+    deltaEligibility: { party: 'individual' },
     baseRule: { display: 'visible', required: true, defaultValue: '' },
     conditionalRules: [
       {
@@ -728,6 +732,7 @@ export const partyFieldMap: PartyFieldMap = {
   },
   controllerLastName: {
     path: 'individualDetails.lastName',
+    deltaEligibility: { party: 'individual' },
     baseRule: { display: 'visible', required: true, defaultValue: '' },
     conditionalRules: [
       {
@@ -1024,6 +1029,7 @@ export const partyFieldMap: PartyFieldMap = {
   individualAddress: {
     path: 'individualDetails.addresses',
     presentation: { customEditor: 'address' },
+    deltaEligibility: { party: 'individual' },
     toStringFn: (address) => {
       if (!address) {
         return undefined;
@@ -1121,6 +1127,7 @@ export const partyFieldMap: PartyFieldMap = {
   organizationAddress: {
     path: 'organizationDetails.addresses',
     presentation: { customEditor: 'address' },
+    deltaEligibility: { party: 'organization' },
     toStringFn: (address) => {
       if (!address) {
         return undefined;

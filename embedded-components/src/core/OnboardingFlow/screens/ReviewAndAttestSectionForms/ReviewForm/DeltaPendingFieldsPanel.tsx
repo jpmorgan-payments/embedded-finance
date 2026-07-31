@@ -189,6 +189,44 @@ function expandGroupFieldsWithReveals(
 }
 
 /**
+ * Whether an error / still-invalid `formPath` belongs to one of a group's
+ * rendered fields. An exact match always counts. Additionally, composite
+ * editors (address / identity) render the WHOLE object, so any leaf under the
+ * composite root belongs to it — even leaves that weren't invalid in the
+ * GET-time baseline. Without this prefix match a leaf the user leaves/introduces
+ * blank later (e.g. an address missing only `state`, or clearing `city`) would
+ * be dropped, letting the delta form report the group complete and save an
+ * invalid composite.
+ */
+function formPathBelongsToFields(
+  formPath: string,
+  fields: PendingField[]
+): boolean {
+  return fields.some((field) => {
+    if (field.formPath === formPath) {
+      return true;
+    }
+    const customEditor =
+      partyFieldMap[field.fieldKey as keyof typeof partyFieldMap]?.presentation
+        ?.customEditor;
+    if (customEditor !== 'address' && customEditor !== 'identity') {
+      return false;
+    }
+    const rootIndex = field.formPath.indexOf(field.fieldKey);
+    if (rootIndex < 0) {
+      return false;
+    }
+    const compositeRoot = field.formPath.slice(
+      0,
+      rootIndex + field.fieldKey.length
+    );
+    return (
+      formPath === compositeRoot || formPath.startsWith(`${compositeRoot}.`)
+    );
+  });
+}
+
+/**
  * Resolve, for a single baseline pending group, which of its field form-paths
  * are still invalid under the live overlay. `resolved` is false when validation
  * could not run (missing party/step) — callers then treat all fields as
@@ -346,7 +384,9 @@ export function computeCompletedDeltaPendingGroupKeys(args: {
 
     if (
       resolved &&
-      effectiveFields.every((field) => !remainingPaths.has(field.formPath)) &&
+      ![...remainingPaths].some((remainingPath) =>
+        formPathBelongsToFields(remainingPath, effectiveFields)
+      ) &&
       blurred
     ) {
       complete.add(group.key);
@@ -398,7 +438,10 @@ function countGroupFieldProgress(args: {
   for (const leaves of leavesByKey.values()) {
     total += 1;
     const valueComplete =
-      resolved && leaves.every((f) => !remainingPaths.has(f.formPath));
+      resolved &&
+      ![...remainingPaths].some((remainingPath) =>
+        formPathBelongsToFields(remainingPath, leaves)
+      );
     const blurred =
       touchedFields === undefined ||
       leaves.every((f) =>
@@ -663,10 +706,10 @@ function appendGroupFieldErrors(args: {
       ? `owners.${ownerKey}.${mapped.formPath}`
       : mapped.formPath;
     // Only surface errors on fields the delta panel actually renders for this
-    // group (avoids attaching messages to non-editable paths).
-    const belongsToGroup = effectiveFields.some(
-      (field) => field.formPath === formPath
-    );
+    // group (avoids attaching messages to non-editable paths). Composite
+    // editors count any leaf under their root, so a newly-blank leaf still
+    // blocks submit.
+    const belongsToGroup = formPathBelongsToFields(formPath, effectiveFields);
     if (belongsToGroup && !seen.has(formPath)) {
       seen.add(formPath);
       errors.push({ formPath, message: issue.message ?? '' });
@@ -2125,14 +2168,20 @@ export function useDeltaPendingFieldsForm(sections: SectionScreenConfig[]) {
       // schema for the group that field belongs to. Full passes (handleSubmit /
       // trigger-all) have `names === undefined` and validate every pending
       // group. Question-only revalidations match no party group → no sweep.
+      // Composite editors (address / identity) register leaf field names
+      // (`individualAddress.city`, …) while a group's pending field may be the
+      // composite ROOT (`individualAddress`, when the whole address was absent
+      // at GET); `formPathBelongsToFields` matches either way so the group isn't
+      // silently skipped — which previously let an empty address save.
       const { names } = options;
       const groupsToValidate = names
-        ? d.baselinePendingGroups.filter((group) =>
-            expandGroupFieldsWithReveals(group.fields, {
+        ? d.baselinePendingGroups.filter((group) => {
+            const fields = expandGroupFieldsWithReveals(group.fields, {
               ...d.savedFormValues,
               ...values,
-            }).some((field) => names.includes(field.formPath))
-          )
+            });
+            return names.some((name) => formPathBelongsToFields(name, fields));
+          })
         : d.baselinePendingGroups;
 
       const partyErrors =

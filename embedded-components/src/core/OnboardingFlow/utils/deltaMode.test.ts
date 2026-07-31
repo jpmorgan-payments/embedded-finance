@@ -12,6 +12,46 @@ import {
   resolveDeltaModeConfig,
 } from './deltaMode';
 
+// Complete party details so fixtures start delta-eligible (only what a test
+// explicitly clears should count as pending). Covers every deltaEligibility
+// field: EIN/tax ID, birthDate, names, addresses, and core business details.
+const completeOrgDetails = {
+  organizationType: 'LIMITED_LIABILITY_COMPANY',
+  countryOfFormation: 'US',
+  organizationIds: [{ idType: 'EIN', issuer: 'US', value: '123456789' }],
+  yearOfFormation: '2020',
+  organizationDescription: 'A test company that sells widgets.',
+  industry: { codeType: 'NAICS', code: '541211' },
+  addresses: [
+    {
+      addressType: 'BUSINESS_ADDRESS',
+      addressLines: ['123 Main St'],
+      city: 'New York',
+      state: 'NY',
+      postalCode: '10001',
+      country: 'US',
+    },
+  ],
+};
+
+const completeIndividualDetails = {
+  countryOfResidence: 'US',
+  firstName: 'Ada',
+  lastName: 'Byron',
+  birthDate: '1990-01-01',
+  individualIds: [{ idType: 'SSN', issuer: 'US', value: '123456789' }],
+  addresses: [
+    {
+      addressType: 'RESIDENTIAL_ADDRESS',
+      addressLines: ['456 Elm St'],
+      city: 'New York',
+      state: 'NY',
+      postalCode: '10002',
+      country: 'US',
+    },
+  ],
+};
+
 const richClient = {
   id: 'client-1',
   status: 'NEW',
@@ -21,22 +61,14 @@ const richClient = {
       partyType: 'ORGANIZATION',
       roles: ['CLIENT'],
       active: true,
-      organizationDetails: {
-        organizationType: 'LIMITED_LIABILITY_COMPANY',
-        countryOfFormation: 'US',
-        organizationIds: [{ idType: 'EIN', issuer: 'US', value: '123456789' }],
-      },
+      organizationDetails: completeOrgDetails,
     },
     {
       id: 'ctrl-1',
       partyType: 'INDIVIDUAL',
       roles: ['CONTROLLER'],
       active: true,
-      individualDetails: {
-        countryOfResidence: 'US',
-        birthDate: '1990-01-01',
-        individualIds: [{ idType: 'SSN', issuer: 'US', value: '123456789' }],
-      },
+      individualDetails: completeIndividualDetails,
     },
   ],
   outstanding: {
@@ -58,24 +90,22 @@ const missingTaxIdsClient = {
       partyType: 'ORGANIZATION',
       roles: ['CLIENT'],
       active: true,
-      organizationDetails: {
-        organizationType: 'LIMITED_LIABILITY_COMPANY',
-        countryOfFormation: 'US',
-        organizationIds: [],
-      },
+      organizationDetails: { ...completeOrgDetails, organizationIds: [] },
     },
     {
       id: 'ctrl-1',
       partyType: 'INDIVIDUAL',
       roles: ['CONTROLLER'],
       active: true,
-      individualDetails: {
-        countryOfResidence: 'US',
-        birthDate: '1990-01-01',
-        individualIds: [],
-      },
+      individualDetails: { ...completeIndividualDetails, individualIds: [] },
     },
   ],
+} as unknown as ClientResponse;
+
+// Same rich client but with NO controller party (org only).
+const noControllerClient = {
+  ...richClient,
+  parties: [richClient.parties![0]],
 } as unknown as ClientResponse;
 
 describe('resolveDeltaModeConfig', () => {
@@ -190,10 +220,8 @@ describe('countPendingOnboardingFields', () => {
           roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
           active: true,
           individualDetails: {
-            countryOfResidence: 'US',
-            individualIds: [
-              { idType: 'SSN', issuer: 'US', value: '111111111' },
-            ],
+            ...completeIndividualDetails,
+            birthDate: undefined,
           },
         },
         {
@@ -202,8 +230,7 @@ describe('countPendingOnboardingFields', () => {
           roles: ['BENEFICIAL_OWNER'],
           active: true,
           individualDetails: {
-            countryOfResidence: 'US',
-            birthDate: '1980-01-01',
+            ...completeIndividualDetails,
             individualIds: [],
           },
         },
@@ -213,8 +240,7 @@ describe('countPendingOnboardingFields', () => {
           roles: ['BENEFICIAL_OWNER'],
           active: true,
           individualDetails: {
-            countryOfResidence: 'US',
-            birthDate: '1985-01-01',
+            ...completeIndividualDetails,
             individualIds: [],
           },
         },
@@ -223,6 +249,101 @@ describe('countPendingOnboardingFields', () => {
 
     // birthDate + 2 owner SSNs
     expect(countPendingOnboardingFields(client)).toBe(3);
+  });
+
+  it('counts missing names, addresses, and core business fields', () => {
+    const client = {
+      ...richClient,
+      outstanding: { ...richClient.outstanding, questionIds: [] },
+      parties: [
+        {
+          id: 'org-1',
+          partyType: 'ORGANIZATION',
+          roles: ['CLIENT'],
+          active: true,
+          organizationDetails: {
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+            organizationIds: [{ idType: 'EIN', issuer: 'US', value: '1' }],
+            // missing: yearOfFormation, organizationDescription, industry,
+            // addresses
+          },
+        },
+        {
+          id: 'ctrl-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['CONTROLLER'],
+          active: true,
+          individualDetails: {
+            countryOfResidence: 'US',
+            birthDate: '1990-01-01',
+            individualIds: [{ idType: 'SSN', issuer: 'US', value: '1' }],
+            // missing: firstName, lastName, addresses
+          },
+        },
+      ],
+    } as unknown as ClientResponse;
+
+    // org: yearOfFormation + description + industry + address (4);
+    // controller: firstName + lastName + address (3).
+    expect(countPendingOnboardingFields(client)).toBe(7);
+    // 7 > default cap of 5 → ineligible.
+    expect(isDeltaModeActive(true, client)).toBe(false);
+  });
+
+  it('counts a partial address (missing state) as pending', () => {
+    const client = {
+      ...richClient,
+      outstanding: { ...richClient.outstanding, questionIds: [] },
+      parties: [
+        richClient.parties![0],
+        {
+          id: 'ctrl-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['CONTROLLER'],
+          active: true,
+          individualDetails: {
+            ...completeIndividualDetails,
+            addresses: [
+              {
+                addressType: 'RESIDENTIAL_ADDRESS',
+                addressLines: ['456 Elm St'],
+                city: 'New York',
+                // state intentionally missing
+                postalCode: '10002',
+                country: 'US',
+              },
+            ],
+          },
+        },
+      ],
+    } as unknown as ClientResponse;
+
+    // A non-empty but incomplete address still counts as one pending field.
+    expect(countPendingOnboardingFields(client)).toBe(1);
+  });
+
+  it('is ineligible (Infinity) when the controller party does not exist', () => {
+    expect(countPendingOnboardingFields(noControllerClient)).toBe(
+      Number.POSITIVE_INFINITY
+    );
+  });
+
+  it('is ineligible (Infinity) when the controller party has no details', () => {
+    const client = {
+      ...richClient,
+      parties: [
+        richClient.parties![0],
+        {
+          id: 'ctrl-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['CONTROLLER'],
+          active: true,
+          // individualDetails intentionally omitted
+        },
+      ],
+    } as unknown as ClientResponse;
+    expect(countPendingOnboardingFields(client)).toBe(Number.POSITIVE_INFINITY);
   });
 });
 
@@ -239,5 +360,9 @@ describe('isDeltaModeActive', () => {
     expect(
       isDeltaModeActive({ enabled: true, maxPendingFields: 0 }, richClient)
     ).toBe(false);
+  });
+
+  it('is false when the controller party does not exist', () => {
+    expect(isDeltaModeActive(true, noControllerClient)).toBe(false);
   });
 });

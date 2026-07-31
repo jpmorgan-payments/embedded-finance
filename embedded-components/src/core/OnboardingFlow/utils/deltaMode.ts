@@ -55,7 +55,7 @@ export function resolveDeltaModeConfig(
  * entry's `path`), and whether the check is US-only — so this heuristic no
  * longer hard-codes API shape. Built once at module load (fieldMap is static).
  */
-type EligibilityField = { path: string; usOnly: boolean };
+type EligibilityField = { path: string; usOnly: boolean; isAddress: boolean };
 
 const {
   organization: ORG_ELIGIBILITY_FIELDS,
@@ -71,6 +71,7 @@ const {
       acc[rule.party].push({
         path: config.path,
         usOnly: rule.usOnly ?? false,
+        isAddress: config.presentation?.customEditor === 'address',
       });
     }
     return acc;
@@ -98,19 +99,50 @@ function isEmptyValue(value: unknown): boolean {
 }
 
 /**
+ * An address is "pending" unless its required parts are all present. The party
+ * payload stores addresses as an array of objects; the schema requires a first
+ * address line, city, state, postal code and country. A presence-only check
+ * (non-empty array) would treat a partial address (e.g. missing state) as done,
+ * so we look at the first address object's required leaves.
+ */
+function isAddressPending(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length === 0) {
+    return true;
+  }
+  const address = value[0] as Record<string, unknown> | undefined;
+  if (!address) {
+    return true;
+  }
+  const lines = address.addressLines;
+  const hasLine = Array.isArray(lines)
+    ? lines.some((line) => String(line ?? '').trim() !== '')
+    : String(lines ?? '').trim() !== '';
+  return (
+    !hasLine ||
+    isEmptyValue(address.city) ||
+    isEmptyValue(address.state) ||
+    isEmptyValue(address.postalCode) ||
+    isEmptyValue(address.country)
+  );
+}
+
+/**
  * Count the eligibility fields on a party whose value (read via the fieldMap
- * `path`) is missing, honoring each field's `usOnly` gate.
+ * `path`) is missing, honoring each field's `usOnly` gate. Address fields use a
+ * completeness check (all required leaves present) rather than presence only.
  */
 function countMissingEligibilityFields(
   party: unknown,
   fields: ReadonlyArray<EligibilityField>,
   partyIsUS: boolean
 ): number {
-  return fields.filter(
-    (field) =>
-      (partyIsUS || !field.usOnly) &&
-      isEmptyValue(getValueAtPath(party, field.path))
-  ).length;
+  return fields.filter((field) => {
+    if (!partyIsUS && field.usOnly) {
+      return false;
+    }
+    const value = getValueAtPath(party, field.path);
+    return field.isAddress ? isAddressPending(value) : isEmptyValue(value);
+  }).length;
 }
 
 /**
@@ -186,6 +218,22 @@ export function countPendingOnboardingFields(
     return Number.POSITIVE_INFINITY;
   }
 
+  // Delta mode is a "fill in the last few fields" path and assumes the
+  // controller party already exists. When there is no controller party at all
+  // (or it has no details yet), the entire controller section is still
+  // outstanding — far more than a delta's worth of work — so the client is
+  // ineligible regardless of what else is filled in. Returning Infinity keeps
+  // the pending count honest so the `maxPendingFields` cap can't be slipped by
+  // simply not counting the missing controller's fields.
+  const controllerParty = getPartyByAssociatedPartyFilters(clientData, {
+    partyType: 'INDIVIDUAL',
+    roles: ['CONTROLLER'],
+  });
+  const controllerDetails = controllerParty?.individualDetails;
+  if (!controllerParty?.id || !controllerDetails) {
+    return Number.POSITIVE_INFINITY;
+  }
+
   let count = countOutstandingTopLevelQuestions(
     clientData.outstanding?.questionIds,
     questionDefinitions
@@ -201,18 +249,11 @@ export function countPendingOnboardingFields(
     );
   }
 
-  const controllerParty = getPartyByAssociatedPartyFilters(clientData, {
-    partyType: 'INDIVIDUAL',
-    roles: ['CONTROLLER'],
-  });
-  const controllerDetails = controllerParty?.individualDetails;
-  if (controllerDetails) {
-    count += countMissingEligibilityFields(
-      controllerParty,
-      INDIVIDUAL_ELIGIBILITY_FIELDS,
-      controllerDetails.countryOfResidence === 'US'
-    );
-  }
+  count += countMissingEligibilityFields(
+    controllerParty,
+    INDIVIDUAL_ELIGIBILITY_FIELDS,
+    controllerDetails.countryOfResidence === 'US'
+  );
 
   for (const owner of getActiveOwners(clientData) ?? []) {
     const ownerDetails = owner.individualDetails;
