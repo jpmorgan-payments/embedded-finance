@@ -9,6 +9,7 @@ import {
   Database,
   Info,
   Languages,
+  Layers,
   Link,
   Receipt,
   RotateCcw,
@@ -183,7 +184,8 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                 </p>
                 <p>
                   Scenarios swap client seed data and which widgets are mounted.
-                  Header tools let you change theme / content tone, override
+                  Header tools let you open Master customization (theme + copy +
+                  config overview), change theme / content tone, override
                   OnboardingFlow host props, edit content tokens, and patch mock
                   API JSON for the current session.
                 </p>
@@ -192,6 +194,7 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
             <div className="grid gap-2 sm:grid-cols-2">
               {[
                 'Scenario switcher (short names, grouped list, prev/next)',
+                'Master customization (theme + copy + config, save/load JSON)',
                 'Themes + content tone (Standard / Friendly)',
                 'Component props drawer (OnboardingFlow host config)',
                 'Content token editor + mock API response editor',
@@ -242,6 +245,12 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                           Icon: Info,
                           label: 'Demo information',
                           detail: 'This dialog',
+                        },
+                        {
+                          Icon: Layers,
+                          label: 'Master customization',
+                          detail:
+                            'Visual overview of theme, copy, and config; import/save named JSON versions',
                         },
                         {
                           Icon: Brush,

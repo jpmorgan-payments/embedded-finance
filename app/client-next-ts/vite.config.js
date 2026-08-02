@@ -45,6 +45,7 @@ export default defineConfig({
         'src/components/sellsense/theme-customization-drawer.tsx',
         'src/components/sellsense/content-token-editor-drawer.tsx',
         'src/components/sellsense/mock-api-editor-drawer.tsx',
+        'src/components/sellsense/master-mode-drawer.tsx',
         // TanStack route modules are thin re-exports; E2E covers navigation
         'src/routes/**',
         // Large layout shells wired to embedded library — smoke-tested via demo, not unit-isolated
@@ -67,40 +68,43 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
     alias: [
       { find: '@', replacement: resolve(__dirname, './src') },
-      { find: '@ef-docs', replacement: resolve(__dirname, '../../embedded-components/docs') },
+      {
+        find: '@ef-docs',
+        replacement: resolve(__dirname, '../../embedded-components/docs'),
+      },
       {
         find: '@ef-api/smbdo-schemas',
         replacement: resolve(
           __dirname,
-          '../../embedded-components/src/api/generated/smbdo.schemas.ts',
+          '../../embedded-components/src/api/generated/smbdo.schemas.ts'
         ),
       },
       {
         find: '@ef-api/ef-v1-schemas',
         replacement: resolve(
           __dirname,
-          '../../embedded-components/src/api/generated/ef-v1.schemas.ts',
+          '../../embedded-components/src/api/generated/ef-v1.schemas.ts'
         ),
       },
       {
         find: '@ef-api/ep-recipients-schemas',
         replacement: resolve(
           __dirname,
-          '../../embedded-components/src/api/generated/ep-recipients.schemas.ts',
+          '../../embedded-components/src/api/generated/ep-recipients.schemas.ts'
         ),
       },
       {
         find: '@ef-api/ep-transactions-schemas',
         replacement: resolve(
           __dirname,
-          '../../embedded-components/src/api/generated/ep-transactions.schemas.ts',
+          '../../embedded-components/src/api/generated/ep-transactions.schemas.ts'
         ),
       },
       {
         find: '@ef-api/ep-accounts-schemas',
         replacement: resolve(
           __dirname,
-          '../../embedded-components/src/api/generated/ep-accounts.schemas.ts',
+          '../../embedded-components/src/api/generated/ep-accounts.schemas.ts'
         ),
       },
     ],

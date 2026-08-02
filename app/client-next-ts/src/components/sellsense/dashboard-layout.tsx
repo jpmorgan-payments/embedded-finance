@@ -29,7 +29,11 @@ import {
   getDemoCustomization,
   setDemoCustomization,
 } from '@/lib/demo-customization-storage';
-import { getOverrideKeys } from '@/lib/mock-overrides-storage';
+import {
+  getOverrideKeys,
+  reinitWithOverrides,
+  replaceOverrides,
+} from '@/lib/mock-overrides-storage';
 
 import { Button } from '../ui/button';
 import { ComponentPropsDrawer } from './component-props-drawer';
@@ -40,6 +44,10 @@ import { Header, type DemoCustomizationDrawer } from './header';
 import { InfoModal } from './info-modal';
 import { getOnboardingScenarioExtras, KycOnboarding } from './kyc-onboarding';
 import { LoadingSkeleton } from './loading-skeleton';
+import {
+  MasterModeDrawer,
+  type MasterModeApplyPayload,
+} from './master-mode-drawer';
 import { MockApiEditorDrawer } from './mock-api-editor-drawer';
 import {
   countConfiguredProps,
@@ -134,6 +142,7 @@ export function DashboardLayout() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [activeCustomizationDrawer, setActiveCustomizationDrawer] =
     useState<DemoCustomizationDrawer>(null);
+  const isMasterModeDrawerOpen = activeCustomizationDrawer === 'master';
   const isThemeDrawerOpen = activeCustomizationDrawer === 'theme';
   const isContentTokenEditorOpen =
     activeCustomizationDrawer === 'contentTokens';
@@ -410,6 +419,58 @@ export function DashboardLayout() {
     drawer: Exclude<DemoCustomizationDrawer, null>
   ) => {
     setActiveCustomizationDrawer((prev) => (prev === drawer ? null : drawer));
+  };
+
+  const handleApplyMasterModeBundle = async (
+    payload: MasterModeApplyPayload
+  ) => {
+    if (payload.theme) {
+      handleThemeChange('Custom', {
+        baseTheme: payload.theme.baseTheme || 'Empty',
+        variables: payload.theme.variables,
+      });
+    } else {
+      const baseTheme =
+        (customThemeData?.baseTheme as ThemeOption | undefined) ||
+        (theme === 'Custom' ? 'SellSense' : theme) ||
+        'SellSense';
+      handleThemeChange(baseTheme, {});
+    }
+
+    if (payload.contentTokens) {
+      const language =
+        payload.contentTokens.name === 'frCA' ||
+        payload.contentTokens.name === 'esUS' ||
+        payload.contentTokens.name === 'enUS'
+          ? payload.contentTokens.name
+          : 'enUS';
+      setSelectedLanguage(language);
+      setContentTokens({
+        name: language,
+        ...(payload.contentTokens.tokens
+          ? { tokens: payload.contentTokens.tokens }
+          : {}),
+      });
+    } else {
+      setSelectedLanguage('enUS');
+      setContentTokens({ name: 'enUS' });
+    }
+
+    if (payload.onboardingFlowPropOverrides) {
+      setOnboardingFlowPropOverrides(
+        pruneBaselineEqualProps(payload.onboardingFlowPropOverrides)
+      );
+    } else {
+      setOnboardingFlowPropOverrides({});
+    }
+
+    if (payload.includeMocks && payload.mocks) {
+      replaceOverrides(payload.mocks);
+      setMockOverrideCount(getOverrideKeys().length);
+      const dbScenario = getResetDbScenario(clientScenario) ?? undefined;
+      await reinitWithOverrides(dbScenario);
+      DatabaseResetUtils.emulateTabSwitch();
+    }
   };
 
   const handleResetAllCustomizations = () => {
@@ -937,7 +998,11 @@ export function DashboardLayout() {
       {/* Mobile-first responsive layout */}
       <div
         className={`flex ${showMswAlert ? 'h-[calc(100vh-4rem-9rem)]' : 'h-[calc(100vh-4rem)]'} relative ${themeStyles.getContentAreaStyles()} ${
-          activeCustomizationDrawer ? 'pr-[600px]' : ''
+          activeCustomizationDrawer
+            ? isMasterModeDrawerOpen
+              ? 'pr-[640px]'
+              : 'pr-[600px]'
+            : ''
         } transition-all duration-300`}
       >
         {/* Sidebar - responsive implementation */}
@@ -974,6 +1039,33 @@ export function DashboardLayout() {
         isOpen={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
         theme={theme}
+      />
+
+      {/* Master Mode Drawer — combined theme / content / config overview */}
+      <MasterModeDrawer
+        isOpen={isMasterModeDrawerOpen}
+        onClose={() => setActiveCustomizationDrawer(null)}
+        topOffset={showMswAlert ? 'calc(4rem + 9.5rem)' : '4rem'}
+        currentTheme={theme}
+        customThemeVariables={customThemeVariables}
+        customThemeBaseTheme={
+          (customThemeData?.baseTheme as ThemeOption | undefined) || undefined
+        }
+        contentTokens={contentTokens}
+        onboardingFlowPropOverrides={onboardingFlowPropOverrides}
+        mockOverrideCount={mockOverrideCount}
+        onApply={handleApplyMasterModeBundle}
+        onOpenThemeDrawer={() => setActiveCustomizationDrawer('theme')}
+        onOpenContentTokensDrawer={() =>
+          setActiveCustomizationDrawer('contentTokens')
+        }
+        onOpenConfigDrawer={() =>
+          setActiveCustomizationDrawer('componentProps')
+        }
+        onOpenMocksDrawer={() => {
+          setActiveCustomizationDrawer(null);
+          setIsMockApiEditorOpen(true);
+        }}
       />
 
       {/* Theme Customization Drawer */}

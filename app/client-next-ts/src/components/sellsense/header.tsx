@@ -6,6 +6,7 @@ import {
   Database,
   Info,
   Languages,
+  Layers,
   Menu,
   RotateCcw,
   SlidersHorizontal,
@@ -38,7 +39,7 @@ const getCompanyInfo = () => {
 
 /** Side drawers that share accordion open behavior (one at a time). */
 export type DemoCustomizationDrawer =
-  'theme' | 'contentTokens' | 'componentProps' | null;
+  'master' | 'theme' | 'contentTokens' | 'componentProps' | null;
 
 interface HeaderProps {
   clientScenario: ClientScenario;
@@ -66,10 +67,10 @@ function OverrideBadge({ count, label }: { count: number; label: string }) {
   if (count <= 0) return null;
   return (
     <span
-      className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-medium text-white"
+      className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-medium leading-none text-white tabular-nums"
       aria-label={`${count} ${label}`}
     >
-      {count > 9 ? '9+' : count}
+      {count}
     </span>
   );
 }
@@ -148,6 +149,25 @@ export function Header({
             title="Show demo information"
           >
             <Info className="h-4 w-4 lg:h-5 lg:w-5" />
+          </Button>
+
+          {/* Master Mode — combined theme / content / config overview */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`relative h-8 w-8 rounded-full p-1 ${
+              activeCustomizationDrawer === 'master'
+                ? 'bg-gray-100 bg-opacity-20'
+                : ''
+            } ${themeStyles.getHeaderButtonStyles()}`}
+            onClick={() => onToggleCustomizationDrawer('master')}
+            title="Master customization — theme, copy, and config"
+          >
+            <Layers className="h-4 w-4 lg:h-5 lg:w-5" />
+            <OverrideBadge
+              count={totalCustomizationOverrides}
+              label="total overrides"
+            />
           </Button>
 
           {/* Theme Customization button */}
