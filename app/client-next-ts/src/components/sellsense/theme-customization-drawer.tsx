@@ -43,7 +43,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -54,9 +53,14 @@ import {
 import { Switch } from '@/components/ui/switch';
 
 import { AiPromptDialog } from './ai-prompt-dialog';
+import {
+  applyCompactKeyChange,
+  type CompactThemeKey,
+} from './compact-theme-tokens';
 import { JsonEditorContainer, type JsonValue } from './json-editor-container';
 import { ThemeA11yPanel } from './theme-a11y-panel';
 import { getValidColorPairs } from './theme-color-pairs';
+import { ThemeSimpleModePanel } from './theme-simple-mode-panel';
 import type { ThemeOption } from './use-sellsense-themes';
 import { useSellSenseThemes } from './use-sellsense-themes';
 
@@ -843,6 +847,10 @@ export function ThemeCustomizationDrawer({
   const [exportChangedOnly, setExportChangedOnly] = useState(false);
   const [isAiPromptDialogOpen, setIsAiPromptDialogOpen] = useState(false);
   const [isJsonExplorerOpen, setIsJsonExplorerOpen] = useState(false);
+  /** Advanced (Salt) remains the default; Simple is opt-in for compact ebDesignTokens. */
+  const [authorMode, setAuthorMode] = useState<'simple' | 'advanced'>(
+    'advanced'
+  );
 
   // JSON overrides editor state (diff-only vs base theme)
   const [overridesJson, setOverridesJson] = useState<EBThemeVariables>({});
@@ -1028,49 +1036,68 @@ export function ThemeCustomizationDrawer({
     }
   };
 
+  // Commit a merged theme (shared by Advanced single-token and Simple compact edits)
+  const commitThemeVariables = useCallback(
+    (updatedTheme: EBThemeVariables) => {
+      const currentBaseTheme = getCurrentBaseTheme();
+      const baseVars = pickSemanticTokens(getThemeVariables(currentBaseTheme));
+      const next = pickSemanticTokens({
+        ...baseVars,
+        ...updatedTheme,
+      });
+
+      setCustomTheme(next);
+
+      const changedOnly: Record<string, string | number | boolean> = {};
+      Object.keys(next).forEach((key) => {
+        const typedKey = key as keyof EBThemeVariables;
+        const customValue = next[typedKey];
+        const baseValue = baseVars[typedKey];
+        if (customValue !== baseValue && customValue !== undefined) {
+          changedOnly[key] = customValue as string | number | boolean;
+        }
+      });
+
+      if (Object.keys(changedOnly).length > 0) {
+        const customThemeData: CustomThemeData = {
+          baseTheme: currentBaseTheme,
+          variables: next,
+        };
+        onThemeChange('Custom', customThemeData as any);
+      } else {
+        onThemeChange(currentBaseTheme, {});
+      }
+    },
+    [getCurrentBaseTheme, getThemeVariables, onThemeChange]
+  );
+
   // Handle individual token changes
   const handleTokenChange = (
     token: keyof EBThemeVariables,
     value: string | number | boolean
   ) => {
-    // Get the current base theme variables
     const currentBaseTheme = getCurrentBaseTheme();
-    const baseVariables = pickSemanticTokens(
-      getThemeVariables(currentBaseTheme)
-    );
-
-    // Create updated theme by merging base variables with custom changes
-    const updatedTheme = pickSemanticTokens({
-      ...baseVariables,
+    const baseVars = pickSemanticTokens(getThemeVariables(currentBaseTheme));
+    commitThemeVariables({
+      ...baseVars,
       ...customTheme,
       [token]: value as EBThemeVariables[keyof EBThemeVariables],
     });
-
-    setCustomTheme(updatedTheme);
-
-    // Check if this change makes the theme different from base
-    const changedOnly: Record<string, string | number | boolean> = {};
-    Object.keys(updatedTheme).forEach((key) => {
-      const typedKey = key as keyof EBThemeVariables;
-      const customValue = updatedTheme[typedKey];
-      const baseValue = baseVariables[typedKey];
-      if (customValue !== baseValue && customValue !== undefined) {
-        changedOnly[key] = customValue as string | number | boolean;
-      }
-    });
-    const hasChanges = Object.keys(changedOnly).length > 0;
-
-    if (hasChanges) {
-      const customThemeData: CustomThemeData = {
-        baseTheme: currentBaseTheme,
-        // Keep full merged variables for rendering Custom theme correctly
-        variables: updatedTheme,
-      };
-      onThemeChange('Custom', customThemeData as any);
-    } else {
-      onThemeChange(currentBaseTheme, {});
-    }
   };
+
+  // Simple mode: expand one compact (ebDesignTokens) key into Salt semantics
+  const handleCompactChange = useCallback(
+    (key: CompactThemeKey, value: string) => {
+      const currentBaseTheme = getCurrentBaseTheme();
+      const baseVars = pickSemanticTokens(getThemeVariables(currentBaseTheme));
+      const merged = pickSemanticTokens({
+        ...baseVars,
+        ...customTheme,
+      });
+      commitThemeVariables(applyCompactKeyChange(merged, key, value));
+    },
+    [commitThemeVariables, customTheme, getCurrentBaseTheme, getThemeVariables]
+  );
 
   // Allow editing overrides via JSON diff editor
   const handleOverridesJsonChange = useCallback(
@@ -1670,13 +1697,60 @@ export function ThemeCustomizationDrawer({
             </div>
           </div>
 
-          {/* Main content: Form view only */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="px-6 pb-48">
-                {/* Accessibility Check Section - extracted into dedicated panel */}
-                <ThemeA11yPanel mergedTheme={mergedTheme} />
+          {/* Author mode: Advanced (Salt) is default; Simple expands ebDesignTokens */}
+          <div className="flex flex-shrink-0 items-center gap-2 border-b border-gray-200 px-4 py-2">
+            <div
+              className="inline-flex rounded-lg border border-gray-200 bg-gray-100 p-0.5"
+              role="tablist"
+              aria-label="Theme author mode"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={authorMode === 'advanced'}
+                onClick={() => setAuthorMode('advanced')}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                  authorMode === 'advanced'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Advanced
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={authorMode === 'simple'}
+                onClick={() => setAuthorMode('simple')}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                  authorMode === 'simple'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Simple
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-500">
+              {authorMode === 'simple'
+                ? '7 brand basics → expands to Salt tokens'
+                : 'Full Salt design tokens'}
+            </p>
+          </div>
 
+          {/* Main content — plain overflow-y-auto (same as master/component drawers).
+              Radix ScrollArea + h-full breaks when more flex-shrink-0 siblings are added. */}
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="px-6 pb-48">
+              {/* Accessibility Check Section - extracted into dedicated panel */}
+              <ThemeA11yPanel mergedTheme={mergedTheme} />
+
+              {authorMode === 'simple' ? (
+                <ThemeSimpleModePanel
+                  mergedTheme={mergedTheme}
+                  onCompactChange={handleCompactChange}
+                />
+              ) : (
                 <Accordion type="single" collapsible className="w-full">
                   {Object.entries(TOKEN_GROUPS).map(([groupKey, group]) => {
                     const Icon = group.icon;
@@ -1775,8 +1849,8 @@ export function ThemeCustomizationDrawer({
                     );
                   })}
                 </Accordion>
-              </div>
-            </ScrollArea>
+              )}
+            </div>
           </div>
         </div>
       </div>
