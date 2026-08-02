@@ -71,6 +71,7 @@ export function Sidebar({
         'New Seller - Onboarding',
         'Onboarding - Docs Needed',
         'Onboarding - Seller with prefilled data',
+        'Onboarding - Seller with prefilled data (Delta)',
         'Onboarding - Link account in review',
       ].includes(clientScenario);
 

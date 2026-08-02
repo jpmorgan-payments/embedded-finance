@@ -15,6 +15,7 @@ import {
   getVisibleComponentNamesForScenario,
   getVisibleComponentsForScenario,
   isComponentVisibleForScenario,
+  isOnboardingDeltaPrefilledScenario,
   isOnboardingDocsNeededScenario,
   isOnboardingLinkAccountInReviewScenario,
   SCENARIO_KEYS,
@@ -29,6 +30,9 @@ describe('scenarios-config', () => {
         SCENARIO_KEYS.ONBOARDING_IN_REVIEW
       );
       expect(getNextScenario(SCENARIO_KEYS.ONBOARDING_IN_REVIEW)).toBe(
+        SCENARIO_KEYS.ONBOARDING_IN_REVIEW_DELTA
+      );
+      expect(getNextScenario(SCENARIO_KEYS.ONBOARDING_IN_REVIEW_DELTA)).toBe(
         SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT
       );
     });
@@ -228,10 +232,25 @@ describe('scenarios-config', () => {
     });
   });
 
+  describe('isOnboardingDeltaPrefilledScenario', () => {
+    it('is true only for prefilled Delta scenario', () => {
+      expect(
+        isOnboardingDeltaPrefilledScenario(
+          'Onboarding - Seller with prefilled data (Delta)'
+        )
+      ).toBe(true);
+      expect(
+        isOnboardingDeltaPrefilledScenario(
+          'Onboarding - Seller with prefilled data'
+        )
+      ).toBe(false);
+    });
+  });
+
   describe('getScenarioNumber', () => {
     it('returns 1-based index in SCENARIO_ORDER', () => {
       expect(getScenarioNumber('New Seller - Onboarding')).toBe(1);
-      expect(getScenarioNumber('Seller with Payments DDA')).toBe(7);
+      expect(getScenarioNumber('Seller with Payments DDA')).toBe(8);
       expect(getScenarioNumber('Seller with FX Payments')).toBe(
         SCENARIO_ORDER.length
       );

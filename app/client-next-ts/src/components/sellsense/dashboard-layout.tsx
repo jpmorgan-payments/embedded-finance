@@ -56,7 +56,6 @@ import {
   getScenarioKeyByDisplayName,
   hasResetDbScenario,
 } from './scenarios-config';
-import { SettingsDrawer } from './settings-drawer';
 import { Sidebar } from './sidebar';
 import { ThemeCustomizationDrawer } from './theme-customization-drawer';
 import { useThemeStyles } from './theme-utils';
@@ -98,6 +97,7 @@ const ViewUtils = {
       case 'New Seller - Onboarding':
       case 'Onboarding - Docs Needed':
       case 'Onboarding - Seller with prefilled data':
+      case 'Onboarding - Seller with prefilled data (Delta)':
       case 'Onboarding - Link account in review':
         return 'onboarding';
       default:
@@ -118,6 +118,7 @@ const ViewUtils = {
       'New Seller - Onboarding',
       'Onboarding - Docs Needed',
       'Onboarding - Seller with prefilled data',
+      'Onboarding - Seller with prefilled data (Delta)',
       'Onboarding - Link account in review',
     ].includes(scenario);
   },
@@ -130,7 +131,6 @@ export function DashboardLayout() {
 
   // State management
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [activeCustomizationDrawer, setActiveCustomizationDrawer] =
     useState<DemoCustomizationDrawer>(null);
@@ -399,11 +399,6 @@ export function DashboardLayout() {
     pendingScrollRestoreRef.current = null;
     restoreMainScroll(pending.scrollTop, pending.scrollLeft);
   }, [customThemeData, customThemeVariables]);
-
-  const handleContentToneChange = (newContentTone: ContentTone) => {
-    setContentTone(newContentTone);
-    updateSearchParams({ contentTone: newContentTone });
-  };
 
   const handleViewChange = (newView: View) => {
     setActiveView(newView);
@@ -919,13 +914,9 @@ export function DashboardLayout() {
       <Header
         clientScenario={clientScenario}
         setClientScenario={handleScenarioChange}
-        theme={theme}
         themeForDisplay={themeForDisplay}
-        contentTone={contentTone}
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
-        isSettingsOpen={isSettingsOpen}
-        setIsSettingsOpen={setIsSettingsOpen}
         isInfoModalOpen={isInfoModalOpen}
         setIsInfoModalOpen={setIsInfoModalOpen}
         activeCustomizationDrawer={activeCustomizationDrawer}
@@ -977,18 +968,6 @@ export function DashboardLayout() {
           />
         )}
       </div>
-
-      {/* Settings Drawer */}
-      <SettingsDrawer
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        clientScenario={clientScenario}
-        setClientScenario={handleScenarioChange}
-        theme={theme}
-        setTheme={handleThemeChange}
-        contentTone={contentTone}
-        setContentTone={handleContentToneChange}
-      />
 
       {/* Info Modal */}
       <InfoModal

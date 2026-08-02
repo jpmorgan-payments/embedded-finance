@@ -1,17 +1,23 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
-  ArrowRight,
+  Brush,
   Building2,
   CheckCircle,
   Circle,
+  Database,
   Info,
+  Languages,
   Link,
   Receipt,
+  RotateCcw,
+  SlidersHorizontal,
   UserCheck,
   Users,
   X,
   Zap,
+  type LucideIcon,
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +29,7 @@ import {
   getScenarioByKey,
   getVisibleComponentsForScenario,
   SCENARIO_ORDER,
+  type ScenarioKey,
 } from './scenarios-config';
 import { useThemeStyles } from './theme-utils';
 import type { ThemeOption } from './use-sellsense-themes';
@@ -33,8 +40,58 @@ interface InfoModalProps {
   theme: ThemeOption;
 }
 
+const COMPONENT_BLURBS: Record<string, string> = {
+  OnboardingFlow:
+    'Hosted onboarding wizard: business/controller/owners, operational questions, document upload, review & attest. Supports delta mode, link-account step, and PTC paths.',
+  Accounts: 'Embedded account cards with balances and account identifiers.',
+  LinkedAccountWidget:
+    'Link and manage external bank accounts (cards/table views, microdeposits when applicable).',
+  TransactionsDisplay:
+    'Transaction history list with filtering/search patterns.',
+  Recipients:
+    'Payment recipients list; Pay can open domestic PaymentFlow or FX PaymentFlowFX by scenario.',
+  PaymentFlow:
+    'Domestic payment initiation used from Recipients (and related wallet demos).',
+  ClientDetails:
+    'Read-only client profile/status summary used on richer active-seller layouts.',
+};
+
+/** Short “what to look for” copy for integrators — kept here so scenario-config stays demo-runtime focused. */
+const SCENARIO_INTEGRATOR_NOTES: Partial<Record<ScenarioKey, string>> = {
+  'new-seller-onboarding':
+    'Empty client — full step-by-step OnboardingFlow from gateway.',
+  'onboarding-in-review':
+    'Prefilled US LLC — standard overview / complete remaining sections.',
+  'onboarding-in-review-delta':
+    'Same rich LLC shape with a few operational questions outstanding; `deltaMode` + skip terms-document acknowledgment.',
+  'onboarding-in-review-link-account':
+    'In-review client with editable link-account step and microdeposits mock.',
+  'onboarding-docs-needed':
+    'INFORMATION_REQUESTED — lands on document upload for outstanding requests.',
+  'fresh-start': 'Active sole prop — Accounts + LinkedAccountWidget only.',
+  'active-seller-limited-dda':
+    'Limited DDA wallet: accounts, linked accounts, transactions.',
+  'active-seller-limited-dda-payments':
+    'Payments DDA layout: client details, accounts, linked accounts (table), recipients, transactions.',
+  'active-seller-fx-payments':
+    'Same Payments DDA shell with FX recipients / PaymentFlowFX on Pay.',
+};
+
 export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
   const themeStyles = useThemeStyles(theme);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -71,227 +128,214 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <div
-        className={`h-[80vh] w-full max-w-6xl overflow-hidden rounded-lg shadow-2xl ${themeStyles.getModalStyles()}`}
+        className={`flex h-[min(80vh,52rem)] w-full max-w-4xl flex-col overflow-hidden rounded-lg shadow-2xl ${themeStyles.getModalStyles()}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sellsense-info-title"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b p-4">
+        <div className="flex flex-shrink-0 items-center justify-between border-b p-4">
           <div className="flex items-center gap-3">
             <Info className="h-5 w-5 text-blue-600" />
-            <h2 className="text-xl font-bold">SellSense Demo Showcase</h2>
+            <div>
+              <h2 id="sellsense-info-title" className="text-xl font-bold">
+                SellSense Demo Showcase
+              </h2>
+              <p className="text-xs text-slate-500">
+                Integrator reference — what’s in this shell and how to drive it
+              </p>
+            </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
             className="h-8 w-8"
+            aria-label="Close"
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Content */}
-        <div
-          className="space-y-4 overflow-y-auto p-4 pb-8"
-          style={{ height: 'calc(100% - 45px)' }}
-        >
-          {/* Overview Section */}
-          <section>
-            <h3 className="mb-2 text-lg font-semibold text-gray-800">
-              Demo Overview
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4 pb-8">
+          <section className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-800">
+              What you’re looking at
             </h3>
-            <div className="grid gap-3 md:grid-cols-2">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">
-                    What is this demo?
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="text-sm text-gray-600">
-                    This showcase demonstrates the complete client journey
-                    through Embedded Finance & Services (EF&S) using our
-                    embedded UI components. Each scenario represents a different
-                    stage in a client's progress through their financial
-                    journey.
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    The demo shows how various embedded components can be
-                    integrated into existing applications to provide seamless
-                    financial capabilities without requiring users to leave your
-                    platform.
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Everything is fully based on the existing documentation and
-                    API specifications from J.P. Morgan Payments.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Key Features</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">
-                      Multiple client journey scenarios
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">
-                      Real-time component integration
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Theme customization</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">API-driven functionality</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-                    <span className="text-sm">
-                      All API operations fully mocked using MSW client-side
-                      library - no actual backend calls
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+            <Card>
+              <CardContent className="space-y-2 p-4 text-sm text-gray-600">
+                <p>
+                  SellSense is a <strong>marketplace-shaped host app</strong>{' '}
+                  that embeds{' '}
+                  <code className="rounded bg-slate-100 px-1 text-xs">
+                    @jpmorgan-payments/embedded-finance-components
+                  </code>
+                  . Use it to walk through real component surfaces (onboarding,
+                  accounts, linked accounts, recipients, payments, transactions)
+                  against <strong>in-browser MSW mocks</strong> — nothing is
+                  sent to J.P. Morgan backends from this demo.
+                </p>
+                <p>
+                  Scenarios swap client seed data and which widgets are mounted.
+                  Header tools let you change theme / content tone, override
+                  OnboardingFlow host props, edit content tokens, and patch mock
+                  API JSON for the current session.
+                </p>
+              </CardContent>
+            </Card>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {[
+                'Scenario switcher (short names, grouped list, prev/next)',
+                'Themes + content tone (Standard / Friendly)',
+                'Component props drawer (OnboardingFlow host config)',
+                'Content token editor + mock API response editor',
+                'Fullscreen component links from card controls',
+                'All network I/O mocked with MSW (reload mock data to reseed)',
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-2 text-sm">
+                  <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                  <span className="text-gray-700">{item}</span>
+                </div>
+              ))}
             </div>
           </section>
 
-          {/* Scenario Visualization */}
-          <section>
-            <h3 className="mb-2 text-lg font-semibold text-gray-800">
-              Client Journey Visualization
+          <section className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-800">
+              How to drive the demo
             </h3>
             <Card>
-              <CardContent className="p-4">
-                <div className="w-full">
-                  <img
-                    src="/diagram.png"
-                    alt="SellSense Client Journey Diagram"
-                    className="h-auto w-full"
-                  />
+              <CardContent className="grid gap-3 p-4 text-sm text-gray-600 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-1 font-semibold text-gray-800">
+                    Scenario & chrome
+                  </h4>
+                  <ul className="list-disc space-y-1 pl-4">
+                    <li>
+                      Center pill: prev/next, open scenario menu, index{' '}
+                      <span className="tabular-nums">n/N</span>
+                    </li>
+                    <li>
+                      Onboarding scenarios force the Onboarding view; active
+                      scenarios open the wallet/dashboard layout
+                    </li>
+                    <li>
+                      Theme and content tone are controlled via URL params and
+                      the header tool drawers (brush / languages)
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="mb-2 font-semibold text-gray-800">
+                    Header tool icons
+                  </h4>
+                  <ul className="space-y-2">
+                    {(
+                      [
+                        {
+                          Icon: Info,
+                          label: 'Demo information',
+                          detail: 'This dialog',
+                        },
+                        {
+                          Icon: Brush,
+                          label: 'Customize theme',
+                          detail: 'Theme tokens / custom theme',
+                        },
+                        {
+                          Icon: Languages,
+                          label: 'Edit content tokens',
+                          detail: 'Copy / token overrides',
+                        },
+                        {
+                          Icon: SlidersHorizontal,
+                          label: 'Edit component props',
+                          detail:
+                            'OnboardingFlow host props (deltaMode, link-account, …)',
+                        },
+                        {
+                          Icon: Database,
+                          label: 'Edit mock API responses',
+                          detail: 'Per-endpoint mock JSON overrides',
+                        },
+                        {
+                          Icon: RotateCcw,
+                          label: 'Reset overrides',
+                          detail:
+                            'Clear theme, content token, and prop overrides',
+                        },
+                      ] as const satisfies ReadonlyArray<{
+                        Icon: LucideIcon;
+                        label: string;
+                        detail: string;
+                      }>
+                    ).map(({ Icon, label, detail }) => (
+                      <li key={label} className="flex items-start gap-2.5">
+                        <span
+                          className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700"
+                          aria-hidden="true"
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 leading-snug">
+                          <span className="block font-medium text-gray-800">
+                            {label}
+                          </span>
+                          <span className="block text-xs text-gray-500">
+                            {detail}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </CardContent>
             </Card>
           </section>
 
-          {/* Architecture Diagram */}
-          <section>
-            <h3 className="mb-2 text-lg font-semibold text-gray-800">
-              Component Architecture
-            </h3>
-            <Card>
-              <CardContent className="p-3">
-                <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
-                  {/* Development Time */}
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-blue-600">
-                      Development Time
-                    </h4>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                        <span>OpenAPI Specification</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ArrowRight className="h-3 w-3 text-gray-400" />
-                        <span>TypeScript Types</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ArrowRight className="h-3 w-3 text-gray-400" />
-                        <span>React Query Hooks</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Embedded Components */}
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-green-600">
-                      Embedded UI Components
-                    </h4>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                        <span>Enhanced Validations</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                        <span>Smart Payload Formation</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                        <span>Error Mapping & Recovery</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                        <span>UX Optimizations</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Runtime */}
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-purple-600">
-                      Runtime
-                    </h4>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-purple-500"></div>
-                        <span>API Calls</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ArrowRight className="h-3 w-3 text-gray-400" />
-                        <span>Platform Service Layer</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ArrowRight className="h-3 w-3 text-gray-400" />
-                        <span>Backend APIs</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Scenario Progression */}
-          <section>
-            <h3 className="mb-2 text-lg font-semibold text-gray-800">
-              Client Journey Scenarios
-            </h3>
+          <section className="space-y-3">
+            <div className="flex items-end justify-between gap-2">
+              <h3 className="text-base font-semibold text-gray-800">
+                Scenarios ({SCENARIO_ORDER.length})
+              </h3>
+              <p className="text-xs text-slate-500">
+                Sourced from live <code>SCENARIO_ORDER</code>
+              </p>
+            </div>
             <div className="space-y-2">
               {SCENARIO_ORDER.map((scenarioKey, index) => {
                 const scenario = getScenarioByKey(scenarioKey);
                 const visibleComponents = getVisibleComponentsForScenario(
                   scenario.displayName
                 );
+                const note = SCENARIO_INTEGRATOR_NOTES[scenarioKey];
 
                 return (
                   <Card
                     key={scenarioKey}
                     className="border-l-4 border-l-blue-500"
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-2">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-600">
                             {index + 1}
                           </div>
-                          <div>
-                            <CardTitle className="text-base">
-                              {scenario.displayName}
+                          <div className="min-w-0">
+                            <CardTitle className="text-sm">
+                              {scenario.shortName}
                             </CardTitle>
-                            <p className="mt-1 text-xs text-gray-600">
-                              {scenario.description}
+                            <p className="mt-0.5 text-xs text-gray-500">
+                              {scenario.displayName}
+                            </p>
+                            <p className="mt-1 text-sm text-gray-600">
+                              {note ?? scenario.description}
                             </p>
                           </div>
                         </div>
@@ -304,53 +348,30 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
                         </Badge>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <div>
-                          <h5 className="mb-1 text-sm font-medium text-gray-700">
-                            Header Information:
-                          </h5>
-                          <div className="space-y-1 text-sm text-gray-600">
-                            <p>
-                              <strong>Title:</strong> {scenario.headerTitle}
-                            </p>
-                            <p>
-                              <strong>Description:</strong>{' '}
-                              {scenario.headerDescription}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h5 className="mb-1 text-sm font-medium text-gray-700">
-                            Components:
-                          </h5>
-                          <div className="flex flex-wrap gap-1">
-                            {visibleComponents.map((config, compIndex) => (
-                              <Badge
-                                key={compIndex}
-                                variant="outline"
-                                className="flex items-center gap-1 text-sm"
-                              >
-                                <span>
-                                  {getComponentIcon(config.component)}
-                                </span>
-                                {config.component}
-                              </Badge>
-                            ))}
-                            {scenario.category === 'onboarding' && (
-                              <Badge
-                                variant="outline"
-                                className="flex items-center gap-1 text-sm"
-                              >
-                                <span>
-                                  {getComponentIcon('OnboardingFlow')}
-                                </span>
-                                OnboardingFlow
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
+                    <CardContent className="pt-0">
+                      <div className="flex flex-wrap gap-1">
+                        {scenario.category === 'onboarding' ? (
+                          <Badge
+                            variant="outline"
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            {getComponentIcon('OnboardingFlow')}
+                            OnboardingFlow
+                          </Badge>
+                        ) : null}
+                        {visibleComponents.map((config) => (
+                          <Badge
+                            key={`${scenarioKey}-${config.component}-${config.paymentFlowVariant ?? 'default'}`}
+                            variant="outline"
+                            className="flex items-center gap-1 text-xs"
+                          >
+                            {getComponentIcon(config.component)}
+                            {config.component}
+                            {config.paymentFlowVariant === 'fx'
+                              ? ' → FX'
+                              : null}
+                          </Badge>
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
@@ -359,79 +380,71 @@ export function InfoModal({ isOpen, onClose, theme }: InfoModalProps) {
             </div>
           </section>
 
-          {/* Available Components */}
-          <section>
-            <h3 className="mb-2 text-lg font-semibold text-gray-800">
-              Available Embedded Components
+          <section className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-800">
+              Embedded components in this package
             </h3>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
               {Object.entries(AVAILABLE_COMPONENTS).map(
                 ([key, componentName]) => (
-                  <Card key={key} className="transition-shadow hover:shadow-md">
-                    <CardHeader className="pb-3">
+                  <Card key={key}>
+                    <CardHeader className="pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">
-                          {getComponentIcon(componentName)}
-                        </span>
+                        {getComponentIcon(componentName)}
                         <CardTitle className="text-sm">
                           {componentName}
                         </CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <p className="text-sm text-gray-600">
-                        {componentName === 'OnboardingFlow' &&
-                          'Complete client onboarding process with document upload and verification'}
-                        {componentName === 'Accounts' &&
-                          'Display client accounts with balances and routing information'}
-                        {componentName === 'LinkedAccountWidget' &&
-                          'Add and manage external bank account connections'}
-                        {componentName === 'TransactionsDisplay' &&
-                          'View transaction history with filtering and search'}
-                        {componentName === 'Recipients' &&
-                          'Manage payment recipients and beneficiary information'}
-                        {componentName === 'PaymentFlow' &&
-                          'Initiate payments between accounts with multiple methods'}
-                        {componentName === 'ClientDetails' &&
-                          'Display comprehensive client information, status, and verification details'}
+                        {COMPONENT_BLURBS[componentName]}
                       </p>
                     </CardContent>
                   </Card>
                 )
               )}
             </div>
+            <p className="text-xs text-slate-500">
+              PaymentFlowFX is used when a scenario marks Recipients with{' '}
+              <code>paymentFlowVariant: &apos;fx&apos;</code> (FX Payments
+              scenario). It is not a separate entry in{' '}
+              <code>AVAILABLE_COMPONENTS</code>.
+            </p>
           </section>
 
-          {/* Integration Notes */}
-          <section>
-            <h3 className="mb-2 text-lg font-semibold text-gray-800">
-              Integration Notes
+          <section className="space-y-3">
+            <h3 className="text-base font-semibold text-gray-800">
+              Architecture (demo shell)
             </h3>
             <Card>
-              <CardContent className="p-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <h4 className="mb-2 text-sm font-semibold text-gray-700">
-                      Theme Integration
-                    </h4>
-                    <ul className="space-y-1 text-sm text-gray-600">
-                      <li>• All components support comprehensive theming</li>
-                      <li>• Design tokens can be customized per brand</li>
-                      <li>• Responsive design with mobile optimization</li>
-                      <li>• Accessibility compliance built-in</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="mb-2 text-sm font-semibold text-gray-700">
-                      API Integration
-                    </h4>
-                    <ul className="space-y-1 text-sm text-gray-600">
-                      <li>• Type-safe API calls using generated hooks</li>
-                      <li>• Automatic error handling and recovery</li>
-                      <li>• Real-time data synchronization</li>
-                      <li>• MSW mocking for development</li>
-                    </ul>
-                  </div>
+              <CardContent className="grid gap-4 p-4 text-sm text-gray-600 md:grid-cols-3">
+                <div>
+                  <h4 className="mb-1 font-semibold text-blue-700">Host app</h4>
+                  <p>
+                    Vite + React showcase (`client-next-ts`). SellSense layout,
+                    URL search params (`scenario`, `theme`, `contentTone`,
+                    `view`, `fullscreen`), and demo drawers.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="mb-1 font-semibold text-green-700">
+                    Component library
+                  </h4>
+                  <p>
+                    Local <code>file:</code> dependency on{' '}
+                    <code>embedded-components</code>. Rebuild that package when
+                    you need latest OnboardingFlow / widget behaviour in the
+                    demo.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="mb-1 font-semibold text-purple-700">Mocks</h4>
+                  <p>
+                    MSW service worker + in-memory DB. Scenario switches call{' '}
+                    <code>_reset</code> with a seed; optional localStorage
+                    overrides reapply on reset.
+                  </p>
                 </div>
               </CardContent>
             </Card>
