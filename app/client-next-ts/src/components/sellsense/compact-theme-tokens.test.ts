@@ -22,14 +22,14 @@ describe('compact-theme-tokens', () => {
     expect(pickContrastingForeground('#111827')).toBe('#ffffff');
   });
 
-  it('expands primaryColor into button, accent, and info Salt tokens', () => {
+  it('expands primaryColor into button, accent, info, and focus ring tokens', () => {
     const expanded = expandCompactTheme({ primaryColor: '#1B7F9E' });
     expect(expanded.actionableAccentedBoldBackground).toBe('#1B7F9E');
     expect(expanded.actionableAccentedBoldBackgroundHover).toBeDefined();
     expect(expanded.actionableSubtleForeground).toBe('#1B7F9E');
     expect(expanded.contentAccentForeground).toBe('#1B7F9E');
     expect(expanded.statusInfoForeground).toBe('#1B7F9E');
-    expect(expanded.focusedRingColor).toBeUndefined();
+    expect(expanded.focusedRingColor).toBe('#1B7F9E');
   });
 
   it('expands each compact key independently', () => {

@@ -38,6 +38,7 @@ import { Switch } from '@/components/ui/switch';
 import {
   countContentTokenOverrides,
   countThemeVariableOverrides,
+  flattenContentTokenOverrides,
 } from '@/lib/demo-customization-storage';
 import {
   deleteMasterModePreset,
@@ -54,8 +55,11 @@ import {
 import { cn } from '@/lib/utils';
 
 import {
+  ContentTokenOverridePreview,
+  groupEditedContentTokens,
+} from './content-token-changes-overview';
+import {
   describeMasterModeFormat,
-  groupContentTokenKeys,
   parseMasterModeText,
   summarizeMasterModeBundle,
   toSafeFileName,
@@ -287,13 +291,12 @@ export function MasterModeDrawer({
   const configCount = countConfiguredProps(onboardingFlowPropOverrides);
   const totalLive = themeCount + contentCount + configCount + mockOverrideCount;
 
-  const contentGroups = useMemo(
-    () =>
-      groupContentTokenKeys(
-        contentTokens?.tokens as Record<string, unknown> | undefined
-      ),
-    [contentTokens]
-  );
+  const contentOverrideGroups = useMemo(() => {
+    const flat = flattenContentTokenOverrides(
+      contentTokens?.tokens as Record<string, unknown> | undefined
+    );
+    return groupEditedContentTokens(flat);
+  }, [contentTokens]);
 
   const configuredPropFields = useMemo(
     () =>
@@ -810,38 +813,9 @@ export function MasterModeDrawer({
                   editLabel="Edit copy"
                 >
                   {contentCount > 0 ? (
-                    <div className="space-y-2">
-                      {contentGroups.map((group) => (
-                        <div
-                          key={group.namespace}
-                          className="rounded-lg border border-amber-200/80 bg-white/80 px-3 py-2"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-semibold text-gray-800">
-                              {group.namespace}
-                            </span>
-                            <span className="text-[11px] text-amber-700">
-                              {group.count}
-                            </span>
-                          </div>
-                          <ul className="mt-1 space-y-0.5">
-                            {group.keys.map((key) => (
-                              <li
-                                key={key}
-                                className="truncate font-mono text-[11px] text-gray-500"
-                              >
-                                {key}
-                              </li>
-                            ))}
-                            {group.count > group.keys.length && (
-                              <li className="text-[11px] text-gray-400">
-                                +{group.count - group.keys.length} more
-                              </li>
-                            )}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
+                    <ContentTokenOverridePreview
+                      groups={contentOverrideGroups}
+                    />
                   ) : (
                     <EmptyHint text="No copy overrides — default product wording is shown." />
                   )}

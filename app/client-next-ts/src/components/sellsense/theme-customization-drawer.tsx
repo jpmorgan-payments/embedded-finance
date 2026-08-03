@@ -1733,7 +1733,7 @@ export function ThemeCustomizationDrawer({
             </div>
             <p className="text-[11px] text-gray-500">
               {authorMode === 'simple'
-                ? '7 brand basics → expands to Salt tokens'
+                ? '6 brand basics → expands to Salt tokens'
                 : 'Full Salt design tokens'}
             </p>
           </div>

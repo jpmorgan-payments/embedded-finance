@@ -18,6 +18,17 @@ export type CompactThemeTokens = {
 
 export type CompactThemeKey = keyof CompactThemeTokens;
 
+/** Keys shown in Simple mode UI (ringColor is derived from brand). */
+export const SIMPLE_THEME_KEYS: CompactThemeKey[] = [
+  'primaryColor',
+  'destructiveColor',
+  'borderColor',
+  'fontFamily',
+  'borderRadius',
+  'buttonBorderRadius',
+];
+
+/** @deprecated Prefer SIMPLE_THEME_KEYS — includes derived ringColor for hosted parity. */
 export const COMPACT_THEME_KEYS: CompactThemeKey[] = [
   'primaryColor',
   'ringColor',
@@ -40,8 +51,8 @@ export const COMPACT_THEME_LABELS: Record<CompactThemeKey, string> = {
 };
 
 export const COMPACT_THEME_HINTS: Record<CompactThemeKey, string> = {
-  primaryColor: 'Primary buttons, links, and accents',
-  ringColor: 'Outline when keyboard-focusing a control',
+  primaryColor: 'Primary buttons, links, accents, and focus outline',
+  ringColor: 'Derived from brand color in Simple mode',
   destructiveColor: 'Delete / irreversible action buttons',
   borderColor: 'Lines around cards, inputs, and dividers',
   fontFamily: 'Text across the experience',
@@ -181,9 +192,12 @@ export function expandCompactTheme(
     out.contentAccentForeground = primary;
     out.statusInfoForeground = primary;
     out.navigableAccentForeground = primary;
+    // Focus ring follows brand — no separate Simple-mode control
+    out.focusedRingColor = primary;
   }
 
-  if (compact.ringColor) {
+  // Explicit ringColor only when set without primary (e.g. hosted import / Advanced)
+  if (compact.ringColor && !compact.primaryColor) {
     out.focusedRingColor = compact.ringColor;
   }
 

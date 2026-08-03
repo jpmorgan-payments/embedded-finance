@@ -19,11 +19,11 @@ import { cn } from '@/lib/utils';
 import {
   BUTTON_RADIUS_PRESETS,
   COMPACT_THEME_HINTS,
-  COMPACT_THEME_KEYS,
   COMPACT_THEME_LABELS,
   deriveCompactTheme,
   getExpandedKeysForCompact,
   RADIUS_PRESETS,
+  SIMPLE_THEME_KEYS,
   type CompactThemeKey,
   type CompactThemeTokens,
 } from './compact-theme-tokens';
@@ -169,23 +169,23 @@ function CartoonThemeSchema({
           </button>
         </div>
 
-        {/* Focus ring demo */}
+        {/* Focus ring demo — derived from brand color */}
         <button
           type="button"
-          onClick={() => onSelect('ringColor')}
+          onClick={() => onSelect('primaryColor')}
           className={cn(
             'mt-3 w-full border border-dashed border-gray-300 bg-white px-2 py-2 text-left text-[11px] text-gray-600 transition',
-            is('ringColor') && 'ring-4'
+            is('primaryColor') && 'ring-4'
           )}
           style={{
             borderRadius: compact.borderRadius,
-            ...(is('ringColor')
-              ? { boxShadow: `0 0 0 3px ${compact.ringColor}` }
-              : { boxShadow: `0 0 0 2px ${compact.ringColor}55` }),
+            boxShadow: is('primaryColor')
+              ? `0 0 0 3px ${compact.primaryColor}`
+              : `0 0 0 2px ${compact.primaryColor}55`,
           }}
-          aria-label="Edit focus highlight"
+          aria-label="Focus outline uses brand color"
         >
-          Focus highlight wraps me when active
+          Focus outline follows brand color
         </button>
 
         {/* Floating legend pins */}
@@ -193,7 +193,6 @@ function CartoonThemeSchema({
           {(
             [
               ['primaryColor', 'Brand'],
-              ['ringColor', 'Focus'],
               ['destructiveColor', 'Delete'],
               ['borderColor', 'Border'],
               ['fontFamily', 'Font'],
@@ -306,7 +305,6 @@ export function ThemeSimpleModePanel({
 
       <div className="space-y-3">
         {renderColorField('primaryColor')}
-        {renderColorField('ringColor')}
         {renderColorField('destructiveColor')}
         {renderColorField('borderColor')}
 
@@ -472,9 +470,10 @@ export function ThemeSimpleModePanel({
       </div>
 
       <p className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-600">
-        These {COMPACT_THEME_KEYS.length} settings match hosted{' '}
-        <code className="rounded bg-white px-1">ebDesignTokens</code>. Switch to
-        Advanced anytime to tweak individual Salt tokens.
+        These {SIMPLE_THEME_KEYS.length} settings match hosted{' '}
+        <code className="rounded bg-white px-1">ebDesignTokens</code> (focus
+        outline follows brand). Switch to Advanced anytime to tweak individual
+        Salt tokens.
       </p>
     </div>
   );
