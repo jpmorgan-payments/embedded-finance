@@ -190,8 +190,8 @@ Linked bank account behavior appears in **two screens** (same API data, same rec
         <code>OverviewScreen</code>
       </td>
       <td>
-        Bank account section: card + <code>StatusAlert</code>.{' '}
-        <strong>Start</strong> if no linked recipient yet.{' '}
+        Bank account section: empty → inline link form; single account → card +{' '}
+        <code>StatusAlert</code>; multi → list + <strong>Add account</strong>.{' '}
         <strong>Verify Account</strong> (microdeposit dialog) when status is{' '}
         <code>READY_FOR_VALIDATION</code>.
       </td>
@@ -204,14 +204,12 @@ Linked bank account behavior appears in **two screens** (same API data, same rec
         <code>LinkAccountScreen</code>
       </td>
       <td>
-        <strong>New link:</strong> <code>BankAccountForm</code> or{' '}
-        <code>reviewOnly</code> per <code>linkAccountStepOptions</code>.{' '}
-        <strong>Multi-account:</strong> when{' '}
-        <code>allowMultipleAccounts</code> is true, existing accounts display as{' '}
-        <code>RecipientCard</code> cards (compact or detailed via{' '}
-        <code>existingAccountsDisplay</code>) with an "Add account" button.{' '}
-        Optional <code>presetAccounts</code> selector and{' '}
-        <code>partyId</code> passthrough.
+        <strong>New link / Add:</strong> <code>BankAccountForm</code> or{' '}
+        <code>reviewOnly</code> per <code>linkAccountStepOptions</code>. Opened
+        from Overview <strong>Add account</strong> when{' '}
+        <code>allowMultipleAccounts</code> is true, or via sidebar /{' '}
+        <code>flowEntry</code>. Optional <code>presetAccounts</code> selector
+        and <code>partyId</code> passthrough.
       </td>
     </tr>
   </tbody>

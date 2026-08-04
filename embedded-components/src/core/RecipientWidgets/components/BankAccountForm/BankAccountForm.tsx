@@ -363,6 +363,88 @@ const IndividualSelector: FC<IndividualSelectorProps> = ({
   );
 };
 
+type SelectableParty = {
+  id: string;
+  partyType: 'INDIVIDUAL' | 'ORGANIZATION';
+  label: string;
+  firstName?: string;
+  lastName?: string;
+  businessName?: string;
+  roles: string[];
+};
+
+interface PartySelectorProps {
+  control: UseFormReturn<BankAccountFormData>['control'];
+  parties: SelectableParty[];
+  selectedPartyId: string | undefined;
+  onSelect: (party: SelectableParty) => void;
+}
+
+/**
+ * Unified party picker for single-page linked-account create.
+ * Selecting a party derives accountType from partyType.
+ */
+const PartySelector: FC<PartySelectorProps> = ({
+  control,
+  parties,
+  selectedPartyId,
+  onSelect,
+}) => {
+  const { t, tString } = useTranslationWithTokens('bank-account-form');
+  const selected = parties.find((p) => p.id === selectedPartyId);
+
+  return (
+    <FormField
+      control={control}
+      name="selectedPartyId"
+      rules={{
+        required: tString('partySelector.validation.required'),
+      }}
+      render={({ fieldState }) => (
+        <FormItem>
+          <FormLabel>{t('partySelector.accountHolder')}</FormLabel>
+          <Select
+            value={selected?.id || ''}
+            onValueChange={(partyId) => {
+              const party = parties.find((p) => p.id === partyId);
+              if (party) {
+                onSelect(party);
+              }
+            }}
+          >
+            <FormControl>
+              <SelectTrigger
+                className="eb-h-auto eb-min-h-[48px]"
+                aria-invalid={fieldState.invalid || undefined}
+              >
+                <SelectValue placeholder={t('partySelector.placeholder')} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {parties.map((party) => (
+                <SelectItem key={party.id} value={party.id}>
+                  <div className="eb-flex eb-flex-col eb-items-start eb-gap-1 eb-py-1">
+                    <span className="eb-font-medium">{party.label}</span>
+                    <span className="eb-text-xs eb-text-muted-foreground">
+                      {party.partyType === 'INDIVIDUAL'
+                        ? t('partySelector.typeHintIndividual')
+                        : t('partySelector.typeHintOrganization')}
+                      {party.roles.length > 0
+                        ? ` · ${party.roles.map(formatRole).join(', ')}`
+                        : ''}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+};
+
 /**
  * RoutingNumberFields - Dynamic routing number input fields per payment method
  */
@@ -695,19 +777,30 @@ interface BankAccountFormStep1Props {
   form: UseFormReturn<BankAccountFormData>;
   config: BankAccountFormProps['config'];
   effectiveConfig: BankAccountFormProps['config'];
+  /** Hide Individual/Business type control (party picker derives type). */
+  hideAccountTypeSelect?: boolean;
+  /** Hide payment method checklist when a single locked method is preselected. */
+  hidePaymentMethodSelect?: boolean;
 }
 
 const BankAccountFormStep1: FC<BankAccountFormStep1Props> = ({
   form,
   config,
   effectiveConfig,
+  hideAccountTypeSelect = false,
+  hidePaymentMethodSelect = false,
 }) => {
   const { t } = useTranslationWithTokens('bank-account-form');
+
+  if (hideAccountTypeSelect && hidePaymentMethodSelect) {
+    return null;
+  }
 
   return (
     <div className="eb-space-y-6">
       {/* Account Holder Type */}
-      {effectiveConfig.accountHolder.allowIndividual &&
+      {!hideAccountTypeSelect &&
+        effectiveConfig.accountHolder.allowIndividual &&
         effectiveConfig.accountHolder.allowOrganization && (
           <FormField
             control={form.control}
@@ -767,23 +860,25 @@ const BankAccountFormStep1: FC<BankAccountFormStep1Props> = ({
         )}
 
       {/* Payment Methods Selection */}
-      <FormField
-        control={form.control}
-        name="paymentTypes"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t('paymentMethods.selectAtLeastOne')}</FormLabel>
-            <PaymentMethodSelector
-              selectedTypes={field.value}
-              onChange={field.onChange}
-              availableTypes={effectiveConfig.paymentMethods.available}
-              configs={effectiveConfig.paymentMethods.configs}
-              allowMultiple={effectiveConfig.paymentMethods.allowMultiple}
-            />
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {!hidePaymentMethodSelect && (
+        <FormField
+          control={form.control}
+          name="paymentTypes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('paymentMethods.selectAtLeastOne')}</FormLabel>
+              <PaymentMethodSelector
+                selectedTypes={field.value}
+                onChange={field.onChange}
+                availableTypes={effectiveConfig.paymentMethods.available}
+                configs={effectiveConfig.paymentMethods.configs}
+                allowMultiple={effectiveConfig.paymentMethods.allowMultiple}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </div>
   );
 };
@@ -793,6 +888,9 @@ interface BankAccountFormStep2Props {
   effectiveConfig: BankAccountFormProps['config'];
   accountType: BankAccountFormData['accountType'];
   individualParties: IndividualSelectorProps['individuals'];
+  /** When set, show unified PartySelector instead of type-branched holder fields. */
+  selectableParties?: SelectableParty[];
+  usePartySelector?: boolean;
   recipient?: Recipient;
   organizationName?: string;
   isLoading: boolean;
@@ -813,6 +911,8 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
   effectiveConfig,
   accountType,
   individualParties,
+  selectableParties = [],
+  usePartySelector = false,
   recipient,
   organizationName,
   isLoading,
@@ -832,165 +932,207 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
     effectiveConfig.paymentMethods.configs
   );
 
+  const handlePartySelect = (party: SelectableParty) => {
+    form.setValue('accountType', party.partyType, { shouldValidate: true });
+    form.setValue('selectedPartyId', party.id, { shouldValidate: true });
+    if (party.partyType === 'INDIVIDUAL') {
+      form.setValue('firstName', party.firstName ?? '', {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      form.setValue('lastName', party.lastName ?? '', {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      form.setValue('businessName', '', { shouldValidate: true });
+    } else {
+      form.setValue('businessName', party.businessName ?? '', {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      form.setValue('firstName', '', { shouldValidate: true });
+      form.setValue('lastName', '', { shouldValidate: true });
+    }
+  };
+
   return (
     <div className="eb-space-y-4">
       {/* Account Holder Details */}
-      {accountType === 'INDIVIDUAL' ? (
-        <>
-          {effectiveConfig.accountHolder.prefillFromClient &&
-          individualParties.length > 0 &&
-          !recipient ? (
-            <>
-              <Alert noTitle variant="informative">
-                <InfoIcon className="eb-h-4 eb-w-4" />
-                <AlertDescription>
-                  {individualParties.length === 1
-                    ? t('alerts.individualOnlyAccountsSingle')
-                    : t('alerts.individualOnlyAccountsMultiple')}
-                </AlertDescription>
-              </Alert>
-              <IndividualSelector
-                control={form.control}
-                individuals={individualParties}
-                selectedFirstName={form.watch('firstName')}
-                selectedLastName={form.watch('lastName')}
-                onSelect={(individual) => {
-                  form.setValue('firstName', individual.firstName, {
-                    shouldValidate: true,
-                  });
-                  form.setValue('lastName', individual.lastName, {
-                    shouldValidate: true,
-                  });
-                  form.setValue('selectedPartyId', individual.id);
-                }}
-              />
-            </>
-          ) : (
-            <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
-              <StandardFormField
-                control={form.control}
-                name="firstName"
-                type="text"
-                label={
-                  effectiveConfig.content.fieldLabels?.firstName ||
-                  t('fields.firstName.label')
-                }
-                placeholder={tString('fields.firstName.placeholder')}
-                required
-                readonly={effectiveConfig.readonlyFields?.firstName}
-                disabled={isLoading}
-                inputProps={{ autoFocus: true }}
-              />
-              <StandardFormField
-                control={form.control}
-                name="lastName"
-                type="text"
-                label={
-                  effectiveConfig.content.fieldLabels?.lastName ||
-                  t('fields.lastName.label')
-                }
-                placeholder={tString('fields.lastName.placeholder')}
-                required
-                readonly={effectiveConfig.readonlyFields?.lastName}
-                disabled={isLoading}
-              />
-            </div>
-          )}
-        </>
-      ) : (
-        <>
-          {effectiveConfig.accountHolder.prefillFromClient &&
-            organizationName &&
-            !recipient && (
-              <Alert noTitle variant="informative">
-                <InfoIcon className="eb-h-4 eb-w-4" />
-                <AlertDescription>
-                  {t('alerts.organizationOnlyAccounts')}
-                </AlertDescription>
-              </Alert>
-            )}
-          <StandardFormField
+      <fieldset className="eb-space-y-3 eb-border-0 eb-p-0">
+        <legend className="eb-mb-1 eb-text-sm eb-font-semibold">
+          {effectiveConfig.content.sections?.accountHolderInfo ||
+            t('sections.accountHolderInfo')}
+        </legend>
+        {usePartySelector && selectableParties.length > 0 && !recipient ? (
+          <PartySelector
             control={form.control}
-            name="businessName"
-            type="text"
-            label={
-              effectiveConfig.content.fieldLabels?.businessName ||
-              t('fields.businessName.label')
-            }
-            placeholder={tString('fields.businessName.placeholder')}
-            required
-            readonly={effectiveConfig.readonlyFields?.businessName}
-            disabled={isLoading}
-            inputProps={{ autoFocus: true }}
+            parties={selectableParties}
+            selectedPartyId={form.watch('selectedPartyId')}
+            onSelect={handlePartySelect}
           />
-        </>
-      )}
+        ) : accountType === 'INDIVIDUAL' ? (
+          <>
+            {effectiveConfig.accountHolder.prefillFromClient &&
+            individualParties.length > 0 &&
+            !recipient ? (
+              <>
+                <Alert noTitle variant="informative">
+                  <InfoIcon className="eb-h-4 eb-w-4" />
+                  <AlertDescription>
+                    {individualParties.length === 1
+                      ? t('alerts.individualOnlyAccountsSingle')
+                      : t('alerts.individualOnlyAccountsMultiple')}
+                  </AlertDescription>
+                </Alert>
+                <IndividualSelector
+                  control={form.control}
+                  individuals={individualParties}
+                  selectedFirstName={form.watch('firstName')}
+                  selectedLastName={form.watch('lastName')}
+                  onSelect={(individual) => {
+                    form.setValue('firstName', individual.firstName, {
+                      shouldValidate: true,
+                    });
+                    form.setValue('lastName', individual.lastName, {
+                      shouldValidate: true,
+                    });
+                    form.setValue('selectedPartyId', individual.id);
+                  }}
+                />
+              </>
+            ) : (
+              <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
+                <StandardFormField
+                  control={form.control}
+                  name="firstName"
+                  type="text"
+                  label={
+                    effectiveConfig.content.fieldLabels?.firstName ||
+                    t('fields.firstName.label')
+                  }
+                  placeholder={tString('fields.firstName.placeholder')}
+                  required
+                  readonly={effectiveConfig.readonlyFields?.firstName}
+                  disabled={isLoading}
+                  inputProps={{ autoFocus: true }}
+                />
+                <StandardFormField
+                  control={form.control}
+                  name="lastName"
+                  type="text"
+                  label={
+                    effectiveConfig.content.fieldLabels?.lastName ||
+                    t('fields.lastName.label')
+                  }
+                  placeholder={tString('fields.lastName.placeholder')}
+                  required
+                  readonly={effectiveConfig.readonlyFields?.lastName}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {effectiveConfig.accountHolder.prefillFromClient &&
+              organizationName &&
+              !recipient && (
+                <Alert noTitle variant="informative">
+                  <InfoIcon className="eb-h-4 eb-w-4" />
+                  <AlertDescription>
+                    {t('alerts.organizationOnlyAccounts')}
+                  </AlertDescription>
+                </Alert>
+              )}
+            <StandardFormField
+              control={form.control}
+              name="businessName"
+              type="text"
+              label={
+                effectiveConfig.content.fieldLabels?.businessName ||
+                t('fields.businessName.label')
+              }
+              placeholder={tString('fields.businessName.placeholder')}
+              required
+              readonly={effectiveConfig.readonlyFields?.businessName}
+              disabled={isLoading}
+              inputProps={{ autoFocus: true }}
+            />
+          </>
+        )}
+      </fieldset>
 
       {/* Bank Account Details */}
-      <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
-        <StandardFormField
-          control={form.control}
-          name="accountNumber"
-          type="text"
-          label={
-            effectiveConfig.content.fieldLabels?.accountNumber ||
-            t('fields.accountNumber.label')
-          }
-          placeholder={tString('fields.accountNumber.placeholder')}
-          required
-          readonly={effectiveConfig.readonlyFields?.accountNumber}
-          disabled={isLoading}
-        />
-        {!effectiveConfig.internationalFieldConfig?.hideBankAccountType && (
+      <fieldset className="eb-space-y-3 eb-border-0 eb-p-0">
+        <legend className="eb-mb-1 eb-text-sm eb-font-semibold">
+          {effectiveConfig.content.sections?.bankAccountDetails ||
+            t('sections.bankAccountDetails')}
+        </legend>
+        <div className="eb-grid eb-grid-cols-1 eb-gap-3 md:eb-grid-cols-2">
           <StandardFormField
             control={form.control}
-            name="bankAccountType"
-            type="select"
+            name="accountNumber"
+            type="text"
             label={
-              effectiveConfig.content.fieldLabels?.bankAccountType ||
-              t('fields.accountType.label')
+              effectiveConfig.content.fieldLabels?.accountNumber ||
+              t('fields.accountNumber.label')
             }
-            placeholder={tString('fields.accountType.placeholder')}
+            placeholder={tString('fields.accountNumber.placeholder')}
             required
-            readonly={effectiveConfig.readonlyFields?.bankAccountType}
+            readonly={effectiveConfig.readonlyFields?.accountNumber}
             disabled={isLoading}
-            options={[
-              { value: 'CHECKING', label: t('accountTypes.checking') },
-              { value: 'SAVINGS', label: t('accountTypes.savings') },
-            ]}
           />
-        )}
-      </div>
+          {!effectiveConfig.internationalFieldConfig?.hideBankAccountType && (
+            <StandardFormField
+              control={form.control}
+              name="bankAccountType"
+              type="select"
+              label={
+                effectiveConfig.content.fieldLabels?.bankAccountType ||
+                t('fields.accountType.label')
+              }
+              placeholder={tString('fields.accountType.placeholder')}
+              required
+              readonly={effectiveConfig.readonlyFields?.bankAccountType}
+              disabled={isLoading}
+              options={[
+                { value: 'CHECKING', label: t('accountTypes.checking') },
+                { value: 'SAVINGS', label: t('accountTypes.savings') },
+              ]}
+            />
+          )}
+        </div>
 
-      {/* Routing Numbers */}
-      <RoutingNumberFields
-        control={form.control}
-        paymentMethods={paymentTypes}
-        useSameForAll={useSameRoutingNumber ?? true}
-        onUseSameForAllChange={(value) => {
-          form.setValue('useSameRoutingNumber', value);
+        {/* Routing Numbers */}
+        <RoutingNumberFields
+          control={form.control}
+          paymentMethods={paymentTypes}
+          useSameForAll={useSameRoutingNumber ?? true}
+          onUseSameForAllChange={(value) => {
+            form.setValue('useSameRoutingNumber', value);
 
-          if (value) {
-            // When switching to "same for all", use the first method's routing number
-            // and apply it to all other payment methods
-            const currentRoutingNumbers =
-              form.getValues('routingNumbers') || [];
-            const sourceRoutingNumber =
-              currentRoutingNumbers[0]?.routingNumber || '';
+            if (value) {
+              // When switching to "same for all", use the first method's routing number
+              // and apply it to all other payment methods
+              const currentRoutingNumbers =
+                form.getValues('routingNumbers') || [];
+              const sourceRoutingNumber =
+                currentRoutingNumbers[0]?.routingNumber || '';
 
-            if (sourceRoutingNumber) {
-              const updatedRoutingNumbers = paymentTypes.map((method) => ({
-                paymentType: method,
-                routingNumber: sourceRoutingNumber,
-              }));
-              form.setValue('routingNumbers', updatedRoutingNumbers);
+              if (sourceRoutingNumber) {
+                const updatedRoutingNumbers = paymentTypes.map((method) => ({
+                  paymentType: method,
+                  routingNumber: sourceRoutingNumber,
+                }));
+                form.setValue('routingNumbers', updatedRoutingNumbers);
+              }
             }
-          }
-        }}
-        configs={effectiveConfig.paymentMethods.configs}
-        disabled={isLoading}
-        internationalConfig={effectiveConfig.internationalFieldConfig}
-      />
+          }}
+          configs={effectiveConfig.paymentMethods.configs}
+          disabled={isLoading}
+          internationalConfig={effectiveConfig.internationalFieldConfig}
+        />
+      </fieldset>
 
       {/* Address Fields */}
       {showAddressFields &&
@@ -1149,6 +1291,7 @@ interface BankAccountFormFooterProps {
   onCancel?: () => void;
   isLoading: boolean;
   skipStepOne: boolean;
+  layout: 'wizard' | 'singlePage';
   reviewAcknowledgementsComplete: boolean;
   onStep1Continue: () => void;
   onStep2Back: () => void;
@@ -1160,6 +1303,7 @@ const BankAccountFormFooter: FC<BankAccountFormFooterProps> = ({
   onCancel,
   isLoading,
   skipStepOne,
+  layout,
   reviewAcknowledgementsComplete,
   onStep1Continue,
   onStep2Back,
@@ -1176,6 +1320,44 @@ const BankAccountFormFooter: FC<BankAccountFormFooterProps> = ({
       {content.cancelButtonText || t('navigation.cancel')}
     </Button>
   ) : null;
+
+  const submitButton = (
+    <Button
+      type="submit"
+      disabled={isLoading || !reviewAcknowledgementsComplete}
+      className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
+    >
+      {isLoading && (
+        <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
+      )}
+      {isLoading ? content.loadingMessage : content.submitButtonText}
+    </Button>
+  );
+
+  if (layout === 'singlePage') {
+    const singlePageButtons = (
+      <>
+        {embedded ? (
+          cancelButton
+        ) : (
+          <DialogClose asChild>{cancelButton}</DialogClose>
+        )}
+        {submitButton}
+      </>
+    );
+    if (embedded) {
+      return (
+        <div className="eb-flex eb-shrink-0 eb-flex-col-reverse eb-gap-3 eb-p-4 sm:eb-flex-row sm:eb-justify-end">
+          {singlePageButtons}
+        </div>
+      );
+    }
+    return (
+      <DialogFooter className="eb-shrink-0 eb-gap-3 eb-border-t eb-bg-muted/10 eb-p-6 eb-py-4">
+        {singlePageButtons}
+      </DialogFooter>
+    );
+  }
 
   const continueButton = (
     <Button
@@ -1205,16 +1387,7 @@ const BankAccountFormFooter: FC<BankAccountFormFooterProps> = ({
       >
         <ArrowLeftIcon /> {backLabel}
       </Button>
-      <Button
-        type="submit"
-        disabled={isLoading || !reviewAcknowledgementsComplete}
-        className="eb-w-full sm:eb-w-auto sm:eb-min-w-[120px]"
-      >
-        {isLoading && (
-          <Loader2Icon className="eb-mr-2 eb-h-4 eb-w-4 eb-animate-spin" />
-        )}
-        {isLoading ? content.loadingMessage : content.submitButtonText}
-      </Button>
+      {submitButton}
     </>
   );
 
@@ -1250,7 +1423,7 @@ const BankAccountFormFooter: FC<BankAccountFormFooterProps> = ({
 };
 
 /**
- * BankAccountForm - Core form component (2-step wizard)
+ * BankAccountForm - Core form component (2-step wizard or single-page layout)
  */
 export const BankAccountForm: FC<BankAccountFormProps> = ({
   config,
@@ -1261,6 +1434,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   alert,
   client,
   skipStepOne = false,
+  layout = 'wizard',
   embedded = false,
   initialPaymentTypes: initialPaymentTypesProp,
   initialStep = 1,
@@ -1308,9 +1482,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     [reviewAcknowledgements, acknowledgementChecked]
   );
 
-  // Start on step 2 if skipStepOne is true OR initialStep is 2
+  // Start on step 2 if skipStepOne is true OR initialStep is 2 (wizard only)
   const [currentStep, setCurrentStep] = useState<1 | 2>(
-    skipStepOne ? 2 : initialStep
+    layout === 'singlePage' || skipStepOne ? 2 : initialStep
   );
 
   // Extract organization name and party ID from client data if available
@@ -1352,6 +1526,67 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         roles: party.roles || [],
       }));
   }, [client]);
+
+  /** Unified party list for single-page linked-account create (individuals + orgs). */
+  const selectableParties = useMemo((): SelectableParty[] => {
+    if (!client?.parties) return [];
+
+    const parties: SelectableParty[] = [];
+    for (const party of client.parties) {
+      if (!party.active || !party.id) continue;
+
+      if (
+        party.partyType === 'INDIVIDUAL' &&
+        config.accountHolder.allowIndividual &&
+        party.individualDetails?.firstName &&
+        party.individualDetails?.lastName
+      ) {
+        parties.push({
+          id: party.id,
+          partyType: 'INDIVIDUAL',
+          label: `${party.individualDetails.firstName} ${party.individualDetails.lastName}`,
+          firstName: party.individualDetails.firstName,
+          lastName: party.individualDetails.lastName,
+          roles: party.roles || [],
+        });
+      }
+
+      if (
+        party.partyType === 'ORGANIZATION' &&
+        config.accountHolder.allowOrganization &&
+        party.organizationDetails?.organizationName
+      ) {
+        parties.push({
+          id: party.id,
+          partyType: 'ORGANIZATION',
+          label: party.organizationDetails.organizationName,
+          businessName: party.organizationDetails.organizationName,
+          roles: party.roles || [],
+        });
+      }
+    }
+    return parties;
+  }, [
+    client,
+    config.accountHolder.allowIndividual,
+    config.accountHolder.allowOrganization,
+  ]);
+
+  const usePartySelector =
+    layout === 'singlePage' &&
+    !!config.accountHolder.prefillFromClient &&
+    selectableParties.length > 0 &&
+    !recipient;
+
+  const hidePaymentMethodSelect = useMemo(() => {
+    if (layout !== 'singlePage') return false;
+    const available = config.paymentMethods.available;
+    if (available.length !== 1) return false;
+    const only = available[0];
+    return config.paymentMethods.configs[only]?.locked === true;
+  }, [layout, config.paymentMethods]);
+
+  const hideAccountTypeSelect = usePartySelector;
 
   /** Custom `reviewAcknowledgements` replace the default certification row (avoid duplicate legal copy). */
   const configWithReviewAcknowledgements = useMemo(() => {
@@ -1595,6 +1830,28 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     onDirtyChange?.(isDirty || acknowledgementDirty);
     return () => onDirtyChange?.(false);
   }, [isDirty, acknowledgementDirty, onDirtyChange]);
+
+  // Auto-select the only available party on single-page linked create
+  useEffect(() => {
+    if (!usePartySelector || selectableParties.length !== 1) return;
+    if (form.getValues('selectedPartyId')) return;
+    const party = selectableParties[0];
+    form.setValue('accountType', party.partyType, { shouldValidate: true });
+    form.setValue('selectedPartyId', party.id, { shouldValidate: true });
+    if (party.partyType === 'INDIVIDUAL') {
+      form.setValue('firstName', party.firstName ?? '', {
+        shouldValidate: true,
+      });
+      form.setValue('lastName', party.lastName ?? '', { shouldValidate: true });
+      form.setValue('businessName', '', { shouldValidate: true });
+    } else {
+      form.setValue('businessName', party.businessName ?? '', {
+        shouldValidate: true,
+      });
+      form.setValue('firstName', '', { shouldValidate: true });
+      form.setValue('lastName', '', { shouldValidate: true });
+    }
+  }, [usePartySelector, selectableParties, form]);
 
   const defaultValuesOverrideKey = JSON.stringify(
     defaultValuesOverride ?? null
@@ -1905,41 +2162,72 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         >
           <div className="eb-space-y-4 eb-py-4">
             {alert}
-            {/* Step 1: Account Type & Payment Method Selection */}
-            {currentStep === 1 && (
-              <BankAccountFormStep1
-                form={form}
-                config={config}
-                effectiveConfig={effectiveConfig}
-              />
-            )}
-
-            {/* Step 2: Detailed Form */}
-            {currentStep === 2 && (
-              <BankAccountFormStep2
-                form={form}
-                effectiveConfig={effectiveConfig}
-                accountType={accountType}
-                individualParties={individualParties}
-                recipient={recipient}
-                organizationName={organizationName}
-                isLoading={isLoading}
-                paymentTypes={paymentTypes}
-                useSameRoutingNumber={useSameRoutingNumber}
-                showAddressFields={showAddressFields}
-                useStateTextField={useStateTextField}
-                requiredContactTypes={requiredContactTypes}
-                reviewAcknowledgements={reviewAcknowledgements}
-                acknowledgementChecked={acknowledgementChecked}
-                onAcknowledgementChange={handleAcknowledgementChange}
-                reviewAckGroupAriaLabel={effectiveReviewAckGroupAriaLabel}
-                acknowledgementsIntro={acknowledgementsIntro}
-              />
+            {layout === 'singlePage' ? (
+              <>
+                <BankAccountFormStep1
+                  form={form}
+                  config={config}
+                  effectiveConfig={effectiveConfig}
+                  hideAccountTypeSelect={hideAccountTypeSelect}
+                  hidePaymentMethodSelect={hidePaymentMethodSelect}
+                />
+                <BankAccountFormStep2
+                  form={form}
+                  effectiveConfig={effectiveConfig}
+                  accountType={accountType}
+                  individualParties={individualParties}
+                  selectableParties={selectableParties}
+                  usePartySelector={usePartySelector}
+                  recipient={recipient}
+                  organizationName={organizationName}
+                  isLoading={isLoading}
+                  paymentTypes={paymentTypes}
+                  useSameRoutingNumber={useSameRoutingNumber}
+                  showAddressFields={showAddressFields}
+                  useStateTextField={useStateTextField}
+                  requiredContactTypes={requiredContactTypes}
+                  reviewAcknowledgements={reviewAcknowledgements}
+                  acknowledgementChecked={acknowledgementChecked}
+                  onAcknowledgementChange={handleAcknowledgementChange}
+                  reviewAckGroupAriaLabel={effectiveReviewAckGroupAriaLabel}
+                  acknowledgementsIntro={acknowledgementsIntro}
+                />
+              </>
+            ) : (
+              <>
+                {currentStep === 1 && (
+                  <BankAccountFormStep1
+                    form={form}
+                    config={config}
+                    effectiveConfig={effectiveConfig}
+                  />
+                )}
+                {currentStep === 2 && (
+                  <BankAccountFormStep2
+                    form={form}
+                    effectiveConfig={effectiveConfig}
+                    accountType={accountType}
+                    individualParties={individualParties}
+                    recipient={recipient}
+                    organizationName={organizationName}
+                    isLoading={isLoading}
+                    paymentTypes={paymentTypes}
+                    useSameRoutingNumber={useSameRoutingNumber}
+                    showAddressFields={showAddressFields}
+                    useStateTextField={useStateTextField}
+                    requiredContactTypes={requiredContactTypes}
+                    reviewAcknowledgements={reviewAcknowledgements}
+                    acknowledgementChecked={acknowledgementChecked}
+                    onAcknowledgementChange={handleAcknowledgementChange}
+                    reviewAckGroupAriaLabel={effectiveReviewAckGroupAriaLabel}
+                    acknowledgementsIntro={acknowledgementsIntro}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>
 
-        {/* Footer - Use plain div when embedded, DialogFooter when in dialog context */}
         <BankAccountFormFooter
           embedded={embedded}
           currentStep={currentStep}
@@ -1947,6 +2235,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
           onCancel={onCancel}
           isLoading={isLoading}
           skipStepOne={skipStepOne}
+          layout={layout}
           reviewAcknowledgementsComplete={reviewAcknowledgementsComplete}
           onStep1Continue={handleStep1Continue}
           onStep2Back={handleStep2Back}

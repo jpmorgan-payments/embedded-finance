@@ -50,6 +50,15 @@
       "required": "Por favor seleccione un titular de cuenta"
     }
   },
+  "partySelector": {
+    "accountHolder": "Titular de la cuenta",
+    "placeholder": "Elija a quién pertenece esta cuenta",
+    "typeHintIndividual": "Individual",
+    "typeHintOrganization": "Empresa",
+    "validation": {
+      "required": "Por favor seleccione un titular de cuenta"
+    }
+  },
   "routingNumbers": {
     "legend": "Números de ruta",
     "useSameForAll": "Usar el mismo número de ruta para todos los métodos de pago",

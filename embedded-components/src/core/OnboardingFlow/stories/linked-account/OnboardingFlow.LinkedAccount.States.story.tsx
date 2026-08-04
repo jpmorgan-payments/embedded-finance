@@ -75,7 +75,7 @@ function approvedLinkAccountLifecycleStory(
 /**
  * **Approved — bank link not started (no linked account yet)**
  *
- * Overview shows the dashed “Link an account” card with **Start** (no `GET /recipients` row yet). Matches the pre–linked-account state before `POST /recipients`.
+ * Overview shows the inline link form (no Start CTA; no `GET /recipients` row yet). Matches the pre–linked-account state before `POST /recipients`.
  */
 export const ApprovedWithBankLinkNotStarted: Story =
   approvedLinkAccountLifecycleStory(
@@ -180,13 +180,13 @@ export const ApprovedWithExistingLinkedAccount: Story =
 /**
  * **Approved — only rejected linked accounts (no active account)**
  *
- * The overview bank section shows the "Link an account" Start button
+ * The overview bank section shows the inline link form
  * together with a collapsible **Recently Rejected Accounts** accordion
  * listing the rejected accounts from the last 30 days.
  */
 export const ApprovedWithOnlyRejectedAccounts: Story =
   approvedLinkAccountLifecycleStory(
-    '**REJECTED only** — no active/pending account. The rejected-accounts accordion is shown alongside the Start button.',
+    '**REJECTED only** — no active/pending account. The rejected-accounts accordion is shown alongside the inline link form.',
     {
       handlerOptions: {
         existingLinkedAccounts: [
