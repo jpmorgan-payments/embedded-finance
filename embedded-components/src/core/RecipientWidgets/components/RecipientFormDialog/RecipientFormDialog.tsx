@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode, useMemo, useState } from 'react';
 import { TranslationResult, useTranslationWithTokens } from '@/i18n';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
@@ -15,6 +15,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { applyFxBankAccountFormOverrides } from '@/core/PaymentFlowFX/applyFxBankAccountFormOverrides';
+import { RecipientAccountCurrencySelect } from '@/core/PaymentFlowFX/components/RecipientAccountCurrencySelect';
+import { getFxRoutingCodeType } from '@/core/PaymentFlowFX/fxRecipientRequirements';
 
 import { useRecipientForm, type RecipientFormMode } from '../../hooks';
 import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
@@ -79,6 +82,33 @@ export interface RecipientFormDialogProps {
    * Storybook / hosts can expose alternate `paymentMethods.available` sets without forking the dialog.
    */
   linkAccountBankFormConfigOverride?: Partial<BankAccountFormConfig>;
+
+  /**
+   * Enable cross-border (FX) recipient capture (FR-FX-10). When true for
+   * **create** + `RECIPIENT`, shows "Recipient's account currency" and adapts
+   * form fields / rails for non-USD currencies. Edit and linked-account flows
+   * ignore this flag.
+   *
+   * @default false
+   */
+  internationalMode?: boolean;
+
+  /**
+   * Currencies selectable when {@link internationalMode} is on
+   * (USD is always listed as the domestic default).
+   */
+  supportedCurrencies?: string[];
+
+  /**
+   * Optional map of currency code ⇒ display name (e.g. `{ EUR: 'Euro' }`).
+   */
+  currencyLabels?: Record<string, string>;
+
+  /**
+   * Show currency badge on the success card. Defaults to `true` when
+   * {@link internationalMode} is enabled.
+   */
+  showRecipientCurrency?: boolean;
 }
 
 /**
@@ -100,6 +130,19 @@ function selectBankAccountConfig(
   return mode === 'create'
     ? configs.linkedAccountCreate
     : configs.linkedAccountEdit;
+}
+
+function tagRecipientCurrency(
+  recipient: Recipient,
+  currencyCode: string
+): Recipient {
+  return {
+    ...recipient,
+    account: {
+      ...(recipient.account ?? {}),
+      currencyCode,
+    },
+  } as unknown as Recipient;
 }
 
 /**
@@ -128,16 +171,14 @@ function selectBankAccountConfig(
  *   onRecipientSettled={handleSettled}
  * />
  *
- * // Edit mode (controlled)
- * {editingRecipient && (
- *   <RecipientFormDialog
- *     mode="edit"
- *     recipient={editingRecipient}
- *     open
- *     onOpenChange={(open) => !open && setEditingRecipient(null)}
- *     onRecipientSettled={handleSettled}
- *   />
- * )}
+ * // FX create (currency select)
+ * <RecipientFormDialog
+ *   mode="create"
+ *   internationalMode
+ *   supportedCurrencies={['EUR', 'GBP']}
+ *   open={isOpen}
+ *   onOpenChange={setIsOpen}
+ * />
  * ```
  */
 export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
@@ -152,11 +193,25 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   linkAccountReviewAcknowledgements,
   showLinkAccountAcknowledgementsIntro = false,
   linkAccountBankFormConfigOverride,
+  internationalMode = false,
+  supportedCurrencies,
+  currencyLabels,
+  showRecipientCurrency,
 }) => {
   const { t } = useTranslationWithTokens(i18nNamespace);
+  const { tString: tMakePaymentString } =
+    useTranslationWithTokens('make-payment');
   const { t: tOnboardingOverview, tString: tOnboardingOverviewString } =
     useTranslationWithTokens('onboarding-overview');
   const clientId = useClientId();
+
+  // FR-FX-10: optional international recipient capture (create + RECIPIENT only).
+  const fxCreateEnabled =
+    internationalMode && mode === 'create' && recipientType === 'RECIPIENT';
+  const [accountCurrency, setAccountCurrency] = useState('USD');
+  const isInternational = fxCreateEnabled && accountCurrency !== 'USD';
+  const shouldShowRecipientCurrency =
+    showRecipientCurrency ?? internationalMode;
 
   // Fetch client data using the client ID
   const { data: clientData } = useSmbdoGetClient(clientId ?? '', {
@@ -178,12 +233,39 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   const recipientEditConfig = useRecipientEditConfig();
 
   // Select config based on recipientType and mode
-  const config = selectBankAccountConfig(recipientType, mode, {
+  const baseConfig = selectBankAccountConfig(recipientType, mode, {
     recipientCreate: recipientCreateConfig,
     recipientEdit: recipientEditConfig,
     linkedAccountCreate: linkedAccountCreateConfig,
     linkedAccountEdit: linkedAccountEditConfig,
   });
+
+  const config = useMemo(() => {
+    if (!isInternational) return baseConfig;
+    return applyFxBankAccountFormOverrides(baseConfig, accountCurrency, {
+      highValue: tMakePaymentString('fx.rails.label.WIRE', 'FX High-value'),
+      lowValue: tMakePaymentString('fx.rails.label.ACH', 'FX Low-value'),
+      wireDescription: tMakePaymentString(
+        'fx.rails.desc.WIRE',
+        'Time-critical cross-currency payouts (same or next business day)'
+      ),
+      achDescription: tMakePaymentString(
+        'fx.rails.desc.ACH',
+        'Non-urgent cross-currency payouts (two to five business days)'
+      ),
+    });
+  }, [baseConfig, isInternational, accountCurrency, tMakePaymentString]);
+
+  const handleSettled = (settledRecipient?: Recipient, error?: any) => {
+    if (settledRecipient && isInternational) {
+      onRecipientSettled?.(
+        tagRecipientCurrency(settledRecipient, accountCurrency),
+        error
+      );
+      return;
+    }
+    onRecipientSettled?.(settledRecipient, error);
+  };
 
   // Use the recipient form hook
   const {
@@ -196,8 +278,20 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
     mode,
     recipientId: recipient?.id,
     recipientType,
-    onSettled: onRecipientSettled,
+    // FR-FX-10: persist the currency's canonical routing code for FX recipients.
+    routingCodeType: isInternational
+      ? getFxRoutingCodeType(accountCurrency)
+      : undefined,
+    onSettled: handleSettled,
   });
+
+  const displayRecipient = useMemo(() => {
+    if (!responseData) return undefined;
+    if (isInternational) {
+      return tagRecipientCurrency(responseData, accountCurrency);
+    }
+    return responseData;
+  }, [responseData, isInternational, accountCurrency]);
 
   // Handle form submission - submit already transforms and adds the appropriate type
   const handleSubmit = (data: BankAccountFormData) => {
@@ -209,6 +303,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
     // Reset when dialog closes to ensure clean state on next open
     if (!isOpen) {
       reset();
+      setAccountCurrency('USD');
     }
     onOpenChange?.(isOpen);
   };
@@ -260,9 +355,12 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
         </DialogHeader>
 
         {/* Success State */}
-        {status === 'success' && responseData && (
+        {status === 'success' && displayRecipient && (
           <div className="eb-space-y-6 eb-p-6">
-            <RecipientAccountDisplayCard recipient={responseData} />
+            <RecipientAccountDisplayCard
+              recipient={displayRecipient}
+              showRecipientCurrency={shouldShowRecipientCurrency}
+            />
 
             <DialogFooter>
               <DialogClose asChild>
@@ -274,47 +372,60 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
 
         {/* Form State */}
         {(status === 'idle' || status === 'error' || status === 'pending') && (
-          <BankAccountForm
-            config={config}
-            recipient={recipient}
-            client={clientData}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={status === 'pending'}
-            alert={
-              formError ? (
-                <FriendlyErrorAlert
-                  error={formError as any}
-                  showDetails
-                  customTitle={t(`forms.${translationKey}.error.title`)}
-                  i18nNamespace={i18nNamespace}
+          <>
+            {fxCreateEnabled && (
+              <div className="eb-shrink-0 eb-border-b eb-px-6 eb-py-4">
+                <RecipientAccountCurrencySelect
+                  value={accountCurrency}
+                  onValueChange={setAccountCurrency}
+                  supportedCurrencies={supportedCurrencies}
+                  currencyLabels={currencyLabels}
                 />
-              ) : undefined
-            }
-            reviewAcknowledgements={
-              isCreatingLinkedAccount && linkAccountReviewAcknowledgements
-                ? linkAccountReviewAcknowledgements
-                : undefined
-            }
-            acknowledgementsIntro={
-              isCreatingLinkedAccount &&
-              hasLinkAccountAcknowledgements &&
-              showLinkAccountAcknowledgementsIntro
-                ? tOnboardingOverview(
-                    'screens.linkAccount.prefillSummary.acknowledgementsIntro',
-                    'By electronically linking this account, you agree that:'
-                  )
-                : undefined
-            }
-            reviewAcknowledgementsGroupAriaLabel={
-              isCreatingLinkedAccount && hasLinkAccountAcknowledgements
-                ? tOnboardingOverviewString(
-                    'screens.linkAccount.review.acknowledgementsGroupLabel',
-                    'Agreements required to link this account'
-                  )
-                : undefined
-            }
-          />
+              </div>
+            )}
+            <BankAccountForm
+              key={fxCreateEnabled ? accountCurrency : 'domestic'}
+              config={config}
+              recipient={recipient}
+              client={clientData}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={status === 'pending'}
+              alert={
+                formError ? (
+                  <FriendlyErrorAlert
+                    error={formError as any}
+                    showDetails
+                    customTitle={t(`forms.${translationKey}.error.title`)}
+                    i18nNamespace={i18nNamespace}
+                  />
+                ) : undefined
+              }
+              reviewAcknowledgements={
+                isCreatingLinkedAccount && linkAccountReviewAcknowledgements
+                  ? linkAccountReviewAcknowledgements
+                  : undefined
+              }
+              acknowledgementsIntro={
+                isCreatingLinkedAccount &&
+                hasLinkAccountAcknowledgements &&
+                showLinkAccountAcknowledgementsIntro
+                  ? tOnboardingOverview(
+                      'screens.linkAccount.prefillSummary.acknowledgementsIntro',
+                      'By electronically linking this account, you agree that:'
+                    )
+                  : undefined
+              }
+              reviewAcknowledgementsGroupAriaLabel={
+                isCreatingLinkedAccount && hasLinkAccountAcknowledgements
+                  ? tOnboardingOverviewString(
+                      'screens.linkAccount.review.acknowledgementsGroupLabel',
+                      'Agreements required to link this account'
+                    )
+                  : undefined
+              }
+            />
+          </>
         )}
       </DialogContent>
     </Dialog>

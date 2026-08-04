@@ -61,12 +61,14 @@ export interface RecipientsWidgetProps
  * <RecipientsWidget scrollable maxHeight={500} />
  * ```
  *
- * @example Compact cards with FX payment flow
+ * @example Compact cards with FX payment flow + FX Add Recipient
  * ```tsx
  * <RecipientsWidget
  *   viewMode="compact-cards"
  *   paymentFlowVariant="fx"
  * />
+ * // paymentFlowVariant="fx" also enables internationalMode (currency select)
+ * // on Add Recipient. Override with internationalMode={false} if needed.
  * ```
  *
  * @example Compact cards with custom payment action

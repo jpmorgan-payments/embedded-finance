@@ -11,15 +11,11 @@ import type {
 } from '@/api/generated/ep-transactions.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { applyFxBankAccountFormOverrides } from '@/core/PaymentFlowFX/applyFxBankAccountFormOverrides';
+import { RecipientAccountCurrencySelect } from '@/core/PaymentFlowFX/components/RecipientAccountCurrencySelect';
+import { getFxRoutingCodeType } from '@/core/PaymentFlowFX/fxRecipientRequirements';
 import {
   BankAccountForm,
   useLinkedAccountConfig,
@@ -29,13 +25,6 @@ import {
 } from '@/core/RecipientWidgets/components/BankAccountForm';
 import { useRecipientForm } from '@/core/RecipientWidgets/hooks/useRecipientForm';
 
-import { CurrencyFlag } from '../../PaymentFlowFX/components/CurrencyFlag';
-import { FxRailDisclaimer } from '../../PaymentFlowFX/components/FxRailDisclaimer';
-import {
-  getFxAvailableRails,
-  getFxCurrencyRequirement,
-  getFxRoutingCodeType,
-} from '../../PaymentFlowFX/fxRecipientRequirements';
 import type { PaymentMethod, UnsavedRecipient } from '../PaymentFlow.types';
 
 /**
@@ -287,71 +276,6 @@ function BankAccountFormHeader({
 }
 
 /**
- * Applies cross-border (FX) overrides to a bank-account form config: relabels
- * the rails as value tiers, restricts available rails to those the destination
- * currency supports, and relaxes the US-domestic field rules. Pure transform —
- * the caller resolves the display strings (it owns the translation function).
- */
-function applyFxOverrides(
-  config: BankAccountFormConfig,
-  requirement: NonNullable<ReturnType<typeof getFxCurrencyRequirement>>,
-  rails: ReturnType<typeof getFxAvailableRails>,
-  labels: {
-    highValue: string;
-    lowValue: string;
-    wireDescription: string;
-    achDescription: string;
-  }
-): BankAccountFormConfig {
-  return {
-    ...config,
-    paymentMethods: {
-      ...config.paymentMethods,
-      available:
-        rails.length > 0
-          ? rails
-          : config.paymentMethods.available.filter((m) => m !== 'RTP'),
-      defaultSelected:
-        rails.length === 1 ? rails : config.paymentMethods.defaultSelected,
-      configs: {
-        ...config.paymentMethods.configs,
-        WIRE: {
-          ...config.paymentMethods.configs.WIRE,
-          label: labels.highValue,
-          labelString: labels.highValue,
-          shortLabel: labels.highValue,
-          shortLabelString: labels.highValue,
-          description: labels.wireDescription,
-        },
-        ACH: {
-          ...config.paymentMethods.configs.ACH,
-          label: labels.lowValue,
-          labelString: labels.lowValue,
-          shortLabel: labels.lowValue,
-          shortLabelString: labels.lowValue,
-          description: labels.achDescription,
-        },
-      },
-    },
-    content: {
-      ...config.content,
-      fieldLabels: {
-        ...config.content.fieldLabels,
-        accountNumber: requirement.accountNumberLabel,
-      },
-    },
-    internationalFieldConfig: {
-      hideBankAccountType: !requirement.requiresAccountType,
-      accountNumberFormat: requirement.accountNumberFormat,
-      relaxRoutingFormat: true,
-      routingCodeLabel: requirement.routingCode?.label,
-      routingCodeRequired: requirement.routingCode?.required ?? false,
-      hideRoutingNumber: !requirement.routingCode,
-    },
-  };
-}
-
-/**
  * BankAccountFormWrapper
  *
  * Wraps the shared BankAccountForm component for use in PaymentFlow.
@@ -539,7 +463,7 @@ export function BankAccountFormWrapper({
   });
 
   // Build customized config
-  const { t, tString } = useTranslationWithTokens(['make-payment']);
+  const { tString } = useTranslationWithTokens(['make-payment']);
   const config: BankAccountFormConfig = useMemo(() => {
     const baseConfig =
       formType === 'linked-account' ? linkedAccountConfig : recipientConfig;
@@ -586,12 +510,12 @@ export function BankAccountFormWrapper({
     // those the destination currency supports, and relax the US-domestic field
     // rules (account type, digits-only account number, 9-digit routing).
     if (isInternational) {
-      const requirement = getFxCurrencyRequirement(accountCurrency);
-      const rails = getFxAvailableRails(accountCurrency);
-      if (requirement) {
-        // In the FX flow the rails are the product's value tiers, not US
-        // networks — surface them as "FX High-value" / "FX Low-value".
-        nextConfig = applyFxOverrides(nextConfig, requirement, rails, {
+      // In the FX flow the rails are the product's value tiers, not US
+      // networks — surface them as "FX High-value" / "FX Low-value".
+      nextConfig = applyFxBankAccountFormOverrides(
+        nextConfig,
+        accountCurrency,
+        {
           highValue: tString('fx.rails.label.WIRE', 'FX High-value'),
           lowValue: tString('fx.rails.label.ACH', 'FX Low-value'),
           wireDescription: tString(
@@ -602,8 +526,8 @@ export function BankAccountFormWrapper({
             'fx.rails.desc.ACH',
             'Non-urgent cross-currency payouts (two to five business days)'
           ),
-        });
-      }
+        }
+      );
     }
 
     return nextConfig;
@@ -777,47 +701,12 @@ export function BankAccountFormWrapper({
 
       {/* FR-FX-10: cross-border recipient currency capture (opt-in via internationalMode) */}
       {internationalMode && formType === 'recipient' && !isEditing && (
-        <div className="eb-rounded-lg eb-border eb-bg-card eb-p-4">
-          <label
-            htmlFor="fx-account-currency"
-            className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
-          >
-            {t(
-              'bankAccountForm.accountCurrencyLabel',
-              "Recipient's account currency"
-            )}
-          </label>
-          <Select value={accountCurrency} onValueChange={setAccountCurrency}>
-            <SelectTrigger id="fx-account-currency" className="eb-w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="USD">
-                {t(
-                  'bankAccountForm.accountCurrencyDomestic',
-                  'USD — US Dollar (domestic)'
-                )}
-              </SelectItem>
-              {(supportedCurrencies ?? []).map((cur) => (
-                <SelectItem key={cur} value={cur}>
-                  <span className="eb-flex eb-items-center eb-gap-2">
-                    <CurrencyFlag currency={cur} />
-                    <span>
-                      {currencyLabels?.[cur]
-                        ? `${cur} — ${currencyLabels[cur]}`
-                        : cur}
-                    </span>
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {isInternational && (
-            <div className="eb-mt-3">
-              <FxRailDisclaimer currency={accountCurrency} />
-            </div>
-          )}
-        </div>
+        <RecipientAccountCurrencySelect
+          value={accountCurrency}
+          onValueChange={setAccountCurrency}
+          supportedCurrencies={supportedCurrencies}
+          currencyLabels={currencyLabels}
+        />
       )}
 
       {/* Form - embedded in a bordered card for visual separation */}
