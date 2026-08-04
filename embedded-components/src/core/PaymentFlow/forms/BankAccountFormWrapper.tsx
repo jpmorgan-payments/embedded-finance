@@ -699,17 +699,8 @@ export function BankAccountFormWrapper({
         onSwitchToLinkedAccount={onSwitchToLinkedAccount}
       />
 
-      {/* FR-FX-10: cross-border recipient currency capture (opt-in via internationalMode) */}
-      {internationalMode && formType === 'recipient' && !isEditing && (
-        <RecipientAccountCurrencySelect
-          value={accountCurrency}
-          onValueChange={setAccountCurrency}
-          supportedCurrencies={supportedCurrencies}
-          currencyLabels={currencyLabels}
-        />
-      )}
-
-      {/* Form - embedded in a bordered card for visual separation */}
+      {/* Form - embedded in a bordered card for visual separation.
+          FX currency select + rail disclaimer scroll with the form body. */}
       <div className="eb-rounded-lg eb-border eb-bg-card">
         <BankAccountForm
           key={formKey}
@@ -721,6 +712,7 @@ export function BankAccountFormWrapper({
           isLoading={status === 'pending'}
           showCard={false}
           embedded
+          layout="singlePage"
           initialStep={formDataToRestore ? 2 : 1}
           initialPaymentTypes={
             formDataToRestore?.paymentTypes ??
@@ -729,30 +721,40 @@ export function BankAccountFormWrapper({
             >)
           }
           alert={
-            formError || initialError ? (
-              <ServerErrorAlert
-                error={(formError || initialError) as any}
-                customTitle={
-                  formType === 'linked-account'
-                    ? 'Failed to link account'
-                    : 'Failed to add recipient'
-                }
-                customErrorMessage={{
-                  '400':
-                    'Please check the information you entered and try again.',
-                  '401':
-                    'Your session has expired. Please log in and try again.',
-                  '409':
-                    'This account may already exist. Please check your linked accounts.',
-                  '422':
-                    'The account information is invalid. Please verify and try again.',
-                  '500':
-                    'An unexpected error occurred. Please try again later.',
-                  default: 'An unexpected error occurred. Please try again.',
-                }}
-                showDetails={false}
-              />
-            ) : undefined
+            <>
+              {internationalMode && formType === 'recipient' && !isEditing && (
+                <RecipientAccountCurrencySelect
+                  value={accountCurrency}
+                  onValueChange={setAccountCurrency}
+                  supportedCurrencies={supportedCurrencies}
+                  currencyLabels={currencyLabels}
+                />
+              )}
+              {formError || initialError ? (
+                <ServerErrorAlert
+                  error={(formError || initialError) as any}
+                  customTitle={
+                    formType === 'linked-account'
+                      ? 'Failed to link account'
+                      : 'Failed to add recipient'
+                  }
+                  customErrorMessage={{
+                    '400':
+                      'Please check the information you entered and try again.',
+                    '401':
+                      'Your session has expired. Please log in and try again.',
+                    '409':
+                      'This account may already exist. Please check your linked accounts.',
+                    '422':
+                      'The account information is invalid. Please verify and try again.',
+                    '500':
+                      'An unexpected error occurred. Please try again later.',
+                    default: 'An unexpected error occurred. Please try again.',
+                  }}
+                  showDetails={false}
+                />
+              ) : null}
+            </>
           }
         />
       </div>

@@ -381,63 +381,63 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
           </div>
         )}
 
-        {/* Form State */}
+        {/* Form State — FX currency select scrolls with the form body */}
         {(status === 'idle' || status === 'error' || status === 'pending') && (
-          <>
-            {fxCreateEnabled && (
-              <div className="eb-shrink-0 eb-border-b eb-px-6 eb-py-4">
-                <RecipientAccountCurrencySelect
-                  value={accountCurrency}
-                  onValueChange={setAccountCurrency}
-                  supportedCurrencies={supportedCurrencies}
-                  currencyLabels={currencyLabels}
-                />
-              </div>
-            )}
-            <BankAccountForm
-              key={fxCreateEnabled ? accountCurrency : 'domestic'}
-              config={config}
-              recipient={recipient}
-              client={clientData}
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-              isLoading={status === 'pending'}
-              layout={isCreatingLinkedAccount ? 'singlePage' : 'wizard'}
-              alert={
-                formError ? (
-                  <FriendlyErrorAlert
-                    error={formError as any}
-                    showDetails
-                    customTitle={t(`forms.${translationKey}.error.title`)}
-                    i18nNamespace={i18nNamespace}
-                  />
-                ) : undefined
-              }
-              reviewAcknowledgements={
-                isCreatingLinkedAccount && linkAccountReviewAcknowledgements
-                  ? linkAccountReviewAcknowledgements
-                  : undefined
-              }
-              acknowledgementsIntro={
-                isCreatingLinkedAccount &&
-                hasLinkAccountAcknowledgements &&
-                showLinkAccountAcknowledgementsIntro
-                  ? tOnboardingOverview(
-                      'screens.linkAccount.prefillSummary.acknowledgementsIntro',
-                      'By electronically linking this account, you agree that:'
-                    )
-                  : undefined
-              }
-              reviewAcknowledgementsGroupAriaLabel={
-                isCreatingLinkedAccount && hasLinkAccountAcknowledgements
-                  ? tOnboardingOverviewString(
-                      'screens.linkAccount.review.acknowledgementsGroupLabel',
-                      'Agreements required to link this account'
-                    )
-                  : undefined
-              }
-            />
-          </>
+          <BankAccountForm
+            key={fxCreateEnabled ? accountCurrency : 'domestic'}
+            config={config}
+            recipient={recipient}
+            client={clientData}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            isLoading={status === 'pending'}
+            layout="singlePage"
+            alert={
+              fxCreateEnabled || formError ? (
+                <>
+                  {fxCreateEnabled && (
+                    <RecipientAccountCurrencySelect
+                      value={accountCurrency}
+                      onValueChange={setAccountCurrency}
+                      supportedCurrencies={supportedCurrencies}
+                      currencyLabels={currencyLabels}
+                    />
+                  )}
+                  {formError ? (
+                    <FriendlyErrorAlert
+                      error={formError as any}
+                      showDetails
+                      customTitle={t(`forms.${translationKey}.error.title`)}
+                      i18nNamespace={i18nNamespace}
+                    />
+                  ) : null}
+                </>
+              ) : undefined
+            }
+            reviewAcknowledgements={
+              isCreatingLinkedAccount && linkAccountReviewAcknowledgements
+                ? linkAccountReviewAcknowledgements
+                : undefined
+            }
+            acknowledgementsIntro={
+              isCreatingLinkedAccount &&
+              hasLinkAccountAcknowledgements &&
+              showLinkAccountAcknowledgementsIntro
+                ? tOnboardingOverview(
+                    'screens.linkAccount.prefillSummary.acknowledgementsIntro',
+                    'By electronically linking this account, you agree that:'
+                  )
+                : undefined
+            }
+            reviewAcknowledgementsGroupAriaLabel={
+              isCreatingLinkedAccount && hasLinkAccountAcknowledgements
+                ? tOnboardingOverviewString(
+                    'screens.linkAccount.review.acknowledgementsGroupLabel',
+                    'Agreements required to link this account'
+                  )
+                : undefined
+            }
+          />
         )}
       </DialogContent>
     </Dialog>

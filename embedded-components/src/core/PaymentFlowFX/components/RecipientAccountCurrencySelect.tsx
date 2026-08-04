@@ -26,6 +26,9 @@ export interface RecipientAccountCurrencySelectProps {
 /**
  * Currency select used when creating an international (FX) recipient.
  * Choosing a non-USD currency shows the FX rail disclaimer.
+ *
+ * Intended to render inside {@link BankAccountForm}'s scrollable body (via
+ * `alert` / leading content) so it scrolls with the rest of the form.
  */
 export function RecipientAccountCurrencySelect({
   value,
@@ -37,46 +40,44 @@ export function RecipientAccountCurrencySelect({
   const isInternational = value !== 'USD';
 
   return (
-    <div className="eb-rounded-lg eb-border eb-bg-card eb-p-4">
-      <label
-        htmlFor="fx-account-currency"
-        className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
-      >
-        {t(
-          'bankAccountForm.accountCurrencyLabel',
-          "Recipient's account currency"
-        )}
-      </label>
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger id="fx-account-currency" className="eb-w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="USD">
-            {t(
-              'bankAccountForm.accountCurrencyDomestic',
-              'USD — US Dollar (domestic)'
-            )}
-          </SelectItem>
-          {(supportedCurrencies ?? []).map((cur) => (
-            <SelectItem key={cur} value={cur}>
-              <span className="eb-flex eb-items-center eb-gap-2">
-                <CurrencyFlag currency={cur} />
-                <span>
-                  {currencyLabels?.[cur]
-                    ? `${cur} — ${currencyLabels[cur]}`
-                    : cur}
-                </span>
-              </span>
+    <div className="eb-space-y-3">
+      <div>
+        <label
+          htmlFor="fx-account-currency"
+          className="eb-mb-1.5 eb-block eb-text-sm eb-font-medium"
+        >
+          {t(
+            'bankAccountForm.accountCurrencyLabel',
+            "Recipient's account currency"
+          )}
+        </label>
+        <Select value={value} onValueChange={onValueChange}>
+          <SelectTrigger id="fx-account-currency" className="eb-w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="USD">
+              {t(
+                'bankAccountForm.accountCurrencyDomestic',
+                'USD — US Dollar (domestic)'
+              )}
             </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {isInternational && (
-        <div className="eb-mt-3">
-          <FxRailDisclaimer currency={value} />
-        </div>
-      )}
+            {(supportedCurrencies ?? []).map((cur) => (
+              <SelectItem key={cur} value={cur}>
+                <span className="eb-flex eb-items-center eb-gap-2">
+                  <CurrencyFlag currency={cur} />
+                  <span>
+                    {currencyLabels?.[cur]
+                      ? `${cur} — ${currencyLabels[cur]}`
+                      : cur}
+                  </span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {isInternational && <FxRailDisclaimer currency={value} />}
     </div>
   );
 }

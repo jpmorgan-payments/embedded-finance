@@ -470,6 +470,13 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
 }) => {
   const { t, tString } = useTranslationWithTokens('bank-account-form');
 
+  // Single-page layout can render bank details before any rail is selected
+  // (recipients default to no selected payment methods). Defer routing fields
+  // until at least one method is chosen to avoid undefined config lookups.
+  if (paymentMethods.length === 0 && !internationalConfig) {
+    return null;
+  }
+
   // Cross-border (FX): the bank/routing code belongs to the destination bank,
   // not the rail. Show a single shared field labelled per currency (or hide it
   // entirely when the account-number format embeds it, e.g. CLABE).
@@ -516,7 +523,13 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   // Single payment method - no fieldset, just show the field with payment method in label
   if (!showCheckbox) {
     const singleMethod = paymentMethods[0];
+    if (!singleMethod) {
+      return null;
+    }
     const config = configs[singleMethod];
+    if (!config) {
+      return null;
+    }
 
     return (
       <FormField
@@ -579,7 +592,9 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
               <FormLabel>
                 {t('routingNumbers.combinedMethodLabel', {
                   methods: paymentMethods
-                    .map((method) => configs[method].shortLabelString)
+                    .map(
+                      (method) => configs[method]?.shortLabelString ?? method
+                    )
                     .join(' / '),
                 })}
               </FormLabel>
@@ -601,6 +616,7 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
         <div className="eb-space-y-3">
           {paymentMethods.map((method, index) => {
             const config = configs[method];
+            if (!config) return null;
             return (
               <FormField
                 key={method}
@@ -1270,7 +1286,7 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
                       disabled={isLoading}
                     />
                   </FormControl>
-                  <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                  <FormLabel className="peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70 eb-text-sm eb-font-normal eb-text-foreground">
                     {effectiveConfig.content.certificationText}
                   </FormLabel>
                 </div>

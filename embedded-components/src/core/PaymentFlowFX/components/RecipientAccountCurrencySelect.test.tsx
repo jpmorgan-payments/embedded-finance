@@ -29,8 +29,7 @@ describe('RecipientAccountCurrencySelect', () => {
       />
     );
 
-    // FxRailDisclaimer content varies by currency; presence of the select +
-    // non-USD value is enough to mount the disclaimer branch.
     expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.getByTestId('fx-rail-disclaimer')).toBeInTheDocument();
   });
 });

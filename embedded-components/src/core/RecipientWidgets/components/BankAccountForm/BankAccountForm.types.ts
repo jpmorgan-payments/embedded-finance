@@ -263,8 +263,10 @@ export interface BankAccountFormProps {
    */
   skipStepOne?: boolean;
   /**
-   * Form layout. `wizard` is the default two-step flow (recipients).
-   * `singlePage` shows holder + bank + agreements on one screen (linked-account create).
+   * Form layout. `wizard` is the legacy two-step flow.
+   * `singlePage` shows holder/payment methods + bank details (+ agreements) on
+   * one screen — used by onboarding link-account, RecipientsWidget /
+   * LinkedAccountWidget create+edit, and PaymentFlow / PaymentFlowFX add forms.
    * @default 'wizard'
    */
   layout?: 'wizard' | 'singlePage';

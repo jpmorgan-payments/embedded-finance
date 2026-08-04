@@ -50,7 +50,11 @@ describe('RecipientFormDialog internationalMode', () => {
     expect(
       screen.getByText(/recipient's account currency/i)
     ).toBeInTheDocument();
-    expect(screen.getByText(/us dollar \(domestic\)/i)).toBeInTheDocument();
+    // Radix Select mirrors the value in a hidden <option>, so match the
+    // visible combobox instead of getByText.
+    expect(
+      screen.getByRole('combobox', { name: /account currency/i })
+    ).toHaveTextContent(/us dollar \(domestic\)/i);
   });
 
   it('does not show the currency selector for linked-account create', () => {

@@ -354,6 +354,7 @@ export function EnablePaymentMethodWrapper({
           isLoading={isLoading}
           showCard={false}
           embedded
+          layout="singlePage"
           skipStepOne
           initialPaymentTypes={initialPaymentTypes}
           alert={

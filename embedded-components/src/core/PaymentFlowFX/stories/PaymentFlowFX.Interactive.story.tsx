@@ -286,9 +286,9 @@ export const AddRecipientCurrencyCatalog: Story = {
 /**
  * Full end-to-end creation of a new international recipient. Starting from the
  * add-recipient form, this journey picks EUR as the account currency, enables
- * the ACH method, advances to the account-details step, fills the recipient and
- * bank details, and saves. On success `PaymentFlowFX` selects the freshly
- * created payee and returns to the payment view (FR-FX-10).
+ * the ACH method, fills the recipient and bank details on the single-page form,
+ * and saves. On success `PaymentFlowFX` selects the freshly created payee and
+ * returns to the payment view (FR-FX-10).
  */
 export const CreateInternationalRecipientEndToEnd: Story = {
   play: async ({ step }) => {
@@ -318,14 +318,6 @@ export const CreateInternationalRecipientEndToEnd: Story = {
         { timeout: 3000 }
       );
       await userEvent.click(achCheckbox);
-    });
-
-    await step('Continue to the account-details step', async () => {
-      await delay(STEP_DELAY);
-      const continueButton = dialog.getByRole('button', {
-        name: /continue to account details/i,
-      });
-      await userEvent.click(continueButton);
     });
 
     await step('Fill the recipient name', async () => {
