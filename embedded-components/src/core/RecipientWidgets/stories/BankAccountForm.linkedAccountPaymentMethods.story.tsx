@@ -43,6 +43,7 @@ function LinkedAccountBankFormPaymentMethodsDemo({
         client={storyClient}
         config={config}
         embedded
+        layout="singlePage"
         showCard
         onSubmit={() => {}}
         onCancel={() => {}}

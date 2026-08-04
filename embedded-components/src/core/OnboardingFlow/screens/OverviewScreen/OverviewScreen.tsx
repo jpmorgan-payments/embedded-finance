@@ -49,6 +49,8 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { ExistingLinkedAccountsList } from '@/core/OnboardingFlow/screens/LinkAccountScreen/components/ExistingLinkedAccountsList';
+import { LinkAccountFormPanel } from '@/core/OnboardingFlow/screens/LinkAccountScreen/LinkAccountFormPanel';
 import {
   DeltaPendingFieldsPanel,
   useDeltaPendingFieldsForm,
@@ -246,59 +248,6 @@ const BusinessTypeNewSection = () => {
   );
 };
 
-/** Multi-account overview: summary + "manage linked accounts" CTA. */
-const MultiLinkedAccountsView = ({
-  linkedAccounts,
-  linkAccountEnabled,
-  successAlert,
-  lockedMessage,
-  onManage,
-}: {
-  linkedAccounts: Recipient[];
-  linkAccountEnabled: boolean;
-  successAlert: ReactNode;
-  lockedMessage: ReactNode;
-  onManage: () => void;
-}) => {
-  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
-
-  return (
-    <>
-      {successAlert}
-      {lockedMessage}
-      <Card className="eb-rounded-md eb-border eb-bg-card eb-p-4">
-        <p className="eb-text-sm eb-text-foreground">
-          {linkedAccounts.length === 1
-            ? t(
-                'screens.overview.bankAccountSection.multiAccountOverviewDescriptionSingular',
-                'You have 1 linked account for payouts. Open the bank linking step to add another account or manage details.'
-              )
-            : t(
-                'screens.overview.bankAccountSection.multiAccountOverviewDescriptionPlural',
-                'You have {{count}} linked accounts for payouts. Open the bank linking step to add another account or manage details.',
-                { count: linkedAccounts.length }
-              )}
-        </p>
-        <div className="eb-mt-4 eb-flex eb-justify-end">
-          <Button
-            variant={linkAccountEnabled ? 'default' : 'secondary'}
-            size="sm"
-            disabled={!linkAccountEnabled}
-            data-testid="overview-manage-linked-accounts"
-            onClick={onManage}
-          >
-            {t(
-              'screens.overview.bankAccountSection.manageLinkedAccountsButton',
-              'Manage linked accounts'
-            )}
-            <ChevronRightIcon />
-          </Button>
-        </div>
-      </Card>
-    </>
-  );
-};
-
 /** Single-account overview: the linked account card with verify/details/remove actions. */
 const SingleLinkedAccountView = ({
   recipient,
@@ -391,17 +340,13 @@ const SingleLinkedAccountView = ({
   );
 };
 
-/** Not-started overview: rejected-accounts accordion + "link account" start card. */
-const NoLinkedAccountView = ({
+/** Locked empty state — no interactive form when linking is disabled. */
+const LockedEmptyLinkedAccountView = ({
   clientId,
-  linkAccountEnabled,
   lockedMessage,
-  onStart,
 }: {
   clientId?: string;
-  linkAccountEnabled: boolean;
   lockedMessage: ReactNode;
-  onStart: () => void;
 }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
 
@@ -412,54 +357,17 @@ const NoLinkedAccountView = ({
         queryParams={{ clientId }}
       />
       {lockedMessage}
-      <Card
-        className={cn('eb-rounded-md eb-border eb-bg-card eb-p-3', {
-          'eb-border-dashed eb-border-muted-foreground': !linkAccountEnabled,
-        })}
-      >
+      <Card className="eb-rounded-md eb-border eb-border-dashed eb-border-muted-foreground eb-bg-card eb-p-3">
         <div className="eb-flex eb-w-full eb-justify-between">
           <div className="eb-flex eb-items-center eb-gap-2">
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M5.5 4V3H6.5V4H5.5Z" fill="#4C5157" fillOpacity="0.4" />
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M6 0L12 6H10V11H12V12H0V11L2 11V6H0L6 0ZM3 6V11H4V6H3ZM5 6V11H7V6H5ZM8 6V11H9V6H8ZM6 1.41421L9.58579 5H2.41421L6 1.41421Z"
-                fill="#4C5157"
-                fillOpacity={linkAccountEnabled ? '1' : '0.8'}
-              />
-            </svg>
-            <h3
-              className={cn('eb-font-header eb-text-lg eb-font-medium', {
-                'eb-text-muted-foreground': !linkAccountEnabled,
-              })}
-            >
+            <h3 className="eb-font-header eb-text-lg eb-font-medium eb-text-muted-foreground">
               {t('screens.overview.bankAccountSection.linkAccountTitle')}
             </h3>
           </div>
-
           <div className="eb-flex [&_svg]:eb-size-4">
             <CircleDashedIcon className="eb-stroke-gray-600" />
             <span className="eb-sr-only">Not started</span>
           </div>
-        </div>
-        <div className="eb-flex eb-justify-end">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="eb-mt-3"
-            disabled={!linkAccountEnabled}
-            onClick={onStart}
-          >
-            {t('common:start')}
-            <ChevronRightIcon />
-          </Button>
         </div>
       </Card>
     </div>
@@ -535,6 +443,11 @@ const LinkedBankAccountSection = () => {
     </p>
   ) : null;
 
+  const handleLinkSuccess = () => {
+    updateSessionData({ linkAccountJustCreated: true });
+    invalidateRecipientQueries(queryClient, 'LINKED_ACCOUNT');
+  };
+
   const renderContent = () => {
     if (isLoadingLinkedRecipients) {
       return (
@@ -545,24 +458,44 @@ const LinkedBankAccountSection = () => {
       );
     }
     if (linkedAccounts.length === 0) {
+      if (!linkAccountEnabled) {
+        return (
+          <LockedEmptyLinkedAccountView
+            clientId={clientData?.id}
+            lockedMessage={lockedMessage}
+          />
+        );
+      }
       return (
-        <NoLinkedAccountView
-          clientId={clientData?.id}
-          linkAccountEnabled={linkAccountEnabled}
-          lockedMessage={lockedMessage}
-          onStart={() => goTo('link-account')}
-        />
+        <div className="eb-space-y-3">
+          <RejectedAccountsAccordion
+            recipientType="LINKED_ACCOUNT"
+            queryParams={{ clientId: clientData?.id }}
+          />
+          {successAlert}
+          <LinkAccountFormPanel
+            existingAccounts={linkedAccounts}
+            layout="inline"
+            onSuccess={handleLinkSuccess}
+          />
+        </div>
       );
     }
     if (linkAccountStepOptions?.allowMultipleAccounts) {
       return (
-        <MultiLinkedAccountsView
-          linkedAccounts={linkedAccounts}
-          linkAccountEnabled={linkAccountEnabled}
-          successAlert={successAlert}
-          lockedMessage={lockedMessage}
-          onManage={() => goTo('link-account')}
-        />
+        <>
+          {successAlert}
+          {lockedMessage}
+          <ExistingLinkedAccountsList
+            accounts={linkedAccounts}
+            displayMode={
+              linkAccountStepOptions.existingAccountsDisplay ?? 'detailed'
+            }
+            hideRemoval={!!hideLinkedAccountRemoval}
+            showAddButton={linkAccountEnabled}
+            onAddClick={() => goTo('link-account')}
+          />
+        </>
       );
     }
     return (

@@ -50,6 +50,15 @@
       "required": "Please select an account holder"
     }
   },
+  "partySelector": {
+    "accountHolder": "Account Holder",
+    "placeholder": "Choose who this account belongs to",
+    "typeHintIndividual": "Individual",
+    "typeHintOrganization": "Business",
+    "validation": {
+      "required": "Please select an account holder"
+    }
+  },
   "routingNumbers": {
     "legend": "Routing Numbers",
     "useSameForAll": "Use same routing number for all payment methods",

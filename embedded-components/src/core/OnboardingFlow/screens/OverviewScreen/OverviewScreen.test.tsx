@@ -283,7 +283,7 @@ describe('OverviewScreen', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('allowMultipleAccounts shows summary CTA on overview without account card list', async () => {
+  test('allowMultipleAccounts shows linked accounts list and Add on overview', async () => {
     vi.mocked(useGetAllRecipients).mockReturnValue({
       data: {
         recipients: [
@@ -306,24 +306,18 @@ describe('OverviewScreen', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByTestId('overview-manage-linked-accounts')
+        screen.getByTestId('existing-linked-accounts')
       ).toBeInTheDocument();
     });
 
+    expect(screen.getByTestId('add-another-account-btn')).toBeInTheDocument();
     expect(
-      screen.queryByTestId('existing-linked-accounts')
+      screen.queryByTestId('overview-manage-linked-accounts')
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByText(
-        i18n.t(
-          'onboarding-overview:screens.overview.bankAccountSection.multiAccountOverviewDescriptionPlural',
-          { count: 2 }
-        )
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Linked accounts \(2\)/i)).toBeInTheDocument();
   });
 
-  test('allowMultipleAccounts uses singular summary copy for one linked account', async () => {
+  test('allowMultipleAccounts shows singular count for one linked account', async () => {
     vi.mocked(useGetAllRecipients).mockReturnValue({
       data: { recipients: [mockOverviewLinkedRecipient] },
       isLoading: false,
@@ -340,20 +334,9 @@ describe('OverviewScreen', () => {
     });
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId('overview-manage-linked-accounts')
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Linked accounts \(1\)/i)).toBeInTheDocument();
     });
 
-    expect(
-      screen.queryByTestId('existing-linked-accounts')
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByText(
-        i18n.t(
-          'onboarding-overview:screens.overview.bankAccountSection.multiAccountOverviewDescriptionSingular'
-        )
-      )
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('add-another-account-btn')).toBeInTheDocument();
   });
 });

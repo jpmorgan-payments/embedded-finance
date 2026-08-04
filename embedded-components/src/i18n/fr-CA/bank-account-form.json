@@ -50,6 +50,15 @@
       "required": "Veuillez sélectionner un titulaire de compte"
     }
   },
+  "partySelector": {
+    "accountHolder": "Titulaire du compte",
+    "placeholder": "Choisissez le titulaire de ce compte",
+    "typeHintIndividual": "Particulier",
+    "typeHintOrganization": "Entreprise",
+    "validation": {
+      "required": "Veuillez sélectionner un titulaire de compte"
+    }
+  },
   "routingNumbers": {
     "legend": "Numéros d'acheminement",
     "useSameForAll": "Utiliser le même numéro d'acheminement pour toutes les méthodes de paiement",

@@ -171,6 +171,17 @@ function tagRecipientCurrency(
  *   onRecipientSettled={handleSettled}
  * />
  *
+ * // Edit mode (controlled)
+ * {editingRecipient && (
+ *   <RecipientFormDialog
+ *     mode="edit"
+ *     recipient={editingRecipient}
+ *     open
+ *     onOpenChange={(open) => !open && setEditingRecipient(null)}
+ *     onRecipientSettled={handleSettled}
+ *   />
+ * )}
+ *
  * // FX create (currency select)
  * <RecipientFormDialog
  *   mode="create"
@@ -391,6 +402,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
               onSubmit={handleSubmit}
               onCancel={handleCancel}
               isLoading={status === 'pending'}
+              layout={isCreatingLinkedAccount ? 'singlePage' : 'wizard'}
               alert={
                 formError ? (
                   <FriendlyErrorAlert

@@ -263,6 +263,12 @@ export interface BankAccountFormProps {
    */
   skipStepOne?: boolean;
   /**
+   * Form layout. `wizard` is the default two-step flow (recipients).
+   * `singlePage` shows holder + bank + agreements on one screen (linked-account create).
+   * @default 'wizard'
+   */
+  layout?: 'wizard' | 'singlePage';
+  /**
    * Initial step to start on (1 or 2).
    * Unlike skipStepOne, this preserves normal back button navigation.
    * Useful when returning to the form after reviewing data.
