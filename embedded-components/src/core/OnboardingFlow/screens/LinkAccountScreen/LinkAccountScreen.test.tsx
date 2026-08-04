@@ -141,13 +141,6 @@ const ACTIVE_RECIPIENT = {
   createdAt: '2024-01-15T10:30:00Z',
 };
 
-const SECOND_RECIPIENT = {
-  ...ACTIVE_RECIPIENT,
-  id: 'la-existing-2',
-  partyDetails: { type: 'ORGANIZATION' as const, businessName: 'Acme Corp' },
-  account: { ...ACTIVE_RECIPIENT.account, number: '98765432109876543' },
-};
-
 function mockRecipientsResponse(recipients: unknown[] = []) {
   vi.mocked(useGetAllRecipients).mockReturnValue({
     data: { recipients },
@@ -295,7 +288,7 @@ describe('LinkAccountScreen', () => {
 
       expect(
         await screen.findByRole('button', {
-          name: /Continue to Account Details/i,
+          name: /^Link Account$/i,
         })
       ).toBeInTheDocument();
       expect(mockGoTo).not.toHaveBeenCalled();
@@ -313,7 +306,7 @@ describe('LinkAccountScreen', () => {
 
       expect(
         await screen.findByRole('button', {
-          name: /Continue to Account Details/i,
+          name: /^Link Account$/i,
         })
       ).toBeInTheDocument();
       expect(mockGoTo).not.toHaveBeenCalled();
@@ -486,9 +479,7 @@ describe('LinkAccountScreen', () => {
   // ═══════════════════════════════════════════════════════════════════════════════
 
   describe('editable mode', () => {
-    test('renders BankAccountForm step 1 with prefilled values', async () => {
-      const user = userEvent.setup();
-
+    test('renders single-page BankAccountForm with prefilled values', async () => {
       renderScreen({
         linkAccountStepOptions: {
           completionMode: 'editable',
@@ -505,17 +496,15 @@ describe('LinkAccountScreen', () => {
         await screen.findByRole('heading', { name: /Link a bank account/i })
       ).toBeInTheDocument();
 
-      // Step 1 button visible
-      await user.click(
-        screen.getByRole('button', { name: /Continue to Account Details/i })
-      );
+      expect(
+        screen.queryByRole('button', { name: /Continue to Account Details/i })
+      ).not.toBeInTheDocument();
 
-      // Prefilled account number on step 2
       const accountInput = await screen.findByLabelText(/account number/i);
       expect(accountInput).toHaveValue('98765432109876543');
     });
 
-    test('with reviewAcknowledgements: shows intro text and gates submit on step 2', async () => {
+    test('with reviewAcknowledgements: shows intro text and gates submit', async () => {
       const user = userEvent.setup();
 
       renderScreen({
@@ -543,13 +532,6 @@ describe('LinkAccountScreen', () => {
         },
       });
 
-      await user.click(
-        await screen.findByRole('button', {
-          name: /Continue to Account Details/i,
-        })
-      );
-
-      // Intro text
       expect(
         await screen.findByText(/By electronically linking this account/i)
       ).toBeInTheDocument();
@@ -557,7 +539,6 @@ describe('LinkAccountScreen', () => {
       const submitBtn = screen.getByRole('button', { name: /^Link Account$/i });
       await waitFor(() => expect(submitBtn).toBeDisabled());
 
-      // Check first acknowledgement — still gated
       await user.click(
         screen.getByRole('checkbox', {
           name: /primarily for business purposes/i,
@@ -565,7 +546,6 @@ describe('LinkAccountScreen', () => {
       );
       expect(submitBtn).toBeDisabled();
 
-      // Check second — now enabled
       await user.click(
         screen.getByRole('checkbox', {
           name: /authorize verification of this linked account/i,
@@ -579,9 +559,12 @@ describe('LinkAccountScreen', () => {
 
       expect(
         await screen.findByRole('button', {
-          name: /Continue to Account Details/i,
+          name: /^Link Account$/i,
         })
       ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /Continue to Account Details/i })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -824,33 +807,7 @@ describe('LinkAccountScreen', () => {
       expect(mockGoTo).not.toHaveBeenCalled();
     });
 
-    test('shows existing accounts list and "Add account" button, hides form', async () => {
-      mockRecipientsResponse([ACTIVE_RECIPIENT]);
-
-      renderScreen({
-        linkAccountStepOptions: {
-          completionMode: 'reviewOnly',
-          allowMultipleAccounts: true,
-          initialValues: FULL_PREFILL_VALUES,
-        },
-      });
-
-      expect(
-        await screen.findByTestId('existing-linked-accounts')
-      ).toBeInTheDocument();
-      expect(screen.getByTestId('add-another-account-btn')).toBeInTheDocument();
-
-      // Form not visible
-      expect(
-        screen.queryByRole('button', { name: /Confirm and link account/i })
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole('button', { name: /Continue to Account Details/i })
-      ).not.toBeInTheDocument();
-    });
-
-    test('clicking "Add account" reveals form and hides existing accounts section', async () => {
-      const user = userEvent.setup();
+    test('shows form immediately when existing accounts are present', async () => {
       mockRecipientsResponse([ACTIVE_RECIPIENT]);
 
       renderScreen({
@@ -859,78 +816,22 @@ describe('LinkAccountScreen', () => {
           allowMultipleAccounts: true,
           initialValues: {
             ...FULL_PREFILL_VALUES,
-            accountNumber: '99988877766655544', // Different from existing
+            accountNumber: '99988877766655544',
           },
         },
       });
 
-      await user.click(await screen.findByTestId('add-another-account-btn'));
-
-      // Form now visible
-      await waitFor(() => {
-        expect(
-          screen.getByRole('button', { name: /Confirm and link account/i })
-        ).toBeInTheDocument();
-      });
-
-      // Existing section hidden after form shown
+      expect(
+        await screen.findByRole('button', {
+          name: /Confirm and link account/i,
+        })
+      ).toBeInTheDocument();
       expect(
         screen.queryByTestId('existing-linked-accounts')
       ).not.toBeInTheDocument();
     });
 
-    test('displays count for multiple existing accounts', async () => {
-      mockRecipientsResponse([ACTIVE_RECIPIENT, SECOND_RECIPIENT]);
-
-      renderScreen({
-        linkAccountStepOptions: {
-          completionMode: 'editable',
-          allowMultipleAccounts: true,
-          initialValues: {},
-        },
-      });
-
-      expect(
-        await screen.findByText(/Linked accounts \(2\)/i)
-      ).toBeInTheDocument();
-    });
-
-    test('existingAccountsDisplay: compact renders existing section', async () => {
-      mockRecipientsResponse([ACTIVE_RECIPIENT]);
-
-      renderScreen({
-        linkAccountStepOptions: {
-          completionMode: 'reviewOnly',
-          allowMultipleAccounts: true,
-          existingAccountsDisplay: 'compact',
-          initialValues: FULL_PREFILL_VALUES,
-        },
-      });
-
-      expect(
-        await screen.findByTestId('existing-linked-accounts')
-      ).toBeInTheDocument();
-    });
-
-    test('hideLinkedAccountRemoval renders without remove actions', async () => {
-      mockRecipientsResponse([ACTIVE_RECIPIENT]);
-
-      renderScreen({
-        hideLinkedAccountRemoval: true,
-        linkAccountStepOptions: {
-          completionMode: 'reviewOnly',
-          allowMultipleAccounts: true,
-          initialValues: FULL_PREFILL_VALUES,
-        },
-      });
-
-      expect(
-        await screen.findByTestId('existing-linked-accounts')
-      ).toBeInTheDocument();
-      expect(screen.getByTestId('add-another-account-btn')).toBeInTheDocument();
-    });
-
-    test('onSuccess resets form state and does NOT navigate away', async () => {
+    test('onSuccess navigates to overview with success session flag', async () => {
       const triggerSuccess = mockRecipientFormWithCallback();
 
       renderScreen({
@@ -947,9 +848,12 @@ describe('LinkAccountScreen', () => {
         triggerSuccess();
       });
 
-      // Does not navigate to overview
-      expect(mockGoTo).not.toHaveBeenCalled();
-      // Resets form
+      expect(mockUpdateSessionData).toHaveBeenCalledWith({
+        linkAccountJustCreated: true,
+      });
+      expect(mockGoTo).toHaveBeenCalledWith('overview', {
+        resetHistory: true,
+      });
       expect(mockReset).toHaveBeenCalled();
     });
   });
@@ -960,7 +864,6 @@ describe('LinkAccountScreen', () => {
 
   describe('duplicate account detection', () => {
     test('forces editable mode when prefilled account already exists', async () => {
-      const user = userEvent.setup();
       mockRecipientsResponse([ACTIVE_RECIPIENT]);
 
       renderScreen({
@@ -975,17 +878,17 @@ describe('LinkAccountScreen', () => {
         },
       });
 
-      // Show "Add account" first
-      await user.click(await screen.findByTestId('add-another-account-btn'));
-
-      // Should show editable form (forced by duplicate), NOT reviewOnly
+      // Should show editable single-page form (forced by duplicate), NOT reviewOnly
       await waitFor(() => {
         expect(
-          screen.getByRole('button', { name: /Continue to Account Details/i })
+          screen.getByRole('button', { name: /^Link Account$/i })
         ).toBeInTheDocument();
       });
       expect(
         screen.queryByRole('button', { name: /Confirm and link account/i })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /Continue to Account Details/i })
       ).not.toBeInTheDocument();
     });
 

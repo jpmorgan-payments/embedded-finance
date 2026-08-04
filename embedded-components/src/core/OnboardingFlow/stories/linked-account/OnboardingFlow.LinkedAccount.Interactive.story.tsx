@@ -237,41 +237,17 @@ export const _1_LinkAccount_RecipientStateMachine: Story = {
       );
     });
 
-    await step('Open Link bank account from overview card', async () => {
-      await delay(STEP_DELAY);
-      const linkHeading = await screen.findByRole('heading', {
-        name: /Link an account/i,
-      });
-      const linkCard =
-        linkHeading.closest('[class*="eb-rounded-md"]') ??
-        linkHeading.parentElement?.parentElement;
-      expect(linkCard).toBeTruthy();
-      const startLink = within(linkCard as HTMLElement).getByRole('button', {
-        name: /^Start$/i,
-      });
-      await userEvent.click(startLink);
-    });
-
-    await step('Continue to account details', async () => {
+    await step('Select account holder if multiple parties', async () => {
       await delay(STEP_DELAY * 2);
       await waitFor(
         () => {
-          const btn = Array.from(document.querySelectorAll('button')).find(
-            (b) => b.textContent?.match(/continue to account details/i)
-          );
-          if (!btn) throw new Error('Continue to account details not found');
-          return btn;
+          const el = document.querySelector(
+            'input[name="accountNumber"]'
+          ) as HTMLInputElement | null;
+          if (!el) throw new Error('Account number input not found');
         },
         { timeout: 15000 }
       );
-      const continueBtn = Array.from(document.querySelectorAll('button')).find(
-        (b) => b.textContent?.match(/continue to account details/i)
-      ) as HTMLElement;
-      await userEvent.click(continueBtn);
-    });
-
-    await step('Select account holder if multiple parties', async () => {
-      await delay(STEP_DELAY);
       const combobox = document.querySelector(
         'button[role="combobox"]'
       ) as HTMLButtonElement | null;
@@ -289,15 +265,6 @@ export const _1_LinkAccount_RecipientStateMachine: Story = {
 
     await step('Fill account number and ACH routing', async () => {
       await delay(STEP_DELAY);
-      await waitFor(
-        () => {
-          const el = document.querySelector(
-            'input[name="accountNumber"]'
-          ) as HTMLInputElement | null;
-          if (!el) throw new Error('Account number input not found');
-        },
-        { timeout: 10000 }
-      );
       const accountNumberInput = document.querySelector(
         'input[name="accountNumber"]'
       ) as HTMLInputElement;
@@ -353,24 +320,18 @@ export const _1_LinkAccount_RecipientStateMachine: Story = {
       await userEvent.click(submitBtn!);
     });
 
-    await step('Confirm link success screen', async () => {
+    await step('Confirm link success on Overview', async () => {
       await delay(STEP_DELAY * 2);
       await waitFor(
         () => {
           expect(
-            screen.getByText(/Account linked successfully/i)
+            screen.getByText(
+              /Two small deposits will be sent to your account for verification|Account linked successfully|submitted successfully/i
+            )
           ).toBeInTheDocument();
         },
         { timeout: 20000 }
       );
-    });
-
-    await step('Return to overview', async () => {
-      await delay(STEP_DELAY);
-      const back = screen.getByRole('button', {
-        name: /Return to overview/i,
-      });
-      await userEvent.click(back);
     });
 
     await step('See microdeposit pending state on overview', async () => {
@@ -379,7 +340,7 @@ export const _1_LinkAccount_RecipientStateMachine: Story = {
         () => {
           expect(
             screen.getByText(
-              /Pending Verification|Microdeposit|verification pending/i
+              /Pending Verification|Microdeposit|verification pending|Two small deposits/i
             )
           ).toBeInTheDocument();
         },
@@ -506,37 +467,22 @@ export const _2_LinkAccount_PrefillSummaryThreeAcknowledgements: Story = {
       );
     });
 
-    await step('Open Link bank account from overview card', async () => {
-      await delay(STEP_DELAY);
-      const linkHeading = await screen.findByRole('heading', {
-        name: /Link an account/i,
-      });
-      const linkCard =
-        linkHeading.closest('[class*="eb-rounded-md"]') ??
-        linkHeading.parentElement?.parentElement;
-      expect(linkCard).toBeTruthy();
-      const startLink = within(linkCard as HTMLElement).getByRole('button', {
-        name: /^Start$/i,
-      });
-      await userEvent.click(startLink);
-    });
-
-    await step('Prefill summary: disabled bank fields, no wizard', async () => {
+    await step('Prefill summary on Overview (inline, no wizard)', async () => {
       await delay(STEP_DELAY * 2);
       await waitFor(
         () => {
-          expect(
-            screen.getByRole('heading', {
-              level: 1,
-              name: /Link a bank account/i,
-            })
-          ).toBeInTheDocument();
+          expect(screen.getByText(/Taylor Morgan/i)).toBeInTheDocument();
         },
         { timeout: 15000 }
       );
-      expect(screen.getByText(/Taylor Morgan/i)).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Confirm and link account/i })
+      ).toBeInTheDocument();
       expect(
         screen.queryByRole('button', { name: /Continue to account details/i })
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /^Start$/i })
       ).not.toBeInTheDocument();
     });
 
@@ -584,38 +530,19 @@ export const _2_LinkAccount_PrefillSummaryThreeAcknowledgements: Story = {
       );
     });
 
-    await step('Success: account linked', async () => {
+    await step('Success: account linked on Overview', async () => {
       await delay(STEP_DELAY * 2);
       await waitFor(
         () => {
           expect(
-            screen.getByText(/Account linked successfully/i)
+            screen.getByText(
+              /Two small deposits will be sent to your account for verification|Account linked successfully|submitted successfully|Pending Verification|Microdeposit|verification pending/i
+            )
           ).toBeInTheDocument();
         },
         { timeout: 20000 }
       );
     });
-
-    await step(
-      'Return to overview — pending verification on card',
-      async () => {
-        await delay(STEP_DELAY);
-        await userEvent.click(
-          screen.getByRole('button', { name: /Return to overview/i })
-        );
-        await delay(STEP_DELAY * 2);
-        await waitFor(
-          () => {
-            expect(
-              screen.getByText(
-                /Pending Verification|Microdeposit|verification pending/i
-              )
-            ).toBeInTheDocument();
-          },
-          { timeout: 15000 }
-        );
-      }
-    );
   },
 };
 
@@ -623,7 +550,7 @@ export const _2_LinkAccount_PrefillSummaryThreeAcknowledgements: Story = {
  * **2b. Link account: editable wizard + review acknowledgements**
  *
  * Same `reviewAcknowledgements` (and optional intro) as prefill summary, but with `completionMode: 'editable'`
- * so the user completes the two-step `BankAccountForm`; agreements appear on step 2 above the certification checkbox.
+ * so the user completes the single-page `BankAccountForm`; agreements appear above submit.
  */
 export const _2b_LinkAccount_EditableWithReviewAcknowledgements: Story = {
   name: '2b. Link account: editable + review acknowledgements',
@@ -646,7 +573,7 @@ export const _2b_LinkAccount_EditableWithReviewAcknowledgements: Story = {
     docs: {
       description: {
         story:
-          "Demonstrates `reviewAcknowledgements` with `completionMode: 'editable'`: host configures the same checklist as prefill summary, but the user walks through payment methods (step 1) then account details + agreements (step 2).",
+          "Demonstrates `reviewAcknowledgements` with `completionMode: 'editable'`: host configures the same checklist as prefill summary on the single-page linked-account form.",
       },
     },
   },
@@ -684,43 +611,23 @@ export const _2b_LinkAccount_EditableWithReviewAcknowledgements: Story = {
       );
     });
 
-    await step('Open Link bank account from overview card', async () => {
-      await delay(STEP_DELAY);
-      const linkHeading = await screen.findByRole('heading', {
-        name: /Link an account/i,
-      });
-      const linkCard =
-        linkHeading.closest('[class*="eb-rounded-md"]') ??
-        linkHeading.parentElement?.parentElement;
-      expect(linkCard).toBeTruthy();
-      const startLink = within(linkCard as HTMLElement).getByRole('button', {
-        name: /^Start$/i,
-      });
-      await userEvent.click(startLink);
-    });
-
-    await step('Step 1: continue to account details', async () => {
-      await delay(STEP_DELAY * 2);
-      await waitFor(
-        () => {
-          expect(
-            screen.getByRole('heading', {
-              level: 1,
-              name: /Link a bank account/i,
-            })
-          ).toBeInTheDocument();
-        },
-        { timeout: 15000 }
-      );
-      await userEvent.click(
-        screen.getByRole('button', { name: /Continue to Account Details/i })
-      );
-    });
-
     await step(
-      'Step 2: review acknowledgements gate submit (no duplicate certification checkbox)',
+      'Single-page form: review acknowledgements gate submit',
       async () => {
         await delay(STEP_DELAY * 2);
+        await waitFor(
+          () => {
+            expect(
+              screen.getByRole('button', { name: /^Link Account$/i })
+            ).toBeInTheDocument();
+          },
+          { timeout: 15000 }
+        );
+        expect(
+          screen.queryByRole('button', {
+            name: /Continue to Account Details/i,
+          })
+        ).not.toBeInTheDocument();
         expect(
           screen.getByText(/By electronically linking this account/i)
         ).toBeInTheDocument();

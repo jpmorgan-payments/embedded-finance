@@ -49,10 +49,10 @@ export type Jurisdiction = 'US' | 'CA';
 
 /**
  * Host-supplied values for the optional link-account step.
- * With `completionMode: 'editable'` (default), partial data is allowed and the user completes the two-step form.
+ * With `completionMode: 'editable'` (default), partial data is allowed and the user completes the single-page form.
  * With `completionMode: 'reviewOnly'`, supply a full {@link BankAccountFormData}-compatible payload;
  * the UI shows a read-only summary plus optional `reviewAcknowledgements`.
- * With `completionMode: 'editable'`, the same optional `reviewAcknowledgements` render on step 2 of the bank form.
+ * With `completionMode: 'editable'`, the same optional `reviewAcknowledgements` render on the single-page bank form.
  */
 export type LinkAccountInitialValues = Partial<BankAccountFormData>;
 
@@ -82,7 +82,7 @@ export type LinkAccountPresetEntry = {
 };
 
 /**
- * - **`editable`** — Full `BankAccountForm` two-step wizard; optional `initialValues` prefill. **(default)**
+ * - **`editable`** — Full single-page `BankAccountForm`; optional `initialValues` prefill. **(default)**
  * - **`reviewOnly`** — Single page via `LinkAccountPrefillSummaryView` (disabled fields + payment strip; shares config/i18n with the form, not the full form tree).
  *
  * @deprecated `'prefillSummary'` is accepted as an alias for `'reviewOnly'` for backward compatibility.
@@ -145,11 +145,9 @@ export type LinkAccountStepOptions = {
   presetAccounts?: readonly LinkAccountPresetEntry[];
   /**
    * Allow creation of multiple linked accounts sequentially.
-   * When `true`, after successfully linking an account the UI offers a
-   * "Link another account" action instead of immediately returning to Overview.
-   * The full list of linked accounts (and add flow) lives on the **link-account**
-   * step; **Overview** only shows a short count summary and **Manage linked accounts**
-   * so the list is not duplicated.
+   * When `true`, **Overview** shows the linked-account list with an **Add account**
+   * action that opens the **link-account** step form. After a successful link,
+   * the flow returns to Overview with the updated list.
    * Aligned with `LinkedAccountWidget` `mode: 'list'` behavior.
    *
    * @default false

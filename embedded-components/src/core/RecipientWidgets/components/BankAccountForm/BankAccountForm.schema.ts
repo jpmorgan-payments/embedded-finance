@@ -97,6 +97,9 @@ const createBaseSchema = (
           message: v('certification.validation.required'),
         })
       : z.boolean().optional(),
+
+    // Optional party id from account-holder picker (linked-account create)
+    selectedPartyId: z.string().optional(),
   });
 };
 
