@@ -9,7 +9,7 @@ function isTestScenarioPath(pathname: string): boolean {
   return (
     pathname === '/test-scenario' ||
     pathname.startsWith('/test-scenario/') ||
-    /^\/test-scenario-\d+$/.test(pathname)
+    /^\/test-scenario-[\w-]+$/.test(pathname)
   );
 }
 
