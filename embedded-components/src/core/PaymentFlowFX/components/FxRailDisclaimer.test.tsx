@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@test-utils';
+import { render, screen, userEvent } from '@test-utils';
 
 import { FxRailDisclaimer } from './FxRailDisclaimer';
 
@@ -33,5 +33,28 @@ describe('FxRailDisclaimer', () => {
     expect(
       screen.getByText(/not US domestic ACH or Fedwire/i)
     ).toBeInTheDocument();
+  });
+
+  it('can be dismissed and reappears when the currency changes', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<FxRailDisclaimer currency="EUR" />);
+
+    expect(screen.getByTestId('fx-rail-disclaimer')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /dismiss/i }));
+    expect(screen.queryByTestId('fx-rail-disclaimer')).not.toBeInTheDocument();
+
+    rerender(<FxRailDisclaimer currency="GBP" />);
+    expect(screen.getByTestId('fx-rail-disclaimer')).toBeInTheDocument();
+    expect(screen.getByText(/United Kingdom \(GBP\)/i)).toBeInTheDocument();
+  });
+
+  it('hides the dismiss control when dismissible is false', () => {
+    render(<FxRailDisclaimer currency="EUR" dismissible={false} />);
+
+    expect(screen.getByTestId('fx-rail-disclaimer')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /dismiss/i })
+    ).not.toBeInTheDocument();
   });
 });

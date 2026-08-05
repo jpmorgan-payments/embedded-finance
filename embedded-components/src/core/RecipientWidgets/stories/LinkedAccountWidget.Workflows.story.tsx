@@ -108,18 +108,9 @@ const fillLinkAccountForm = async (
     });
   });
 
-  // Step 4: Continue to account details (Step 2)
-  await step('Continue to account details', async () => {
-    await delay(INTERACTION_DELAY);
-    const continueButton = Array.from(document.querySelectorAll('button')).find(
-      (btn) => btn.textContent?.match(/continue to account details/i)
-    );
-    if (continueButton) {
-      await userEvent.click(continueButton);
-    }
-  });
+  // Single-page layout: account-holder fields are already visible (no step-2 gate).
 
-  // Step 5: Select account holder from dropdown
+  // Step 4: Select account holder from dropdown
   await step('Select account holder from dropdown', async () => {
     await delay(INTERACTION_DELAY);
 
@@ -790,18 +781,9 @@ const fillLinkAccountFormWithRtp = async (
     }
   });
 
-  // Step 4: Continue to account details (Step 2)
-  await step('Continue to account details', async () => {
-    await delay(INTERACTION_DELAY);
-    const continueButton = Array.from(document.querySelectorAll('button')).find(
-      (btn) => btn.textContent?.match(/continue to account details/i)
-    );
-    if (continueButton) {
-      await userEvent.click(continueButton);
-    }
-  });
+  // Single-page layout: account-holder fields are already visible (no step-2 gate).
 
-  // Step 5: Select account holder from dropdown
+  // Step 4: Select account holder from dropdown
   await step('Select account holder from dropdown', async () => {
     await delay(INTERACTION_DELAY);
 

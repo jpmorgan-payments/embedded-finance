@@ -2,8 +2,9 @@
  * RecipientsWidget - FX Payments Stories
  *
  * Demonstrates non-breaking FX props: `paymentFlowVariant="fx"` opens
- * PaymentFlowFX on Pay and auto-enables recipient currency display
- * (column, badges, details) unless `showRecipientCurrency` is overridden.
+ * PaymentFlowFX on Pay, auto-enables recipient currency display
+ * (column, badges, details), and turns on FX Add Recipient
+ * (`internationalMode` / currency select) unless overridden.
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -37,9 +38,10 @@ const meta = {
       description: {
         story: `
 Set \`paymentFlowVariant="fx"\` to open **PaymentFlowFX** when Pay is clicked.
-Currency column/badges/details auto-enable for the FX variant (no need to pass
-\`showRecipientCurrency\`). Optional \`fxConfig\` and \`supportedTargetCurrencies\`
-are forwarded to the FX flow.
+Currency column/badges/details and the Add Recipient currency selector
+auto-enable for the FX variant (no need to pass \`showRecipientCurrency\` /
+\`internationalMode\`). Optional \`fxConfig\` and \`supportedTargetCurrencies\`
+are forwarded to the FX flow and create form.
 
 MSW uses \`createPaymentFlowFXHandlers\` with international recipients (EUR/GBP/SGD).
         `,
@@ -67,13 +69,14 @@ type Story = StoryObj<typeof meta>;
 
 /**
  * Table of international recipients with currency column visible.
- * Pay opens PaymentFlowFX (ratesheet mode). Currency display is auto-on
- * because `paymentFlowVariant="fx"` — `showRecipientCurrency` is not required.
+ * Pay opens PaymentFlowFX (ratesheet mode). Currency display and FX Add
+ * Recipient are auto-on because `paymentFlowVariant="fx"`.
  *
  * **Try it:**
  * - Confirm the Currency column shows EUR / GBP / SGD badges
+ * - Click Add Recipient and pick a non-USD account currency
  * - Click Pay on a row to open the FX payment flow
- * - Toggle `showRecipientCurrency` in Controls to force hide/show
+ * - Toggle `showRecipientCurrency` / `internationalMode` in Controls
  */
 export const FXPayments: Story = {
   args: {

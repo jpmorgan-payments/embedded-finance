@@ -247,8 +247,11 @@ describe('BankAccountFormWrapper', () => {
       expect(
         screen.getByText(/recipient's account currency/i)
       ).toBeInTheDocument();
-      // Defaults to USD (domestic).
-      expect(screen.getByText(/us dollar \(domestic\)/i)).toBeInTheDocument();
+      // Defaults to USD (domestic). Radix Select mirrors the value in a hidden
+      // <option>, so match the visible combobox instead of getByText.
+      expect(
+        screen.getByRole('combobox', { name: /account currency/i })
+      ).toHaveTextContent(/us dollar \(domestic\)/i);
     });
 
     it('does not show the currency selector for linked-account form type', () => {

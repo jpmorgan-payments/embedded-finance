@@ -124,18 +124,9 @@ const fillAddRecipientForm = async (
     }
   });
 
-  // Step 4: Continue to account details (Step 2)
-  await step('Continue to account details', async () => {
-    await delay(INTERACTION_DELAY);
-    const continueButton = Array.from(document.querySelectorAll('button')).find(
-      (btn) => btn.textContent?.match(/continue to account details/i)
-    );
-    if (continueButton) {
-      await userEvent.click(continueButton);
-    }
-  });
+  // Single-page layout: account-holder fields are already visible (no step-2 gate).
 
-  // Step 5: Fill in recipient first and last name
+  // Step 4: Fill in recipient first and last name
   await step('Enter recipient first and last name', async () => {
     await delay(INTERACTION_DELAY);
     const firstNameInput = await waitFor(() =>
@@ -219,7 +210,7 @@ const fillAddRecipientForm = async (
  *
  * **This story:**
  * 1. Clicks "Add New Recipient"
- * 2. Fills out the multi-step form
+ * 2. Fills out the single-page form
  * 3. Submits the recipient
  * 4. Shows success state with Done button
  */
@@ -651,18 +642,9 @@ const fillAddRecipientFormWithRtp = async (
     }
   });
 
-  // Step 4: Continue to account details (Step 2)
-  await step('Continue to account details', async () => {
-    await delay(INTERACTION_DELAY);
-    const continueButton = Array.from(document.querySelectorAll('button')).find(
-      (btn) => btn.textContent?.match(/continue to account details/i)
-    );
-    if (continueButton) {
-      await userEvent.click(continueButton);
-    }
-  });
+  // Single-page layout: account-holder fields are already visible (no step-2 gate).
 
-  // Step 5: Fill in recipient first and last name
+  // Step 4: Fill in recipient first and last name
   await step('Enter recipient first and last name', async () => {
     await delay(INTERACTION_DELAY);
     const firstNameInput = await waitFor(() =>
