@@ -47,7 +47,7 @@ cd embedded-components
 ### 2. Install dependencies:
 
 ```bash
-yarn install
+npm install
 ```
 
 ### 3. Configure VSCode (optional)
@@ -96,8 +96,8 @@ yarn install
 ### 4. Start development:
 
 ```bash
-yarn storybook    # Component development
-yarn vitest      # Run tests
+npm run storybook # Component development
+npm run vitest    # Run tests
 ```
 
 ## Development Workflow
@@ -111,11 +111,11 @@ git checkout -b feature/your-feature
 2. Run quality checks:
 
 ```bash
-yarn typecheck    # TypeScript check (owns type safety; ESLint is not type-aware)
-yarn lint         # Fast ESLint (syntactic rules only)
-yarn lint:styles  # Optional: Tailwind / eb- prefix checks (slow, non-blocking)
-yarn format:check # Code formatting
-yarn test         # Full test suite (typecheck + lint + unit tests)
+npm run typecheck    # TypeScript check (owns type safety; ESLint is not type-aware)
+npm run lint         # Fast ESLint (syntactic rules only)
+npm run lint:styles  # Optional: Tailwind / eb- prefix checks (slow, non-blocking)
+npm run format:check # Code formatting
+npm test             # Full test suite (typecheck + lint + unit tests)
 ```
 
 3. Submit PR with:

@@ -947,7 +947,7 @@ npm install @jpmorgan-payments/embedded-finance-components
 or
 
 ```bash
-yarn add @jpmorgan-payments/embedded-finance-components
+npm install @jpmorgan-payments/embedded-finance-components
 ```
 
 ## Contributing

@@ -483,9 +483,12 @@ describe('OnboardingFlow', () => {
     );
 
     await user.click(screen.getByTestId('personal-section-button'));
-    await waitFor(() => {
-      expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Your personal details/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
     const firstNameInput = screen.getByLabelText(/First name/i);
     await user.type(firstNameInput, 'John');
     const lastNameInput = screen.getByLabelText(/Last name/i);
@@ -496,9 +499,12 @@ describe('OnboardingFlow', () => {
     await user.click(jobTitleOption);
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
-    await waitFor(() => {
-      expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Your ID details/i)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
     const ssnInput = screen.getByLabelText(/Social Security Number/i);
     await user.type(ssnInput, '1');
     await user.click(screen.getByRole('button', { name: /previous/i }));

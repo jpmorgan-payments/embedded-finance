@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.17.4",
+  "version": "0.17.5",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -73,17 +73,18 @@
     "lint:styles": "cross-env ESLINT_STYLES=1 eslint . --cache --cache-location .eslintcache.styles",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx}\"",
-    "audit": "yarn audit --level moderate",
-    "audit:fix": "yarn audit fix",
+    "audit": "npm audit --audit-level=moderate",
+    "audit:fix": "npm audit fix",
     "analyze": "vite build --mode analyze",
     "visualize": "vite-bundle-visualizer",
-    "generate-api": "orval --config ./orval.config.mjs && yarn fix-generated-files && yarn prettify-generated-files",
-    "fix-generated-files": "yarn replace '((?:\\s|\\<))(?!N)(\\d\\S*)Response' '$1N$2Response' ./src/api/generated/*",
+    "generate-api": "orval --config ./orval.config.mjs && npm run fix-generated-files && npm run prettify-generated-files",
+    "fix-generated-files": "npx replace '((?:\\s|\\<))(?!N)(\\d\\S*)Response' '$1N$2Response' ./src/api/generated/*",
     "prettify-generated-files": "npx prettier --write './src/api/generated/*'",
     "prettier": "prettier --check \"**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "vitest": "vitest run",
-    "vitest:watch": "vitest"
+    "vitest:watch": "vitest",
+    "sanitize-lock": "node internal/sanitize-lock.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -185,12 +186,12 @@
     "globals": "^17.7.0",
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^24.1.1",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.1",
     "mermaid": "^11.16.0",
     "msw": "2.15.0",
     "msw-storybook-addon": "^2.0.7",
     "orval": "^8.5.3",
-    "postcss": "^8.5.22",
+    "postcss": "^8.5.25",
     "prettier": "3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "prop-types": "^15.8.1",
@@ -209,6 +210,14 @@
     "vite-plugin-lib-inject-css": "^2.2.2",
     "vitest": "^4.1.10"
   },
+  "optionalDependencies": {
+    "@ast-grep/napi-linux-x64-gnu": "0.36.3",
+    "@esbuild/linux-x64": "0.28.1",
+    "@oxc-parser/binding-linux-x64-gnu": "0.127.0",
+    "@oxc-resolver/binding-linux-x64-gnu": "11.24.2",
+    "@rolldown/binding-linux-x64-gnu": "1.1.5",
+    "lightningcss-linux-x64-gnu": "1.33.0"
+  },
   "peerDependencies": {
     "react": "^18.2.0 || ^19",
     "react-dom": "^18.2.0 || ^19"
@@ -222,38 +231,37 @@
     },
     "@eslint/eslintrc": {
       "ajv": "^6.12.6"
-    }
-  },
-  "resolutions": {
-    "msw": "2.15.0",
+    },
     "strip-ansi": "6.0.1",
     "braces": "^3.0.3",
-    "jsonpath-plus": "^10.2.0",
     "form-data": "4.0.6",
     "glob": "^10.5.0",
     "tar": "^7.5.21",
     "lodash": "^4.18.1",
     "lodash-es": "^4.18.1",
-    "eslint-plugin-jsx-a11y/minimatch": "^3.1.2",
-    "eslint-plugin-import/minimatch": "^3.1.2",
-    "picomatch@^4.0.2": "4.0.4",
-    "picomatch@^4.0.3": "4.0.4",
     "js-yaml": "^4.3.0",
     "uuid": "^14.0.1",
     "dompurify": "^3.4.12",
     "esbuild": "0.28.1",
-    "fast-uri": "3.1.4",
+    "fast-uri": "3.1.5",
     "linkify-it": "5.0.2",
     "markdown-it": "14.3.0",
     "postcss-selector-parser": "6.1.3",
     "@babel/core": "7.29.7",
     "yaml": "2.9.0",
-    "ip-address": "10.2.0",
-    "replace/minimatch": "3.1.5",
-    "brace-expansion@^5.0.5": "5.0.8",
-    "ajv@^8.17.1": "8.20.0"
+    "ip-address": "10.3.1",
+    "msw": "2.15.0",
+    "eslint-plugin-jsx-a11y": {
+      "minimatch": "^3.1.2"
+    },
+    "eslint-plugin-import": {
+      "minimatch": "^3.1.2"
+    },
+    "replace": {
+      "minimatch": "3.1.5"
+    },
+    "brace-expansion@^5.0.5": "5.0.8"
   },
-  "packageManager": "yarn@4.12.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jpmorgan-payments/embedded-finance.git",
@@ -278,5 +286,6 @@
     "validation": "zod",
     "forms": "react-hook-form",
     "i18n": "react-i18next"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

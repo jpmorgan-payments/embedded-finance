@@ -33,13 +33,13 @@ We avoid treating “more unit tests” as the goal. We avoid relying on E2E for
 
 ## What each tier covers for OnboardingFlow
 
-| Tier | Role |
-|------|------|
-| **Static / contracts** | Types align with generated APIs; mapping helpers (e.g. organization type ↔ gateway buckets) stay correct when enums grow. |
-| **Unit** | Schema behaviour, screen-only UX branches, utilities (documents copy, warnings, array-field behaviour). |
-| **Integration** | **Green-field** onboarding (gateway → create client → critical path through sections). **Seeded clients** (`GET /clients` shapes): sparse LLC, rich LLC, sole prop, and future factories—resume/overview and deep sections without repeating gateway setup. **Bad API seeds**: invalid stored values surface field-level messages until corrected. Screen-level integration tests where multiple hooks or mutations matter (e.g. gateway mutations, document flows). |
-| **Storybook / visual** | Representative UI states and demos; Chromatic or manual review when layout or tokens change. Keeps mocks aligned with RTL seeds where we reuse the same canonical client objects. |
-| **E2E** | A small set of named SellSense scenarios (green-field LLC and sole prop, prefilled client, document-focused mode) to validate **host + demo + MSW** integration. |
+| Tier                   | Role                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Static / contracts** | Types align with generated APIs; mapping helpers (e.g. organization type ↔ gateway buckets) stay correct when enums grow.                                                                                                                                                                                                                                                                                                                                           |
+| **Unit**               | Schema behaviour, screen-only UX branches, utilities (documents copy, warnings, array-field behaviour).                                                                                                                                                                                                                                                                                                                                                              |
+| **Integration**        | **Green-field** onboarding (gateway → create client → critical path through sections). **Seeded clients** (`GET /clients` shapes): sparse LLC, rich LLC, sole prop, and future factories—resume/overview and deep sections without repeating gateway setup. **Bad API seeds**: invalid stored values surface field-level messages until corrected. Screen-level integration tests where multiple hooks or mutations matter (e.g. gateway mutations, document flows). |
+| **Storybook / visual** | Representative UI states and demos; Chromatic or manual review when layout or tokens change. Keeps mocks aligned with RTL seeds where we reuse the same canonical client objects.                                                                                                                                                                                                                                                                                    |
+| **E2E**                | A small set of named SellSense scenarios (green-field LLC and sole prop, prefilled client, document-focused mode) to validate **host + demo + MSW** integration.                                                                                                                                                                                                                                                                                                     |
 
 ---
 
@@ -108,16 +108,16 @@ For MSW architecture in the demo app, see `app/client-next-ts/MSW_SETUP.md` and 
 
 ```bash
 cd embedded-components
-yarn test OnboardingFlow
-yarn test:coverage:onboarding   # onboarding-focused coverage report
-yarn typecheck
+npx vitest run OnboardingFlow
+npm run test:coverage:onboarding   # onboarding-focused coverage report
+npm run typecheck
 ```
 
 **Playwright (SellSense onboarding smoke)**
 
 ```bash
 cd app/client-next-ts
-yarn e2e:onboarding
+npm run e2e:onboarding
 ```
 
 ---

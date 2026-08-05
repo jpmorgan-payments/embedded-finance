@@ -9,7 +9,7 @@
 // Performance / scope decision: type-aware linting is intentionally NOT enabled
 // (no `parserOptions.projectService`). Building a full TypeScript program on
 // every run made `eslint .` 5-15x slower just to power a single type-aware rule.
-// Type safety is owned by `tsc` (`yarn typecheck`), which already runs in CI
+// Type safety is owned by `tsc` (`npm run typecheck`), which already runs in CI
 // ahead of lint. ESLint here is syntactic-only: React / hooks / a11y / tailwind
 // / import + the syntactic typescript-eslint rules. The type-aware rules we
 // forgo (e.g. no-floating-promises) are tracked as an opt-in `lint:types`
@@ -29,11 +29,11 @@ import tailwind from 'eslint-plugin-tailwindcss';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-// Opt-in style linting (`yarn lint:styles`, ESLINT_STYLES=1).
+// Opt-in style linting (`npm run lint:styles`, ESLINT_STYLES=1).
 // The tailwind / eb- prefix rules — above all `no-custom-classname` — are
 // pathologically slow in eslint-plugin-tailwindcss@3 (~90% of total lint time,
 // see BL-505). They are non-blocking (all "warn"), so they are excluded from the
-// fast default `yarn lint` and only run on demand via `yarn lint:styles`.
+// fast default `npm run lint` and only run on demand via `npm run lint:styles`.
 const includeStyleRules = process.env.ESLINT_STYLES === '1';
 
 export default tseslint.config(
@@ -168,7 +168,7 @@ export default tseslint.config(
       'import/order': 'off', // handled by @ianvs/prettier-plugin-sort-imports
 
       // Tailwind / eb- prefix rules live in the opt-in style block below
-      // (`yarn lint:styles`), kept out of the fast default lint.
+      // (`npm run lint:styles`), kept out of the fast default lint.
     },
   },
 
@@ -192,10 +192,10 @@ export default tseslint.config(
   },
 
   // ---------------------------------------------------------------------------
-  // 8. Opt-in Tailwind / eb- prefix linting (`yarn lint:styles`, ESLINT_STYLES=1)
+  // 8. Opt-in Tailwind / eb- prefix linting (`npm run lint:styles`, ESLINT_STYLES=1)
   //    eslint-plugin-tailwindcss@3 targets ESLint <=9 (shimmed via @eslint/compat)
   //    and `no-custom-classname` is pathologically slow (~65% of total lint time),
-  //    so these non-blocking checks are excluded from the fast default `yarn lint`.
+  //    so these non-blocking checks are excluded from the fast default `npm run lint`.
   // ---------------------------------------------------------------------------
   ...(includeStyleRules
     ? [
