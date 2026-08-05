@@ -27,9 +27,7 @@ jobs:
           node-version: "20"
 
       - name: Install and build embedded-components
-        env:
-          YARN_ENABLE_HARDENED_MODE: 0
-        run: yarn install && yarn build
+        run: npm ci && npm run build
         working-directory: ./embedded-components
 
       - name: Install modules
