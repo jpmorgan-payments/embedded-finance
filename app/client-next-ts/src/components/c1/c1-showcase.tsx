@@ -32,6 +32,7 @@ import {
   ACCOUNT_CREATED_DATE_OPTIONS,
   c1Participants,
   c1PlatformAccounts,
+  c1Recipients,
   c1Transactions,
   C1_PLATFORM,
   C1_PLATFORM_SUMMARY,
@@ -41,8 +42,11 @@ import {
   PLATFORM_ACCOUNT_CATEGORY_LABELS,
   SEARCH_BY_OPTIONS,
   type C1Account,
+  type C1LinkedAccountAttempt,
+  type C1OutstandingDocument,
   type C1Participant,
   type C1PlatformAccount,
+  type C1Recipient,
   type C1Transaction,
 } from './c1-mock-data';
 
@@ -67,6 +71,52 @@ const formatUsd = (value: number) =>
 
 const mask = (accountNumber: string) =>
   accountNumber ? `****${accountNumber.slice(-4)}` : '****';
+
+const formatDate = (iso?: string) => {
+  if (!iso) return '\u2014';
+  const t = Date.parse(iso);
+  return Number.isNaN(t)
+    ? iso
+    : new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+// Linked bank account state derivation (ported from efs-de-ui linkedAccountStatus).
+// Precedence: Active > Microdeposits Initiated / Ready for Validation > Pending > Rejected / Inactive.
+const LINK_STATUS_META: Record<string, { label: string; rank: number }> = {
+  active: { label: 'Active', rank: 5 },
+  microdeposits_initiated: { label: 'Microdeposits Initiated', rank: 4 },
+  ready_for_validation: { label: 'Ready for Validation', rank: 4 },
+  pending: { label: 'Pending', rank: 3 },
+  rejected: { label: 'Rejected', rank: 2 },
+  inactive: { label: 'Inactive', rank: 2 },
+};
+
+const normalizeLinkKey = (status?: string) =>
+  (status ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+
+const linkTime = (date?: string) => {
+  if (!date) return 0;
+  const t = Date.parse(date.includes('T') ? date : `${date}T00:00:00`);
+  return Number.isNaN(t) ? 0 : t;
+};
+
+function deriveLinkedAccountStatus(attempts: C1LinkedAccountAttempt[] = []): {
+  status: string;
+  attemptCount: number;
+  detail?: string;
+  account?: C1LinkedAccountAttempt;
+} {
+  if (attempts.length === 0) return { status: 'N/A', attemptCount: 0 };
+  const ranked = attempts.map((attempt) => {
+    const meta = LINK_STATUS_META[normalizeLinkKey(attempt.status)];
+    return { attempt, label: meta?.label ?? attempt.status, rank: meta?.rank ?? 1, time: linkTime(attempt.linkedDate) };
+  });
+  const best = ranked.reduce((b, c) => (c.rank > b.rank || (c.rank === b.rank && c.time > b.time) ? c : b));
+  const latest = ranked.reduce((l, c) => (c.time > l.time ? c : l));
+  const detail =
+    attempts.length > 1 ? `${attempts.length} attempts \u00b7 latest: ${latest.label}` : undefined;
+  return { status: best.label, attemptCount: attempts.length, detail, account: best.attempt };
+}
 
 // --------------------------------------------------------------------------
 // Status badge (mirrors the Salt Tag category mapping in the C1 StatusBadge)
@@ -877,6 +927,103 @@ function ParticipantAccountsView({
 }
 
 // --------------------------------------------------------------------------
+// Participant details (parties + linked bank account) — non-approved drill-down
+// --------------------------------------------------------------------------
+
+function humanizeDocType(type: string) {
+  return type
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function PartyCard({ entity }: { entity: C1OutstandingDocument }) {
+  const outstanding = (entity.documentRequests ?? [])
+    .filter((dr) => dr.status === 'ACTIVE')
+    .flatMap((dr) => dr.outstanding?.documentTypes ?? []);
+  return (
+    <Card className="min-w-[240px] max-w-[320px] flex-1 basis-[260px] border-sp-border">
+      <CardContent className="p-5">
+        <div className="font-semibold text-sp-ink">{entity.entityName}</div>
+        <div className="mb-3 text-sm text-slate-500">{entity.entityRole}</div>
+        <StatusBadge status={entity.profileStatus} />
+        {outstanding.length > 0 && (
+          <div className="mt-3 text-xs text-slate-500">
+            Outstanding: {outstanding.map(humanizeDocType).join(', ')}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ParticipantDetailsView({
+  participant,
+  onBack,
+}: {
+  participant: C1Participant;
+  onBack: () => void;
+}) {
+  const entities = participant.outstandingDocuments ?? [];
+  const link = deriveLinkedAccountStatus(participant.linkedAccountAttempts);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <Breadcrumb items={[{ label: 'Participants', onClick: onBack }, { label: participant.businessName }]} />
+
+      <div className="flex flex-col gap-2 border-b border-sp-border pb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-semibold text-sp-ink" style={HEADING}>
+            {participant.businessName}
+          </h1>
+          <span className="text-slate-300">|</span>
+          <span className="text-slate-500">ID: {participant.clientId}</span>
+          <StatusBadge status={participant.onboardingStatus} />
+        </div>
+      </div>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold text-sp-ink" style={HEADING}>
+          Entity Onboarding
+        </h2>
+        {entities.length === 0 ? (
+          <p className="text-slate-500">No onboarding parties available.</p>
+        ) : (
+          <div className="flex flex-wrap gap-4">
+            {entities.map((entity) => (
+              <PartyCard key={entity.entityName} entity={entity} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold text-sp-ink" style={HEADING}>
+          Linked Bank Account
+        </h2>
+        {link.attemptCount === 0 || !link.account ? (
+          <p className="text-slate-500">No linked bank account.</p>
+        ) : (
+          <Card className="max-w-[420px] border-sp-border">
+            <CardContent className="p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="font-semibold text-sp-ink">Linked Account</span>
+                <StatusBadge status={link.status} />
+              </div>
+              <DetailRow label="Account Number" value={mask(link.account.accountNumber)} />
+              <DetailRow label="ACH Routing" value={link.account.achRouting} />
+              <DetailRow label="Linked Date" value={formatDate(link.account.linkedDate)} />
+              {link.detail && <div className="mt-2 text-xs text-slate-500">{link.detail}</div>}
+            </CardContent>
+          </Card>
+        )}
+      </section>
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
 // Platform accounts view
 // --------------------------------------------------------------------------
 
@@ -965,6 +1112,7 @@ interface AccountDetailData {
   wireRouting?: string;
   metrics: Array<{ label: string; value: ReactNode }>;
   transactions: C1Transaction[];
+  recipients?: C1Recipient[];
 }
 
 function CopyableAccountNumber({ accountNumber }: { accountNumber: string }) {
@@ -1191,6 +1339,56 @@ function TransactionsTable({ transactions }: { transactions: C1Transaction[] }) 
   );
 }
 
+const recipientDisplayName = (r: C1Recipient) => {
+  const p = r.partyDetails;
+  return p.businessName || [p.firstName, p.lastName].filter(Boolean).join(' ') || '\u2014';
+};
+
+const recipientRails = (r: C1Recipient) =>
+  (r.account?.routingInformation ?? []).map((ri) => ri.transactionType).join(', ') || '\u2014';
+
+function RecipientsTable({ recipients }: { recipients: C1Recipient[] }) {
+  return (
+    <div className="overflow-hidden rounded-md border border-sp-border bg-white">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-sp-border bg-sp-bg text-left text-xs uppercase tracking-wide text-slate-500">
+              <th className="px-4 py-3 font-semibold">Recipient Name</th>
+              <th className="px-4 py-3 font-semibold">Type</th>
+              <th className="px-4 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 font-semibold">Account</th>
+              <th className="px-4 py-3 font-semibold">Rails</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recipients.map((r) => (
+              <tr key={r.id} className="border-b border-slate-100 last:border-b-0 hover:bg-sp-accent/40">
+                <td className="px-4 py-3 text-sp-ink">{recipientDisplayName(r)}</td>
+                <td className="px-4 py-3 capitalize text-slate-600">
+                  {(r.type ?? '').toLowerCase().replace(/_/g, ' ')}
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge status={r.status} />
+                </td>
+                <td className="px-4 py-3 tabular-nums text-slate-600">{mask(r.account?.number ?? '')}</td>
+                <td className="px-4 py-3 text-slate-600">{recipientRails(r)}</td>
+              </tr>
+            ))}
+            {recipients.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-10 text-center text-slate-500">
+                  No recipients.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function AccountDetailView({ data }: { data: AccountDetailData }) {
   return (
     <div className="flex flex-col gap-5">
@@ -1212,6 +1410,15 @@ function AccountDetailView({ data }: { data: AccountDetailData }) {
         </div>
       </div>
       <TransactionsTable transactions={data.transactions} />
+
+      {data.recipients && data.recipients.length > 0 && (
+        <>
+          <h2 className="pt-1 text-lg font-semibold text-sp-ink" style={HEADING}>
+            Recipients
+          </h2>
+          <RecipientsTable recipients={data.recipients} />
+        </>
+      )}
     </div>
   );
 }
@@ -1333,6 +1540,7 @@ export function C1Showcase() {
       transactions: c1Transactions.filter(
         (t) => t.fromAccount === mask(acc.accountNumber) || t.toAccount === mask(acc.accountNumber),
       ),
+      recipients: (c1Recipients[p.clientId] ?? []).filter((r) => r.type !== 'LINKED_ACCOUNT'),
     });
   };
 
@@ -1362,11 +1570,15 @@ export function C1Showcase() {
     content = <AccountDetailView data={account} />;
   } else if (section === 'participants') {
     content = participant ? (
-      <ParticipantAccountsView
-        participant={participant}
-        onBack={goParticipants}
-        onOpenAccount={(acc) => openParticipantAccount(participant, acc)}
-      />
+      participant.accounts.length > 0 ? (
+        <ParticipantAccountsView
+          participant={participant}
+          onBack={goParticipants}
+          onOpenAccount={(acc) => openParticipantAccount(participant, acc)}
+        />
+      ) : (
+        <ParticipantDetailsView participant={participant} onBack={goParticipants} />
+      )
     ) : (
       <ParticipantsView onSelect={setParticipant} />
     );
