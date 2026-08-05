@@ -252,10 +252,15 @@
     "ip-address": "10.3.1",
     "msw": "2.15.0",
     "eslint-plugin-jsx-a11y": {
-      "minimatch": "^3.1.2"
+      "minimatch": "^3.1.2",
+      "eslint": "$eslint"
+    },
+    "eslint-plugin-react": {
+      "eslint": "$eslint"
     },
     "eslint-plugin-import": {
-      "minimatch": "^3.1.2"
+      "minimatch": "^3.1.2",
+      "eslint": "$eslint"
     },
     "replace": {
       "minimatch": "3.1.5"
