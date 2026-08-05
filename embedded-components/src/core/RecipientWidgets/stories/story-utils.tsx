@@ -1154,6 +1154,15 @@ export const commonArgTypes = {
       defaultValue: { summary: 'auto (true when FX)' },
     },
   },
+  internationalMode: {
+    control: { type: 'boolean' as const },
+    description:
+      'Enable FX Add Recipient (currency select + international fields). Defaults to true when paymentFlowVariant is "fx", otherwise false.',
+    table: {
+      category: 'Payment / FX',
+      defaultValue: { summary: 'auto (true when FX)' },
+    },
+  },
   showRejectedAccounts: {
     control: { type: 'boolean' as const },
     description:

@@ -1,5 +1,11 @@
+import { useEffect, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { ArrowRightLeftIcon, BanknoteIcon, InfoIcon } from 'lucide-react';
+import {
+  ArrowRightLeftIcon,
+  BanknoteIcon,
+  InfoIcon,
+  XIcon,
+} from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -15,6 +21,12 @@ export interface FxRailDisclaimerProps {
   currency: string;
   /** Optional extra classes. */
   className?: string;
+  /**
+   * Show a dismiss control. When dismissed, the alert hides until `currency`
+   * changes (then it reappears for the new destination).
+   * @default true
+   */
+  dismissible?: boolean;
 }
 
 const RAIL_ICON: Record<FxRail, typeof BanknoteIcon> = {
@@ -34,12 +46,19 @@ const RAIL_ICON: Record<FxRail, typeof BanknoteIcon> = {
 export function FxRailDisclaimer({
   currency,
   className,
+  dismissible = true,
 }: FxRailDisclaimerProps) {
   const { t, tString } = useTranslationWithTokens(['make-payment']);
   const requirement = getFxCurrencyRequirement(currency);
   const rails = getFxAvailableRails(currency);
+  const [dismissed, setDismissed] = useState(false);
 
-  if (!requirement || rails.length === 0) {
+  // Re-show the alert when the destination currency changes.
+  useEffect(() => {
+    setDismissed(false);
+  }, [currency]);
+
+  if (!requirement || rails.length === 0 || dismissed) {
     return null;
   }
 
@@ -98,6 +117,17 @@ export function FxRailDisclaimer({
           )}
         </p>
       </AlertDescription>
+      {dismissible && (
+        <button
+          type="button"
+          className="eb-absolute eb-right-3 eb-top-2.5 eb-rounded-sm eb-opacity-70 eb-ring-offset-background eb-transition-opacity hover:eb-opacity-100 focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2 [&&]:eb-pl-0"
+          onClick={() => setDismissed(true)}
+          aria-label={tString('fx.rails.dismiss', 'Dismiss')}
+        >
+          <XIcon className="eb-h-4 eb-w-4 eb-text-foreground [&&]:eb-pl-0" />
+          <span className="eb-sr-only">{t('fx.rails.dismiss', 'Dismiss')}</span>
+        </button>
+      )}
     </Alert>
   );
 }
