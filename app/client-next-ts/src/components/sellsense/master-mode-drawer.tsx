@@ -507,7 +507,7 @@ export function MasterModeDrawer({
     setStatusMessage(
       copied
         ? `Saved “${name}” locally and copied hosted contentOverride JSON.`
-        : `Saved “${name}” locally as ${fileName}. Clipboard copy failed — use Copy contentOverride.`
+        : `Saved “${name}” locally as ${fileName}. Clipboard copy failed — use Copy JSON.`
     );
   }, [
     copyContentOverrideToClipboard,
@@ -1054,7 +1054,7 @@ export function MasterModeDrawer({
           role="presentation"
         >
           <div
-            className="w-full max-w-md rounded-lg border border-gray-200 bg-white text-gray-900 shadow-xl"
+            className="w-full max-w-lg rounded-lg border border-gray-200 bg-white text-gray-900 shadow-xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="master-save-title"
@@ -1142,35 +1142,36 @@ export function MasterModeDrawer({
                 playground-only.
               </p>
             </div>
-            <div className="flex flex-wrap justify-end gap-2 border-t border-gray-200 p-4">
+            <div className="flex flex-nowrap items-center justify-end gap-2 overflow-x-auto border-t border-gray-200 p-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCopyContentOverride}
-                className="gap-1 border-gray-300 bg-white text-gray-700"
+                className="h-8 shrink-0 gap-1 whitespace-nowrap border-gray-300 bg-white px-2.5 text-xs text-gray-700"
+                title="Copy hosted contentOverride JSON"
               >
                 {isContentOverrideCopied ? (
                   <Check className="h-3.5 w-3.5" />
                 ) : (
                   <ClipboardCopy className="h-3.5 w-3.5" />
                 )}
-                {isContentOverrideCopied ? 'Copied!' : 'Copy contentOverride'}
+                {isContentOverrideCopied ? 'Copied!' : 'Copy JSON'}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleDownloadCurrent}
-                className="gap-1 border-gray-300 bg-white text-gray-700"
+                className="h-8 shrink-0 gap-1 whitespace-nowrap border-gray-300 bg-white px-2.5 text-xs text-gray-700"
               >
                 <Download className="h-3.5 w-3.5" />
-                Download only
+                Download
               </Button>
               <Button
                 size="sm"
                 onClick={() => {
                   void handleSavePreset();
                 }}
-                className="gap-1 bg-amber-600 text-white hover:bg-amber-700"
+                className="h-8 shrink-0 gap-1 whitespace-nowrap bg-amber-600 px-2.5 text-xs text-white hover:bg-amber-700"
               >
                 <Save className="h-3.5 w-3.5" />
                 Save + copy

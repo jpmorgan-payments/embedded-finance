@@ -78,13 +78,8 @@ export function TestScenarioJsonField({
 
   const handleChange = (next: string) => {
     const isEmptyOptional = optional && !next.trim();
-    const parseResult = isEmptyOptional
-      ? null
-      : parseFlexibleJsonObject(next);
-    onChange(
-      next,
-      parseResult && parseResult.ok ? parseResult.parsed : null
-    );
+    const parseResult = isEmptyOptional ? null : parseFlexibleJsonObject(next);
+    onChange(next, parseResult && parseResult.ok ? parseResult.parsed : null);
     onValidationChange?.(evaluateValue(next, { optional, validate }));
   };
 

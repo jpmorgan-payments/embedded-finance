@@ -80,10 +80,7 @@ export type DataObjectId =
   | 'webhook';
 
 export type ApiSurfaceKey =
-  | 'digitalOnboarding'
-  | 'embeddedV1'
-  | 'embeddedV2'
-  | 'efV1';
+  'digitalOnboarding' | 'embeddedV1' | 'embeddedV2' | 'efV1';
 
 export const API_SURFACE_META: Record<
   ApiSurfaceKey,

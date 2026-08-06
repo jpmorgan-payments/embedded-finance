@@ -88,8 +88,7 @@ function buildRecipientPartyDetailsFromDbParty(
 ): Recipient['partyDetails'] | undefined {
   if (party.partyType === 'INDIVIDUAL') {
     const ind = party.individualDetails as
-      | { firstName?: string; lastName?: string }
-      | undefined;
+      { firstName?: string; lastName?: string } | undefined;
     if (!ind) return undefined;
     return {
       type: 'INDIVIDUAL',
@@ -99,8 +98,7 @@ function buildRecipientPartyDetailsFromDbParty(
   }
   if (party.partyType === 'ORGANIZATION') {
     const org = party.organizationDetails as
-      | { organizationName?: string; dbaName?: string }
-      | undefined;
+      { organizationName?: string; dbaName?: string } | undefined;
     if (!org) return undefined;
     const businessName = org.organizationName || org.dbaName || '';
     return {

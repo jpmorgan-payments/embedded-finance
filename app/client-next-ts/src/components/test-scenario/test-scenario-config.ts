@@ -13,11 +13,7 @@ export const TEST_SCENARIO_CONSTRUCTOR_PATH = '/test-scenario/constructor';
 export const TEST_SCENARIO_CONFIG_VERSION = 2 as const;
 
 export type TestScenarioPresetId =
-  | 'operator80'
-  | 'construction'
-  | 'health'
-  | 'logistics'
-  | 'fundManagement';
+  'operator80' | 'construction' | 'health' | 'logistics' | 'fundManagement';
 
 export type TestScenarioLayoutKind =
   | 'onboarding'
