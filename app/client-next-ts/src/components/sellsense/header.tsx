@@ -9,6 +9,7 @@ import {
   Layers,
   Menu,
   RotateCcw,
+  Settings,
   SlidersHorizontal,
   X,
 } from 'lucide-react';
@@ -61,13 +62,14 @@ interface HeaderProps {
   setIsMockApiEditorOpen: (open: boolean) => void;
   mockOverrideCount: number;
   onResetAllCustomizations: () => void;
+  onOpenDemoSettings: () => void;
 }
 
 function OverrideBadge({ count, label }: { count: number; label: string }) {
   if (count <= 0) return null;
   return (
     <span
-      className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-medium leading-none text-white tabular-nums"
+      className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-medium tabular-nums leading-none text-white"
       aria-label={`${count} ${label}`}
     >
       {count}
@@ -92,6 +94,7 @@ export function Header({
   setIsMockApiEditorOpen,
   mockOverrideCount,
   onResetAllCustomizations,
+  onOpenDemoSettings,
 }: HeaderProps) {
   const themeStyles = useThemeStyles(themeForDisplay);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
@@ -132,11 +135,25 @@ export function Header({
           )}
         </div>
 
-        <HeaderDemoSwitcher
-          clientScenario={clientScenario}
-          setClientScenario={setClientScenario}
-          themeForDisplay={themeForDisplay}
-        />
+        {/* Center — scenario stepper + legacy demo settings */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <HeaderDemoSwitcher
+            clientScenario={clientScenario}
+            setClientScenario={setClientScenario}
+            themeForDisplay={themeForDisplay}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={`h-8 w-8 rounded-full p-1 ${themeStyles.getHeaderSettingsButtonStyles()}`}
+            onClick={onOpenDemoSettings}
+            title="Demo settings — scenario, theme, content tone"
+            aria-label="Open demo settings"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
 
         {/* Right side - User section and Settings */}
         <div className="flex items-center space-x-2 lg:space-x-3">

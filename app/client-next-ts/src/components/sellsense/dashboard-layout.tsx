@@ -64,6 +64,7 @@ import {
   getScenarioKeyByDisplayName,
   hasResetDbScenario,
 } from './scenarios-config';
+import { SettingsDrawer } from './settings-drawer';
 import { Sidebar } from './sidebar';
 import { ThemeCustomizationDrawer } from './theme-customization-drawer';
 import { useThemeStyles } from './theme-utils';
@@ -140,6 +141,7 @@ export function DashboardLayout() {
   // State management
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isSettingsDrawerOpen, setIsSettingsDrawerOpen] = useState(false);
   const [activeCustomizationDrawer, setActiveCustomizationDrawer] =
     useState<DemoCustomizationDrawer>(null);
   const isMasterModeDrawerOpen = activeCustomizationDrawer === 'master';
@@ -993,6 +995,11 @@ export function DashboardLayout() {
         setIsMockApiEditorOpen={setIsMockApiEditorOpen}
         mockOverrideCount={mockOverrideCount}
         onResetAllCustomizations={handleResetAllCustomizations}
+        onOpenDemoSettings={() => {
+          setActiveCustomizationDrawer(null);
+          setIsMockApiEditorOpen(false);
+          setIsSettingsDrawerOpen(true);
+        }}
       />
 
       {/* Mobile-first responsive layout */}
@@ -1039,6 +1046,21 @@ export function DashboardLayout() {
         isOpen={isInfoModalOpen}
         onClose={() => setIsInfoModalOpen(false)}
         theme={theme}
+      />
+
+      {/* Legacy demo settings — scenario / theme / content tone */}
+      <SettingsDrawer
+        isOpen={isSettingsDrawerOpen}
+        onClose={() => setIsSettingsDrawerOpen(false)}
+        clientScenario={clientScenario}
+        setClientScenario={handleScenarioChange}
+        theme={theme === 'Custom' ? themeForDisplay : theme}
+        setTheme={(nextTheme) => handleThemeChange(nextTheme)}
+        contentTone={contentTone}
+        setContentTone={(tone) => {
+          setContentTone(tone);
+          updateSearchParams({ contentTone: tone });
+        }}
       />
 
       {/* Master Mode Drawer — combined theme / content / config overview */}
