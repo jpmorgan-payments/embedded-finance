@@ -18,6 +18,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  ClipboardCopy,
   ClipboardPaste,
   Database,
   Download,
@@ -61,6 +62,7 @@ import {
 import {
   describeMasterModeFormat,
   parseMasterModeText,
+  stringifyContentOverrideExport,
   summarizeMasterModeBundle,
   toSafeFileName,
   type MasterModeBundle,
@@ -220,6 +222,7 @@ export function MasterModeDrawer({
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveName, setSaveName] = useState('');
   const [saveFileName, setSaveFileName] = useState('');
+  const [isContentOverrideCopied, setIsContentOverrideCopied] = useState(false);
   const [includeMocksOnSave, setIncludeMocksOnSave] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -458,6 +461,7 @@ export function MasterModeDrawer({
     setIncludeMocksOnSave(
       (pendingSummary?.mockOverrideCount ?? mockOverrideCount) > 0
     );
+    setIsContentOverrideCopied(false);
     setSaveDialogOpen(true);
   }, [
     mockOverrideCount,
@@ -465,34 +469,69 @@ export function MasterModeDrawer({
     pendingSummary?.mockOverrideCount,
   ]);
 
-  const handleSavePreset = useCallback(() => {
+  const resolveBundleForSave = useCallback((): MasterModeBundle => {
+    if (pendingBundle) {
+      return {
+        ...pendingBundle,
+        mocks: includeMocksOnSave ? pendingBundle.mocks : undefined,
+      };
+    }
+    return buildCurrentBundle(includeMocksOnSave);
+  }, [buildCurrentBundle, includeMocksOnSave, pendingBundle]);
+
+  const copyContentOverrideToClipboard = useCallback(
+    async (bundle: MasterModeBundle): Promise<boolean> => {
+      try {
+        await navigator.clipboard.writeText(
+          stringifyContentOverrideExport(bundle)
+        );
+        setIsContentOverrideCopied(true);
+        window.setTimeout(() => setIsContentOverrideCopied(false), 2000);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    []
+  );
+
+  const handleSavePreset = useCallback(async () => {
     const name = saveName.trim() || 'Untitled';
     const fileName = saveFileName.trim() || toSafeFileName(name);
-    const bundle = pendingBundle
-      ? {
-          ...pendingBundle,
-          mocks: includeMocksOnSave ? pendingBundle.mocks : undefined,
-        }
-      : buildCurrentBundle(includeMocksOnSave);
+    const bundle = resolveBundleForSave();
 
     saveMasterModePreset({ name, fileName, bundle });
+    const copied = await copyContentOverrideToClipboard(bundle);
     setSaveDialogOpen(false);
     refreshPresets();
-    setStatusMessage(`Saved “${name}” locally as ${fileName}.`);
+    setStatusMessage(
+      copied
+        ? `Saved “${name}” locally and copied hosted contentOverride JSON.`
+        : `Saved “${name}” locally as ${fileName}. Clipboard copy failed — use Copy contentOverride.`
+    );
   }, [
-    buildCurrentBundle,
-    includeMocksOnSave,
-    pendingBundle,
+    copyContentOverrideToClipboard,
     refreshPresets,
+    resolveBundleForSave,
     saveFileName,
     saveName,
   ]);
 
+  const handleCopyContentOverride = useCallback(async () => {
+    const bundle = resolveBundleForSave();
+    const copied = await copyContentOverrideToClipboard(bundle);
+    setStatusMessage(
+      copied
+        ? 'Copied hosted contentOverride JSON to clipboard.'
+        : 'Could not copy to clipboard — check browser permissions.'
+    );
+  }, [copyContentOverrideToClipboard, resolveBundleForSave]);
+
   const handleDownloadCurrent = useCallback(() => {
     const name = saveName.trim() || 'master-customization';
     const fileName = toSafeFileName(name);
-    downloadMasterModeBundle(buildCurrentBundle(includeMocksOnSave), fileName);
-  }, [buildCurrentBundle, includeMocksOnSave, saveName]);
+    downloadMasterModeBundle(resolveBundleForSave(), fileName);
+  }, [resolveBundleForSave, saveName]);
 
   if (!isOpen) return null;
 
@@ -1030,8 +1069,11 @@ export function MasterModeDrawer({
                   Save customization version
                 </h3>
                 <p className="mt-1 text-xs text-gray-500">
-                  Stores a named JSON snapshot in this browser. You can download
-                  the same file anytime.
+                  Saves a named snapshot in this browser and copies hosted{' '}
+                  <code className="rounded bg-gray-100 px-1">
+                    contentOverride
+                  </code>{' '}
+                  JSON to the clipboard.
                 </p>
               </div>
               <Button
@@ -1087,8 +1129,33 @@ export function MasterModeDrawer({
                   onCheckedChange={setIncludeMocksOnSave}
                 />
               </div>
+              <p className="text-[11px] text-gray-500">
+                Clipboard export uses hosted shape:{' '}
+                <code className="rounded bg-gray-100 px-1">
+                  globalConfiguration.ebDesignTokens
+                </code>
+                ,{' '}
+                <code className="rounded bg-gray-100 px-1">
+                  saltEPDesignTokens
+                </code>
+                , content tokens, and onboarding config. Mocks stay
+                playground-only.
+              </p>
             </div>
-            <div className="flex justify-end gap-2 border-t border-gray-200 p-4">
+            <div className="flex flex-wrap justify-end gap-2 border-t border-gray-200 p-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyContentOverride}
+                className="gap-1 border-gray-300 bg-white text-gray-700"
+              >
+                {isContentOverrideCopied ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <ClipboardCopy className="h-3.5 w-3.5" />
+                )}
+                {isContentOverrideCopied ? 'Copied!' : 'Copy contentOverride'}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -1100,11 +1167,13 @@ export function MasterModeDrawer({
               </Button>
               <Button
                 size="sm"
-                onClick={handleSavePreset}
+                onClick={() => {
+                  void handleSavePreset();
+                }}
                 className="gap-1 bg-amber-600 text-white hover:bg-amber-700"
               >
                 <Save className="h-3.5 w-3.5" />
-                Save locally
+                Save + copy
               </Button>
             </div>
           </div>

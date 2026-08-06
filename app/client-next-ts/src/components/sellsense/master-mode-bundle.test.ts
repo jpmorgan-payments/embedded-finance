@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildContentOverrideExport,
   describeMasterModeFormat,
   groupContentTokenKeys,
   parseMasterModeImport,
   parseMasterModeText,
+  stringifyContentOverrideExport,
   toSafeFileName,
 } from './master-mode-bundle';
 
@@ -197,5 +199,76 @@ describe('groupContentTokenKeys', () => {
       'onboarding-overview',
     ]);
     expect(groups.find((g) => g.namespace === 'common')?.count).toBe(1);
+  });
+});
+
+describe('buildContentOverrideExport', () => {
+  it('emits hosted globalConfiguration with eb + salt tokens', () => {
+    const exported = buildContentOverrideExport({
+      theme: {
+        baseTheme: 'Empty',
+        variables: {
+          actionableAccentedBoldBackground: '#1B7F9E',
+          focusedRingColor: '#1B7F9E',
+          contentFontFamily: 'Open Sans',
+          separableBorderRadius: '0.375rem',
+          actionableBorderRadius: '0.375rem',
+          actionableNegativeBoldBackground: '#dc2626',
+          separableBorderColor: '#e5e7eb',
+        },
+      },
+      contentTokens: {
+        name: 'enUS',
+        tokens: { common: { errors: { footnote: 'Contact support' } } },
+      },
+      onboardingFlowPropOverrides: {
+        hideLinkedAccountRemoval: true,
+        availableProducts: ['EMBEDDED_PAYMENTS'],
+      },
+      mocks: {
+        'GET /ef/do/v1/accounts': { items: [] },
+      },
+    });
+
+    expect(exported.globalConfiguration.ebDesignTokens).toMatchObject({
+      primaryColor: '#1B7F9E',
+      ringColor: '#1B7F9E',
+      fontFamily: 'Open Sans',
+    });
+    expect(exported.globalConfiguration.saltEPDesignTokens).toMatchObject({
+      actionableAccentedBoldBackground: '#1B7F9E',
+    });
+    expect(
+      exported.globalConfiguration.embeddedComponentsContentTokens
+    ).toMatchObject({
+      name: 'enUS',
+      tokens: { common: { errors: { footnote: 'Contact support' } } },
+    });
+    expect(exported.globalConfiguration.onboardingFlowConfig).toMatchObject({
+      hideLinkedAccountRemoval: true,
+    });
+    expect(exported.globalConfiguration).not.toHaveProperty('mocks');
+  });
+
+  it('round-trips through parseMasterModeImport', () => {
+    const json = stringifyContentOverrideExport({
+      theme: {
+        baseTheme: 'Empty',
+        variables: { actionableAccentedBoldBackground: '#0047ab' },
+      },
+      contentTokens: {
+        name: 'enUS',
+        tokens: { common: { errors: { footnote: 'Hi' } } },
+      },
+    });
+
+    const result = parseMasterModeImport(JSON.parse(json));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.format).toBe('content-override');
+    expect(
+      result.bundle.theme?.variables?.actionableAccentedBoldBackground
+    ).toBe('#0047ab');
+    expect(result.summary.contentTokenCount).toBe(1);
   });
 });

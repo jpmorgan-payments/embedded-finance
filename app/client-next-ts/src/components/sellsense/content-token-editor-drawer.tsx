@@ -90,6 +90,24 @@ const NAMESPACE_COLORS: Record<string, string> = {
   'client-details': '#f97316', // orange
 };
 
+/** Mark DOM tokens that currently have playground overrides (amber highlight). */
+function syncChangedTokenAttributes(editedTokens: Record<string, string>) {
+  document.querySelectorAll('[data-content-token]').forEach((el) => {
+    const key = el.getAttribute('data-content-token');
+    if (key && Object.prototype.hasOwnProperty.call(editedTokens, key)) {
+      el.setAttribute('data-content-token-changed', 'true');
+    } else {
+      el.removeAttribute('data-content-token-changed');
+    }
+  });
+}
+
+function clearChangedTokenAttributes() {
+  document
+    .querySelectorAll('[data-content-token-changed]')
+    .forEach((el) => el.removeAttribute('data-content-token-changed'));
+}
+
 /**
  * Flatten a nested object into dot-notation keys
  * e.g., { labels: { name: "Name" } } => { "labels.name": "Name" }
@@ -807,6 +825,7 @@ export function ContentTokenEditorDrawer({
 
       // We no longer need the annotations state for rendering
       setAnnotations([]);
+      syncChangedTokenAttributes(editedTokens);
 
       setIsLoadingTokens(false);
     } else {
@@ -819,6 +838,7 @@ export function ContentTokenEditorDrawer({
         htmlEl.removeAttribute('data-annotation-duplicate');
         htmlEl.style.removeProperty('--annotation-color');
       });
+      clearChangedTokenAttributes();
     }
   }, [isOpen]);
 
@@ -826,6 +846,17 @@ export function ContentTokenEditorDrawer({
   // Use a ref to access current matchedTokens without adding it as a dependency
   const matchedTokensRef = useRef(matchedTokens);
   matchedTokensRef.current = matchedTokens;
+  const editedTokensRef = useRef(editedTokens);
+  editedTokensRef.current = editedTokens;
+
+  // Keep amber “changed” highlights in sync as overrides are edited
+  useEffect(() => {
+    if (!isOpen) {
+      clearChangedTokenAttributes();
+      return;
+    }
+    syncChangedTokenAttributes(editedTokens);
+  }, [isOpen, editedTokens]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -858,6 +889,7 @@ export function ContentTokenEditorDrawer({
           });
         }
       });
+      syncChangedTokenAttributes(editedTokensRef.current);
     };
 
     const rescanTokens = () => {
@@ -1113,7 +1145,10 @@ export function ContentTokenEditorDrawer({
             <div className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
               <span className="flex items-center gap-2">
                 <MousePointer2 className="h-4 w-4" />
-                Click on highlighted tokens to edit them
+                Click tokens to edit ·{' '}
+                <span className="rounded bg-amber-400/95 px-1.5 py-0.5 text-amber-950">
+                  amber = changed
+                </span>
               </span>
             </div>
           </div>

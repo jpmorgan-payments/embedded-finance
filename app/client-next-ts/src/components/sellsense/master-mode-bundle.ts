@@ -13,12 +13,24 @@ import {
 } from '@/lib/demo-customization-storage';
 import type { MockOverridesMap } from '@/lib/mock-overrides-storage';
 
+import { deriveCompactTheme } from './compact-theme-tokens';
 import {
   ONBOARDING_PROP_FIELDS,
   pickOnboardingFlowConfig,
   type OnboardingFlowConfigProps,
 } from './onboarding-flow-props-config';
 import type { ThemeOption } from './use-sellsense-themes';
+
+/** Hosted `globalConfiguration.ebDesignTokens` shape (legacy compact keys). */
+export type HostedEbDesignTokens = {
+  primaryColor: string;
+  borderRadius: string;
+  fontFamily: string;
+  destructiveColor: string;
+  borderColor: string;
+  ringColor: string;
+  buttonBorderRadius: string;
+};
 
 export type MasterModeBundle = {
   /** Schema marker for downloaded JSON files */
@@ -689,6 +701,64 @@ export function buildMasterModeExport(
     version: 1,
     ...bundle,
   };
+}
+
+/** Map Salt / mixed theme variables → hosted `ebDesignTokens` compact keys. */
+export function toHostedEbDesignTokens(
+  variables: EBThemeVariables
+): HostedEbDesignTokens {
+  const compact = deriveCompactTheme(variables);
+  return {
+    primaryColor: compact.primaryColor,
+    borderRadius: compact.borderRadius,
+    fontFamily: compact.fontFamily,
+    destructiveColor: compact.destructiveColor,
+    borderColor: compact.borderColor,
+    ringColor: compact.ringColor,
+    buttonBorderRadius: compact.buttonBorderRadius,
+  };
+}
+
+/**
+ * Build a hosted-UI `contentOverride` payload from a Master Mode bundle.
+ * Shape matches CFA / Oracle `.model.json` → `contentOverride` → `globalConfiguration`.
+ * (Mocks are playground-only and intentionally omitted.)
+ */
+export function buildContentOverrideExport(bundle: MasterModeBundle): {
+  globalConfiguration: Record<string, unknown>;
+} {
+  const globalConfiguration: Record<string, unknown> = {};
+
+  const themeVars = bundle.theme?.variables;
+  if (themeVars && Object.keys(themeVars).length > 0) {
+    globalConfiguration.ebDesignTokens = toHostedEbDesignTokens(themeVars);
+    globalConfiguration.saltEPDesignTokens = { ...themeVars };
+  }
+
+  const tokens = bundle.contentTokens?.tokens;
+  const hasTokens =
+    tokens != null &&
+    typeof tokens === 'object' &&
+    Object.keys(tokens).length > 0;
+  if (hasTokens || bundle.contentTokens?.name) {
+    globalConfiguration.embeddedComponentsContentTokens = {
+      name: bundle.contentTokens?.name || 'enUS',
+      ...(hasTokens ? { tokens } : {}),
+    };
+  }
+
+  const config = bundle.onboardingFlowPropOverrides;
+  if (config && Object.keys(config).length > 0) {
+    globalConfiguration.onboardingFlowConfig = { ...config };
+  }
+
+  return { globalConfiguration };
+}
+
+export function stringifyContentOverrideExport(
+  bundle: MasterModeBundle
+): string {
+  return JSON.stringify(buildContentOverrideExport(bundle), null, 2);
 }
 
 export function summarizeMasterModeBundle(
