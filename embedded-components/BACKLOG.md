@@ -747,7 +747,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [ ] **BL-500-1:** Review and update all package dependencies (runtime and dev) with security-first allowlist
 - [ ] **BL-500-2:** Remove obsolete or unused devDependencies
 - [ ] **BL-500-3:** Consolidate eslint/prettier configs; drop overlapping/legacy rules
-- [ ] **BL-500-4:** Run security audit: `yarn audit --level moderate` and address vulnerabilities
+- [ ] **BL-500-4:** Run security audit: `npm audit --audit-level=moderate` and address vulnerabilities
 - [ ] **BL-500-5:** Verify package integrity after recent npm supply chain attacks (eslint-config-prettier, etc.)
 
 #### ESLint Upgrade to v10 [BL-505]
@@ -761,16 +761,16 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [x] **BL-505-1:** ESLint core + plugins on v10-compatible versions (`eslint@10.7`, `typescript-eslint@8.64` meta package, react / react-hooks / jsx-a11y / import / tailwindcss / storybook updated). Removed the dead `eslint-config-mantine` + airbnb base and the standalone `@typescript-eslint/{parser,eslint-plugin}` (now bundled by the meta package).
 - [x] **BL-505-2:** Migrated to flat config (`eslint.config.mjs`); deleted `.eslintrc.cjs`; `lint` script drops the removed `--ext` flag.
 - [x] **BL-505-3:** Rule triage (see decisions below) — repo lints clean at **0 errors**.
-- [x] **BL-505-4:** `yarn lint` / `yarn lint:fix` verified; added `yarn lint:styles`.
+- [x] **BL-505-4:** `npm run lint` / `npm run lint:fix` verified; added `npm run lint:styles`.
 
 **Non-functional linting decisions (read before changing `eslint.config.mjs`):**
 
-1. **ESLint is NOT type-aware.** `parserOptions.projectService` is intentionally omitted. Type safety is owned by `tsc` (`yarn typecheck`), which already runs in CI ahead of lint. Type-aware linting roughly doubled lint time (429s → 208s when removed) to power a single rule (`no-floating-promises`, only ever a warning).
-2. **Tailwind / eb- prefix rules are opt-in** (`yarn lint:styles`, `ESLINT_STYLES=1`). `eslint-plugin-tailwindcss@3`'s `no-custom-classname` alone was **~65% of total lint time (~119s)**; the plugin targets ESLint ≤9 and is shimmed via `@eslint/compat`. All its rules are non-blocking (`warn`), so they were removed from the hot path. The plugin stays *registered* so inline `eslint-disable tailwindcss/*` directives remain valid.
+1. **ESLint is NOT type-aware.** `parserOptions.projectService` is intentionally omitted. Type safety is owned by `tsc` (`npm run typecheck`), which already runs in CI ahead of lint. Type-aware linting roughly doubled lint time (429s → 208s when removed) to power a single rule (`no-floating-promises`, only ever a warning).
+2. **Tailwind / eb- prefix rules are opt-in** (`npm run lint:styles`, `ESLINT_STYLES=1`). `eslint-plugin-tailwindcss@3`'s `no-custom-classname` alone was **~65% of total lint time (~119s)**; the plugin targets ESLint ≤9 and is shimmed via `@eslint/compat`. All its rules are non-blocking (`warn`), so they were removed from the hot path. The plugin stays _registered_ so inline `eslint-disable tailwindcss/*` directives remain valid.
 3. **`import/extensions` disabled.** It ran full module resolution per import (**~24% of lint time**) for **0 violations** — TypeScript (no `allowImportingTsExtensions`) + the bundler already reject bad/extensioned paths.
 4. **"Critical errors only" policy.** The modern presets promote ~471 rules to `error` that were warnings under the old base. Only genuine correctness rules stay `error` (`react-hooks/rules-of-hooks`, `@typescript-eslint/no-unused-vars`, `no-constant-binary-expression`, `prefer-const`, `@typescript-eslint/prefer-as-const`, `@typescript-eslint/no-unused-expressions`); everything else (type-strictness, style, a11y) is `warn`. Warnings do not block CI.
 
-**Performance result:** clean `yarn lint` **≈429s → ≈41s (~10×)**; `tsc` typecheck ≈48s runs separately.
+**Performance result:** clean `npm run lint` **≈429s → ≈41s (~10×)**; `tsc` typecheck ≈48s runs separately.
 
 **Known tech debt surfaced (burn-down candidates):**
 
@@ -824,8 +824,8 @@ Substantial progress has been made. Re-assessment against latest source and depl
   - [ ] **BL-506-4c:** Optimize CSS output size
 - [ ] **BL-506-5:** Update Storybook and development environment
   - [ ] **BL-506-5a:** Verify Tailwind works in Storybook after upgrade
-  - [ ] **BL-506-5b:** Verify development server (`yarn dev`) works correctly
-  - [ ] **BL-506-5c:** Test production build (`yarn build`)
+  - [ ] **BL-506-5b:** Verify development server (`npm run dev`) works correctly
+  - [ ] **BL-506-5c:** Test production build (`npm run build`)
 
 **Migration Resources:**
 
@@ -847,7 +847,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 
 **Hard blockers — do NOT bump `typescript` to 7.x yet:**
 
-- [ ] **BL-501-5a:** **typescript-eslint** peer range `>=4.8.4 <6.1.0`; `typescript@7` triggers npm ERESOLVE, and forcing it crashes inside `typescript-estree`. No TS 7 release exists (latest `8.65`). Upstream: typescript-eslint #12518 (closed _not planned_ — fix is TS-side, awaiting the 7.1 API). Our `yarn lint` runs in CI's Test stage → this breaks the pipeline.
+- [ ] **BL-501-5a:** **typescript-eslint** peer range `>=4.8.4 <6.1.0`; `typescript@7` triggers npm ERESOLVE, and forcing it crashes inside `typescript-estree`. No TS 7 release exists (latest `8.65`). Upstream: typescript-eslint #12518 (closed _not planned_ — fix is TS-side, awaiting the 7.1 API). Our `npm run lint` runs in CI's Test stage → this breaks the pipeline.
 - [ ] **BL-501-5b:** **dts bundling** — `@microsoft/api-extractor` (bundled TS `5.8.2`) + `unplugin-dts` are programmatic-API consumers; `bundleTypes: true` (our single `dist/index.d.ts`) would break.
 - Note: we do **not** use ts-jest or ts-morph (Vitest transforms via esbuild/Vite — no `tsc` in the test path), so those article-cited breakages don't apply here.
 
@@ -864,7 +864,7 @@ Substantial progress has been made. Re-assessment against latest source and depl
 - [x] **BL-502-1:** Vite 8 upgrade
   - [x] **BL-502-1a:** `vite` ^8.1.5 — Rolldown is now the default bundler; Node engine unchanged (`^20.19.0 || >=22.12.0`)
   - [x] **BL-502-1b:** `@vitejs/plugin-react` ^6.0.3 (peer requires Vite 8)
-  - [x] **BL-502-1c:** `vite-plugin-dts` ^5.0.3, `rollup-plugin-visualizer` ^7.0.1; **dropped `vite-tsconfig-paths`** in favour of Vite 8 native `resolve.tsconfigPaths` (it dominated build-plugin time). ⚠️ **dts type-bundling gotcha:** vite-plugin-dts 5 renamed the option `rollupTypes` → `bundleTypes` and moved `@microsoft/api-extractor` to an *optional* peer dep. Without **both** `bundleTypes: true` **and** an installed `@microsoft/api-extractor` (^7.57.7), bundling silently no-ops and emits a 713-file `.d.ts` tree (entry at `dist/src/index.d.ts`) instead of the single bundled `dist/index.d.ts` that `package.json#types` points to.
+  - [x] **BL-502-1c:** `vite-plugin-dts` ^5.0.3, `rollup-plugin-visualizer` ^7.0.1; **dropped `vite-tsconfig-paths`** in favour of Vite 8 native `resolve.tsconfigPaths` (it dominated build-plugin time). ⚠️ **dts type-bundling gotcha:** vite-plugin-dts 5 renamed the option `rollupTypes` → `bundleTypes` and moved `@microsoft/api-extractor` to an _optional_ peer dep. Without **both** `bundleTypes: true` **and** an installed `@microsoft/api-extractor` (^7.57.7), bundling silently no-ops and emits a 713-file `.d.ts` tree (entry at `dist/src/index.d.ts`) instead of the single bundled `dist/index.d.ts` that `package.json#types` points to.
 - [x] **BL-502-2:** Vitest 4.1.10
   - [x] **BL-502-2a:** `vitest` ^4.1.10
   - [x] **BL-502-2b:** `@vitest/ui` + `@vitest/coverage-v8` ^4.1.10
@@ -904,8 +904,8 @@ _Baseline: `npm outdated`, 2026-07-23. Vite/Vitest/Storybook (BL-502), ESLint (B
 **E. Done (kept for context, no longer "planned"):**
 
 - [x] **BL-503 · Orval:** on **orval ^8.5.3** (v8 migration complete — ESM config, mutator per `orval.config.mjs`). Ongoing: regenerate from `api-specs/*` as the OAS changes.
-- [x] **BL-503 · Package manager:** standardized on **Yarn 4.12** (`packageManager` pinned); CI moved to `buildType: yarn` (immutable, lockfile-respecting installs). pnpm not pursued.
-- [x] **BL-503 · Security policy:** prioritize security patches; `resolutions` pin remediated advisories (lodash, js-yaml, form-data, tar, glob, etc.).
+- [x] **BL-503 · Package manager:** ~~standardized on Yarn 4.12; CI on `buildType: yarn`~~ **Superseded (2026-08): reverted to npm-native.** Yarn 4 (Berry) publish auth is incompatible with the Jules Pattern Build (npm-injected token that Berry can't read), so CI stays on `buildType: npm`. Now: npm + committed `package-lock.json`; `resolutions` migrated to npm `overrides`. pnpm not pursued.
+- [x] **BL-503 · Security policy:** prioritize security patches; npm `overrides` pin remediated advisories (lodash, js-yaml, form-data, tar, glob, etc.).
 
 ---
 

@@ -78,6 +78,18 @@ const clientData = {
   ],
 } as unknown as ClientResponse;
 
+// Same client but with an outstanding attestation document. The document-open
+// gate (`allLinksOpened`) stays false until the document link is opened, so it
+// exercises the split between the terms-agreement checkboxes (gated on the
+// document) and the data-accuracy checkbox (which is not).
+const clientDataWithAttestationDoc = {
+  ...clientData,
+  outstanding: {
+    ...(clientData.outstanding ?? {}),
+    attestationDocumentIds: ['attest-doc-1'],
+  },
+} as unknown as ClientResponse;
+
 const baseContext = {
   availableProducts: ['EMBEDDED_PAYMENTS'],
   availableJurisdictions: ['US'],
@@ -91,10 +103,15 @@ const baseContext = {
 
 const noop = () => undefined;
 
-function renderReview(deltaMode: OnboardingDeltaModeProp) {
+function renderReview(
+  deltaMode: OnboardingDeltaModeProp,
+  contextOverride: Partial<OnboardingContextType> = {}
+) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <OnboardingContext.Provider value={{ ...baseContext, deltaMode }}>
+      <OnboardingContext.Provider
+        value={{ ...baseContext, deltaMode, ...contextOverride }}
+      >
         <FlowProvider
           initialScreenId="review-attest-section"
           flowConfig={flowConfig}
@@ -115,6 +132,11 @@ function renderReview(deltaMode: OnboardingDeltaModeProp) {
 const dataAccuracyCheckbox = () =>
   screen.getByRole('checkbox', {
     name: /true, accurate, current, and complete/i,
+  });
+
+const termsReadCheckbox = () =>
+  screen.getByRole('checkbox', {
+    name: /read and agreed to the j\.p\. morgan embedded payments terms/i,
   });
 
 const helperText = /open and review each section above/i;
@@ -172,5 +194,19 @@ describe('ReviewForm — deltaMode.reviewSectionsDisplay', () => {
     expect(screen.queryByText('Not reviewed')).not.toBeInTheDocument();
     expect(dataAccuracyCheckbox()).toBeEnabled();
     expect(screen.queryByText(helperText)).not.toBeInTheDocument();
+  });
+
+  test('unopened terms document gates only the terms checkbox, not data-accuracy', () => {
+    // An outstanding attestation document keeps `allLinksOpened` false until the
+    // document link is opened. That gate must block ONLY the terms-agreement
+    // checkbox; the data-accuracy checkbox attests to the user's own data and is
+    // unrelated to the terms documents, so it stays interactable.
+    renderReview(
+      { enabled: true, reviewSectionsDisplay: 'collapsible' },
+      { clientData: clientDataWithAttestationDoc }
+    );
+
+    expect(termsReadCheckbox()).toBeDisabled();
+    expect(dataAccuracyCheckbox()).toBeEnabled();
   });
 });

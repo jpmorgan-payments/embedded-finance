@@ -381,12 +381,13 @@ export function useTermsAndConditions(options?: {
     (documentIds.every((id) => termsDocumentsOpened[id]) &&
       (!hasPlatformAgreement || platformAgreementOpened));
 
-  // The data-accuracy checkbox is interactable only once the required documents
-  // are opened AND any host-supplied extra gate (e.g. the delta review's "open
-  // every section first" requirement) is satisfied. The other attestation
-  // checkboxes are gated by document-open only.
-  const dataAccuracyInteractable =
-    allLinksOpened && additionalAttestationGate !== false;
+  // The data-accuracy checkbox attests to the user's OWN provided data being
+  // correct — it is unrelated to the terms documents, so it must NOT be gated
+  // on opening them (blocking it would gate a checkbox the terms docs don't
+  // concern). It is only gated by any host-supplied extra gate (e.g. the delta
+  // review's "open every section first" requirement). Opening the terms
+  // documents gates only the terms-agreement checkboxes below.
+  const dataAccuracyInteractable = additionalAttestationGate !== false;
 
   const handlePlatformAgreementOpen = () => {
     if (disclosureConfig?.platformAgreementUrl) {

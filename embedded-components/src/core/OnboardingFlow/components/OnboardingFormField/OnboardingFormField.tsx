@@ -10,7 +10,9 @@ import {
 
 import { cn } from '@/lib/utils';
 import { PhoneInput } from '@/components/ui/phone-input';
+import { ImportantDateSelector } from '@/components/ImportantDateSelector';
 import { InfoPopover } from '@/components/LearnMorePopover';
+import { PatternInput } from '@/components/PatternInput';
 import {
   Button,
   Checkbox,
@@ -40,8 +42,6 @@ import {
   SelectValue,
   Textarea,
 } from '@/components/ui';
-import { ImportantDateSelector } from '@/components/ux/ImportantDateSelector/ImportantDateSelector';
-import { PatternInput } from '@/components/ux/PatternInput';
 import { IndustryTypeSelect } from '@/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 import type { ScreenId } from '@/core/OnboardingFlow/types';

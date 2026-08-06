@@ -2,6 +2,45 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.5] - 2026-08-05
+
+### Changes
+
+#### Features
+
+- **recipients, payment-flow:** FX recipient create + single-page form across payment flows
+- **onboarding:** streamline linked-account form into single-page layout
+- **onboarding:** update delta mode validation to support stricter question display logic
+- **onboarding:** refine animations for onboarding timeline
+- **onboarding:** fix visual glitches and add transitions to timeline sidebar
+- **onboarding:** remove incomplete warning alert for delta mode
+- **onboarding:** update labels for personal section title and legal structure in review form
+- **onboarding:** update look of owners section in review form
+- **onboarding:** move accuracy attestation checkbox outside checkbox group & add disabled hover cursor styling
+- **onboarding:** update review layout and add "expanded" and "requireReview" display configuration for deltaMode
+- **onboarding:** update deltaMode config to have defaultControllerNotAnOwner and remove related top level prop
+- **onboarding:** reorder attestation checkboxes
+- **onboarding:** add delta mode config to treat owners sectionas complete by default
+- **onboarding:** update delta mode to handle more field types, refactor overall pattern
+- **onboarding:** prevent layout shifts upon navigating to review screen in delta mode
+- **onboarding:** move business type card into business details accordion
+- **onboarding:** track number of questions in delta mode
+- **onboarding:** add more attestation checkboxes and fix an issue with operational details on delta mode
+- **onboarding:** update mock outstanding question ids
+- **onboarding:** update delta mode draft
+- **onboarding:** delta mode draft
+
+#### Bug Fixes
+
+- **onboarding:** allow data-accuracy checkbox to be interactable without opening terms docs
+- **onboarding:** fix delta mode validation against undefined address
+- **onboarding:** fix issues with delta mode not counting fields properly
+- **onboarding:** hide sub-questions not in outstanding ids
+- **onboarding:** fix incorrect description for EIN field
+- **onboarding:** remove red asterisk on operational details questions for consistency
+- **onboarding:** fix issue where overview screen would show on navigation
+- **onboarding:** fix terms and conditions styling
+
 ## [0.17.4] - 2026-08-05
 
 ### Changes

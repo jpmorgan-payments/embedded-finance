@@ -14,30 +14,30 @@ New components must be placed in `src/core/` following the architecture pattern.
 
 All commands run from this directory (`embedded-components/`):
 
-- Install dependencies: `yarn install`
-- Start development server: `yarn dev`
-- Run Storybook: `yarn storybook`
-- Run tests: `yarn test`
-- Run tests in watch mode: `yarn test:watch`
-- Type checking: `yarn typecheck`
-- Build: `yarn build` (**run after substantive `.ts`/`.tsx` edits—including tests/mocks**; not only large refactors)
-- Linting: `yarn lint`
-- Format code: `yarn format`
+- Install dependencies: `npm install`
+- Start development server: `npm run dev`
+- Run Storybook: `npm run storybook`
+- Run tests: `npm test`
+- Run tests in watch mode: `npm run test:watch`
+- Type checking: `npm run typecheck`
+- Build: `npm run build` (**run after substantive `.ts`/`.tsx` edits—including tests/mocks**; not only large refactors)
+- Linting: `npm run lint`
+- Format code: `npm run format`
 
-**After any `.ts` / `.tsx` edit:** format **only the files you touched** using `node_modules/.bin/prettier --write <file1> <file2> ...`. Do NOT run `yarn format` without arguments — it reformats the **entire repo** and creates hundreds of unintended changes.
+**After any `.ts` / `.tsx` edit:** format **only the files you touched** using `node_modules/.bin/prettier --write <file1> <file2> ...`. Do NOT run `npm run format` without arguments — it reformats the **entire repo** and creates hundreds of unintended changes.
 
-**Always run `yarn build`** before you consider the task done—not only for large refactors. Test files (`*.test.tsx`, mocks, Vitest stubs) are included in compilation; **`yarn build` catches strict typing errors that Vitest alone may not surface** (for example mismatched mock return types).
+**Always run `npm run build`** before you consider the task done—not only for large refactors. Test files (`*.test.tsx`, mocks, Vitest stubs) are included in compilation; **`npm run build` catches strict typing errors that Vitest alone may not surface** (for example mismatched mock return types).
 
 **Before every push**, run this checklist in order:
 
 1. `node_modules/.bin/prettier --write <your-changed-files>` (targeted format)
-2. `yarn typecheck` (catches missing required fields in generated types)
-3. `yarn lint` (catches unused imports, boolean prop values, promise patterns)
-4. `yarn vitest run <your-test-files>` (verify tests pass)
+2. `npm run typecheck` (catches missing required fields in generated types)
+3. `npm run lint` (catches unused imports, boolean prop values, promise patterns)
+4. `npx vitest run <your-test-files>` (verify tests pass)
 
 ## Writing Tests — Key Conventions
 
-These rules prevent CI failures caught by `yarn lint` and `yarn typecheck`:
+These rules prevent CI failures caught by `npm run lint` and `npm run typecheck`:
 
 1. **Generated schema mocks** — Use `as unknown as Type` for partial mocks of generated API schemas (e.g., `Recipient`, `AccountResponse`). Don't try to fill every required field:
    ```typescript
@@ -46,11 +46,11 @@ These rules prevent CI failures caught by `yarn lint` and `yarn typecheck`:
 2. **Generated schemas require all fields** — If you do use a typed annotation (`: Recipient`), you must include ALL required fields from `src/api/generated/*.schemas.ts` (e.g., `routingCodeType`, `countryCode`, `createdAt`).
 3. **`PaymentMethodType[]` not `readonly`** — When creating inline arrays for mock `Payee` objects, cast as `['ACH'] as PaymentMethodType[]`, not `as const` (readonly arrays can't assign to mutable types).
 
-Then run **`yarn test`** (full pipeline) or a narrower **`yarn vitest run …`** while iterating.
+Then run **`npm test`** (full pipeline) or a narrower **`npx vitest run …`** while iterating.
 
-**For large changes:** run `yarn format`, then `yarn typecheck`, then `yarn build`, then `yarn test` before committing.
+**For large changes:** run `npm run format`, then `npm run typecheck`, then `npm run build`, then `npm test` before committing.
 
-Running full `yarn test` also enforces formatting — it runs `format:check` before lint and unit tests.
+Running full `npm test` also enforces formatting — it runs `format:check` before lint and unit tests.
 
 ## Storybook Stories
 

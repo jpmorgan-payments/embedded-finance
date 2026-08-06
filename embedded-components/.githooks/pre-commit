@@ -1,0 +1,12 @@
+#!/bin/sh
+# Auto-sanitize package-lock.json before commit: strip internal registry
+# (Artifactory) resolved/integrity URLs so they are never committed or mirrored
+# to the public GitHub repo. No-ops unless package-lock.json is part of the commit.
+#
+# Enabled via: git config core.hooksPath .githooks
+# (run once per clone; `npm run sanitize-lock` does the same thing manually).
+if git diff --cached --name-only | grep -q '^package-lock\.json$'; then
+  node internal/sanitize-lock.mjs >/dev/null 2>&1 || exit 0
+  git add package-lock.json
+fi
+exit 0

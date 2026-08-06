@@ -193,7 +193,7 @@ Tests follow the same conventions as [PaymentFlow.test.tsx](../PaymentFlow/Payme
   and error mappings.
 
 Pure utils/hooks carry the money logic and target ~100% branch coverage. Run the local
-component tests with `yarn vitest run src/core/PaymentFlowFX`.
+component tests with `npx vitest run src/core/PaymentFlowFX`.
 
 ## Storybook
 

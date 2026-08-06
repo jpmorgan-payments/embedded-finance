@@ -22,12 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install modules
-        env:
-          YARN_ENABLE_HARDENED_MODE: 0
-        run: yarn install
+        run: npm ci
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Run tests
-        run: yarn run test
+        run: npm run test
       - name: Build Storybook
-        run: yarn storybook:build
+        run: npm run storybook:build

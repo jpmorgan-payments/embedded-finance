@@ -1,0 +1,2 @@
+# Git hooks are shell scripts; keep LF so Git for Windows' bundled sh can run them.
+.githooks/** text eol=lf

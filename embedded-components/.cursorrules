@@ -16,6 +16,7 @@
 **All code generation MUST follow the patterns defined in `ARCHITECTURE.md`.**
 
 Read `ARCHITECTURE.md` before generating any code. It contains:
+
 - Complete architecture patterns
 - Decision tree for code placement
 - Directory structure requirements
@@ -24,26 +25,30 @@ Read `ARCHITECTURE.md` before generating any code. It contains:
 ## 🔑 Quick Reference
 
 **Component Location:**
+
 ```
 src/core/ComponentName/
 ```
 
 **Architecture Rules:**
+
 - ✅ Individual hook/util files with colocated tests
 - ✅ Direct imports (no aggregation barrels for components)
 - ✅ Type colocation (only public API in `.types.ts`)
 - ✅ Forms = schemas (no schema? → use `components/`)
 
 **After ANY Code Change:**
+
 ```powershell
-yarn test  # Runs: typecheck → format:check → lint → test:unit
+npm test  # Runs: typecheck → format:check → lint → test:unit
 ```
 
 **Fix Issues:**
+
 ```powershell
-yarn format     # Auto-fix formatting
-yarn lint:fix   # Auto-fix linting
-yarn test       # Verify all checks pass
+npm run format  # Auto-fix formatting
+npm run lint:fix # Auto-fix linting
+npm test        # Verify all checks pass
 ```
 
 ## 🛠️ Technology Stack
