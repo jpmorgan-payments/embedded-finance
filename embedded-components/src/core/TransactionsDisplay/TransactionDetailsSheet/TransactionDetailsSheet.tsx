@@ -109,7 +109,7 @@ export const TransactionDetailsDialogTrigger: FC<
               <Button
                 size="icon"
                 variant="outline"
-                className="eb-h-6 eb-w-6 eb-opacity-0 eb-transition-opacity group-hover:eb-opacity-100"
+                className="group-hover:eb-opacity-100 eb-h-6 eb-w-6 eb-opacity-0 eb-transition-opacity"
                 onClick={() => navigator.clipboard.writeText(transactionId)}
               >
                 <CopyIcon className="eb-h-3 eb-w-3" />

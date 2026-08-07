@@ -300,7 +300,7 @@ export function LinkAccountPrefillSummaryView({
             />
             <Label
               htmlFor="eb-link-prefill-certify"
-              className="eb-cursor-pointer eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70"
+              className="peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70 eb-cursor-pointer eb-text-sm eb-font-normal eb-text-foreground"
             >
               {bankFormConfig.content.certificationText}
             </Label>

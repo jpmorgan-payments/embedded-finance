@@ -390,10 +390,10 @@ const CompactAccountRow: React.FC<AccountViewProps> = ({
           className={cn(
             'eb-relative eb-flex eb-h-10 eb-w-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-transition-colors',
             {
-              'eb-bg-amber-200/80 group-hover:eb-bg-amber-200': needsAttention,
-              'eb-bg-slate-200/80 group-hover:eb-bg-slate-200': isPending,
-              'eb-bg-red-100 group-hover:eb-bg-red-200': hasError,
-              'eb-bg-primary/10 group-hover:eb-bg-primary/15':
+              'group-hover:eb-bg-amber-200 eb-bg-amber-200/80': needsAttention,
+              'group-hover:eb-bg-slate-200 eb-bg-slate-200/80': isPending,
+              'group-hover:eb-bg-red-200 eb-bg-red-100': hasError,
+              'group-hover:eb-bg-primary/15 eb-bg-primary/10':
                 !needsAttention && !isPending && !hasError,
             }
           )}
