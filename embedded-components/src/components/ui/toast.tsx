@@ -62,7 +62,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      'eb-inline-flex eb-h-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-md eb-border eb-bg-transparent eb-px-3 eb-text-sm eb-font-medium eb-transition-colors hover:eb-bg-secondary focus:eb-outline-none focus:eb-ring-1 focus:eb-ring-ring disabled:eb-pointer-events-none disabled:eb-opacity-50 group-[.destructive]:eb-border-muted/40 group-[.destructive]:hover:eb-border-destructive/30 group-[.destructive]:hover:eb-bg-destructive group-[.destructive]:hover:eb-text-destructive-foreground group-[.destructive]:focus:eb-ring-destructive',
+      'group-[.destructive]:eb-border-muted/40 group-[.destructive]:hover:eb-border-destructive/30 group-[.destructive]:hover:eb-bg-destructive group-[.destructive]:hover:eb-text-destructive-foreground group-[.destructive]:focus:eb-ring-destructive eb-inline-flex eb-h-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-md eb-border eb-bg-transparent eb-px-3 eb-text-sm eb-font-medium eb-transition-colors hover:eb-bg-secondary focus:eb-outline-none focus:eb-ring-1 focus:eb-ring-ring disabled:eb-pointer-events-none disabled:eb-opacity-50',
       className
     )}
     {...props}
@@ -77,7 +77,7 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      'eb-absolute eb-right-1 eb-top-1 eb-rounded-md eb-p-1 eb-text-foreground/50 eb-opacity-0 eb-transition-opacity hover:eb-text-foreground focus:eb-opacity-100 focus:eb-outline-none focus:eb-ring-1 group-hover:eb-opacity-100 group-[.destructive]:eb-text-red-300 group-[.destructive]:hover:eb-text-red-50 group-[.destructive]:focus:eb-ring-red-400 group-[.destructive]:focus:eb-ring-offset-red-600',
+      'group-hover:eb-opacity-100 group-[.destructive]:eb-text-red-300 group-[.destructive]:hover:eb-text-red-50 group-[.destructive]:focus:eb-ring-red-400 group-[.destructive]:focus:eb-ring-offset-red-600 eb-absolute eb-right-1 eb-top-1 eb-rounded-md eb-p-1 eb-text-foreground/50 eb-opacity-0 eb-transition-opacity hover:eb-text-foreground focus:eb-opacity-100 focus:eb-outline-none focus:eb-ring-1',
       className
     )}
     toast-close=""

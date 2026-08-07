@@ -38,11 +38,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -79,7 +74,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
   configs,
   allowMultiple,
 }) => {
-  const { t, tString } = useTranslationWithTokens('bank-account-form');
+  const { t } = useTranslationWithTokens('bank-account-form');
   const handleToggle = (type: RoutingInformationTransactionType) => {
     const config = configs[type];
 
@@ -132,72 +127,51 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
   };
 
   return (
-    <div className="eb-space-y-3">
-      {availableTypes.map((type) => {
+    <div className="eb-overflow-hidden eb-rounded-lg eb-border eb-border-border">
+      {availableTypes.map((type, index) => {
         const config = configs[type];
         const isSelected = selectedTypes.includes(type);
         const isLocked = config?.locked;
 
         return (
-          <div key={type} className="eb-flex eb-items-center eb-gap-2">
-            <label
-              className={`eb-flex eb-flex-1 eb-items-center eb-gap-3 eb-rounded-lg eb-border eb-bg-card eb-p-4 eb-transition-all ${
-                isSelected
-                  ? 'eb-border-primary eb-bg-primary/5 eb-shadow-sm'
-                  : 'eb-border-border hover:eb-border-primary/50 hover:eb-bg-accent/50'
-              } ${isLocked ? 'eb-cursor-not-allowed' : 'eb-cursor-pointer'}`}
-            >
-              <Checkbox
-                id={`payment-${type}`}
-                checked={isSelected}
-                disabled={isLocked}
-                onCheckedChange={(checked) => {
-                  if (checked !== isSelected && !isLocked) {
-                    handleToggle(type);
-                  }
-                }}
-              />
-              {getPaymentIcon(type)}
-              <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-1 sm:eb-flex-row sm:eb-flex-wrap sm:eb-items-center sm:eb-justify-between sm:eb-gap-2">
-                <span className="eb-text-base eb-font-medium">
+          <label
+            key={type}
+            className={`eb-flex eb-items-center eb-gap-3 eb-px-3 eb-py-2.5 eb-transition-colors ${
+              index > 0 ? 'eb-border-t eb-border-border' : ''
+            } ${isSelected ? 'eb-bg-primary/5' : 'hover:eb-bg-muted/50'} ${
+              isLocked ? 'eb-cursor-not-allowed' : 'eb-cursor-pointer'
+            }`}
+          >
+            <Checkbox
+              id={`payment-${type}`}
+              checked={isSelected}
+              disabled={isLocked}
+              onCheckedChange={(checked) => {
+                if (checked !== isSelected && !isLocked) {
+                  handleToggle(type);
+                }
+              }}
+            />
+            {getPaymentIcon(type)}
+            <div className="eb-flex eb-min-w-0 eb-flex-1 eb-flex-col eb-gap-0.5">
+              <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-x-2 eb-gap-y-0.5">
+                <span className="eb-text-sm eb-font-medium">
                   {config.label}
                 </span>
                 {isLocked && (
-                  <span className="eb-inline-flex eb-items-center eb-gap-1 eb-self-start eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative sm:eb-px-2.5 sm:eb-py-1">
+                  <span className="eb-inline-flex eb-items-center eb-gap-1 eb-rounded-full eb-bg-informative-accent eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium eb-text-informative">
                     <LockIcon className="eb-h-3 eb-w-3 eb-shrink-0" />
                     <span>{t('paymentMethods.requiredForLinkedAccount')}</span>
                   </span>
                 )}
               </div>
-            </label>
-            {config.description && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="eb-h-8 eb-w-8 eb-shrink-0 eb-text-muted-foreground hover:eb-text-foreground"
-                    aria-label={tString('paymentMethods.infoButtonAriaLabel', {
-                      method: config.label,
-                    })}
-                  >
-                    <InfoIcon className="eb-h-4 eb-w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent side="left" align="center" className="eb-w-80">
-                  <div className="eb-space-y-2">
-                    <h4 className="eb-text-sm eb-font-semibold">
-                      {config.label}
-                    </h4>
-                    <p className="eb-text-sm eb-text-muted-foreground">
-                      {config.description}
-                    </p>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
+              {config.description && (
+                <span className="eb-text-xs eb-leading-snug eb-text-muted-foreground">
+                  {config.description}
+                </span>
+              )}
+            </div>
+          </label>
         );
       })}
     </div>
@@ -1286,7 +1260,7 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
                       disabled={isLoading}
                     />
                   </FormControl>
-                  <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                  <FormLabel className="peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70 eb-text-sm eb-font-normal eb-text-foreground">
                     {effectiveConfig.content.certificationText}
                   </FormLabel>
                 </div>

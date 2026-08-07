@@ -788,7 +788,7 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                           onCheckedChange={field.onChange}
                         />
                       </FormControl>
-                      <FormLabel className="eb-text-sm eb-font-normal eb-text-foreground peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70">
+                      <FormLabel className="peer-disabled:eb-cursor-not-allowed peer-disabled:eb-opacity-70 eb-text-sm eb-font-normal eb-text-foreground">
                         {t(
                           'reviewAndAttest.dataAccuracyCheckbox',
                           'The data I am providing is true, accurate and complete to the best of my knowledge.'

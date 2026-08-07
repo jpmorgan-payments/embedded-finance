@@ -575,7 +575,7 @@ const LoadMoreControls: React.FC<{
             count: nextLoadCount,
           })}
         >
-          <div className="eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground group-hover:eb-text-foreground">
+          <div className="group-hover:eb-text-foreground eb-flex eb-items-center eb-justify-center eb-gap-2 eb-text-xs eb-text-muted-foreground">
             {isLoadingMore ? (
               <>
                 <div className="eb-h-4 eb-w-4 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />

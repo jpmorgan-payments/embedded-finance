@@ -2,7 +2,7 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
-## [0.17.5] - 2026-08-05
+## [0.17.5] - 2026-08-07
 
 ### Changes
 
@@ -32,7 +32,9 @@ All notable changes to the `embedded-components` package are documented in this 
 
 #### Bug Fixes
 
+- **release:** keep package-lock.json version in sync on release
 - **onboarding:** allow data-accuracy checkbox to be interactable without opening terms docs
+- **recipients:** remove in-card info popover from payment-method rows for clarity/a11y
 - **onboarding:** fix delta mode validation against undefined address
 - **onboarding:** fix issues with delta mode not counting fields properly
 - **onboarding:** hide sub-questions not in outstanding ids
