@@ -29,12 +29,7 @@ import {
 } from './scenarios-config';
 
 type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 interface MockApiEditorDrawerProps {
   isOpen: boolean;

@@ -18,7 +18,8 @@ describe('Sidebar', () => {
     expect(screen.getAllByRole('button', { name: 'Onboarding' }).length).toBe(
       2
     );
-    expect(screen.getAllByText('Onboarding Flow').length).toBe(2);
+    // Desktop is collapsed by default — mode label only on mobile (and after expand)
+    expect(screen.getByText('Onboarding Flow')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Home' })
     ).not.toBeInTheDocument();
@@ -27,7 +28,25 @@ describe('Sidebar', () => {
   it('shows full dashboard navigation for active seller scenario', () => {
     render(<Sidebar {...base} clientScenario="Seller with Limited DDA" />);
     expect(screen.getAllByRole('button', { name: 'Home' }).length).toBe(2);
-    expect(screen.getAllByText('Seller Dashboard').length).toBe(2);
+    expect(screen.getByText('Seller Dashboard')).toBeInTheDocument();
+  });
+
+  it('starts collapsed on desktop and can expand to show Current Mode', async () => {
+    const user = userEvent.setup();
+    render(<Sidebar {...base} clientScenario="Seller with Limited DDA" />);
+
+    expect(
+      screen.getByRole('button', { name: 'Expand navigation' })
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('Seller Dashboard')).toHaveLength(1);
+
+    await user.click(screen.getByRole('button', { name: 'Expand navigation' }));
+
+    expect(
+      screen.getByRole('button', { name: 'Collapse navigation' })
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('Seller Dashboard')).toHaveLength(2);
+    expect(screen.getAllByText('Current Mode')).toHaveLength(2);
   });
 
   it('calls onViewChange and closes mobile menu when a item is clicked', async () => {

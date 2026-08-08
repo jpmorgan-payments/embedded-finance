@@ -754,7 +754,9 @@ describe('MSW handlers (integration)', () => {
         };
       }>;
     };
-    const orgParty = client.parties?.find((p) => p.partyType === 'ORGANIZATION');
+    const orgParty = client.parties?.find(
+      (p) => p.partyType === 'ORGANIZATION'
+    );
     expect(orgParty?.email).toBe('admin@leapfroginvestments.com');
     expect(orgParty?.organizationDetails?.organizationIds).toEqual(
       expect.arrayContaining([

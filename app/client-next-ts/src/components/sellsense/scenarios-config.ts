@@ -4,6 +4,7 @@ export const SCENARIO_KEYS = {
   NEW_SELLER_ONBOARDING: 'new-seller-onboarding',
   ONBOARDING_DOCS_NEEDED: 'onboarding-docs-needed',
   ONBOARDING_IN_REVIEW: 'onboarding-in-review',
+  ONBOARDING_IN_REVIEW_DELTA: 'onboarding-in-review-delta',
   ONBOARDING_IN_REVIEW_LINK_ACCOUNT: 'onboarding-in-review-link-account',
   FRESH_START: 'fresh-start',
   ACTIVE_SELLER_LIMITED_DDA: 'active-seller-limited-dda',
@@ -88,6 +89,19 @@ export const SCENARIOS_CONFIG = {
     headerTitle: 'Almost there - review and complete',
     headerDescription:
       'Seller onboarding data is partially prefilled. Please review and complete the remaining information.',
+  },
+  [SCENARIO_KEYS.ONBOARDING_IN_REVIEW_DELTA]: {
+    displayName: 'Onboarding - Seller with prefilled data (Delta)',
+    shortName: 'Prefilled (Delta)',
+    description:
+      'US LLC (prefilled) with delta mode + skip terms document acknowledgment — mirrors Storybook Delta mode → Operational details only',
+    clientId: '0030000135',
+    scenarioId: 'scenario7',
+    category: 'onboarding' as const,
+    resetDbScenario: 'empty' as const,
+    headerTitle: 'Almost there — delta review & attest',
+    headerDescription:
+      'Rich prefilled LLC with a few operational questions left outstanding. Delta mode opens the focused “complete missing items” path; terms document acknowledgment is skipped so attestation checkboxes are available immediately.',
   },
   [SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT]: {
     displayName: 'Onboarding - Link account in review',
@@ -233,6 +247,7 @@ export const SCENARIOS_CONFIG = {
 export const SCENARIO_ORDER: ScenarioKey[] = [
   SCENARIO_KEYS.NEW_SELLER_ONBOARDING,
   SCENARIO_KEYS.ONBOARDING_IN_REVIEW,
+  SCENARIO_KEYS.ONBOARDING_IN_REVIEW_DELTA,
   SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT,
   SCENARIO_KEYS.ONBOARDING_DOCS_NEEDED,
   SCENARIO_KEYS.FRESH_START,
@@ -501,6 +516,17 @@ export const isOnboardingLinkAccountInReviewScenario = (
     return false;
   }
   return scenarioKey === SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT;
+};
+
+/** Prefilled seller onboarding with delta mode + skip terms document acknowledgment. */
+export const isOnboardingDeltaPrefilledScenario = (
+  scenarioDisplayName: string
+): boolean => {
+  const scenarioKey = getScenarioKeyByDisplayName(scenarioDisplayName);
+  if (!scenarioKey) {
+    return false;
+  }
+  return scenarioKey === SCENARIO_KEYS.ONBOARDING_IN_REVIEW_DELTA;
 };
 
 export const usesMicrodepositLinkedAccountMock = (

@@ -45,6 +45,8 @@ public/               # Static assets — reference with absolute paths: /sellSe
 
 Key files in `src/components/sellsense/`:
 - `dashboard-layout.tsx` — main orchestrator with URL state sync
+- `master-mode-drawer.tsx` — Master customization overview (theme + content tokens + config + optional mocks); import/save named JSON versions
+- `master-mode-bundle.ts` — parse hosted `contentOverride` / `.model.json` / master bundle JSON
 - `use-sellsense-themes.ts` — theme mapping hook
 - `sellsense-scenarios.ts` — scenario-to-client-ID mapping
 - `sidebar.tsx` — context-aware navigation

@@ -812,8 +812,7 @@ function LinkAccountStepOptionsForm({
           onChange={(next) =>
             patch({
               completionMode: next as
-                | LinkAccountStepOptionsValue['completionMode']
-                | undefined,
+                LinkAccountStepOptionsValue['completionMode'] | undefined,
             })
           }
         />
@@ -855,9 +854,7 @@ function LinkAccountStepOptionsForm({
           onChange={(next) =>
             patch({
               existingAccountsDisplay: next as
-                | 'compact'
-                | 'detailed'
-                | undefined,
+                'compact' | 'detailed' | undefined,
             })
           }
         />
@@ -1081,8 +1078,7 @@ function PropFieldRow({
           <DisclosureConfigForm
             value={
               (configured ? effectiveValue : baselineValue) as
-                | DisclosureConfigValue
-                | undefined
+                DisclosureConfigValue | undefined
             }
             onChange={(next) => onChange(field.key, next)}
           />
@@ -1090,8 +1086,7 @@ function PropFieldRow({
           <LinkAccountStepOptionsForm
             value={
               (configured ? effectiveValue : baselineValue) as
-                | LinkAccountStepOptionsValue
-                | undefined
+                LinkAccountStepOptionsValue | undefined
             }
             onChange={(next) => onChange(field.key, next)}
           />
@@ -1099,8 +1094,7 @@ function PropFieldRow({
           <AcknowledgementsForm
             value={
               (configured ? effectiveValue : baselineValue) as
-                | AcknowledgementRow[]
-                | undefined
+                AcknowledgementRow[] | undefined
             }
             onChange={(next) => onChange(field.key, next)}
           />

@@ -32,6 +32,7 @@ import {
   mockActiveWithRecipientsAccounts,
 } from '../mocks/accounts.mock';
 import {
+  LLCDeltaModeClient,
   LLCExistingClient,
   LLCExistingClientOutstandingDocuments,
   SoleProprietorExistingClient,
@@ -165,8 +166,7 @@ export interface Db {
     update: (opts: DocumentRequestUpdateOpts) => DbDocumentRequest;
     create: (
       data:
-        | (Partial<DbDocumentRequest> & { id: string })
-        | Record<string, unknown>
+        (Partial<DbDocumentRequest> & { id: string }) | Record<string, unknown>
     ) => DbDocumentRequest;
     deleteMany: (opts: object) => void;
   };
@@ -194,8 +194,7 @@ export interface Db {
     getAll: () => DbAccountBalance[];
     create: (
       data:
-        | (Partial<DbAccountBalance> & { id: string })
-        | Record<string, unknown>
+        (Partial<DbAccountBalance> & { id: string }) | Record<string, unknown>
     ) => DbAccountBalance;
     update: (opts: {
       where: { accountId: { equals: string } };
@@ -415,16 +414,14 @@ function getOrganizationDisplayNameForClient(
   for (const partyId of client?.parties ?? []) {
     const party = db.party.findFirst({
       where: { id: { equals: partyId } },
-    }) as
-      | {
-          partyType?: string;
-          roles?: string[];
-          organizationDetails?: {
-            organizationName?: string;
-            dbaName?: string;
-          };
-        }
-      | null;
+    }) as {
+      partyType?: string;
+      roles?: string[];
+      organizationDetails?: {
+        organizationName?: string;
+        dbaName?: string;
+      };
+    } | null;
     if (!party) continue;
     if (party.partyType !== 'ORGANIZATION') continue;
     if (!party.roles?.includes('CLIENT')) continue;
@@ -441,7 +438,9 @@ function getOrganizationDisplayNameForClient(
  * PaymentFlowFX (V3) sends `debtor.account.registeredAccount.id` and
  * `creditor.id` rather than top-level `debtorAccountId` / `recipientId`.
  */
-function normalizeCreateTransactionInput(transactionData: Record<string, unknown>): {
+function normalizeCreateTransactionInput(
+  transactionData: Record<string, unknown>
+): {
   debtorAccountId?: string;
   debtorName?: string;
   recipientId?: string;
@@ -490,8 +489,7 @@ function normalizeCreateTransactionInput(transactionData: Record<string, unknown
     postingVersion: transactionData.postingVersion as number | undefined,
     reference: transactionData.reference as string | undefined,
     transactionReferenceId: transactionData.transactionReferenceId as
-      | string
-      | undefined,
+      string | undefined,
     description: transactionData.description as string | undefined,
     memo: transactionData.memo as string | undefined,
   };
@@ -563,10 +561,8 @@ export function createTransactionWithBalanceUpdate(
     status: input.status || 'COMPLETED',
     amount,
     currency: input.currency || 'USD',
-    paymentDate:
-      input.paymentDate || new Date().toISOString().slice(0, 10),
-    effectiveDate:
-      input.effectiveDate || new Date().toISOString().slice(0, 10),
+    paymentDate: input.paymentDate || new Date().toISOString().slice(0, 10),
+    effectiveDate: input.effectiveDate || new Date().toISOString().slice(0, 10),
     creditorAccountId,
     debtorAccountId,
     creditorName,
@@ -695,6 +691,8 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
     ...LLCExistingClient,
     status: 'REVIEW_IN_PROGRESS',
   } as PredefinedClientShape,
+  // Storybook-aligned delta demo (operational questions outstanding)
+  '0030000135': LLCDeltaModeClient as PredefinedClientShape,
 };
 
 /** Test demo clients: seed Operator 80–shaped (or bundle-specific) client after `_reset` when body includes `testDemoScenario`. */
@@ -1196,8 +1194,7 @@ function getOrgPartyIndustryCodeForClient(
     const partyRec = party as Record<string, unknown>;
     if (partyRec.partyType !== 'ORGANIZATION') continue;
     const org = partyRec.organizationDetails as
-      | { industry?: { code?: string } }
-      | undefined;
+      { industry?: { code?: string } } | undefined;
     const code = org?.industry?.code;
     if (typeof code === 'string' && code.length > 0) {
       return code;
@@ -1883,8 +1880,7 @@ export function handleMagicValues(
     | { organizationIds?: Array<{ idType?: string; value?: string }> }
     | undefined;
   const indDetails = rootPartyObj.individualDetails as
-    | { individualIds?: Array<{ idType?: string; value?: string }> }
-    | undefined;
+    { individualIds?: Array<{ idType?: string; value?: string }> } | undefined;
 
   const taxId =
     orgDetails?.organizationIds?.find((id) => id.idType === 'EIN')?.value ||
@@ -2017,8 +2013,7 @@ export function applyOverridesToDb(overrides: Record<string, unknown>): void {
 
   // GET /ef/do/v1/accounts → { items: AccountResponse[] }
   const accountsPayload = key('GET /ef/do/v1/accounts') as
-    | { items?: unknown[] }
-    | undefined;
+    { items?: unknown[] } | undefined;
   if (
     accountsPayload?.items &&
     Array.isArray(accountsPayload.items) &&
@@ -2033,8 +2028,7 @@ export function applyOverridesToDb(overrides: Record<string, unknown>): void {
 
   // GET /ef/do/v1/recipients → { recipients: Recipient[] }
   const recipientsPayload = key('GET /ef/do/v1/recipients') as
-    | { recipients?: unknown[] }
-    | undefined;
+    { recipients?: unknown[] } | undefined;
   if (
     recipientsPayload?.recipients &&
     Array.isArray(recipientsPayload.recipients) &&
@@ -2050,8 +2044,7 @@ export function applyOverridesToDb(overrides: Record<string, unknown>): void {
 
   // GET /ef/do/v1/transactions → { items: Transaction[], metadata }
   const transactionsPayload = key('GET /ef/do/v1/transactions') as
-    | { items?: unknown[] }
-    | undefined;
+    { items?: unknown[] } | undefined;
   if (
     transactionsPayload?.items &&
     Array.isArray(transactionsPayload.items) &&
@@ -2067,8 +2060,7 @@ export function applyOverridesToDb(overrides: Record<string, unknown>): void {
 
   // GET /ef/do/v1/document-requests → { documentRequests: DocumentRequest[] }
   const docRequestsPayload = key('GET /ef/do/v1/document-requests') as
-    | { documentRequests?: unknown[] }
-    | undefined;
+    { documentRequests?: unknown[] } | undefined;
   if (
     docRequestsPayload?.documentRequests &&
     Array.isArray(docRequestsPayload.documentRequests)
@@ -2094,8 +2086,7 @@ export function applyOverridesToDb(overrides: Record<string, unknown>): void {
     };
     if (!clientPayload?.id) continue;
     const parties = clientPayload.parties as
-      | Record<string, unknown>[]
-      | undefined;
+      Record<string, unknown>[] | undefined;
     if (Array.isArray(parties)) {
       parties.forEach((p) => {
         const party = p as Record<string, unknown> & { id?: string };

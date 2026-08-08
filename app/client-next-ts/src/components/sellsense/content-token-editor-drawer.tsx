@@ -30,6 +30,8 @@ import {
 } from '@/components/ui/select';
 import { flattenContentTokenOverrides } from '@/lib/demo-customization-storage';
 
+import { ContentTokenChangesOverview } from './content-token-changes-overview';
+
 // Available language options
 const LANGUAGE_OPTIONS = [
   { value: 'enUS', label: 'English (US)' },
@@ -88,6 +90,24 @@ const NAMESPACE_COLORS: Record<string, string> = {
   'client-details': '#f97316', // orange
 };
 
+/** Mark DOM tokens that currently have playground overrides (amber highlight). */
+function syncChangedTokenAttributes(editedTokens: Record<string, string>) {
+  document.querySelectorAll('[data-content-token]').forEach((el) => {
+    const key = el.getAttribute('data-content-token');
+    if (key && Object.prototype.hasOwnProperty.call(editedTokens, key)) {
+      el.setAttribute('data-content-token-changed', 'true');
+    } else {
+      el.removeAttribute('data-content-token-changed');
+    }
+  });
+}
+
+function clearChangedTokenAttributes() {
+  document
+    .querySelectorAll('[data-content-token-changed]')
+    .forEach((el) => el.removeAttribute('data-content-token-changed'));
+}
+
 /**
  * Flatten a nested object into dot-notation keys
  * e.g., { labels: { name: "Name" } } => { "labels.name": "Name" }
@@ -136,8 +156,7 @@ function getDefaultTokenValue(
   // Get the i18n data for this language from defaultResources
   const langData = defaultResources[language as keyof typeof defaultResources];
   const namespaceData = langData?.[namespace as keyof typeof langData] as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
 
   if (!namespaceData) {
     // Fallback to enUS if namespace not found in selected language
@@ -372,7 +391,9 @@ export function ContentTokenEditorDrawer({
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
+  const [showChangedOnly, setShowChangedOnly] = useState(false);
   const inputRefsMap = useRef<Map<string, HTMLInputElement>>(new Map());
+  const tokenListRef = useRef<HTMLDivElement | null>(null);
 
   // Use the selected language (from local state)
   const selectedLanguage = internalLanguage;
@@ -804,6 +825,7 @@ export function ContentTokenEditorDrawer({
 
       // We no longer need the annotations state for rendering
       setAnnotations([]);
+      syncChangedTokenAttributes(editedTokens);
 
       setIsLoadingTokens(false);
     } else {
@@ -816,6 +838,7 @@ export function ContentTokenEditorDrawer({
         htmlEl.removeAttribute('data-annotation-duplicate');
         htmlEl.style.removeProperty('--annotation-color');
       });
+      clearChangedTokenAttributes();
     }
   }, [isOpen]);
 
@@ -823,6 +846,17 @@ export function ContentTokenEditorDrawer({
   // Use a ref to access current matchedTokens without adding it as a dependency
   const matchedTokensRef = useRef(matchedTokens);
   matchedTokensRef.current = matchedTokens;
+  const editedTokensRef = useRef(editedTokens);
+  editedTokensRef.current = editedTokens;
+
+  // Keep amber “changed” highlights in sync as overrides are edited
+  useEffect(() => {
+    if (!isOpen) {
+      clearChangedTokenAttributes();
+      return;
+    }
+    syncChangedTokenAttributes(editedTokens);
+  }, [isOpen, editedTokens]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -855,6 +889,7 @@ export function ContentTokenEditorDrawer({
           });
         }
       });
+      syncChangedTokenAttributes(editedTokensRef.current);
     };
 
     const rescanTokens = () => {
@@ -952,16 +987,121 @@ export function ContentTokenEditorDrawer({
     setTimeout(() => setCopied(false), 2000);
   }, [editedTokens]);
 
-  // Filter tokens by search, then sort off-page tokens to the bottom
+  const onPageKeys = useMemo(() => {
+    const keys = new Set<string>();
+    matchedTokens.forEach((token, key) => {
+      if (token.isOnPage !== false) keys.add(key);
+    });
+    return keys;
+  }, [matchedTokens]);
+
+  const focusTokenInList = useCallback(
+    (fullKey: string) => {
+      setShowChangedOnly(false);
+      setFocusedTokenKey(fullKey);
+      setSearchQuery('');
+
+      // Ensure off-page / not-yet-scanned overrides still appear in the list
+      setMatchedTokens((prev) => {
+        if (prev.has(fullKey)) return prev;
+        const colon = fullKey.indexOf(':');
+        const namespace =
+          colon >= 0
+            ? fullKey.slice(0, colon)
+            : fullKey.split('.')[0] || 'common';
+        const keyPath =
+          colon >= 0
+            ? fullKey.slice(colon + 1)
+            : fullKey.split('.').slice(1).join('.');
+        const next = new Map(prev);
+        next.set(fullKey, {
+          key: keyPath || fullKey,
+          fullKey,
+          value: editedTokens[fullKey] ?? '',
+          namespace,
+          isOnPage: false,
+          isChanged: true,
+        });
+        return next;
+      });
+
+      requestAnimationFrame(() => {
+        const input = inputRefsMap.current.get(fullKey);
+        if (input) {
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          input.focus();
+        } else {
+          tokenListRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    },
+    [editedTokens]
+  );
+
+  const revertToken = useCallback(
+    (fullKey: string) => {
+      const newEdited = { ...editedTokens };
+      delete newEdited[fullKey];
+      setEditedTokens(newEdited);
+      onContentTokensChange(buildNestedTokens(newEdited));
+    },
+    [editedTokens, onContentTokensChange]
+  );
+
+  const revertAllTokens = useCallback(() => {
+    setEditedTokens({});
+    setShowChangedOnly(false);
+    onContentTokensChange({
+      name: selectedLanguage,
+    } as EBConfig['contentTokens']);
+  }, [onContentTokensChange, selectedLanguage]);
+
+  const getDefaultValueForKey = useCallback(
+    (fullKey: string) => getDefaultTokenValue(fullKey, selectedLanguage).value,
+    [selectedLanguage]
+  );
+
+  // Filter tokens by search / changed-only, then sort off-page tokens to the bottom
   const filteredTokens = useMemo(() => {
     let entries = Array.from(matchedTokens.entries());
+
+    // Include edited overrides that aren't in the DOM scan yet (other screens)
+    for (const fullKey of Object.keys(editedTokens)) {
+      if (!matchedTokens.has(fullKey)) {
+        const colon = fullKey.indexOf(':');
+        const namespace =
+          colon >= 0
+            ? fullKey.slice(0, colon)
+            : fullKey.split('.')[0] || 'common';
+        const keyPath =
+          colon >= 0
+            ? fullKey.slice(colon + 1)
+            : fullKey.split('.').slice(1).join('.');
+        entries.push([
+          fullKey,
+          {
+            key: keyPath || fullKey,
+            fullKey,
+            value: editedTokens[fullKey],
+            namespace,
+            isOnPage: false,
+            isChanged: true,
+          },
+        ]);
+      }
+    }
+
+    if (showChangedOnly) {
+      entries = entries.filter(([key]) => key in editedTokens);
+    }
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       entries = entries.filter(
         ([key, token]) =>
           key.toLowerCase().includes(query) ||
-          token.value.toLowerCase().includes(query)
+          token.value.toLowerCase().includes(query) ||
+          (editedTokens[key] || '').toLowerCase().includes(query)
       );
     }
 
@@ -971,7 +1111,7 @@ export function ContentTokenEditorDrawer({
       const bOff = b.isOnPage === false ? 1 : 0;
       return aOff - bOff;
     });
-  }, [matchedTokens, searchQuery]);
+  }, [matchedTokens, searchQuery, showChangedOnly, editedTokens]);
 
   // Cleanup on drawer close
   useEffect(() => {
@@ -979,6 +1119,7 @@ export function ContentTokenEditorDrawer({
       setAnnotations([]);
       setMatchedTokens(new Map());
       setSearchQuery('');
+      setShowChangedOnly(false);
       setIsEditMode(true); // Reset to edit mode for next open
     }
   }, [isOpen]);
@@ -1004,7 +1145,10 @@ export function ContentTokenEditorDrawer({
             <div className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
               <span className="flex items-center gap-2">
                 <MousePointer2 className="h-4 w-4" />
-                Click on highlighted tokens to edit them
+                Click tokens to edit ·{' '}
+                <span className="rounded bg-amber-400/95 px-1.5 py-0.5 text-amber-950">
+                  amber = changed
+                </span>
               </span>
             </div>
           </div>
@@ -1050,9 +1194,18 @@ export function ContentTokenEditorDrawer({
               on page
             </span>
             {Object.keys(editedTokens).length > 0 && (
-              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+              <button
+                type="button"
+                onClick={() => setShowChangedOnly((prev) => !prev)}
+                className={`rounded-full px-2 py-0.5 text-xs font-medium transition ${
+                  showChangedOnly
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                }`}
+                title="Toggle changed-only list filter"
+              >
                 {Object.keys(editedTokens).length} changed
-              </span>
+              </button>
             )}
             <button
               onClick={() => setShowDevBadges((prev) => !prev)}
@@ -1081,7 +1234,7 @@ export function ContentTokenEditorDrawer({
         </div>
 
         {/* Content */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* Toolbar - Compact */}
           <div className="space-y-2 border-b border-gray-200 px-4 py-2">
             {/* Row 1: Language + Mode toggles */}
@@ -1197,12 +1350,7 @@ export function ContentTokenEditorDrawer({
                 Export
               </Button>
               <Button
-                onClick={() => {
-                  setEditedTokens({});
-                  onContentTokensChange({
-                    name: selectedLanguage,
-                  } as EBConfig['contentTokens']);
-                }}
+                onClick={revertAllTokens}
                 disabled={Object.keys(editedTokens).length === 0}
                 variant="outline"
                 size="sm"
@@ -1214,21 +1362,44 @@ export function ContentTokenEditorDrawer({
             </div>
           </div>
 
+          <ContentTokenChangesOverview
+            editedTokens={editedTokens}
+            onPageKeys={onPageKeys}
+            namespaceColors={NAMESPACE_COLORS}
+            getDefaultValue={getDefaultValueForKey}
+            onFocusToken={focusTokenInList}
+            onRevertToken={revertToken}
+            onRevertAll={revertAllTokens}
+            showChangedOnly={showChangedOnly}
+            onShowChangedOnlyChange={setShowChangedOnly}
+          />
+
           {/* Token List */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div
+            ref={tokenListRef}
+            className="min-h-0 flex-1 overflow-y-auto p-4"
+          >
             {isLoadingTokens ? (
               <div className="py-12 text-center text-gray-500">
                 <FileText className="mx-auto mb-4 h-12 w-12 animate-pulse opacity-50" />
                 <p>Loading content tokens...</p>
               </div>
-            ) : matchedTokens.size === 0 ? (
+            ) : filteredTokens.length === 0 ? (
               <div className="py-12 text-center text-gray-500">
                 <FileText className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                <p>No content tokens found on this page</p>
-                <p className="mt-2 text-sm text-gray-400">
-                  Content tokens will appear when components with
-                  data-content-token attributes are rendered
+                <p>
+                  {showChangedOnly
+                    ? 'No changed tokens match this view'
+                    : matchedTokens.size === 0
+                      ? 'No content tokens found on this page'
+                      : 'No tokens match your search'}
                 </p>
+                {!showChangedOnly && matchedTokens.size === 0 && (
+                  <p className="mt-2 text-sm text-gray-400">
+                    Content tokens will appear when components with
+                    data-content-token attributes are rendered
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-2">
@@ -1345,15 +1516,7 @@ export function ContentTokenEditorDrawer({
                             {isChanged && (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  const newEdited = { ...editedTokens };
-                                  delete newEdited[key];
-                                  setEditedTokens(newEdited);
-                                  // Update page content
-                                  const nestedTokens =
-                                    buildNestedTokens(newEdited);
-                                  onContentTokensChange(nestedTokens);
-                                }}
+                                onClick={() => revertToken(key)}
                                 className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                                 title="Revert to default"
                               >

@@ -7,11 +7,7 @@
 export type EventPriority = 'critical' | 'high' | 'medium';
 
 export type EventCategory =
-  | 'transaction'
-  | 'client'
-  | 'account'
-  | 'recipient'
-  | 'program';
+  'transaction' | 'client' | 'account' | 'recipient' | 'program';
 
 export interface WebhookEventDefinition {
   eventType: string;

@@ -3,6 +3,13 @@
  * in the same shape as hosted-ui `globalConfiguration.onboardingFlowConfig`.
  */
 
+export type OnboardingDeltaModeConfigProps = {
+  enabled: boolean;
+  maxPendingFields?: number;
+  defaultControllerNotAnOwner?: boolean;
+  reviewSectionsDisplay?: 'collapsible' | 'requireReview' | 'expanded';
+};
+
 export type OnboardingFlowConfigProps = {
   availableProducts?: string[];
   availableJurisdictions?: string[];
@@ -17,6 +24,13 @@ export type OnboardingFlowConfigProps = {
   docUploadOnlyMode?: boolean;
   alertOnExit?: boolean;
   alertOnPreviousStep?: boolean;
+  /** Distilled delta completion (review-first). Accepts `true` or a config object. */
+  deltaMode?: boolean | OnboardingDeltaModeConfigProps;
+  /**
+   * Enable terms attestation checkboxes without requiring the user to open
+   * every terms document first (links still render).
+   */
+  skipTermsDocumentAcknowledgment?: boolean;
   linkAccountEnabledStatuses?: string[];
   priorityIndustryCodes?: string[];
   disclosureConfig?: {
@@ -48,6 +62,8 @@ export const ONBOARDING_FLOW_CONFIG_KEYS = [
   'docUploadOnlyMode',
   'alertOnExit',
   'alertOnPreviousStep',
+  'deltaMode',
+  'skipTermsDocumentAcknowledgment',
   'linkAccountEnabledStatuses',
   'priorityIndustryCodes',
   'disclosureConfig',
@@ -59,17 +75,10 @@ export type OnboardingFlowConfigKey =
   (typeof ONBOARDING_FLOW_CONFIG_KEYS)[number];
 
 export type PropFieldControl =
-  | 'boolean'
-  | 'select'
-  | 'multi-select'
-  | 'text'
-  | 'json';
+  'boolean' | 'select' | 'multi-select' | 'text' | 'json';
 
 export type PropFieldGroup =
-  | 'linkAccount'
-  | 'disclosure'
-  | 'products'
-  | 'advanced';
+  'linkAccount' | 'disclosure' | 'products' | 'advanced';
 
 export type PropFieldDescriptor = {
   key: OnboardingFlowConfigKey;
@@ -256,6 +265,22 @@ export const ONBOARDING_PROP_FIELDS: ReadonlyArray<PropFieldDescriptor> = [
     key: 'alertOnPreviousStep',
     label: 'Alert on previous step',
     description: 'Confirm when navigating back with unsaved entries.',
+    group: 'advanced',
+    control: 'boolean',
+  },
+  {
+    key: 'deltaMode',
+    label: 'Delta mode',
+    description:
+      'Distilled review-first completion when few fields remain. Use `true` or `{ enabled, maxPendingFields, defaultControllerNotAnOwner, reviewSectionsDisplay }`.',
+    group: 'advanced',
+    control: 'json',
+  },
+  {
+    key: 'skipTermsDocumentAcknowledgment',
+    label: 'Skip terms document acknowledgment',
+    description:
+      'Enable terms attestation checkboxes without requiring every terms document link to be opened first.',
     group: 'advanced',
     control: 'boolean',
   },
