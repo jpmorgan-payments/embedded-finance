@@ -22,6 +22,7 @@ import {
   getHeaderDescriptionForScenario,
   getHeaderTitleForScenario,
   getScenarioNumber,
+  isOnboardingDeltaPrefilledScenario,
   isOnboardingDocsNeededScenario,
   isOnboardingLinkAccountInReviewScenario,
 } from './scenarios-config';
@@ -44,6 +45,17 @@ export function getOnboardingScenarioExtras(
         completionMode: 'editable',
         initialValues: {},
       },
+    };
+  }
+  if (isOnboardingDeltaPrefilledScenario(clientScenario)) {
+    return {
+      // Same distilled path as Storybook Core → OnboardingFlow → Delta mode.
+      deltaMode: {
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      },
+      skipTermsDocumentAcknowledgment: true,
     };
   }
   return {};

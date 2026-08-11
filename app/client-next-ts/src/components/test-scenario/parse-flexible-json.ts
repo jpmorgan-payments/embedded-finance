@@ -12,8 +12,7 @@ export type FlexibleJsonParseResult =
       hint?: string;
     };
 
-const ASSIGNMENT_PREFIX =
-  /^(?:export\s+)?(?:const|let|var)\s+[\w$]+\s*=\s*/;
+const ASSIGNMENT_PREFIX = /^(?:export\s+)?(?:const|let|var)\s+[\w$]+\s*=\s*/;
 const TRAILING_SEMICOLON = /;\s*$/;
 
 function stripCodeWrappers(input: string): string {
@@ -100,7 +99,11 @@ export function parseFlexibleJsonObject(
 ): FlexibleJsonParseResult {
   const trimmed = rawInput.trim();
   if (!trimmed) {
-    return { ok: false, error: 'Empty input', hint: 'Enter a JSON object or paste from a TS mock.' };
+    return {
+      ok: false,
+      error: 'Empty input',
+      hint: 'Enter a JSON object or paste from a TS mock.',
+    };
   }
 
   const normalized = wrapBareObjectLiteral(stripCodeWrappers(trimmed));
@@ -112,7 +115,8 @@ export function parseFlexibleJsonObject(
     }
     return {
       ok: false,
-      error: 'Value must be a JSON object (not an array, string, or primitive).',
+      error:
+        'Value must be a JSON object (not an array, string, or primitive).',
       hint: 'Wrap your content in `{ ... }`.',
     };
   } catch (jsonError) {
@@ -127,7 +131,11 @@ export function parseFlexibleJsonObject(
         hint: 'Paste a TS/JS object literal like `{ foo: "bar" }`.',
       };
     } catch (json5Error) {
-      const strictMessage = formatParseError(normalized, jsonError, 'Strict JSON');
+      const strictMessage = formatParseError(
+        normalized,
+        jsonError,
+        'Strict JSON'
+      );
       const relaxedMessage = formatParseError(
         normalized,
         json5Error,

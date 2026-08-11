@@ -100,6 +100,24 @@ describe('onboarding-flow-props-config', () => {
         initialValues: {},
       });
     });
+
+    it('preserves deltaMode and skipTermsDocumentAcknowledgment', () => {
+      const merged = mergeOnboardingFlowConfig(SELLSENSE_ONBOARDING_BASELINE, {
+        deltaMode: {
+          enabled: true,
+          maxPendingFields: 5,
+          defaultControllerNotAnOwner: true,
+        },
+        skipTermsDocumentAcknowledgment: true,
+      });
+
+      expect(merged.deltaMode).toEqual({
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      });
+      expect(merged.skipTermsDocumentAcknowledgment).toBe(true);
+    });
   });
 
   describe('setConfigProp / clearConfigProp / countConfiguredProps', () => {

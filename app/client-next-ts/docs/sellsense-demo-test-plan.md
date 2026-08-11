@@ -4,14 +4,14 @@ Base URL: `https://embedded-finance-dev.com/sellsense-demo`
 
 ## Configuration dimensions
 
-| Dimension                  | Values                                                                                                                                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Scenarios**              | New Seller - Onboarding, Onboarding - Seller with prefilled data, Onboarding - Link account in review, Onboarding - Docs Needed, Linked Bank Account, Seller with Limited DDA, Seller with Payments DDA |
-| **Themes**                 | Empty, Default Blue, Salt Theme, Create Commerce, SellSense, PayFicient, Custom                                                                                                                         |
-| **Content tone**           | Standard, Friendly                                                                                                                                                                                      |
-| **View**                   | onboarding, overview, wallet, transactions, linked-accounts, payout, catalog, pricing, orders, payments, performance, analytics, growth                                                                 |
-| **Fullscreen**             | `fullscreen=true`                                                                                                                                                                                       |
-| **Component** (fullscreen) | accounts, linked-accounts, recipients, payment-flow (alias: make-payment), transactions, onboarding, client-details                                                                                    |
+| Dimension                  | Values                                                                                                                                                                                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Scenarios**              | New Seller - Onboarding, Onboarding - Seller with prefilled data, Onboarding - Seller with prefilled data (Delta), Onboarding - Link account in review, Onboarding - Docs Needed, Linked Bank Account, Seller with Limited DDA, Seller with Payments DDA |
+| **Themes**                 | Empty, Default Blue, Salt Theme, Create Commerce, SellSense, PayFicient, Custom                                                                                                                                                                          |
+| **Content tone**           | Standard, Friendly                                                                                                                                                                                                                                       |
+| **View**                   | onboarding, overview, wallet, transactions, linked-accounts, payout, catalog, pricing, orders, payments, performance, analytics, growth                                                                                                                  |
+| **Fullscreen**             | `fullscreen=true`                                                                                                                                                                                                                                        |
+| **Component** (fullscreen) | accounts, linked-accounts, recipients, payment-flow (alias: make-payment), transactions, onboarding, client-details                                                                                                                                      |
 
 ## Test batches (subagent-style)
 

@@ -103,6 +103,26 @@ body.content-token-edit-mode [data-content-token].content-token-drawer-focus {
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
+/* Overridden / changed content tokens — amber so they stand out from defaults */
+body.content-token-edit-mode
+  [data-content-token][data-content-token-changed='true'] {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  outline: 2px solid rgba(217, 119, 6, 0.85);
+  outline-offset: 2px;
+}
+
+body.content-token-edit-mode
+  [data-content-token][data-content-token-changed='true']:hover,
+body.content-token-edit-mode
+  [data-content-token][data-content-token-changed='true'].content-token-hover,
+body.content-token-edit-mode
+  [data-content-token][data-content-token-changed='true'].content-token-drawer-focus {
+  background-color: rgba(245, 158, 11, 0.35) !important;
+  outline: 2px solid rgba(180, 83, 9, 1);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
+}
+
 /* CSS-based annotation badges using ::after pseudo-element */
 /* Override eb-truncate to prevent clipping of annotations */
 body.show-annotations .eb-truncate {
@@ -149,6 +169,15 @@ body.show-annotations [data-annotation-number]:hover::after,
 body.show-annotations [data-annotation-number].content-token-hover::after {
   transform: translate(50%, -50%) scale(1.1);
   transition: transform 0.15s ease;
+}
+
+/* Amber badge for overridden tokens */
+body.show-annotations
+  [data-annotation-number][data-content-token-changed='true']::after {
+  background-color: #d97706;
+  box-shadow:
+    0 0 0 2px rgba(251, 191, 36, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* Constrain Radix dialog overlays when content token editor drawer is open */

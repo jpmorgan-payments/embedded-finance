@@ -188,6 +188,50 @@ export const LLCExistingClient = {
   createdAt: '2025-07-30T13:33:54.262Z',
 };
 
+/**
+ * SellSense delta-mode demo client — mirrors Storybook
+ * `OnboardingFlow.DeltaMode` → "Operational details only":
+ * rich LLC parties, but Total Annual Revenue (30005) + sanctions (30158/30162)
+ * left outstanding so the delta pending panel actually renders.
+ */
+export const LLCDeltaModeClient = {
+  ...LLCExistingClient,
+  id: '0030000135',
+  partyId: '2200000211',
+  parties: LLCExistingClient.parties.map((party) => {
+    if (party.id === '2200000111') {
+      return { ...party, id: '2200000211' };
+    }
+    if (party.id === '2200000112') {
+      return {
+        ...party,
+        id: '2200000212',
+        parentPartyId: '2200000211',
+      };
+    }
+    if (party.id === '2200000113') {
+      return {
+        ...party,
+        id: '2200000213',
+        parentPartyId: '2200000211',
+      };
+    }
+    return party;
+  }),
+  outstanding: {
+    documentRequestIds: [],
+    // Same outstanding set as Storybook createDeltaModeOperationalOnlyClient
+    questionIds: ['30005', '30158', '30162'],
+    attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
+    partyIds: [],
+    partyRoles: [],
+  },
+  questionResponses: [],
+  results: {
+    customerIdentityStatus: 'NOT_STARTED',
+  },
+};
+
 export const SoleProprietorExistingClient = {
   attestations: [],
   createdAt: '2024-12-23T14:45:41.136Z',
