@@ -190,37 +190,63 @@ export const LLCExistingClient = {
 
 /**
  * SellSense delta-mode demo client — mirrors Storybook
- * `OnboardingFlow.DeltaMode` → "Operational details only":
+ * `OnboardingFlow.DeltaMode` → "Operational details + tax IDs (business & controller)":
  * rich LLC parties, but Total Annual Revenue (30005) + sanctions (30158/30162)
- * left outstanding so the delta pending panel actually renders.
+ * left outstanding and business EIN + controller SSN stripped so the delta
+ * pending panel renders those fields for inline completion.
  */
 export const LLCDeltaModeClient = {
   ...LLCExistingClient,
   id: '0030000135',
   partyId: '2200000211',
   parties: LLCExistingClient.parties.map((party) => {
+    let mappedParty = party;
     if (party.id === '2200000111') {
-      return { ...party, id: '2200000211' };
-    }
-    if (party.id === '2200000112') {
-      return {
+      mappedParty = { ...party, id: '2200000211' };
+    } else if (party.id === '2200000112') {
+      mappedParty = {
         ...party,
         id: '2200000212',
         parentPartyId: '2200000211',
       };
-    }
-    if (party.id === '2200000113') {
-      return {
+    } else if (party.id === '2200000113') {
+      mappedParty = {
         ...party,
         id: '2200000213',
         parentPartyId: '2200000211',
       };
     }
-    return party;
+
+    if (
+      mappedParty.partyType === 'ORGANIZATION' &&
+      mappedParty.organizationDetails
+    ) {
+      return {
+        ...mappedParty,
+        organizationDetails: {
+          ...mappedParty.organizationDetails,
+          organizationIds: [],
+        },
+      };
+    }
+    if (
+      mappedParty.partyType === 'INDIVIDUAL' &&
+      mappedParty.roles?.includes('CONTROLLER') &&
+      mappedParty.individualDetails
+    ) {
+      return {
+        ...mappedParty,
+        individualDetails: {
+          ...mappedParty.individualDetails,
+          individualIds: [],
+        },
+      };
+    }
+    return mappedParty;
   }),
   outstanding: {
     documentRequestIds: [],
-    // Same outstanding set as Storybook createDeltaModeOperationalOnlyClient
+    // Same outstanding set as Storybook createDeltaModeOperationalAndTaxIdsClient
     questionIds: ['30005', '30158', '30162'],
     attestationDocumentIds: ['abcd1c1d-6635-43ff-a8e5-b252926bddef'],
     partyIds: [],

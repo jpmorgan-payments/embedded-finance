@@ -94,14 +94,14 @@ export const SCENARIOS_CONFIG = {
     displayName: 'Onboarding - Seller with prefilled data (Delta)',
     shortName: 'Prefilled (Delta)',
     description:
-      'US LLC (prefilled) with delta mode + skip terms document acknowledgment — mirrors Storybook Delta mode → Operational details only',
+      'US LLC (prefilled) with delta mode + skip terms document acknowledgment — mirrors Storybook Delta mode → Operational details + tax IDs (business & controller)',
     clientId: '0030000135',
     scenarioId: 'scenario7',
     category: 'onboarding' as const,
     resetDbScenario: 'empty' as const,
     headerTitle: 'Almost there — delta review & attest',
     headerDescription:
-      'Rich prefilled LLC with a few operational questions left outstanding. Delta mode opens the focused “complete missing items” path; terms document acknowledgment is skipped so attestation checkboxes are available immediately.',
+      'Rich prefilled LLC with operational questions and business/controller tax IDs left outstanding. Delta mode opens the focused “complete missing items” path; terms document acknowledgment is skipped so attestation checkboxes are available immediately.',
   },
   [SCENARIO_KEYS.ONBOARDING_IN_REVIEW_LINK_ACCOUNT]: {
     displayName: 'Onboarding - Link account in review',

@@ -64,7 +64,7 @@ const SCENARIO_INTEGRATOR_NOTES: Partial<Record<ScenarioKey, string>> = {
   'onboarding-in-review':
     'Prefilled US LLC — standard overview / complete remaining sections.',
   'onboarding-in-review-delta':
-    'Same rich LLC shape with a few operational questions outstanding; `deltaMode` + skip terms-document acknowledgment.',
+    'Same rich LLC shape with operational questions plus business EIN and controller SSN outstanding; `deltaMode` + skip terms-document acknowledgment.',
   'onboarding-in-review-link-account':
     'In-review client with editable link-account step and microdeposits mock.',
   'onboarding-docs-needed':
