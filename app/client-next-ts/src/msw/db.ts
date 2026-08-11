@@ -691,7 +691,7 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
     ...LLCExistingClient,
     status: 'REVIEW_IN_PROGRESS',
   } as PredefinedClientShape,
-  // Storybook-aligned delta demo (operational questions outstanding)
+  // Storybook-aligned delta demo (operational questions + business/controller tax IDs outstanding)
   '0030000135': LLCDeltaModeClient as PredefinedClientShape,
 };
 
