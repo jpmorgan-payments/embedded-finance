@@ -345,7 +345,7 @@ const RecipientsErrorState: React.FC<RecipientsErrorStateProps> = ({
                   <div className="eb-mb-2">
                     <span className="eb-font-medium">Reasons:</span>
                     <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                      {errorInfo.reasons.map((reason: any) => (
+                      {errorInfo.reasons.map((reason) => (
                         <li
                           key={`${reason.field ?? ''}-${reason.message ?? reason}`}
                         >
@@ -354,7 +354,7 @@ const RecipientsErrorState: React.FC<RecipientsErrorStateProps> = ({
                               {reason.field}:{' '}
                             </span>
                           )}
-                          {reason.message || reason}
+                          {reason.message}
                         </li>
                       ))}
                     </ul>
@@ -364,7 +364,7 @@ const RecipientsErrorState: React.FC<RecipientsErrorStateProps> = ({
                   <div>
                     <span className="eb-font-medium">Context:</span>
                     <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                      {errorInfo.context.map((ctx: any) => (
+                      {errorInfo.context.map((ctx) => (
                         <li key={`${ctx.field ?? ''}-${ctx.message ?? ''}`}>
                           {ctx.field && (
                             <span className="eb-font-medium">
@@ -1038,7 +1038,6 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
       rejectedData.total_items <= REJECTED_PAGE_LIMIT
     ) {
       setAdditionalRejected([]);
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       return () => {};
     }
 
@@ -1074,7 +1073,12 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [rejectedData?.total_items, showRejectedAccounts, recipientType]);
+  }, [
+    rejectedData?.total_items,
+    showRejectedAccounts,
+    recipientType,
+    getAllRecipients,
+  ]);
 
   // Filter to last 30 days and sort most-recent-first
   const recentRejectedAccounts = useMemo(() => {
@@ -1092,7 +1096,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
         return dateB - dateA;
       });
-  }, [rejectedData, additionalRejected]);
+  }, [rejectedData, additionalRejected, showRejectedAccounts]);
 
   // Setup virtualizer for scrollable mode
   const rowVirtualizer = useVirtualizer({
@@ -1108,10 +1112,11 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   });
 
   // Auto-load more when scrolling near bottom (infinite scroll)
+  const virtualItems = rowVirtualizer.getVirtualItems();
   useEffect(() => {
     if (!scrollable || !hasMore || isLoadingMore) return;
 
-    const lastItem = rowVirtualizer.getVirtualItems().slice(-1)[0];
+    const lastItem = virtualItems.slice(-1)[0];
     if (!lastItem) return;
 
     // Load more when within 5 items of the end
@@ -1122,7 +1127,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     scrollable,
     hasMore,
     isLoadingMore,
-    rowVirtualizer.getVirtualItems(),
+    virtualItems,
     recipients.length,
     loadMore,
   ]);
@@ -1267,7 +1272,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         </Button>
       );
     },
-    [handleOpenPaymentDialog, t]
+    [handleOpenPaymentDialog, t, tString]
   );
 
   // Use custom renderer if provided, otherwise use default

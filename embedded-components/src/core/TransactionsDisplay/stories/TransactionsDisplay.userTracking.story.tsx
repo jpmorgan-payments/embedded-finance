@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Storybook demo: untyped third-party RUM globals (window.dtrum / DD_RUM / datadogRum) and mock fixtures */
 /**
  * TransactionsDisplay - User Journey Tracking Stories
  *

@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { RefreshCw } from 'lucide-react';
-import { Control, UseFormWatch } from 'react-hook-form';
+import { Control, FieldValues, UseFormWatch } from 'react-hook-form';
 
 import {
   DocumentRequestResponse,
@@ -33,11 +33,11 @@ interface DocumentRequestCardProps {
   /**
    * Form control from parent component
    */
-  control: Control<any>;
+  control: Control<FieldValues>;
   /**
    * Form watch function from parent component
    */
-  watch: UseFormWatch<any>;
+  watch: UseFormWatch<FieldValues>;
   /**
    * Key to force reset of form fields
    */

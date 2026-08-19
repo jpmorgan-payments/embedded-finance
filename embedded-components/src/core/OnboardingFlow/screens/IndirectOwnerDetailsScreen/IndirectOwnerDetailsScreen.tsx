@@ -1,0 +1,329 @@
+import {
+  ArrowLeftIcon,
+  Building,
+  CheckCircle2,
+  CircleDotIcon,
+  PencilIcon,
+  User,
+} from 'lucide-react';
+
+import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardTitle } from '@/components/ui';
+import { INTERMEDIARY_OWNER_ROLE } from '@/core/IndirectOwnership/IndirectOwnership.types';
+import { isBeneficialOwnerDetailsComplete } from '@/core/IndirectOwnership/utils/openapi-transforms';
+import { StepLayout } from '@/core/OnboardingFlow/components';
+import {
+  useFlowContext,
+  useOnboardingContext,
+} from '@/core/OnboardingFlow/contexts';
+
+type PartyCompletionStatus = 'not-started' | 'incomplete' | 'complete';
+
+/**
+ * Get all individual beneficial owners — both direct and indirect.
+ * Direct owners have no parentPartyId; indirect owners have parentPartyId
+ * pointing to their intermediary entity.
+ */
+function getBeneficialOwnerIndividuals(
+  clientData?: ClientResponse
+): PartyResponse[] {
+  if (!clientData?.parties) return [];
+  return clientData.parties.filter(
+    (party) =>
+      party.active &&
+      party.partyType === 'INDIVIDUAL' &&
+      party.roles?.includes('BENEFICIAL_OWNER')
+  );
+}
+
+/**
+ * Get intermediary owner entities — organizations with INTERMEDIARY_OWNER role.
+ * Per API spec, these are the business entities through which indirect BOs
+ * hold ownership of the root client.
+ * Deduplicates by organization name since the same entity can appear in
+ * multiple owners' chains as separate party records.
+ */
+function getIntermediaryEntities(clientData?: ClientResponse): PartyResponse[] {
+  if (!clientData?.parties) return [];
+  const seen = new Set<string>();
+  return clientData.parties.filter((party) => {
+    if (
+      !party.active ||
+      party.partyType !== 'ORGANIZATION' ||
+      !party.roles?.includes(INTERMEDIARY_OWNER_ROLE)
+    ) {
+      return false;
+    }
+    const name =
+      party.organizationDetails?.organizationName?.toLowerCase() || '';
+    if (name && seen.has(name)) return false;
+    if (name) seen.add(name);
+    return true;
+  });
+}
+
+function getPartyCompletionStatus(party: PartyResponse): PartyCompletionStatus {
+  // 'complete' comes from the shared canonical predicate so this screen can
+  // never disagree with the ownership summary. The signal arrays below only
+  // distinguish 'not-started' (no details yet) from 'incomplete' (some).
+  if (party.partyType === 'ORGANIZATION') {
+    const org = party.organizationDetails;
+    if (!org) return 'not-started';
+    if (isBeneficialOwnerDetailsComplete(party)) return 'complete';
+    const hasName = !!org.organizationName;
+    const hasType = !!org.organizationType;
+    const hasEin = (org.organizationIds?.length ?? 0) > 0;
+    const hasAddress = (org.addresses?.length ?? 0) > 0;
+    const hasCountry = !!org.countryOfFormation;
+    const signals = [hasName, hasType, hasEin, hasAddress, hasCountry];
+    return signals.some(Boolean) ? 'incomplete' : 'not-started';
+  }
+
+  // Individual beneficial owners — per spec: date of birth, residential
+  // address, country of residence, individual government ID (e.g. SSN).
+  const ind = party.individualDetails;
+  if (!ind) return 'not-started';
+  if (isBeneficialOwnerDetailsComplete(party)) return 'complete';
+  const hasDob = !!ind.birthDate;
+  const hasAddress = (ind.addresses?.length ?? 0) > 0;
+  const hasCountry = !!ind.countryOfResidence;
+  const hasId = (ind.individualIds?.length ?? 0) > 0;
+  const signals = [hasDob, hasAddress, hasCountry, hasId];
+  return signals.some(Boolean) ? 'incomplete' : 'not-started';
+}
+
+function getPartyDisplayName(party: PartyResponse): string {
+  if (party.partyType === 'ORGANIZATION') {
+    return (
+      party.organizationDetails?.organizationName || 'Unnamed Organization'
+    );
+  }
+  const first = party.individualDetails?.firstName || '';
+  const last = party.individualDetails?.lastName || '';
+  return `${first} ${last}`.trim() || 'Unnamed Owner';
+}
+
+const statusConfig: Record<
+  PartyCompletionStatus,
+  {
+    label: string;
+    variant: 'default' | 'secondary' | 'outline';
+    className: string;
+  }
+> = {
+  'not-started': {
+    label: 'Not started',
+    variant: 'outline',
+    className: 'eb-border-muted-foreground/50 eb-text-muted-foreground',
+  },
+  incomplete: {
+    label: 'Incomplete',
+    variant: 'secondary',
+    className: 'eb-border-orange-300 eb-bg-orange-50 eb-text-orange-700',
+  },
+  complete: {
+    label: 'Complete',
+    variant: 'default',
+    className: 'eb-border-green-300 eb-bg-green-50 eb-text-green-700',
+  },
+};
+
+export const IndirectOwnerDetailsScreen = () => {
+  const { clientData } = useOnboardingContext();
+  const { goTo } = useFlowContext();
+
+  const individualParties = getBeneficialOwnerIndividuals(clientData);
+  const intermediaryEntities = getIntermediaryEntities(clientData);
+
+  const allParties = [...individualParties, ...intermediaryEntities];
+  const allComplete =
+    allParties.length > 0 &&
+    allParties.every((p) => getPartyCompletionStatus(p) === 'complete');
+
+  const handleEditIndividual = (partyId: string) => {
+    goTo('owner-stepper', {
+      editingPartyId: partyId,
+      shortLabelOverride: 'Edit owner details',
+    });
+  };
+
+  const handleEditOrganization = (partyId: string) => {
+    goTo('intermediary-stepper', {
+      editingPartyId: partyId,
+      shortLabelOverride: 'Edit intermediary details',
+    });
+  };
+
+  const handleContinue = () => {
+    goTo('additional-questions-section');
+  };
+
+  return (
+    <StepLayout
+      title="Provide Details for Owners & Entities"
+      subTitle={
+        <Button
+          variant="link"
+          onClick={() =>
+            goTo('owners-section', {
+              resetHistory: true,
+            })
+          }
+          className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
+        >
+          <ArrowLeftIcon className="eb-size-3.5" />
+          Back to ownership structure
+        </Button>
+      }
+      description="Please provide the required information for each owner and intermediary entity identified in your ownership structure."
+    >
+      <div className="eb-mt-6 eb-space-y-8">
+        {/* Section 1: Individuals that need information collected */}
+        <section className="eb-space-y-3">
+          <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+            Individuals
+          </h3>
+          <p className="eb-text-sm eb-text-muted-foreground">
+            Provide personal details for each beneficial owner.
+          </p>
+          {individualParties.length > 0 ? (
+            individualParties.map((party) => {
+              const status = getPartyCompletionStatus(party);
+              const config = statusConfig[status];
+              return (
+                <PartyCard
+                  key={party.id}
+                  party={party}
+                  statusLabel={config.label}
+                  statusClassName={config.className}
+                  icon={<User className="eb-size-5 eb-text-primary" />}
+                  onEdit={() => party.id && handleEditIndividual(party.id)}
+                />
+              );
+            })
+          ) : (
+            <p className="eb-text-sm eb-italic eb-text-muted-foreground">
+              No individual owners found.
+            </p>
+          )}
+        </section>
+
+        {/* Section 2: Entities that need information collected */}
+        <section className="eb-space-y-3">
+          <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
+            Intermediary Entities
+          </h3>
+          <p className="eb-text-sm eb-text-muted-foreground">
+            Provide organization details for each intermediary entity through
+            which indirect owners hold their ownership.
+          </p>
+          {intermediaryEntities.length > 0 ? (
+            intermediaryEntities.map((party) => {
+              const status = getPartyCompletionStatus(party);
+              const config = statusConfig[status];
+              return (
+                <PartyCard
+                  key={party.id}
+                  party={party}
+                  statusLabel={config.label}
+                  statusClassName={config.className}
+                  icon={<Building className="eb-size-5 eb-text-primary" />}
+                  onEdit={() => party.id && handleEditOrganization(party.id)}
+                />
+              );
+            })
+          ) : (
+            <p className="eb-text-sm eb-italic eb-text-muted-foreground">
+              No intermediary entities found.
+            </p>
+          )}
+        </section>
+
+        {allParties.length === 0 && (
+          <Card className="eb-p-6 eb-text-center eb-text-muted-foreground">
+            No parties found. Please go back and complete your ownership
+            structure first.
+          </Card>
+        )}
+      </div>
+
+      {/* Continue Button */}
+      <div className="eb-mt-6">
+        <Button
+          type="button"
+          variant="default"
+          size="lg"
+          className="eb-h-auto eb-min-h-11 eb-w-full eb-text-wrap eb-text-lg"
+          onClick={handleContinue}
+          disabled={!allComplete && allParties.length > 0}
+        >
+          {allComplete
+            ? 'Save and Continue'
+            : `Complete all details to continue (${allParties.filter((p) => getPartyCompletionStatus(p) === 'complete').length}/${allParties.length})`}
+        </Button>
+      </div>
+    </StepLayout>
+  );
+};
+
+// ── PartyCard sub-component ──────────────────────────────────────────────
+
+interface PartyCardProps {
+  party: PartyResponse;
+  statusLabel: string;
+  statusClassName: string;
+  icon: React.ReactNode;
+  onEdit: () => void;
+}
+
+const PartyCard: React.FC<PartyCardProps> = ({
+  party,
+  statusLabel,
+  statusClassName,
+  icon,
+  onEdit,
+}) => {
+  const name = getPartyDisplayName(party);
+  const status = getPartyCompletionStatus(party);
+  const isOrg = party.partyType === 'ORGANIZATION';
+  const isIndirectOwner =
+    party.individualDetails?.natureOfOwnership === 'Indirect';
+  const roleLabel = isOrg
+    ? 'Intermediary Entity'
+    : isIndirectOwner
+      ? 'Indirect Beneficial Owner'
+      : 'Direct Beneficial Owner';
+
+  return (
+    <Card className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-border eb-p-4">
+      <div className="eb-flex eb-items-center eb-gap-3">
+        <div className="eb-flex eb-h-10 eb-w-10 eb-items-center eb-justify-center eb-rounded-full eb-bg-muted">
+          {icon}
+        </div>
+        <div className="eb-space-y-1">
+          <CardTitle className="eb-text-base eb-font-semibold eb-tracking-tight">
+            {name}
+          </CardTitle>
+          <p className="eb-text-xs eb-text-muted-foreground">{roleLabel}</p>
+        </div>
+      </div>
+      <div className="eb-flex eb-items-center eb-gap-3">
+        <Badge variant="outline" className={statusClassName}>
+          {status === 'complete' && (
+            <CheckCircle2 className="eb-mr-1 eb-size-3" />
+          )}
+          {status === 'incomplete' && (
+            <CircleDotIcon className="eb-mr-1 eb-size-3" />
+          )}
+          {statusLabel}
+        </Badge>
+        <Button variant="outline" size="sm" onClick={onEdit}>
+          <PencilIcon className="eb-size-3.5" />
+          {status === 'not-started' ? 'Start' : 'Edit'}
+        </Button>
+      </div>
+    </Card>
+  );
+};

@@ -182,6 +182,7 @@ export const GatewayScreen = () => {
       form.reset(shapeFormValuesBySchema(formValues, GatewayScreenFormSchema));
       setIsFormPopulated(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- populate the gateway form once when client/org data arrives; sessionData.isPTCQuestionAnswered is read as latest and intentionally excluded to avoid re-populating during the flow
   }, [clientData, existingOrgParty, isFormPopulated, form]);
 
   const {
@@ -556,6 +557,7 @@ export const GatewayScreen = () => {
 
   useEffect(() => {
     setIsFormSubmitting(isFormSubmitting);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror the local submitting flag into context only when it changes; setIsFormSubmitting is a stable setter and intentionally excluded
   }, [isFormSubmitting]);
 
   const isFormPopulating = existingOrgParty && !isFormPopulated;

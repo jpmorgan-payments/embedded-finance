@@ -35,7 +35,7 @@ interface AddUploadedDocArgs {
   id: string;
   fieldName: string;
   value: unknown;
-  requirementValues: Record<string, any>;
+  requirementValues: Record<string, unknown>;
   errors: Record<string, unknown>;
   uploadedDocs: Record<string, UploadedDocument[]>;
   satisfiedDocTypes: DocumentTypeSmbdo[];
@@ -63,7 +63,7 @@ function addUploadedDocForField({
   const reqIndex = parseInt(fieldName.split('_')[1], 10);
   const fieldSuffix = fieldName.replace(`requirement_${reqIndex}_docType`, '');
   const filesFieldName = `requirement_${reqIndex}_files${fieldSuffix}`;
-  const files = requirementValues[filesFieldName];
+  const files = requirementValues[filesFieldName] as File[] | undefined;
   if (!files || files.length === 0) {
     return;
   }
@@ -112,13 +112,13 @@ function evaluateUploadedDocuments(
     uploadedDocs[id] = [];
     requirementDocTypes[id] = {};
 
-    Object.entries(requirementValues as Record<string, any>).forEach(
+    Object.entries(requirementValues as Record<string, unknown>).forEach(
       ([fieldName, value]) => {
         addUploadedDocForField({
           id,
           fieldName,
           value,
-          requirementValues: requirementValues as Record<string, any>,
+          requirementValues: requirementValues as Record<string, unknown>,
           errors,
           uploadedDocs,
           satisfiedDocTypes,
@@ -276,15 +276,18 @@ export const DocumentUploadForm = () => {
   const activeDocumentRequests = documentRequestResponse
     ? [documentRequestResponse]
     : [];
+  const activeDocumentRequestsJson = JSON.stringify(activeDocumentRequests);
+  const satisfiedDocTypesJson = JSON.stringify(satisfiedDocTypes);
+  const activeRequirementsJson = JSON.stringify(activeRequirements);
 
   // zod schema, dynamically generated based on the document types
   const DocumentUploadSchema = useMemo(() => {
-    const schema: Record<string, z.ZodType<any>> = {};
+    const schema: Record<string, z.ZodTypeAny> = {};
     activeDocumentRequests.forEach((documentRequest) => {
       if (!documentRequest?.id || !documentRequest.requirements) {
         return;
       }
-      const nestedSchema: Record<string, z.ZodType<any>> = {};
+      const nestedSchema: Record<string, z.ZodTypeAny> = {};
 
       // Include all requirements in the schema, not just active ones
       documentRequest.requirements.forEach((requirement, index) => {
@@ -320,10 +323,8 @@ export const DocumentUploadForm = () => {
       schema[documentRequest.id] = z.object(nestedSchema);
     });
     return z.object(schema);
-  }, [
-    JSON.stringify(activeDocumentRequests),
-    JSON.stringify(satisfiedDocTypes),
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deep-compared via JSON keys; source objects read as latest
+  }, [activeDocumentRequestsJson, satisfiedDocTypesJson]);
 
   const form = useForm<z.infer<typeof DocumentUploadSchema>>({
     resolver: zodResolver(DocumentUploadSchema),
@@ -341,7 +342,7 @@ export const DocumentUploadForm = () => {
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [JSON.stringify(activeRequirements), form]);
+  }, [activeRequirementsJson, form]);
 
   // Watch form values to evaluate requirements
   const formValues = useWatch({
@@ -372,11 +373,8 @@ export const DocumentUploadForm = () => {
     );
 
     setActiveRequirements(newActiveReqs);
-  }, [
-    formValues,
-    JSON.stringify(activeDocumentRequests),
-    form.formState.errors,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deep-compared via JSON key; activeDocumentRequests/activeRequirements read as latest
+  }, [formValues, activeDocumentRequestsJson, form.formState.errors]);
 
   const onSubmit = form.handleSubmit(async () => {
     // Clear any potential stale errors before submitting
@@ -398,7 +396,7 @@ export const DocumentUploadForm = () => {
         const documentUploads: { documentType: string; file: File }[] = [];
 
         // Process form values to extract document types and files directly
-        Object.entries(requirementValues as Record<string, any>).forEach(
+        Object.entries(requirementValues as Record<string, unknown>).forEach(
           ([fieldName, value]) => {
             if (fieldName.includes('_docType') && value) {
               // Extract requirement index and suffix from field name
@@ -413,7 +411,9 @@ export const DocumentUploadForm = () => {
               );
               const filesFieldName = `${fieldBase}${fieldSuffix}`;
 
-              const files = (requirementValues as any)[filesFieldName];
+              const files = (requirementValues as Record<string, unknown>)[
+                filesFieldName
+              ] as File[] | undefined;
 
               if (files && files.length > 0) {
                 // For each file, create a direct mapping to document type
@@ -467,7 +467,6 @@ export const DocumentUploadForm = () => {
 
       goTo('upload-documents-section');
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.error('Error uploading documents:', error);
     }
   });
@@ -513,7 +512,7 @@ export const DocumentUploadForm = () => {
       if (isActive) {
         // For active requirements, also check if there are any validation errors
         const docRequestErrors = form.formState.errors?.[docRequest.id] as
-          | Record<string, any>
+          | Record<string, unknown>
           | undefined;
         if (docRequestErrors) {
           // Check if any field for this requirement has validation errors
@@ -575,7 +574,7 @@ export const DocumentUploadForm = () => {
           // Check for validation errors in this requirement
           const docRequestErrors = docRequest.id
             ? (form.formState.errors?.[docRequest.id] as
-                | Record<string, any>
+                | Record<string, unknown>
                 | undefined)
             : undefined;
           const hasValidationErrors = docRequestErrors
@@ -602,14 +601,14 @@ export const DocumentUploadForm = () => {
     });
 
     return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- deep-compared via JSON keys; activeDocumentRequests/activeRequirements read as latest
   }, [
-    JSON.stringify(activeDocumentRequests),
-    JSON.stringify(activeRequirements),
+    activeDocumentRequestsJson,
+    activeRequirementsJson,
     satisfiedDocTypes,
     form.formState.errors,
   ]);
 
-  // @ts-ignore - This is a workaround for the type error in the query
   if (documentRequestGetStatus === 'pending') {
     return (
       <FormLoadingState

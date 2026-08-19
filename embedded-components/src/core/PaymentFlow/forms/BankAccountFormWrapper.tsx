@@ -10,6 +10,8 @@ import type {
   TransactionRecipientDetailsV2,
 } from '@/api/generated/ep-transactions.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Button } from '@/components/ui/button';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
@@ -118,7 +120,7 @@ function SaveRecipientConfirmation({
       {/* Error alert */}
       {(formError || initialError) && (
         <ServerErrorAlert
-          error={(formError || initialError) as any}
+          error={(formError || initialError) as ErrorType<ApiError>}
           customTitle="Failed to add recipient"
           customErrorMessage={{
             '400': 'Please check the information you entered and try again.',
@@ -453,7 +455,7 @@ export function BankAccountFormWrapper({
     onError: (apiError) => {
       // Only go back to form step 2 on 400 errors (bad request - user can fix the data)
       // Other errors (401, 500, etc.) should show error on the confirmation step
-      const httpStatus = (apiError as any)?.httpStatus;
+      const httpStatus = (apiError as { httpStatus?: number })?.httpStatus;
       if (httpStatus === 400 && pendingFormData) {
         setFormDataToRestore(pendingFormData);
         setPendingFormData(null);
@@ -732,7 +734,7 @@ export function BankAccountFormWrapper({
               )}
               {formError || initialError ? (
                 <ServerErrorAlert
-                  error={(formError || initialError) as any}
+                  error={(formError || initialError) as ErrorType<ApiError>}
                   customTitle={
                     formType === 'linked-account'
                       ? 'Failed to link account'

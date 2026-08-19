@@ -116,6 +116,15 @@ export const partyFieldMap: PartyFieldMap = {
       },
     ],
   },
+  organizationType: {
+    path: 'organizationDetails.organizationType',
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
+    conditionalRules: [],
+  },
   organizationEmail: {
     path: 'email',
     presentation: { type: 'email' },
@@ -1185,18 +1194,19 @@ export const partyFieldMap: PartyFieldMap = {
       },
     },
     fromResponseFn: (val: AddressDto[]) => {
-      const businessAddress = val.find(
-        (address) => address.addressType === 'BUSINESS_ADDRESS'
-      );
+      // Prefer the business address; fall back to the first stored address so
+      // an intermediary's LEGAL_ADDRESS (or any single address) still hydrates.
+      const address =
+        val.find((a) => a.addressType === 'BUSINESS_ADDRESS') ?? val[0];
       return {
-        addressType: 'BUSINESS_ADDRESS',
-        city: businessAddress?.city ?? '',
-        state: businessAddress?.state ?? '',
-        postalCode: businessAddress?.postalCode ?? '',
-        country: businessAddress?.country ?? '',
-        primaryAddressLine: businessAddress?.addressLines?.[0] ?? '',
-        secondaryAddressLine: businessAddress?.addressLines?.[1] ?? '',
-        tertiaryAddressLine: businessAddress?.addressLines?.[2] ?? '',
+        addressType: address?.addressType ?? 'BUSINESS_ADDRESS',
+        city: address?.city ?? '',
+        state: address?.state ?? '',
+        postalCode: address?.postalCode ?? '',
+        country: address?.country ?? '',
+        primaryAddressLine: address?.addressLines?.[0] ?? '',
+        secondaryAddressLine: address?.addressLines?.[1] ?? '',
+        tertiaryAddressLine: address?.addressLines?.[2] ?? '',
       };
     },
     toRequestFn: (address): AddressDto[] => {

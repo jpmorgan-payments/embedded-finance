@@ -255,7 +255,10 @@ function resolveGroupRemainingPaths(args: {
   const isOwnerGroup = sectionId === 'owners-section';
 
   let stepValidationMap:
-    | Record<string, { isValid: boolean; result?: any }>
+    | Record<
+        string,
+        { isValid: boolean; result?: { error?: { issues?: unknown[] } } }
+      >
     | undefined;
   let stepId: string | undefined;
 
@@ -580,7 +583,10 @@ export function areDeltaPendingFieldsComplete(args: {
  */
 type GroupStepValidation = {
   stepValidationMap:
-    | Record<string, { isValid: boolean; result?: any }>
+    | Record<
+        string,
+        { isValid: boolean; result?: { error?: { issues?: unknown[] } } }
+      >
     | undefined;
   stepId: string | undefined;
   isOwnerGroup: boolean;
@@ -1041,7 +1047,10 @@ function collectStepPendingFields(
 }
 
 function collectPendingFieldsFromValidation(
-  stepValidationMap: Record<string, { isValid: boolean; result?: any }>,
+  stepValidationMap: Record<
+    string,
+    { isValid: boolean; result?: { error?: { issues?: unknown[] } } }
+  >,
   steps: StepConfig[],
   partyId: string | undefined,
   formPathPrefix?: string
@@ -1393,6 +1402,7 @@ function DeltaPendingFieldsPanelComponent({
     // Keyed on the party value + touched signatures (not the fresh
     // `currentValues` / `touchedFields` objects) so question changes don't
     // invalidate it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on value/touched signatures; currentValues/touchedFields read as latest so question edits don't invalidate this memo
     [
       partyValuesSignature,
       partyTouchedSignature,
@@ -1435,6 +1445,7 @@ function DeltaPendingFieldsPanelComponent({
   useEffect(() => {
     setDeltaQuestionProgress(questionProgress);
     return () => setDeltaQuestionProgress(undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- publish progress only when total/completed change; questionProgress read as latest, setDeltaQuestionProgress is a stable setter
   }, [
     questionProgress.total,
     questionProgress.completed,
@@ -1571,7 +1582,7 @@ function DeltaPendingFieldsPanelComponent({
   };
 
   const renderPartyField = (field: PendingField) => {
-    const control = form.control as any;
+    const control = form.control;
     const logicalKey = field.fieldKey;
     // Declarative presentation for this field (input type, mask, custom editor,
     // path suffix) — the source of truth is `partyFieldMap[key].presentation`,
@@ -2011,7 +2022,10 @@ export function useDeltaPendingFieldsForm(sections: SectionScreenConfig[]) {
     [];
 
   const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
-  const existingQuestionResponses = clientData?.questionResponses ?? [];
+  const existingQuestionResponses = useMemo(
+    () => clientData?.questionResponses ?? [],
+    [clientData?.questionResponses]
+  );
 
   const { allQuestions, allFormQuestionIds } = useQuestionTree({
     outstandingQuestionIds,
@@ -2041,7 +2055,10 @@ export function useDeltaPendingFieldsForm(sections: SectionScreenConfig[]) {
     partyType: 'INDIVIDUAL',
     roles: ['CONTROLLER'],
   });
-  const activeOwners = getActiveOwners(clientData) ?? [];
+  const activeOwners = useMemo(
+    () => getActiveOwners(clientData) ?? [],
+    [clientData]
+  );
 
   const orgValues = convertPartyResponseToFormValues(orgParty ?? {});
   const controllerValues = convertPartyResponseToFormValues(
@@ -2110,6 +2127,7 @@ export function useDeltaPendingFieldsForm(sections: SectionScreenConfig[]) {
       ...questionDefaults,
       ...savedFormValues,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seed form defaults; keyed on the value objects, baselinePendingGroups read as latest
   }, [
     orgValues,
     controllerValues,
@@ -2236,6 +2254,7 @@ export function useDeltaPendingFieldsForm(sections: SectionScreenConfig[]) {
 
   useEffect(() => {
     form.reset(defaultValues);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset form only when the client or outstanding-question set changes; defaultValues/form excluded so typing does not wipe the form
   }, [clientData?.id, outstandingQuestionIds.join(',')]);
 
   return { form, allQuestions, stepSchemas, baselinePendingGroups };

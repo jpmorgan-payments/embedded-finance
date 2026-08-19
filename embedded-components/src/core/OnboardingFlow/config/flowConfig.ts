@@ -7,11 +7,16 @@ import {
   Users2Icon,
 } from 'lucide-react';
 
+import { INTERMEDIARY_OWNER_ROLE } from '@/core/IndirectOwnership/IndirectOwnership.types';
 import {
   BusinessContactInfoForm,
   BusinessIdentityForm,
   IndustryForm,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
+import {
+  IntermediaryAddressForm,
+  IntermediaryOrgDetailsForm,
+} from '@/core/OnboardingFlow/forms/intermediary-section-forms';
 import {
   ContactDetailsForm,
   IndividualIdentityForm,
@@ -20,6 +25,7 @@ import {
 import { DocumentUploadForm } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadForm';
 import { DocumentUploadScreen } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentUploadScreen';
 import { GatewayScreen } from '@/core/OnboardingFlow/screens/GatewayScreen/GatewayScreen';
+import { IndirectOwnerDetailsScreen } from '@/core/OnboardingFlow/screens/IndirectOwnerDetailsScreen/IndirectOwnerDetailsScreen';
 import { LinkAccountScreen } from '@/core/OnboardingFlow/screens/LinkAccountScreen/LinkAccountScreen';
 import { OperationalDetailsForm } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm';
 import { OverviewScreen } from '@/core/OnboardingFlow/screens/OverviewScreen/OverviewScreen';
@@ -109,6 +115,49 @@ const staticScreens: StaticScreenConfig[] = [
     isSection: false,
     type: 'component',
     Component: LinkAccountScreen,
+  },
+  {
+    id: 'indirect-owner-details',
+    isSection: false,
+    type: 'component',
+    Component: IndirectOwnerDetailsScreen,
+  },
+  {
+    id: 'intermediary-stepper',
+    isSection: false,
+    type: 'stepper',
+    stepperConfig: {
+      associatedPartyFilters: {
+        partyType: 'ORGANIZATION',
+        roles: [INTERMEDIARY_OWNER_ROLE],
+      },
+      getDefaultPartyRequestBody: () => ({
+        partyType: 'ORGANIZATION' as const,
+        roles: [INTERMEDIARY_OWNER_ROLE],
+      }),
+      steps: [
+        {
+          id: 'org-details',
+          stepType: 'form',
+          titleKey: 'screens.intermediarySteps.orgDetails.title',
+          descriptionKey: 'screens.intermediarySteps.orgDetails.description',
+          Component: IntermediaryOrgDetailsForm,
+        },
+        {
+          id: 'org-address',
+          stepType: 'form',
+          titleKey: 'screens.intermediarySteps.orgAddress.title',
+          descriptionKey: 'screens.intermediarySteps.orgAddress.description',
+          Component: IntermediaryAddressForm,
+        },
+        {
+          id: 'check-answers',
+          stepType: 'check-answers',
+          titleKey: 'screens.intermediarySteps.checkAnswers.title',
+          descriptionKey: 'screens.intermediarySteps.checkAnswers.description',
+        },
+      ],
+    },
   },
 ];
 

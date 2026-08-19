@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, userEvent } from '@test-utils';
 
 import { FlowContextProvider } from '../FlowContainer/FlowContext';
+import type { UnsavedRecipient } from '../PaymentFlow.types';
 import { BankAccountFormWrapper } from './BankAccountFormWrapper';
 
 // Mock the client API
@@ -166,7 +167,7 @@ describe('BankAccountFormWrapper', () => {
 
       renderWrapper({
         formType: 'recipient',
-        initialData: initialData as any,
+        initialData: initialData as unknown as UnsavedRecipient,
         isEditing: true,
       });
 
@@ -215,7 +216,7 @@ describe('BankAccountFormWrapper', () => {
 
       renderWrapper({
         formType: 'recipient',
-        initialData: initialData as any,
+        initialData: initialData as unknown as UnsavedRecipient,
         isEditing: true,
         initialError: mockError,
         onSubmitWithoutSave: vi.fn(),

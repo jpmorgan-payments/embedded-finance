@@ -130,6 +130,7 @@ const CountrySelect = ({
     if (!value && defaultCountry) {
       onChange(defaultCountry);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- select defaultCountry once on initial mount only
   }, []); // Run only on initial mount
 
   const handleSelect = React.useCallback(

@@ -196,7 +196,9 @@ describe('EnablePaymentMethodWrapper', () => {
 
     renderWrapper({
       payee: { ...mockPayee, id: 'unsaved-recipient' },
-      unsavedRecipient: unsavedRecipient as any,
+      unsavedRecipient: unsavedRecipient as unknown as React.ComponentProps<
+        typeof EnablePaymentMethodWrapper
+      >['unsavedRecipient'],
     });
 
     // Should render form without fetching recipient (since it's unsaved)

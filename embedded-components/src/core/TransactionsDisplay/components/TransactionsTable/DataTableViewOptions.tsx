@@ -77,7 +77,8 @@ export function DataTableViewOptions<TData>({
             (column) =>
               column.getCanHide() &&
               (column.accessorFn !== undefined ||
-                (column.columnDef as any).accessorKey !== undefined)
+                (column.columnDef as { accessorKey?: string }).accessorKey !==
+                  undefined)
           )
           .map((column) => {
             return (

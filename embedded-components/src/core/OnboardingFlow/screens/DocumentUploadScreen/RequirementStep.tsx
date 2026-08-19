@@ -5,7 +5,7 @@ import {
   ChevronDownIcon,
   CircleDashedIcon,
 } from 'lucide-react';
-import { Control, UseFormWatch } from 'react-hook-form';
+import { Control, FieldValues, UseFormWatch } from 'react-hook-form';
 
 import {
   DocumentRequestResponse,
@@ -54,11 +54,11 @@ interface RequirementStepProps {
   /**
    * Form control from parent component
    */
-  control: Control<any>;
+  control: Control<FieldValues>;
   /**
    * Form watch function from parent component
    */
-  watch: UseFormWatch<any>;
+  watch: UseFormWatch<FieldValues>;
   /**
    * Key to force reset of form fields
    */

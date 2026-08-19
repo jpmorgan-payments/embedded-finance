@@ -8,7 +8,9 @@ import { useTranslationWithTokens } from './useTranslationWithTokens';
 
 // The hook requires EBComponentsProvider context (provided by @test-utils render)
 function TestComponent({ ns }: { ns: string | string[] }) {
-  const { t, tString } = useTranslationWithTokens(ns as any);
+  const { t, tString } = useTranslationWithTokens(
+    ns as Parameters<typeof useTranslationWithTokens>[0]
+  );
 
   return (
     <div>
@@ -58,7 +60,10 @@ describe('useTranslationWithTokens', () => {
     function NullTestComponent() {
       const { tString } = useTranslationWithTokens('common');
       // Non-existent key with defaultValue
-      const result = tString('nonExistentKey12345' as any, 'Fallback Value');
+      const result = tString(
+        'nonExistentKey12345' as unknown as string[],
+        'Fallback Value'
+      );
       return <span data-testid="null-test">{result}</span>;
     }
 
@@ -127,7 +132,9 @@ describe('useTranslationWithTokens', () => {
   it('tString returns fallback for number values', () => {
     function NumberTest() {
       const { tString } = useTranslationWithTokens('common');
-      const result = tString('title' as any, { defaultValue: 'Fallback' });
+      const result = tString('title' as unknown as string[], {
+        defaultValue: 'Fallback',
+      });
       return <span data-testid="num-test">{result}</span>;
     }
 
@@ -138,7 +145,7 @@ describe('useTranslationWithTokens', () => {
   it('t returns empty string for empty translations when showTokenIds on', () => {
     function EmptyTokenTest() {
       const { t } = useTranslationWithTokens('common');
-      const result = t('nonexistent_empty' as any, '');
+      const result = t('nonexistent_empty' as unknown as string[], '');
       return <span data-testid="empty-token">{result || 'EMPTY'}</span>;
     }
 
@@ -158,7 +165,10 @@ describe('useTranslationWithTokens', () => {
   it('handles array keys (fallback keys)', () => {
     function ArrayKeyTest() {
       const { t } = useTranslationWithTokens('common');
-      const result = t(['nonExistentKey999', 'title'] as any, 'Array Fallback');
+      const result = t(
+        ['nonExistentKey999', 'title'] as unknown as string[],
+        'Array Fallback'
+      );
       return <span data-testid="array-key">{result}</span>;
     }
 

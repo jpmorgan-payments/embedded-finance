@@ -115,7 +115,6 @@ function normalisePaymentPurpose(paymentPurpose?: {
 
   if (paymentPurpose.code) {
     if (paymentPurpose.code.length > PAYMENT_PURPOSE_CODE_MAX) {
-      // eslint-disable-next-line no-console
       console.warn(
         `[PaymentFlowFX] paymentPurpose.code exceeds ${PAYMENT_PURPOSE_CODE_MAX} chars; dropping.`
       );
@@ -126,7 +125,6 @@ function normalisePaymentPurpose(paymentPurpose?: {
 
   if (paymentPurpose.customCode) {
     if (paymentPurpose.customCode.length > PAYMENT_PURPOSE_CUSTOM_CODE_MAX) {
-      // eslint-disable-next-line no-console
       console.warn(
         `[PaymentFlowFX] paymentPurpose.customCode exceeds ${PAYMENT_PURPOSE_CUSTOM_CODE_MAX} chars; dropping.`
       );

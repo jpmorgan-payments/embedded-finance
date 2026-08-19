@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
+
 import { interceptError, isKnownError } from './errorInterceptor';
 
 describe('errorInterceptor', () => {
@@ -30,7 +33,7 @@ describe('errorInterceptor', () => {
           status: 400,
         },
         status: 400,
-      } as any;
+      } as unknown as ErrorType<ApiError>;
 
       const result = interceptError(error);
 
@@ -64,7 +67,7 @@ describe('errorInterceptor', () => {
           status: 500,
         },
         status: 500,
-      } as any;
+      } as unknown as ErrorType<ApiError>;
 
       const result = interceptError(error);
 
@@ -85,7 +88,7 @@ describe('errorInterceptor', () => {
           status: 400,
         },
         status: 400,
-      } as any;
+      } as unknown as ErrorType<ApiError>;
 
       const result = interceptError(error);
 
@@ -104,7 +107,7 @@ describe('errorInterceptor', () => {
           status: 400,
         },
         status: 400,
-      } as any;
+      } as unknown as ErrorType<ApiError>;
 
       const result = interceptError(error);
 
@@ -123,7 +126,7 @@ describe('errorInterceptor', () => {
           descriptionKey: 'errors.known.RTP_UNAVAILABLE.description',
           variant: 'warning' as const,
         },
-        originalError: {} as any,
+        originalError: {} as unknown as ErrorType<ApiError>,
       };
 
       expect(isKnownError(result)).toBe(true);
@@ -132,7 +135,7 @@ describe('errorInterceptor', () => {
     it('should return false for unknown error result', () => {
       const result = {
         isKnown: false as const,
-        originalError: {} as any,
+        originalError: {} as unknown as ErrorType<ApiError>,
       };
 
       expect(isKnownError(result)).toBe(false);

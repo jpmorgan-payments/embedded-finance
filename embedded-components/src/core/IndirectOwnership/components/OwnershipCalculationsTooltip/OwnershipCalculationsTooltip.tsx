@@ -3,15 +3,17 @@ import { HelpCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 export const OwnershipCalculationsTooltip: React.FC = () => {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <Dialog>
+      <DialogTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
@@ -21,18 +23,15 @@ export const OwnershipCalculationsTooltip: React.FC = () => {
         >
           <HelpCircle className="eb-h-4 eb-w-4 eb-text-muted-foreground hover:eb-text-foreground" />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        side="bottom"
-        align="start"
-        className="eb-max-h-[80vh] eb-w-[calc(100vw-2rem)] eb-max-w-[672px] eb-overflow-y-auto eb-text-left"
-        sideOffset={8}
-      >
+      </DialogTrigger>
+      <DialogContent className="eb-max-h-[80vh] eb-max-w-[672px] eb-overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="eb-text-sm">
+            How to Calculate Beneficial Ownership
+          </DialogTitle>
+        </DialogHeader>
         <div className="eb-space-y-4">
           <div>
-            <h3 className="eb-mb-2 eb-text-sm eb-font-semibold eb-text-foreground">
-              How to Calculate Beneficial Ownership
-            </h3>
             <p className="eb-text-xs eb-text-muted-foreground">
               A beneficial owner is any individual who owns{' '}
               <strong className="eb-text-foreground">25% or more</strong> of
@@ -161,7 +160,7 @@ export const OwnershipCalculationsTooltip: React.FC = () => {
             </div>
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 };

@@ -4,14 +4,37 @@
  */
 
 import type { UserTrackingProps } from '@/lib/types/userTracking.types';
-import { ClientResponse, PartyResponse } from '@/api/generated/smbdo.schemas';
+import {
+  ClientResponse,
+  PartyResponse,
+  Role,
+} from '@/api/generated/smbdo.schemas';
 
 import type { OwnershipConfig } from './IndirectOwnership.internal.types';
 
 /**
- * Beneficial Owner status based on OpenAPI Party data
+ * INTERMEDIARY_OWNER is a new role being added to the API but is not yet in
+ * the generated schema types. Centralise the cast here so we only have one
+ * unsafe cast and the rest of the codebase can import this typed constant.
+ *
+ * TODO: Remove once the API spec includes INTERMEDIARY_OWNER and types are regenerated.
  */
-export type BeneficialOwnerStatus = 'COMPLETE' | 'PENDING_HIERARCHY' | 'ERROR';
+export const INTERMEDIARY_OWNER_ROLE = 'INTERMEDIARY_OWNER' as unknown as Role;
+
+/**
+ * Beneficial Owner status based on OpenAPI Party data
+ *
+ * - PENDING_HIERARCHY: an indirect owner still needs its intermediary chain.
+ * - PENDING_DETAILS: the chain (if any) is in place but the party's own
+ *   required details (DOB/address/ID, or org type/EIN/address/country) are
+ *   incomplete. Kept distinct from PENDING_HIERARCHY so the two conditions
+ *   report the right problem.
+ */
+export type BeneficialOwnerStatus =
+  | 'COMPLETE'
+  | 'PENDING_HIERARCHY'
+  | 'PENDING_DETAILS'
+  | 'ERROR';
 
 /**
  * Extended Party interface for beneficial ownership display
@@ -156,11 +179,112 @@ export interface IndirectOwnershipProps extends UserTrackingProps {
   /** Callback for real-time validation updates */
   onValidationChange?: (summary: ValidationSummary) => void;
 
+  /**
+   * When true, shows a gating question before the full indirect ownership UI:
+   * "Does anyone own 25% or more of your business through other companies?"
+   *
+   * - "Yes" → reveals the full indirect ownership builder
+   * - "No" → calls `onGatingAnswer('direct-only')` so the host can fall back
+   *
+   * @default false
+   */
+  showGatingQuestion?: boolean;
+
+  /**
+   * Callback when the gating question is answered.
+   * - `'direct-only'` — user answered "No" (no indirect owners)
+   * - `'has-indirect'` — user answered "Yes" (proceed with indirect UI)
+   */
+  onGatingAnswer?: (answer: 'direct-only' | 'has-indirect') => void;
+
+  /**
+   * Callback when a new owner is submitted from the Add Owner dialog.
+   * The host is responsible for creating the party via the API and refreshing
+   * client data. If not provided, owners are managed in local component state
+   * (standalone/demo mode).
+   */
+  onAddOwner?: (ownerData: {
+    entityType: 'INDIVIDUAL' | 'BUSINESS';
+    firstName?: string;
+    lastName?: string;
+    businessName?: string;
+    ownershipType: 'DIRECT' | 'INDIRECT';
+  }) => void;
+
+  /**
+   * Callback when an owner is removed. The host is responsible for
+   * deactivating the party via the API. If not provided, removal is
+   * managed in local component state (standalone/demo mode).
+   */
+  onRemoveOwner?: (ownerId: string) => void;
+
+  /**
+   * Callback when a hierarchy chain is saved for an indirect owner.
+   * The host is responsible for creating intermediary owner parties via
+   * the API (one per hierarchy step) with correct `parentPartyId` chaining.
+   *
+   * Each step in the array represents an intermediary entity in order from
+   * the beneficial owner toward the root business.
+   *
+   * If not provided, hierarchies are stored in local component state only.
+   */
+  onSaveHierarchy?: (
+    ownerId: string,
+    steps: Array<{
+      entityName: string;
+      ownsRootBusinessDirectly: boolean;
+      /**
+       * True when this step was chosen from the existing-entities list rather
+       * than added as a new company. The host should reuse the existing party
+       * instead of creating a duplicate.
+       */
+      isExistingEntity?: boolean;
+      /**
+       * Stable party id of the selected existing entity, carried from the
+       * chain-builder selection so the host reuses that exact party instead of
+       * re-matching by (ambiguous) organization name.
+       */
+      partyId?: string;
+    }>
+  ) => void;
+
+  /**
+   * Callback when the user clicks "Edit" on an owner card.
+   * The host navigates to the detail-collection form for this party.
+   */
+  onEditOwner?: (ownerId: string) => void;
+
+  /**
+   * Callback when the user changes an owner's nature of ownership
+   * (Direct <-> Indirect) via the card toggle. The host is responsible for
+   * persisting `natureOfOwnership` on the party. When switching to DIRECT,
+   * any existing intermediary chain for this owner should be cleared.
+   * If not provided, the change is managed in local component state
+   * (standalone/demo mode).
+   */
+  onChangeOwnerNature?: (
+    ownerId: string,
+    nature: 'DIRECT' | 'INDIRECT'
+  ) => void;
+
+  /**
+   * Callback when the user attests that no individual or entity owns 25%
+   * or more of the business. The host can use this to skip the ownership
+   * collection step entirely.
+   */
+  onNoBeneficialOwners?: (attested: boolean) => void;
+
   /** Configuration options */
   config?: Partial<OwnershipConfig>;
 
   /** Read-only mode */
   readOnly?: boolean;
+
+  /**
+   * Party ID of the controller/session user. When set, the delete button
+   * is hidden for this owner (they cannot remove themselves).
+   */
+  controllerPartyId?: string;
 
   /** Custom styling classes */
   className?: string;

@@ -37,8 +37,15 @@ const meta = {
         defaultValue: { summary: 'false' },
       },
     },
+    controllerPartyId: {
+      control: { type: 'text' },
+      description:
+        'Party ID of the controller/session user (hides their delete button)',
+    },
     onOwnershipComplete: { action: 'onOwnershipComplete' },
     onValidationChange: { action: 'onValidationChange' },
+    onEditOwner: { action: 'onEditOwner' },
+    onGatingAnswer: { action: 'onGatingAnswer' },
   },
 } satisfies Meta<typeof IndirectOwnership>;
 
@@ -92,5 +99,20 @@ export const ReadOnly: Story = {
     client: mockClientWithOwners,
     readOnly: true,
     testId: 'indirect-ownership-readonly',
+  },
+};
+
+/**
+ * Controller-aware view. When `controllerPartyId` matches an owner, that owner
+ * shows the "Controller" badge and cannot be removed. This mirrors how the
+ * OnboardingFlow wizard passes the controller party, keeping the standalone
+ * component and the integrated wizard on the same interaction surface.
+ */
+export const WithController: Story = {
+  args: {
+    client: mockClientWithOwners,
+    readOnly: false,
+    controllerPartyId: 'party-monica',
+    testId: 'indirect-ownership-controller',
   },
 };

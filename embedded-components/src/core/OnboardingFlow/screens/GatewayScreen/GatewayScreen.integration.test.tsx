@@ -175,6 +175,20 @@ describe('GatewayScreen (integration)', () => {
       expect(gwCtx.postMutate).toHaveBeenCalled();
     });
 
+    // Finding #4: the new-client organization-creation payload persists US so
+    // Business Identity can keep its country field display-only (disabled).
+    const postArg = gwCtx.postMutate.mock.calls[0][0] as {
+      data?: {
+        parties?: Array<{
+          organizationDetails?: { countryOfFormation?: string };
+        }>;
+      };
+    };
+    const orgPartyInPost = postArg.data?.parties?.find(
+      (p) => p.organizationDetails
+    );
+    expect(orgPartyInPost?.organizationDetails?.countryOfFormation).toBe('US');
+
     expect(baseOnboarding.setClientId).toHaveBeenCalledWith('new-client');
     expect(gwCtx.goTo).toHaveBeenCalledWith('overview');
     expect(gwCtx.updatePartyMutate).not.toHaveBeenCalled();
@@ -324,6 +338,19 @@ describe('GatewayScreen (integration)', () => {
     await waitFor(() => {
       expect(gwCtx.updateClientMutate).toHaveBeenCalled();
     });
+
+    // Finding #4: the missing-organization addParties payload also persists US.
+    const addArg = gwCtx.updateClientMutate.mock.calls[0][0] as {
+      data?: {
+        addParties?: Array<{
+          organizationDetails?: { countryOfFormation?: string };
+        }>;
+      };
+    };
+    const orgInAdd = addArg.data?.addParties?.find(
+      (p) => p.organizationDetails
+    );
+    expect(orgInAdd?.organizationDetails?.countryOfFormation).toBe('US');
 
     expect(gwCtx.postMutate).not.toHaveBeenCalled();
     expect(gwCtx.updatePartyMutate).not.toHaveBeenCalled();
@@ -802,9 +829,19 @@ describe('GatewayScreen (integration)', () => {
       });
 
       // Verify the request includes PTC data
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const callArgs: any = gwCtx.postMutate.mock.calls[0][0];
-      const orgDetails: any = callArgs?.data?.parties?.[0]?.organizationDetails;
+      const callArgs = gwCtx.postMutate.mock.calls[0][0] as {
+        data?: {
+          parties?: Array<{
+            organizationDetails?: {
+              publiclyTraded?: {
+                tickerSymbol?: string;
+                stockExchange?: string;
+              };
+            };
+          }>;
+        };
+      };
+      const orgDetails = callArgs?.data?.parties?.[0]?.organizationDetails;
       expect(orgDetails?.publiclyTraded?.tickerSymbol).toBe('JPM');
       expect(orgDetails?.publiclyTraded?.stockExchange).toBe('XNYS');
     });

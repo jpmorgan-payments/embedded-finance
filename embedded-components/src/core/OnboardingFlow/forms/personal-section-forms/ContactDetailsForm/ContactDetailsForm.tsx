@@ -41,18 +41,15 @@ export const ContactDetailsForm: FormStepComponent = ({ currentPartyData }) => {
     !!addressCountry &&
     addressCountry !== countryOfResidence;
 
+  const controllerPhoneType = form.watch('controllerPhone.phoneType');
+  const controllerPhoneNumber = form.watch('controllerPhone.phoneNumber');
+
   useEffect(() => {
-    const phoneNumber = form.watch('controllerPhone.phoneNumber');
-    if (
-      phoneNumber &&
-      form.watch('controllerPhone.phoneType') !== 'MOBILE_PHONE'
-    ) {
+    if (controllerPhoneNumber && controllerPhoneType !== 'MOBILE_PHONE') {
       form.setValue('controllerPhone.phoneType', 'MOBILE_PHONE');
     }
-  }, [
-    form.watch('controllerPhone.phoneType'),
-    form.watch('controllerPhone.phoneNumber'),
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- default the phone type only when the number/type change; form is read as latest and intentionally excluded
+  }, [controllerPhoneNumber, controllerPhoneType]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">

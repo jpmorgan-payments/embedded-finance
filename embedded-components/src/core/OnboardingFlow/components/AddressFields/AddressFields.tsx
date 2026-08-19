@@ -46,7 +46,7 @@ export function AddressFields({
 }) {
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const form = useFormContext();
-  const control = form.control as any;
+  const control = form.control;
   const getAddressContentToken = useGetFieldContentToken(
     addressName as Parameters<typeof useGetFieldContentToken>[0],
     contentScreenId
@@ -85,18 +85,18 @@ export function AddressFields({
     ] as unknown as TemplateStringsArray) || undefined;
 
   // Reset state + clear address validation when the country changes.
+  const stateFieldName = fieldName('state');
+  const cityFieldName = fieldName('city');
+  const postalCodeFieldName = fieldName('postalCode');
   const isInitialCountryRender = useRef(true);
   useEffect(() => {
     if (isInitialCountryRender.current) {
       isInitialCountryRender.current = false;
       return;
     }
-    form.setValue(fieldName('state') as any, '');
-    form.clearErrors([
-      fieldName('city'),
-      fieldName('state'),
-      fieldName('postalCode'),
-    ] as any);
+    form.setValue(stateFieldName, '');
+    form.clearErrors([cityFieldName, stateFieldName, postalCodeFieldName]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset state/city/postal only when the country changes; form and the field-name strings are read as latest and intentionally excluded (adding them re-runs the reset during the flow and can loop)
   }, [addressCountry]);
 
   const hasCountryMismatch =

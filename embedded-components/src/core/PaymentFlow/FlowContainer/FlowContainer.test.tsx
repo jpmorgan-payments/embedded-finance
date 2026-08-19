@@ -60,7 +60,6 @@ describe('FlowContainer', () => {
       <FlowContainer
         title="Payment"
         asModal={false}
-        // eslint-disable-next-line tailwindcss/no-custom-classname
         className="custom-class"
         onClose={vi.fn()}
         reviewPanel={null}

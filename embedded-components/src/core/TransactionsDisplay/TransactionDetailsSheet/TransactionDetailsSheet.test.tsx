@@ -29,7 +29,7 @@ const queryClient = new QueryClient({
 // Component rendering helper
 const renderComponent = (
   transactionId: string,
-  mockData: any = mockTransactionComplete,
+  mockData: Record<string, unknown> = mockTransactionComplete,
   options?: { skipMock?: boolean }
 ) => {
   if (!options?.skipMock) {

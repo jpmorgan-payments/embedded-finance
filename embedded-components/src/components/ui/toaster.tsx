@@ -1,3 +1,5 @@
+import { type ComponentProps } from 'react';
+
 import {
   Toast,
   ToastClose,
@@ -8,12 +10,16 @@ import {
 } from '@/components/ui/toast';
 import { useToast } from '@/components/ui/use-toast';
 
-export function Toaster({ swipeDirection }: any) {
+export function Toaster({
+  swipeDirection,
+}: {
+  swipeDirection?: ComponentProps<typeof ToastProvider>['swipeDirection'];
+}) {
   const { toasts } = useToast();
 
   return (
     <ToastProvider swipeDirection={swipeDirection}>
-      {toasts.map(({ id, title, description, action, ...props }: any) => {
+      {toasts.map(({ id, title, description, action, ...props }) => {
         return (
           <Toast key={id} {...props}>
             <div className="eb-grid eb-gap-1">

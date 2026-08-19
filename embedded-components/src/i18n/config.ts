@@ -195,10 +195,10 @@ export const createI18nInstance = (
     resources: cloneDeep(defaultResources),
     interpolation: {
       escapeValue: false,
-      format: (value: any, format?: any, lng?: any) => {
+      format: (value: unknown, format?: string, lng?: string) => {
         if (format === 'inc') {
           if (!Number.isNaN(Number(value))) {
-            return Number(value) + 1;
+            return String(Number(value) + 1);
           }
         }
 
@@ -215,7 +215,7 @@ export const createI18nInstance = (
           });
         }
 
-        return value;
+        return value as string;
       },
     },
   });

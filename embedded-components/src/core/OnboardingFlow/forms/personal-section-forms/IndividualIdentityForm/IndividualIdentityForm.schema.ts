@@ -294,7 +294,7 @@ export const useIndividualIdentityFormSchema = () => {
 };
 
 export const refineIndividualIdentityFormSchema = (
-  schema: z.ZodObject<Record<string, z.ZodType<any>>>
+  schema: z.ZodObject<Record<string, z.ZodTypeAny>>
 ) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: i18n hook used inside a schema-refine helper invoked during render; tracked as debt.
   const v = useGetValidationMessage();

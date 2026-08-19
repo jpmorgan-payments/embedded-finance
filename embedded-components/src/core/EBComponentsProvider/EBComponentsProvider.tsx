@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { createI18nInstance } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Axios from 'axios';
+import Axios, { type InternalAxiosRequestConfig } from 'axios';
 import { AlertCircle } from 'lucide-react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { I18nextProvider } from 'react-i18next';
@@ -32,7 +32,6 @@ const ReactQueryDevtoolsProduction =
   process.env.NODE_ENV === 'development'
     ? lazy(() =>
         import(
-          // eslint-disable-next-line import/extensions
           '@tanstack/react-query-devtools/build/modern/production.js'
         ).then((d) => ({
           default: d.ReactQueryDevtools,
@@ -63,7 +62,6 @@ function ErrorFallback({ error }: { error: Error }) {
 
 const logError = (error: Error, info: ErrorInfo) => {
   // In production, you might want to send this to an error reporting service
-  // eslint-disable-next-line no-console
   console.error('Caught by error boundary:', error, info);
 };
 
@@ -81,9 +79,11 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 }) => {
   // Create a provider-scoped i18n instance
   // This prevents global state pollution when multiple providers exist or routes change
+  const contentTokensTokensJson = JSON.stringify(contentTokens?.tokens);
   const i18nInstance = useMemo(
     () => createI18nInstance(contentTokens),
-    [contentTokens?.name, JSON.stringify(contentTokens?.tokens)]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on deep-compared contentTokens name+tokens to avoid recreating i18n on every render
+    [contentTokens?.name, contentTokensTokensJson]
   );
 
   // Stable JSON representations for deep comparison
@@ -103,9 +103,11 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   const queryClient = queryClientRef.current;
 
   // Update default options when they change
+  const reactQueryDefaultOptionsJson = JSON.stringify(reactQueryDefaultOptions);
   useEffect(() => {
     queryClient.setDefaultOptions(reactQueryDefaultOptions);
-  }, [JSON.stringify(reactQueryDefaultOptions)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on deep-compared reactQueryDefaultOptions; queryClient is a stable ref
+  }, [reactQueryDefaultOptionsJson]);
 
   // --- Provider-scoped Axios instance (synchronous interceptor) ---
   // The interceptor is registered once and reads config from a mutable ref.
@@ -138,7 +140,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     const instance = Axios.create();
 
     // Main request interceptor — reads latest config from ref
-    instance.interceptors.request.use((config: any) => {
+    instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
       try {
         const {
           apiBaseUrl: baseUrl,
@@ -185,9 +187,8 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
                 }
               : config.data,
           baseURL: finalBaseURL,
-        };
+        } as InternalAxiosRequestConfig;
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('Error processing URL in interceptor:', error);
         return config;
       }
@@ -195,7 +196,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
 
     // File download interceptor (blob response for /file URLs)
     instance.interceptors.request.use(
-      (config: any) => {
+      (config: InternalAxiosRequestConfig) => {
         if (config.url?.includes('/file')) {
           config.responseType = 'blob';
         }
@@ -226,6 +227,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     headersJson,
     queryParamsJson,
     clientId,
+    queryClient,
   ]);
 
   // Add color scheme class to the root element
@@ -244,9 +246,11 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
     }
   }, [theme.colorScheme]);
 
+  const themeJson = JSON.stringify(theme);
   const css = useMemo(
     () => convertThemeToCssString(theme),
-    [JSON.stringify(theme)]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on deep-compared theme
+    [themeJson]
   );
 
   return (

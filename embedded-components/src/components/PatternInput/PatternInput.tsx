@@ -67,6 +67,7 @@ const PatternInput = React.forwardRef<HTMLInputElement, PatternInputProps>(
       if (value && typeof value === 'string' && value.length > 0) {
         hasInitialData.current = true;
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- capture initial-data flag once on mount only
     }, []); // Only run on mount
 
     // Effect to focus the input when transitioning from obfuscated to focused state

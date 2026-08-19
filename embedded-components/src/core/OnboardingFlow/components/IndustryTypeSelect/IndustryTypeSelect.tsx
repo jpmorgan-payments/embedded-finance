@@ -94,7 +94,6 @@ const resolvePriorityCodes = (
     }
   }
   if (unknown.length > 0 && process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line no-console
     console.warn(
       `[IndustryTypeSelect] Ignoring unknown priorityCodes: ${unknown.join(', ')}`
     );
@@ -326,6 +325,7 @@ export const IndustryTypeSelect = ({
     );
 
     return centeredOffset;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recompute scroll offset only when the selected index changes; getItemHeight is a pure row-height helper
   }, [selectedItemIndex]);
 
   const selectedCatalogEntry = field.value
@@ -393,6 +393,7 @@ export const IndustryTypeSelect = ({
               className="eb-h-9"
               value={searchQuery}
               onValueChange={setSearchQuery}
+              // eslint-disable-next-line jsx-a11y/no-autofocus -- intentional: focus search field when the industry popover opens
               autoFocus
             />
             <CommandList className="eb-max-h-[300px]">

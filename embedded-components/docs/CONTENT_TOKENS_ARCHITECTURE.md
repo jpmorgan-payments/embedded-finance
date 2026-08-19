@@ -80,6 +80,20 @@ recipients.statusLabels.active  // Different path!
 
 ## Implementation Patterns
 
+### Stylized Content in Alerts
+
+Alert content tokens may use a small set of attribute-free presentational tags inside a single string:
+
+```json
+{
+  "linkAccountHelp": "Before you continue:<ul><li>Link a <strong>business</strong> account</li><li>Verify the routing number</li></ul>"
+}
+```
+
+Supported tags are `<p>`, `<br/>`, `<strong>`/`<b>`, `<em>`/`<i>`, `<ul>`, `<ol>`, and `<li>`. `TransWithTokens` maps these tags to React elements while preserving `showTokenIds` annotations and provider token overrides. `AlertDescription` supplies consistent list markers and spacing.
+
+Do not put links, attributes, scripts, or other HTML in token strings. Links must be caller-supplied React elements with code-owned, validated URLs. Token strings are never rendered with `dangerouslySetInnerHTML`.
+
 ### Pattern 1: useTranslationWithTokens Hook
 
 Use the custom `useTranslationWithTokens` hook instead of the standard `useTranslation` from react-i18next:

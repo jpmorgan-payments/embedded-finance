@@ -22,6 +22,8 @@ import type {
   AccountBalanceResponse,
   AccountResponse,
 } from '@/api/generated/ep-accounts.schemas';
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -173,7 +175,7 @@ function CompactBalanceDisplay({
   if (isBalanceError) {
     return (
       <ServerErrorAlert
-        error={balanceError as any}
+        error={balanceError as ErrorType<ApiError>}
         customTitle={t('accounts:card.balancesError', {
           defaultValue: 'Unable to load balances',
         })}
@@ -237,7 +239,7 @@ function FullBalanceDisplay({
   if (isBalanceError) {
     return (
       <ServerErrorAlert
-        error={balanceError as any}
+        error={balanceError as ErrorType<ApiError>}
         customTitle={t('accounts:card.balancesError', {
           defaultValue: 'Unable to load balances',
         })}

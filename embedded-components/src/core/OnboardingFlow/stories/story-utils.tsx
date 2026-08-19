@@ -943,7 +943,6 @@ export const commonArgs: Partial<OnboardingFlowProps> = {
  */
 export const commonArgsWithCallbacks: Partial<OnboardingFlowProps> = {
   ...commonArgs,
-  // eslint-disable-next-line no-console
   onPostClientSettled: (data, error) => {
     if (data) {
       // eslint-disable-next-line no-console
@@ -953,7 +952,6 @@ export const commonArgsWithCallbacks: Partial<OnboardingFlowProps> = {
       console.log('@@POST client response error', error);
     }
   },
-  // eslint-disable-next-line no-console
   onPostPartySettled: (response, error) => {
     if (response) {
       // eslint-disable-next-line no-console
@@ -963,7 +961,6 @@ export const commonArgsWithCallbacks: Partial<OnboardingFlowProps> = {
       console.log('@@POST party response error', error);
     }
   },
-  // eslint-disable-next-line no-console
   onPostClientVerificationsSettled: (data, error) => {
     if (data) {
       // eslint-disable-next-line no-console

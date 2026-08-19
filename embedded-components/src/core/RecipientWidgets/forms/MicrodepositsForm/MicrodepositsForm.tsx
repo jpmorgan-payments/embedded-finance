@@ -11,7 +11,10 @@ import {
   useGetRecipient,
   useRecipientsVerification,
 } from '@/api/generated/ep-recipients';
-import { MicrodepositVerificationResponse } from '@/api/generated/ep-recipients.schemas';
+import {
+  MicrodepositVerificationResponse,
+  Recipient,
+} from '@/api/generated/ep-recipients.schemas';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,7 +44,7 @@ type MicrodepositsFormDialogTriggerProps = {
   onOpenChange?: (open: boolean) => void;
   onVerificationSettled?: (
     response: MicrodepositVerificationResponse,
-    recipient?: any
+    recipient?: Recipient
   ) => void;
 };
 

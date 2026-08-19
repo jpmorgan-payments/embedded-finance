@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import Dropzone from './dropzone';
@@ -48,7 +48,7 @@ export default meta;
 type Story = StoryObj<typeof Dropzone>;
 
 // Helper component for controlled stories
-const DropzoneWithState = (args: any) => {
+const DropzoneWithState = (args: ComponentProps<typeof Dropzone>) => {
   const [files, setFiles] = useState<File[]>([]);
 
   return (
@@ -273,7 +273,7 @@ export const WithInitialFiles: Story = {
 };
 
 // Helper component for reset key demo
-const DropzoneWithReset = (args: any) => {
+const DropzoneWithReset = (args: ComponentProps<typeof Dropzone>) => {
   const [resetKey, setResetKey] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
 

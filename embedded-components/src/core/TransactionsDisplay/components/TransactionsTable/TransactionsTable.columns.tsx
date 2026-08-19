@@ -74,7 +74,7 @@ const formatDateTime = (
  * - transactionReferenceId, createdAt, effectiveDate, memo, debtorName, creditorName, ledgerBalance, etc.
  */
 export const getTransactionsColumns = (
-  t: (key: string, options?: any) => string,
+  t: (key: string, options?: { defaultValue?: string }) => string,
   locale?: string
 ): ColumnDef<ModifiedTransaction>[] => {
   const naText = t('common:na', { defaultValue: 'N/A' });

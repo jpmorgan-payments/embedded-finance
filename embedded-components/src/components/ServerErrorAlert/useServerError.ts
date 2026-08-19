@@ -1,7 +1,17 @@
 import { ReactNode, useMemo } from 'react';
 
-import { ApiError } from '@/api/generated/smbdo.schemas';
+import { ApiError, ApiErrorReasonV2 } from '@/api/generated/smbdo.schemas';
 import type { ErrorType } from '@/api/use-axios-instance';
+
+/**
+ * The runtime API error payload occasionally carries undocumented top-level
+ * `message` and `reasons` fields that are not part of the generated `ApiError`
+ * contract. This local type lets us read them without falling back to `any`.
+ */
+type ExtendedApiErrorData = ApiError & {
+  message?: string;
+  reasons?: ApiErrorReasonV2[];
+};
 
 const defaultErrorMessages: Record<string, string> = {
   '400': 'Please check the information you entered and try again.',
@@ -22,9 +32,9 @@ export interface ServerErrorInfo {
   /** API message from response (e.g., "ABA routing number not found") */
   apiMessage: string | undefined;
   /** Array of error reasons from API response */
-  reasons: any[];
+  reasons: ApiErrorReasonV2[];
   /** Array of context items from API response */
-  context: any[];
+  context: ApiErrorReasonV2[];
   /** Whether the error has detailed information to show */
   hasDetails: boolean;
   /** Get the appropriate error message based on status and custom messages */
@@ -76,9 +86,8 @@ export function useServerError(
     // The top-level `message` is often a generic placeholder like
     // "Error details not available", while `context` carries the real
     // actionable detail. Prefer context when top-level is generic.
-    const topLevelMessage = (error.response?.data as any)?.message as
-      | string
-      | undefined;
+    const topLevelMessage = (error.response?.data as ExtendedApiErrorData)
+      ?.message;
     const contextMessages = error.response?.data?.context
       ?.map((c) => c.message)
       .filter(Boolean);
@@ -96,7 +105,8 @@ export function useServerError(
       ? (bestContextMessage ?? topLevelMessage)
       : (topLevelMessage ?? bestContextMessage);
 
-    const reasons = (error.response?.data as any)?.reasons || [];
+    const reasons =
+      (error.response?.data as ExtendedApiErrorData)?.reasons || [];
     const context = error.response?.data?.context || [];
 
     const hasDetails = Boolean(

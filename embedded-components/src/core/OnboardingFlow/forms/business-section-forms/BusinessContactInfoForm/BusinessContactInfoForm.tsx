@@ -22,18 +22,15 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       z.input<ReturnType<typeof useBusinessContactInfoFormSchema>>
     >();
 
+  const organizationPhoneType = form.watch('organizationPhone.phoneType');
+  const organizationPhoneNumber = form.watch('organizationPhone.phoneNumber');
+
   useEffect(() => {
-    const phoneNumber = form.watch('organizationPhone.phoneNumber');
-    if (
-      phoneNumber &&
-      form.watch('organizationPhone.phoneType') !== 'BUSINESS_PHONE'
-    ) {
+    if (organizationPhoneNumber && organizationPhoneType !== 'BUSINESS_PHONE') {
       form.setValue('organizationPhone.phoneType', 'BUSINESS_PHONE');
     }
-  }, [
-    form.watch('organizationPhone.phoneType'),
-    form.watch('organizationPhone.phoneNumber'),
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- default the phone type only when the number/type change; form is read as latest and intentionally excluded
+  }, [organizationPhoneNumber, organizationPhoneType]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">

@@ -426,6 +426,8 @@ export const RecipientsTableView: React.FC<RecipientsTableViewProps> = ({
     },
     [
       t,
+      tString,
+      showRecipientCurrency,
       userJourneys.VERIFY_STARTED,
       userJourneys.REMOVE_STARTED,
       renderPaymentAction,

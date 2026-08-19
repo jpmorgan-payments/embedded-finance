@@ -200,11 +200,12 @@ const FormMessage = React.forwardRef<
   ) : (
     children
   );
+  const hasBody = !!body;
 
   React.useEffect(() => {
-    if (body) return registerMessage();
+    if (hasBody) return registerMessage();
     return undefined;
-  }, [body, registerMessage]);
+  }, [hasBody, registerMessage]);
 
   if (!body) {
     return null;

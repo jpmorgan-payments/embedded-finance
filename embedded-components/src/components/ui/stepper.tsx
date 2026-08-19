@@ -326,7 +326,7 @@ const VerticalContent = ({ children }: { children: React.ReactNode }) => {
       {React.Children.map(children, (child, i) => {
         const isCompletedStep =
           (React.isValidElement(child) &&
-            (child.props as any).isCompletedStep) ??
+            (child.props as { isCompletedStep?: boolean }).isCompletedStep) ??
           i < activeStep;
         const isLastStep = i === stepCount - 1;
         const isCurrentStep = i === activeStep;
@@ -404,6 +404,7 @@ interface StepInternalConfig {
 interface FullStepProps extends StepProps, StepInternalConfig {}
 
 const Step = React.forwardRef<HTMLLIElement, StepProps>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ref is forwarded to an <li> or a <div> depending on orientation
   (props, ref: React.Ref<any>) => {
     const {
       children,
@@ -460,6 +461,7 @@ const Step = React.forwardRef<HTMLLIElement, StepProps>(
     return renderStep();
   }
 );
+Step.displayName = 'Step';
 
 // <---------- VERTICAL STEP ---------->
 
@@ -640,6 +642,7 @@ const VerticalStep = React.forwardRef<HTMLDivElement, VerticalStepProps>(
     );
   }
 );
+VerticalStep.displayName = 'VerticalStep';
 
 // <---------- HORIZONTAL STEP ---------->
 
@@ -748,6 +751,7 @@ const HorizontalStep = React.forwardRef<HTMLDivElement, StepSharedProps>(
     );
   }
 );
+HorizontalStep.displayName = 'HorizontalStep';
 
 // <---------- STEP BUTTON CONTAINER ---------->
 
@@ -807,7 +811,7 @@ const StepButtonContainer = ({
 
 // <---------- STEP ICON ---------->
 
-type IconType = LucideIcon | React.ComponentType<any> | undefined;
+type IconType = LucideIcon | React.ElementType | undefined;
 
 const iconVariants = cva('', {
   variants: {
@@ -931,6 +935,7 @@ const StepIcon = React.forwardRef<HTMLDivElement, StepIconProps>(
     ]);
   }
 );
+StepIcon.displayName = 'StepIcon';
 
 // <---------- STEP LABEL ---------->
 

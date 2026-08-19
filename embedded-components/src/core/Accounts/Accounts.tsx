@@ -213,18 +213,16 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
                           <div className="eb-mb-2">
                             <span className="eb-font-medium">Reasons:</span>
                             <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                              {errorInfo.reasons.map(
-                                (reason: any, i: number) => (
-                                  <li key={i}>
-                                    {reason.field && (
-                                      <span className="eb-font-medium">
-                                        {reason.field}:{' '}
-                                      </span>
-                                    )}
-                                    {reason.message || reason}
-                                  </li>
-                                )
-                              )}
+                              {errorInfo.reasons.map((reason, i: number) => (
+                                <li key={i}>
+                                  {reason.field && (
+                                    <span className="eb-font-medium">
+                                      {reason.field}:{' '}
+                                    </span>
+                                  )}
+                                  {reason.message}
+                                </li>
+                              ))}
                             </ul>
                           </div>
                         )}
@@ -232,7 +230,7 @@ export const Accounts = forwardRef<AccountsRef, AccountsProps>(
                           <div>
                             <span className="eb-font-medium">Context:</span>
                             <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                              {errorInfo.context.map((ctx: any, i: number) => (
+                              {errorInfo.context.map((ctx, i: number) => (
                                 <li key={i}>
                                   {ctx.field && (
                                     <span className="eb-font-medium">

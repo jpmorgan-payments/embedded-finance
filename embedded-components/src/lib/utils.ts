@@ -29,7 +29,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const isValueEmpty = (value: any): boolean => {
+export const isValueEmpty = (value: unknown): boolean => {
   if (value === undefined || value === null || value === '') return true;
   if (Array.isArray(value)) return value.length === 0;
   if (typeof value === 'object') return Object.keys(value).length === 0;
@@ -37,10 +37,10 @@ export const isValueEmpty = (value: any): boolean => {
 };
 
 export function _get(
-  object: any,
+  object: unknown,
   path: string | string[],
-  defaultValue?: any
-): any {
+  defaultValue?: unknown
+): unknown {
   // Handle null/undefined objects
   if (object == null) return defaultValue;
 
@@ -48,13 +48,13 @@ export function _get(
   const segments = Array.isArray(path) ? path : path.split('.');
 
   // Handle array indexes and nested paths
-  let result = object;
+  let result: unknown = object;
   for (const segment of segments) {
     // Handle array indices in bracket notation e.g. "foo[0].bar"
     const matches = segment.match(/^([^[]+)|\[(.+)\]$/);
     const key = matches ? matches[1] || matches[2] : segment;
 
-    result = result?.[key];
+    result = (result as Record<string, unknown> | null | undefined)?.[key];
     if (result === undefined) return defaultValue;
   }
 

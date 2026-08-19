@@ -4,6 +4,8 @@ import { CopyIcon } from 'lucide-react';
 
 import { useLocale } from '@/lib/hooks';
 import { useGetTransactionV2 } from '@/api/generated/ep-transactions';
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -46,15 +48,15 @@ export const TransactionDetailsDialogTrigger: FC<
   const naText = t('common:na', { defaultValue: 'N/A' });
 
   // Helper function to check if a field has a value
-  const hasValue = (val: any): boolean => {
+  const hasValue = (val: unknown): boolean => {
     return val !== null && val !== undefined && val !== '';
   };
 
   // Helper function to render a field conditionally
-  const renderField = (
+  const renderField = <T extends ReactNode>(
     label: ReactNode,
-    value: any,
-    formatter?: (val: any) => ReactNode
+    value: T,
+    formatter?: (val: T) => ReactNode
   ) => {
     const isEmpty = !hasValue(value);
     if (hideEmpty && isEmpty) return null;
@@ -181,7 +183,7 @@ export const TransactionDetailsDialogTrigger: FC<
           )}
           {status === 'error' && (
             <ServerErrorAlert
-              error={error as any}
+              error={error as ErrorType<ApiError>}
               customTitle={t('errors.loadDetails.title', {
                 defaultValue: 'Failed to load transaction details',
               })}
@@ -444,11 +446,13 @@ export const TransactionDetailsDialogTrigger: FC<
                         }),
                         transaction.ledgerBalance,
                         (val) =>
-                          formatNumberToCurrency(
-                            val,
-                            transaction.currency ?? 'USD',
-                            locale
-                          )
+                          val == null
+                            ? naText
+                            : formatNumberToCurrency(
+                                val,
+                                transaction.currency ?? 'USD',
+                                locale
+                              )
                       )}
                       {renderField(
                         t('details.fields.memo', { defaultValue: 'Memo' }),

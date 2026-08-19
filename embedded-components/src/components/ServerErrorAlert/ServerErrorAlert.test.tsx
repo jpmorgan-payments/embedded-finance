@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import { ServerErrorAlert } from './ServerErrorAlert';
@@ -11,7 +13,27 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   </EBComponentsProvider>
 );
 
-function createError(overrides: Record<string, any> = {}) {
+const richContentWrapper = ({ children }: { children: React.ReactNode }) => (
+  <EBComponentsProvider
+    apiBaseUrl="http://test"
+    contentTokens={{
+      tokens: {
+        common: {
+          errors: {
+            defaultMessages: {
+              '400':
+                'Check the following:<ul><li><strong>Business</strong> details</li><li>Contact details<br/>and address</li></ul>',
+            },
+          },
+        },
+      },
+    }}
+  >
+    {children}
+  </EBComponentsProvider>
+);
+
+function createError(overrides: Record<string, unknown> = {}) {
   return {
     message: 'Request failed',
     status: 400,
@@ -25,7 +47,7 @@ function createError(overrides: Record<string, any> = {}) {
       },
     },
     ...overrides,
-  } as any;
+  } as unknown as ErrorType<ApiError>;
 }
 
 describe('ServerErrorAlert', () => {
@@ -83,6 +105,68 @@ describe('ServerErrorAlert', () => {
       screen.getByText('ABA routing number 533100000 not found')
     ).toBeInTheDocument();
   });
+
+  it('renders structured content from an overridden default message', () => {
+    const error = createError({
+      response: {
+        data: {
+          httpStatus: 400,
+          title: 'Bad Request',
+          message: undefined,
+          context: [],
+        },
+      },
+    });
+
+    const { container } = render(<ServerErrorAlert error={error} />, {
+      wrapper: richContentWrapper,
+    });
+
+    expect(container.querySelector('ul')?.parentElement?.className).toContain(
+      '[&_ul]:eb-list-disc'
+    );
+    expect(container.querySelectorAll('li')).toHaveLength(2);
+    expect(container.querySelector('strong')).toHaveTextContent('Business');
+    expect(container.querySelector('br')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['enUS', 'An unexpected error occurred. Please try again later.'],
+    ['esUS', 'Ocurrió un error inesperado. Inténtelo de nuevo más tarde.'],
+    [
+      'frCA',
+      "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+    ],
+  ] as const)(
+    'renders localized default content for %s',
+    (locale, expectedMessage) => {
+      const error = createError({
+        status: 500,
+        response: {
+          data: {
+            httpStatus: 500,
+            title: 'Server Error',
+            message: undefined,
+            context: [],
+          },
+        },
+      });
+      const localeWrapper = ({ children }: { children: React.ReactNode }) => (
+        <EBComponentsProvider
+          apiBaseUrl="http://test"
+          contentTokens={{ name: locale }}
+        >
+          {children}
+        </EBComponentsProvider>
+      );
+
+      render(<ServerErrorAlert error={error} />, {
+        wrapper: localeWrapper,
+      });
+
+      expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+    }
+  );
 
   it('prefers context messages when top-level message matches title', () => {
     const error = createError({
@@ -218,6 +302,29 @@ describe('ServerErrorAlert', () => {
       { wrapper }
     );
     expect(screen.getByText('Server is down')).toBeInTheDocument();
+  });
+
+  it('uses the generic default message for an unsupported status code', () => {
+    const error = createError({
+      status: 418,
+      response: {
+        data: {
+          httpStatus: 418,
+          title: 'Unexpected Status',
+          message: undefined,
+          context: [],
+        },
+      },
+    });
+
+    render(<ServerErrorAlert error={error} />, { wrapper });
+
+    expect(
+      screen.getByText('An unexpected error occurred. Please try again later.')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('errors.defaultMessages.418')
+    ).not.toBeInTheDocument();
   });
 
   it('applies custom className', () => {

@@ -5,6 +5,7 @@ import { FlowContextProvider } from '../FlowContainer/FlowContext';
 import type {
   AccountResponse,
   Payee,
+  PaymentFlowFormData,
   PaymentMethod,
 } from '../PaymentFlow.types';
 import { ReviewPanel } from './ReviewPanel';
@@ -83,7 +84,9 @@ function renderReviewPanel(
   };
 
   return render(
-    <FlowContextProvider initialData={initialData as any}>
+    <FlowContextProvider
+      initialData={initialData as Partial<PaymentFlowFormData>}
+    >
       <ReviewPanel {...defaultProps} {...props} />
     </FlowContextProvider>
   );
@@ -219,7 +222,7 @@ describe('ReviewPanel', () => {
     };
 
     renderReviewPanel(
-      { transactionError: mockError as any },
+      { transactionError: mockError },
       {
         fromAccountId: 'acct-001',
         payeeId: 'payee-1',

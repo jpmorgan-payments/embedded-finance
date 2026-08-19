@@ -1,6 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
+
 import { FriendlyErrorAlert } from './FriendlyErrorAlert';
 
 // Mock react-i18next with all required exports
@@ -47,7 +50,7 @@ describe('FriendlyErrorAlert', () => {
         status: 400,
       },
       status: 400,
-    } as any;
+    } as unknown as ErrorType<ApiError>;
 
     render(<FriendlyErrorAlert error={error} />);
 
@@ -81,7 +84,7 @@ describe('FriendlyErrorAlert', () => {
         status: 400,
       },
       status: 400,
-    } as any;
+    } as unknown as ErrorType<ApiError>;
 
     render(<FriendlyErrorAlert error={error} />);
 
@@ -104,7 +107,7 @@ describe('FriendlyErrorAlert', () => {
       },
       status: 500,
       message: 'Internal Server Error',
-    } as any;
+    } as unknown as ErrorType<ApiError>;
 
     render(
       <FriendlyErrorAlert
@@ -134,7 +137,7 @@ describe('FriendlyErrorAlert', () => {
         status: 400,
       },
       status: 400,
-    } as any;
+    } as unknown as ErrorType<ApiError>;
 
     render(<FriendlyErrorAlert error={error} className="eb-mt-4" />);
 

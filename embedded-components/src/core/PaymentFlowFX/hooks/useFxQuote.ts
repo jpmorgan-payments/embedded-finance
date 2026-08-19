@@ -116,6 +116,7 @@ export function useFxQuote({
       quote: selection.rate,
       refetch: () => ratesheetQuery.refetch(),
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on specific ratesheetQuery fields; the query result object identity changes each render
   }, [
     ratesheetEnabled,
     ratesheetQuery.isLoading,
@@ -198,6 +199,7 @@ export function useFxQuote({
     return () => {
       if (timer) clearTimeout(timer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on specific fxConfig callbacks; depending on the whole fxConfig object would re-trigger acquisition each render
   }, [
     fxActive,
     mode,

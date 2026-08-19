@@ -11,6 +11,8 @@ import {
   useBusinessIdentityFormSchema,
   useIndustryFormSchema,
 } from '@/core/OnboardingFlow/forms/business-section-forms';
+import { useIntermediaryAddressSchema } from '@/core/OnboardingFlow/forms/intermediary-section-forms/IntermediaryAddressForm/IntermediaryAddressForm';
+import { intermediaryOrgDetailsSchema } from '@/core/OnboardingFlow/forms/intermediary-section-forms/IntermediaryOrgDetailsForm/IntermediaryOrgDetailsForm';
 import {
   useContactDetailsFormSchema,
   useIndividualIdentityFormSchema,
@@ -28,6 +30,8 @@ type OnboardingFormSchemaType = [
   ReturnType<typeof useBusinessIdentityFormSchema>,
   ReturnType<typeof useIndustryFormSchema>,
   ReturnType<typeof useBusinessContactInfoFormSchema>,
+  typeof intermediaryOrgDetailsSchema,
+  ReturnType<typeof useIntermediaryAddressSchema>,
 ];
 
 type MergeSchemaInputs<TSchemas extends readonly z.ZodTypeAny[]> =
@@ -36,7 +40,7 @@ type MergeSchemaInputs<TSchemas extends readonly z.ZodTypeAny[]> =
     ...infer Rest extends readonly z.ZodTypeAny[],
   ]
     ? z.input<First> & MergeSchemaInputs<Rest>
-    : {};
+    : unknown;
 
 type MergeSchemaOutputs<TSchemas extends readonly z.ZodTypeAny[]> =
   TSchemas extends readonly [
@@ -44,7 +48,7 @@ type MergeSchemaOutputs<TSchemas extends readonly z.ZodTypeAny[]> =
     ...infer Rest extends readonly z.ZodTypeAny[],
   ]
     ? z.output<First> & MergeSchemaOutputs<Rest>
-    : {};
+    : unknown;
 
 // Generate the combined input and output types from the schema array
 export type OnboardingFormValuesInitial =

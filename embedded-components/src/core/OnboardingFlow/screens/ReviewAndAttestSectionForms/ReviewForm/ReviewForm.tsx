@@ -50,6 +50,7 @@ import {
   SectionScreenId,
   StepperStepProps,
 } from '@/core/OnboardingFlow/types/flow.types';
+import type { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types/form.types';
 import {
   asPlainString,
   formatQuestionResponse,
@@ -708,7 +709,10 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                           <ChevronDownIcon className="eb-mr-3 eb-size-4 eb-shrink-0 eb-text-muted-foreground eb-transition-transform eb-duration-200" />
                         )}
                         <span className="eb-text-sm eb-font-semibold eb-text-foreground">
-                          {t(section.sectionConfig.labelKey as any)}
+                          {t(
+                            section.sectionConfig
+                              .labelKey as unknown as TemplateStringsArray
+                          )}
                         </span>
                         <div className="eb-ml-auto eb-flex eb-items-center">
                           {statusBadge}
@@ -878,7 +882,7 @@ const GatewayReviewCard: React.FC<{
       : 'ptc';
   const ptcDisplayValue = partyFieldMap.isPTCOrSubsidiary?.toStringFn?.(
     ptcValue,
-    {} as any
+    {} as Partial<OnboardingFormValuesSubmit>
   );
 
   return (
@@ -944,7 +948,9 @@ const GatewayReviewCard: React.FC<{
 
         {ptcValue === 'none' &&
           enablePubliclyTradedCompanies &&
-          PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(orgType as any) && (
+          (PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES as readonly string[]).includes(
+            orgType
+          ) && (
             <div className="eb-space-y-0.5">
               <p className="eb-text-label eb-font-label eb-text-label-foreground">
                 {t('fields.isPTCOrSubsidiary.label', 'Publicly traded status')}

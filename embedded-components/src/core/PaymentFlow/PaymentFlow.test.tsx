@@ -567,7 +567,6 @@ describe('PaymentFlowInline', () => {
   });
 
   it('renders with custom className', async () => {
-    // eslint-disable-next-line tailwindcss/no-custom-classname
     render(<PaymentFlowInline className="my-custom-class" />);
 
     await waitFor(() => {

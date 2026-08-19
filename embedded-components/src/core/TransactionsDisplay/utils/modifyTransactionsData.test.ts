@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import type { TransactionsSearchResponseV2 } from '@/api/generated/ep-transactions.schemas';
+
 import { modifyTransactionsData } from './modifyTransactionsData';
 
 describe('modifyTransactionsData', () => {
@@ -34,51 +36,41 @@ describe('modifyTransactionsData', () => {
       effectiveDate: '2024-03-14',
       amount: 75,
     },
-  ];
+  ] as unknown as TransactionsSearchResponseV2[];
 
   it('sorts transactions by createdAt descending (most recent first)', () => {
-    const result = modifyTransactionsData(mockTransactions as any, [
-      'acct-001',
-    ]);
+    const result = modifyTransactionsData(mockTransactions, ['acct-001']);
     expect(result[0].id).toBe('tx-2');
     expect(result[1].id).toBe('tx-1');
     expect(result[2].id).toBe('tx-3');
   });
 
   it('marks PAYIN when creditorAccountId matches user account', () => {
-    const result = modifyTransactionsData(mockTransactions as any, [
-      'acct-001',
-    ]);
+    const result = modifyTransactionsData(mockTransactions, ['acct-001']);
     const tx1 = result.find((t) => t.id === 'tx-1');
     expect(tx1?.payinOrPayout).toBe('PAYIN');
   });
 
   it('marks PAYOUT when debtorAccountId matches user account', () => {
-    const result = modifyTransactionsData(mockTransactions as any, [
-      'acct-001',
-    ]);
+    const result = modifyTransactionsData(mockTransactions, ['acct-001']);
     const tx2 = result.find((t) => t.id === 'tx-2');
     expect(tx2?.payinOrPayout).toBe('PAYOUT');
   });
 
   it('sets counterpartName to debtorName for PAYIN', () => {
-    const result = modifyTransactionsData(mockTransactions as any, [
-      'acct-001',
-    ]);
+    const result = modifyTransactionsData(mockTransactions, ['acct-001']);
     const tx1 = result.find((t) => t.id === 'tx-1');
     expect(tx1?.counterpartName).toBe('External Corp');
   });
 
   it('sets counterpartName to creditorName for PAYOUT', () => {
-    const result = modifyTransactionsData(mockTransactions as any, [
-      'acct-001',
-    ]);
+    const result = modifyTransactionsData(mockTransactions, ['acct-001']);
     const tx2 = result.find((t) => t.id === 'tx-2');
     expect(tx2?.counterpartName).toBe('Vendor LLC');
   });
 
   it('returns undefined payin/payout when no accountIds', () => {
-    const result = modifyTransactionsData(mockTransactions as any, []);
+    const result = modifyTransactionsData(mockTransactions, []);
     expect(result[0].payinOrPayout).toBeUndefined();
     expect(result[0].counterpartName).toBeUndefined();
   });
@@ -101,7 +93,10 @@ describe('modifyTransactionsData', () => {
         effectiveDate: '2024-01-03',
       },
     ];
-    const result = modifyTransactionsData(sameCreatedAt as any, []);
+    const result = modifyTransactionsData(
+      sameCreatedAt as unknown as TransactionsSearchResponseV2[],
+      []
+    );
     expect(result[0].id).toBe('b');
   });
 
@@ -120,7 +115,10 @@ describe('modifyTransactionsData', () => {
         postingVersion: 3,
       },
     ];
-    const result = modifyTransactionsData(sameDates as any, []);
+    const result = modifyTransactionsData(
+      sameDates as unknown as TransactionsSearchResponseV2[],
+      []
+    );
     expect(result[0].id).toBe('b');
   });
 });
