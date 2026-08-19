@@ -1,5 +1,6 @@
 import { PartyResponse, Role } from '@/api/generated/smbdo.schemas';
 
+import { INTERMEDIARY_OWNER_ROLE } from '../IndirectOwnership.types';
 import type {
   IndividualOwner,
   OwnershipParty,
@@ -223,4 +224,89 @@ export function getOwnershipPath(
 
   findPath(rootParty, []);
   return path;
+}
+
+/**
+ * Given an indirect owner being removed, returns the IDs of the intermediary
+ * parties in that owner's ownership chain that become orphaned and should be
+ * deactivated along with the owner.
+ *
+ * Walks up the `parentPartyId` chain from the owner toward the CLIENT and stops
+ * at: the CLIENT, any inactive or non-intermediary party, or the first
+ * intermediary still referenced by another active party (i.e. shared with
+ * another owner's chain — that node and its ancestors are preserved). The
+ * owner's own id is not included in the result.
+ */
+export function getOrphanedIntermediaryPartyIds(
+  parties: PartyResponse[],
+  ownerId: string
+): string[] {
+  const owner = parties.find((p) => p.id === ownerId);
+  if (!owner) return [];
+
+  const toDeactivate = new Set<string>([ownerId]);
+  const orphaned: string[] = [];
+
+  let parentId = owner.parentPartyId;
+  while (parentId) {
+    const parent = parties.find((p) => p.id === parentId);
+    if (!parent || !parent.active) break;
+    // Never deactivate the client, and only cascade through intermediaries.
+    if (parent.roles?.includes('CLIENT' as Role)) break;
+    if (
+      parent.partyType !== 'ORGANIZATION' ||
+      !parent.roles?.includes(INTERMEDIARY_OWNER_ROLE)
+    ) {
+      break;
+    }
+    // Stop if this intermediary is still used by another active party (its
+    // ancestors stay reachable through that party's chain).
+    const hasOtherActiveChild = parties.some(
+      (p) =>
+        p.active &&
+        p.id !== undefined &&
+        !toDeactivate.has(p.id) &&
+        p.parentPartyId === parent.id
+    );
+    if (hasOtherActiveChild) break;
+
+    if (parent.id) {
+      toDeactivate.add(parent.id);
+      orphaned.push(parent.id);
+    }
+    parentId = parent.parentPartyId;
+  }
+
+  return orphaned;
+}
+
+/**
+ * Prune empty/stub fields from a party details object so recreating a party via
+ * POST /parties preserves all the real data the user already entered without
+ * tripping validation on partially-filled sub-objects.
+ *
+ * Drops: undefined/null/empty-string values, empty arrays, and a `phone`
+ * object that has no phoneNumber (a country-code-only stub the form leaves
+ * behind). Everything else — birthDate, addresses, individualIds,
+ * organizationIds, jobTitles, etc. — is carried through unchanged.
+ */
+export function pruneEmptyDetailFields<T extends object>(
+  details: T | undefined
+): Partial<T> {
+  if (!details) return {};
+  const pruned: Record<string, unknown> = {};
+  Object.entries(details as Record<string, unknown>).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    if (Array.isArray(value)) {
+      if (value.length === 0) return;
+      pruned[key] = value;
+      return;
+    }
+    if (key === 'phone') {
+      const phone = value as { phoneNumber?: string };
+      if (!phone.phoneNumber) return;
+    }
+    pruned[key] = value;
+  });
+  return pruned as Partial<T>;
 }

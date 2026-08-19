@@ -295,7 +295,7 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
                             )
                           )
                         : t(
-                            `bank-account-form:paymentMethods.${method}.label` as any
+                            `bank-account-form:paymentMethods.${method}.label` as unknown as TemplateStringsArray
                           );
                       return (
                         <div
@@ -314,7 +314,7 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
                                 {isFxRecipient
                                   ? routingFieldLabel
                                   : t(
-                                      'recipients:columns.routingNumber' as any
+                                      'recipients:columns.routingNumber' as unknown as TemplateStringsArray
                                     )}
                               </span>
                               <p className="eb-font-mono eb-text-sm eb-font-medium eb-tracking-wide">
@@ -323,7 +323,9 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
                             </div>
                           ) : (
                             <span className="eb-text-xs eb-italic eb-text-muted-foreground">
-                              {t('accountDetails.noRoutingNumber' as any)}
+                              {t(
+                                'accountDetails.noRoutingNumber' as unknown as TemplateStringsArray
+                              )}
                             </span>
                           )}
                         </div>

@@ -18,11 +18,13 @@ const createWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <EBComponentsProvider apiBaseUrl="/" headers={{}}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </EBComponentsProvider>
   );
+  Wrapper.displayName = 'TestWrapper';
+  return Wrapper;
 };
 
 describe('useRecipientForm', () => {
@@ -32,11 +34,11 @@ describe('useRecipientForm', () => {
   });
 
   it('should submit create form with LINKED_ACCOUNT type', async () => {
-    let capturedData: any = null;
+    let capturedData: Record<string, unknown> | null = null;
 
     server.use(
       http.post('/recipients', async ({ request }) => {
-        capturedData = await request.json();
+        capturedData = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({
           id: 'new-recipient',
           status: 'MICRODEPOSITS_INITIATED',
@@ -88,12 +90,12 @@ describe('useRecipientForm', () => {
   });
 
   it('should submit edit form without type field', async () => {
-    let capturedData: any = null;
+    let capturedData: Record<string, unknown> | null = null;
     let capturedId: string | null = null;
 
     server.use(
       http.post('/recipients/:id', async ({ request, params }) => {
-        capturedData = await request.json();
+        capturedData = (await request.json()) as Record<string, unknown>;
         capturedId = params.id as string;
         return HttpResponse.json({
           id: capturedId,
@@ -283,11 +285,11 @@ describe('useRecipientForm', () => {
   };
 
   it('should send partyId and omit partyDetails when explicit partyId prop is provided', async () => {
-    let capturedData: any = null;
+    let capturedData: Record<string, unknown> | null = null;
 
     server.use(
       http.post('/recipients', async ({ request }) => {
-        capturedData = await request.json();
+        capturedData = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({
           id: 'new-recipient',
           status: 'MICRODEPOSITS_INITIATED',
@@ -319,11 +321,11 @@ describe('useRecipientForm', () => {
   });
 
   it('should send partyId from form selectedPartyId when no explicit partyId prop', async () => {
-    let capturedData: any = null;
+    let capturedData: Record<string, unknown> | null = null;
 
     server.use(
       http.post('/recipients', async ({ request }) => {
-        capturedData = await request.json();
+        capturedData = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({
           id: 'new-recipient',
           status: 'MICRODEPOSITS_INITIATED',
@@ -355,11 +357,11 @@ describe('useRecipientForm', () => {
   });
 
   it('should prefer explicit partyId prop over form selectedPartyId', async () => {
-    let capturedData: any = null;
+    let capturedData: Record<string, unknown> | null = null;
 
     server.use(
       http.post('/recipients', async ({ request }) => {
-        capturedData = await request.json();
+        capturedData = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({
           id: 'new-recipient',
           status: 'MICRODEPOSITS_INITIATED',
@@ -392,11 +394,11 @@ describe('useRecipientForm', () => {
   });
 
   it('should send partyDetails and no partyId when neither prop nor form provides partyId', async () => {
-    let capturedData: any = null;
+    let capturedData: Record<string, unknown> | null = null;
 
     server.use(
       http.post('/recipients', async ({ request }) => {
-        capturedData = await request.json();
+        capturedData = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({
           id: 'new-recipient',
           status: 'MICRODEPOSITS_INITIATED',
@@ -421,7 +423,9 @@ describe('useRecipientForm', () => {
     });
 
     expect(capturedData).toHaveProperty('partyDetails');
-    expect(capturedData.partyDetails).toEqual(
+    expect(
+      (capturedData as Record<string, unknown> | null)?.partyDetails
+    ).toEqual(
       expect.objectContaining({
         type: 'INDIVIDUAL',
         firstName: 'Test',
@@ -432,11 +436,11 @@ describe('useRecipientForm', () => {
   });
 
   it('should include clientId alongside partyId when both are provided', async () => {
-    let capturedData: any = null;
+    let capturedData: Record<string, unknown> | null = null;
 
     server.use(
       http.post('/recipients', async ({ request }) => {
-        capturedData = await request.json();
+        capturedData = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({
           id: 'new-recipient',
           status: 'MICRODEPOSITS_INITIATED',
@@ -468,11 +472,11 @@ describe('useRecipientForm', () => {
   });
 
   it('should NOT use partyId for edit mode (only partyDetails)', async () => {
-    let capturedData: any = null;
+    let capturedData: Record<string, unknown> | null = null;
 
     server.use(
       http.post('/recipients/:id', async ({ request }) => {
-        capturedData = await request.json();
+        capturedData = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({
           id: 'recipient-1',
           status: 'ACTIVE',

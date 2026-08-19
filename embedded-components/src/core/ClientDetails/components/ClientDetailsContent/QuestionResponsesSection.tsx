@@ -35,7 +35,10 @@ export function QuestionResponsesSection({
 
   const questionLabelUnavailable = tString('labels.questionTextUnavailable');
 
-  const questionResponses = client.questionResponses ?? [];
+  const questionResponses = useMemo(
+    () => client.questionResponses ?? [],
+    [client.questionResponses]
+  );
   const questionIds = useMemo(
     () =>
       questionResponses
@@ -138,6 +141,7 @@ export function QuestionResponsesSection({
     );
 
     return { groups, orphanResponses };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- isChildVisible is pure over responseMap (already a dep); excluded to avoid identity churn
   }, [questions, questionResponses, responseMap]);
 
   const renderQuestionRow = (

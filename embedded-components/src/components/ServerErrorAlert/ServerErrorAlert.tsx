@@ -1,5 +1,5 @@
 import { FC, ReactNode, useState } from 'react';
-import { useTranslationWithTokens } from '@/i18n';
+import { TransWithTokens, useTranslationWithTokens } from '@/i18n';
 import {
   AlertCircleIcon,
   ChevronDownIcon,
@@ -8,10 +8,31 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { ApiError } from '@/api/generated/smbdo.schemas';
+import { ApiError, ApiErrorReasonV2 } from '@/api/generated/smbdo.schemas';
 import type { ErrorType } from '@/api/use-axios-instance';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+
+/**
+ * A single displayable error reason. Reasons and context items returned by the
+ * API vary in shape (some use `reason`/`rejectedValue`, others `code`), so this
+ * captures the optional fields the UI renders defensively.
+ */
+type ErrorReasonLike = {
+  field?: string;
+  message?: string;
+  reason?: string;
+  rejectedValue?: string;
+};
+
+/**
+ * The runtime error payload occasionally carries undocumented top-level
+ * `message` and `reasons` fields not present on the generated `ApiError`.
+ */
+type ExtendedApiErrorData = ApiError & {
+  message?: string;
+  reasons?: Array<string | ErrorReasonLike>;
+};
 
 type ServerErrorAlertProps = {
   error: ErrorType<ApiError> | null;
@@ -22,10 +43,12 @@ type ServerErrorAlertProps = {
   showDetails?: boolean;
 };
 
+const statusSpecificDefaultMessages = new Set(['400', '401', '500', '503']);
+
 /**
  * Renders a single reason item with field, message, reason code, and rejected value
  */
-const ReasonItem: FC<{ reason: any }> = ({ reason }) => {
+const ReasonItem: FC<{ reason: string | ErrorReasonLike }> = ({ reason }) => {
   const { t } = useTranslationWithTokens(['common']);
 
   if (typeof reason === 'string') {
@@ -63,7 +86,9 @@ const ReasonItem: FC<{ reason: any }> = ({ reason }) => {
 /**
  * Renders the reasons section with all error reasons
  */
-const ReasonsSection: FC<{ reasons: any[] }> = ({ reasons }) => {
+const ReasonsSection: FC<{ reasons: Array<string | ErrorReasonLike> }> = ({
+  reasons,
+}) => {
   const { t } = useTranslationWithTokens(['common']);
 
   if (!reasons || !Array.isArray(reasons) || reasons.length === 0) {
@@ -91,7 +116,7 @@ const ReasonsSection: FC<{ reasons: any[] }> = ({ reasons }) => {
 /**
  * Renders the context section with validation context
  */
-const ContextSection: FC<{ context: any[] }> = ({ context }) => {
+const ContextSection: FC<{ context: ApiErrorReasonV2[] }> = ({ context }) => {
   const { t } = useTranslationWithTokens(['common']);
 
   if (!context || !Array.isArray(context) || context.length === 0) {
@@ -142,9 +167,8 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
   // "Error details not available", while the `context` array carries the
   // real actionable detail (e.g. "Organization type [PARTNERSHIP] not
   // allowed"). Prefer context when the top-level message looks generic.
-  const topLevelMessage = (error.response?.data as any)?.message as
-    | string
-    | undefined;
+  const topLevelMessage = (error.response?.data as ExtendedApiErrorData)
+    ?.message;
   const contextMessages = error.response?.data?.context
     ?.map((c) => c.message)
     .filter(Boolean);
@@ -162,29 +186,29 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
     ? (bestContextMessage ?? topLevelMessage)
     : (topLevelMessage ?? bestContextMessage);
 
-  // Default error messages from i18n content tokens
-  const defaultMessages: Record<string, ReactNode> = {
-    '400': t('errors.defaultMessages.400'),
-    '401': t('errors.defaultMessages.401'),
-    '500': t('errors.defaultMessages.500'),
-    '503': t('errors.defaultMessages.503'),
-    default: t('errors.defaultMessages.default'),
-  };
+  const renderDefaultMessage = (status?: string) => {
+    const messageKey =
+      status && statusSpecificDefaultMessages.has(status) ? status : 'default';
 
-  // Use provided custom messages or fall back to i18n defaults
-  const effectiveMessages = customErrorMessage ?? defaultMessages;
+    return (
+      <TransWithTokens
+        ns="common"
+        i18nKey={`errors.defaultMessages.${messageKey}`}
+      />
+    );
+  };
 
   // Determine the error message to display
   const getErrorMessage = (): ReactNode => {
     // If a custom string/ReactNode is provided directly, use it
     if (
-      typeof effectiveMessages === 'string' ||
-      (typeof effectiveMessages === 'object' &&
-        effectiveMessages !== null &&
-        !('400' in effectiveMessages) &&
-        !('default' in effectiveMessages))
+      typeof customErrorMessage === 'string' ||
+      (typeof customErrorMessage === 'object' &&
+        customErrorMessage !== null &&
+        !('400' in customErrorMessage) &&
+        !('default' in customErrorMessage))
     ) {
-      return effectiveMessages as ReactNode;
+      return customErrorMessage as ReactNode;
     }
 
     // Prefer the API message when available (e.g., "ABA routing number 533100000 not found")
@@ -193,17 +217,18 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
     }
 
     // Fall back to status-based messages
-    const messageRecord = effectiveMessages as Record<string, ReactNode>;
+    const messageRecord = customErrorMessage as
+      | Record<string, ReactNode>
+      | undefined;
     if (httpStatus && messageRecord) {
       return (
         messageRecord[httpStatus] ||
-        defaultMessages[httpStatus] ||
         messageRecord.default ||
-        defaultMessages.default
+        renderDefaultMessage(httpStatus)
       );
     }
 
-    return defaultMessages.default;
+    return renderDefaultMessage(httpStatus);
   };
 
   return (
@@ -219,7 +244,7 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
 
       {tString('errors.footnote') && (
         <AlertDescription className="eb-mt-2 eb-text-xs eb-text-red-800">
-          {t('errors.footnote')}
+          <TransWithTokens ns="common" i18nKey="errors.footnote" />
         </AlertDescription>
       )}
 
@@ -254,7 +279,11 @@ export const ServerErrorAlert: FC<ServerErrorAlertProps> = ({
                 </div>
               )}
 
-              <ReasonsSection reasons={(error.response.data as any).reasons} />
+              <ReasonsSection
+                reasons={
+                  (error.response.data as ExtendedApiErrorData).reasons ?? []
+                }
+              />
               <ContextSection context={error.response.data.context || []} />
             </div>
           )}

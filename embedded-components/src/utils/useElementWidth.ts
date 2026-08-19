@@ -25,7 +25,6 @@ export function useElementWidth<T extends HTMLElement>(): [
     observer.observe(ref.current);
     // Set initial width
     setWidth(ref.current.offsetWidth);
-    // eslint-disable-next-line consistent-return
     return () => observer.disconnect();
   }, []);
 

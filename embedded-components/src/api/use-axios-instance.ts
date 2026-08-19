@@ -33,7 +33,7 @@ export const useEbInstance = <T>() => {
         signal: config.signal ?? controller.signal,
       }).then(({ data }) => data as T);
 
-      // @ts-ignore — cancel is used by React Query for query cancellation
+      // @ts-expect-error — cancel is used by React Query for query cancellation
       promise.cancel = () => {
         controller.abort('Query was cancelled');
       };

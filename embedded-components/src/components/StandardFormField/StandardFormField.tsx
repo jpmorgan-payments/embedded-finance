@@ -1,6 +1,11 @@
 import { ReactNode, useRef, useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { Control, FieldPath, FieldValues } from 'react-hook-form';
+import {
+  Control,
+  ControllerRenderProps,
+  FieldPath,
+  FieldValues,
+} from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -105,7 +110,7 @@ export interface StandardFormFieldProps<
  * ComboboxField - Internal helper component for combobox rendering
  */
 interface ComboboxFieldProps {
-  field: any;
+  field: ControllerRenderProps<FieldValues>;
   options: Array<{
     label: ReactNode;
     value: string;
@@ -505,7 +510,7 @@ export const StandardFormField = <
 
             return (
               <ComboboxField
-                field={field}
+                field={field as ControllerRenderProps<FieldValues>}
                 options={comboboxOptions}
                 placeholder={
                   placeholder ||

@@ -3,6 +3,8 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen } from '@test-utils';
 
+import { Recipient } from '@/api/generated/ep-recipients.schemas';
+
 import { RecipientFormDialog } from './RecipientFormDialog';
 
 beforeEach(() => {
@@ -105,7 +107,7 @@ describe('RecipientFormDialog internationalMode', () => {
                 },
               ],
             },
-          } as any
+          } as unknown as Recipient
         }
       />
     );

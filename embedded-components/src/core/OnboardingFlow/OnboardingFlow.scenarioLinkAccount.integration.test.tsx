@@ -115,7 +115,7 @@ describe('OnboardingFlow — link account journey', () => {
 
   test('shows locked empty state when client status does not allow linking', async () => {
     resetAndSeedClient(
-      { ...mockClientApproved, status: 'NEW' as any },
+      { ...mockClientApproved, status: 'NEW' },
       DEFAULT_CLIENT_ID
     );
 

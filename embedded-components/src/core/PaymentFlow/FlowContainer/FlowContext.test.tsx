@@ -229,7 +229,7 @@ describe('FlowContext', () => {
             accountNumber: '1234',
             routingNumber: '9876',
             enabledPaymentMethods: ['ACH'],
-            transactionRecipient: {} as any,
+            transactionRecipient: {},
           },
           paymentMethod: 'ACH',
           fromAccountId: 'account-1',

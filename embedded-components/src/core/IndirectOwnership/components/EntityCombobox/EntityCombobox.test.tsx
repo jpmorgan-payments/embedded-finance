@@ -124,10 +124,7 @@ describe('EntityCombobox', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('No existing companies found')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText('"New Company Inc" will be added as a new company')
+        screen.getByText('Add "New Company Inc" as a new company')
       ).toBeInTheDocument();
     });
   });
@@ -186,5 +183,51 @@ describe('EntityCombobox', () => {
     // The dropdown should only show the filtered entities
     // The parent component (IndirectOwnership) filters out entities already in the chain
     expect(screen.getByText('Enter company name')).toBeInTheDocument();
+  });
+
+  test('clears the selection via the clear control', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <EntityCombobox
+        value="Apple Inc"
+        onChange={onChange}
+        existingEntities={mockExistingEntities}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Clear selection/i }));
+    expect(onChange).toHaveBeenCalledWith('');
+  });
+
+  test('clears the selection via keyboard', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <EntityCombobox
+        value="Apple Inc"
+        onChange={onChange}
+        existingEntities={mockExistingEntities}
+      />
+    );
+
+    const clear = screen.getByRole('button', { name: /Clear selection/i });
+    clear.focus();
+    await user.keyboard('{Enter}');
+    expect(onChange).toHaveBeenCalledWith('');
+  });
+
+  test('hides the clear control when disabled', () => {
+    render(
+      <EntityCombobox
+        value="Apple Inc"
+        onChange={vi.fn()}
+        existingEntities={mockExistingEntities}
+        disabled
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: /Clear selection/i })
+    ).not.toBeInTheDocument();
   });
 });

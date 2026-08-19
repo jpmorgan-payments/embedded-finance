@@ -1,8 +1,16 @@
-import { createContext, useContext, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
+
+import { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 export interface onRegistrationProp {
   clientId: string;
-  clientResponse?: any;
+  clientResponse?: ClientResponse;
 }
 export interface RootConfig {
   clientId?: string;
@@ -10,8 +18,8 @@ export interface RootConfig {
   jurisdictions?: string[];
   entityType?: string;
   products?: string[];
-  setClientId?: any;
-  setPartyId?: any;
+  setClientId?: Dispatch<SetStateAction<string | undefined>>;
+  setPartyId?: Dispatch<SetStateAction<string | undefined>>;
   onPostClientsVerification: ({
     clientId,
     clientResponse,
@@ -31,7 +39,9 @@ export const defaultRootConfig = {
   partyId: undefined,
 };
 
-export const RootConfigContext: any = createContext(defaultRootConfig);
+export const RootConfigContext = createContext<RootConfig>(
+  defaultRootConfig as unknown as RootConfig
+);
 
 export const useRootConfig = (): RootConfig => {
   const context: RootConfig = useContext(RootConfigContext);

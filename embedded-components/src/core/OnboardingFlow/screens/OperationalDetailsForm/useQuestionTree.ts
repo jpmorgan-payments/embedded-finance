@@ -148,7 +148,7 @@ export const useQuestionTree = ({
     { query: { enabled: enabled && rootQuestionIds.length > 0 } }
   );
 
-  const l0Questions = l0Data?.questions ?? [];
+  const l0Questions = useMemo(() => l0Data?.questions ?? [], [l0Data]);
   const l0FetchedIds = useMemo(
     () =>
       new Set([
@@ -171,7 +171,7 @@ export const useQuestionTree = ({
     { questionIds: l1Ids.join(',') },
     { query: { enabled: l1Ids.length > 0 } }
   );
-  const l1Questions = l1Data?.questions ?? [];
+  const l1Questions = useMemo(() => l1Data?.questions ?? [], [l1Data]);
   const l1FetchedIds = useMemo(
     () =>
       new Set([
@@ -197,7 +197,7 @@ export const useQuestionTree = ({
     { questionIds: l2Ids.join(',') },
     { query: { enabled: l2Ids.length > 0 } }
   );
-  const l2Questions = l2Data?.questions ?? [];
+  const l2Questions = useMemo(() => l2Data?.questions ?? [], [l2Data]);
   const l2FetchedIds = useMemo(
     () =>
       new Set([
@@ -223,7 +223,7 @@ export const useQuestionTree = ({
     { questionIds: l3Ids.join(',') },
     { query: { enabled: l3Ids.length > 0 } }
   );
-  const l3Questions = l3Data?.questions ?? [];
+  const l3Questions = useMemo(() => l3Data?.questions ?? [], [l3Data]);
   const l3FetchedIds = useMemo(
     () =>
       new Set([
@@ -249,7 +249,7 @@ export const useQuestionTree = ({
     { questionIds: l4Ids.join(',') },
     { query: { enabled: l4Ids.length > 0 } }
   );
-  const l4Questions = l4Data?.questions ?? [];
+  const l4Questions = useMemo(() => l4Data?.questions ?? [], [l4Data]);
 
   // --- Merge all levels ---
   const allQuestions = useMemo(

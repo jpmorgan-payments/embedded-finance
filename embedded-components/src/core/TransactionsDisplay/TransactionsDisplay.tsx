@@ -15,6 +15,8 @@ import { useLocale } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
@@ -75,7 +77,7 @@ export const TransactionsDisplay = forwardRef<
     // Get translated columns
     // Type assertion needed due to TypeScript overload resolution issues with TFunction
     const transactionsColumns = getTransactionsColumns(
-      t as (key: string, options?: any) => string,
+      t as (key: string, options?: { defaultValue?: string }) => string,
       locale
     );
 
@@ -169,7 +171,7 @@ export const TransactionsDisplay = forwardRef<
             {status === 'error' && (
               <div className="eb-p-2.5 @md:eb-p-3 @lg:eb-p-4">
                 <ServerErrorAlert
-                  error={failureReason as any}
+                  error={failureReason as ErrorType<ApiError>}
                   customTitle={t('errors.loadTransactions.title', {
                     defaultValue: 'Failed to load transactions',
                   })}

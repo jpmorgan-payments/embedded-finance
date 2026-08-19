@@ -14,7 +14,7 @@ import { ClientResponse } from '@/api/generated/smbdo.schemas';
 export const ENABLE_LOGS = process.env.NODE_ENV !== 'test';
 
 // Custom logger function that respects testing environment
-export function dbLogger(...args: any[]) {
+export function dbLogger(...args: unknown[]) {
   if (ENABLE_LOGS) {
     // eslint-disable-next-line no-console
     console.log(...args);

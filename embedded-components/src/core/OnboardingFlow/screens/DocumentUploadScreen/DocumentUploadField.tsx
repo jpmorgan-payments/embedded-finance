@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { Control, useWatch } from 'react-hook-form';
+import { Control, FieldValues, useWatch } from 'react-hook-form';
 
 import { compressImage } from '@/lib/utils';
 import { DocumentTypeSmbdo } from '@/api/generated/smbdo.schemas';
@@ -41,7 +41,7 @@ interface DocumentUploadFieldProps {
   /**
    * Form control from parent form
    */
-  control: Control<any>;
+  control: Control<FieldValues>;
   /**
    * Whether the field is read-only (completed)
    */
@@ -149,7 +149,6 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
             (device) => device.kind === 'videoinput'
           );
           setEnableCameraCapture(hasVideoInput);
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch {
           // If we can't enumerate devices, assume camera is available on mobile
           setEnableCameraCapture(true);

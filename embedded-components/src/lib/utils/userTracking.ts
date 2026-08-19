@@ -110,7 +110,6 @@ export function trackUserEvent({
     userEventsHandler(context);
   } catch (error) {
     // Silently handle errors to prevent breaking component functionality
-    // eslint-disable-next-line no-console
     console.error('Error tracking user event:', error);
   }
 }
@@ -172,7 +171,6 @@ export function useUserEventTracking({
         userEventsHandler(context);
       } catch (error) {
         // Silently handle errors to prevent breaking component functionality
-        // eslint-disable-next-line no-console
         console.error('Error tracking user event:', error);
       }
     },
@@ -189,6 +187,8 @@ export function useUserEventTracking({
       return undefined;
     }
 
+    const actionIds = actionIdsRef.current;
+
     // Use event delegation - attach listeners to container
     eventsToTrack.forEach((eventType) => {
       container.addEventListener(eventType, eventHandler, true); // Use capture phase
@@ -199,7 +199,7 @@ export function useUserEventTracking({
         container.removeEventListener(eventType, eventHandler, true);
       });
       // Clean up stored actionIds
-      actionIdsRef.current.clear();
+      actionIds.clear();
     };
   }, [
     containerId,

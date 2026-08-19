@@ -1,5 +1,7 @@
 import { useTranslationWithTokens } from '@/i18n';
 
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 
 type LinkAccountErrorAlertProps = {
@@ -17,7 +19,7 @@ export function LinkAccountErrorAlert({ error }: LinkAccountErrorAlertProps) {
 
   return (
     <ServerErrorAlert
-      error={error as any}
+      error={error as ErrorType<ApiError>}
       customTitle={t(
         'screens.linkAccount.errorTitle',
         'Failed to link account'

@@ -9,6 +9,8 @@ import type {
   CountryCode,
   TransactionRecipientDetailsV2,
 } from '@/api/generated/ep-transactions.schemas';
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
@@ -308,7 +310,7 @@ export function EnablePaymentMethodWrapper({
     return (
       <div className="eb-flex eb-flex-col eb-gap-3">
         <ServerErrorAlert
-          error={fetchError as any}
+          error={fetchError as ErrorType<ApiError>}
           customTitle="Failed to load recipient"
           customErrorMessage={{
             '404': 'The recipient could not be found.',
@@ -360,7 +362,7 @@ export function EnablePaymentMethodWrapper({
           alert={
             formError ? (
               <ServerErrorAlert
-                error={formError as any}
+                error={formError as ErrorType<ApiError>}
                 customTitle={`Failed to enable ${paymentMethod.name}`}
                 customErrorMessage={{
                   '400':

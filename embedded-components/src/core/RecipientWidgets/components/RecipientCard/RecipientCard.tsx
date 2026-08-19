@@ -67,7 +67,7 @@ export interface RecipientCardProps {
   /** Callback when microdeposit verification is completed */
   onMicrodepositVerifySettled?: (
     response: MicrodepositVerificationResponse,
-    recipient?: any
+    recipient?: Recipient
   ) => void;
 
   /** Callback when recipient is successfully removed */
@@ -185,7 +185,11 @@ const AddRoutingButton: React.FC<AddRoutingButtonProps> = ({
   const buttonContent = (
     <>
       <PlusIcon className="eb-mr-1.5 eb-h-3.5 eb-w-3.5" aria-hidden="true" />
-      <span>{labelSuffix ? t(`actions.add${labelSuffix}` as any) : ''}</span>
+      <span>
+        {labelSuffix
+          ? t(`actions.add${labelSuffix}` as unknown as TemplateStringsArray)
+          : ''}
+      </span>
     </>
   );
 
@@ -230,7 +234,7 @@ interface RecipientCardStatusAlertProps {
   compact: boolean;
   onMicrodepositVerifySettled?: (
     response: MicrodepositVerificationResponse,
-    recipient?: any
+    recipient?: Recipient
   ) => void;
   i18nNamespace: RecipientI18nNamespace;
 }
@@ -482,7 +486,7 @@ interface RecipientCardActionsProps {
   onRecipientSettled?: (recipient?: Recipient, error?: ApiError) => void;
   onMicrodepositVerifySettled?: (
     response: MicrodepositVerificationResponse,
-    recipient?: any
+    recipient?: Recipient
   ) => void;
   onRemoveSuccess?: (recipient: Recipient) => void;
   compact: boolean;

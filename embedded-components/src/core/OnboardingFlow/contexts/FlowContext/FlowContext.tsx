@@ -82,7 +82,10 @@ const FlowContext = createContext<{
   currentStepperGoTo: (stepId: string) => void;
   shortLabelOverride: string | null;
   savedFormValues?: Partial<OnboardingFormValuesSubmit>;
-  saveFormValue: (field: keyof OnboardingFormValuesSubmit, value: any) => void;
+  saveFormValue: <K extends keyof OnboardingFormValuesSubmit>(
+    field: K,
+    value: OnboardingFormValuesSubmit[K]
+  ) => void;
   /**
    * Live delta pending-form values published by ReviewForm so the sidebar
    * timeline can go green-as-you-type (same overlay as the review accordion).
@@ -297,6 +300,7 @@ export const FlowProvider: React.FC<{
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-bind the beforeunload guard only when the exit-alert flag, client status, or language changes; the full clientData object is intentionally excluded to avoid re-binding on every query update
   }, [alertOnExit, clientData?.status, i18n, i18n.language]);
 
   const currentScreenId = history[history.length - 1];
@@ -394,7 +398,6 @@ export const FlowProvider: React.FC<{
       canNavigate &&
       !shouldSuppressOnboardingLeaveWarnings(clientData) &&
       unsavedChangesRef.current &&
-      // eslint-disable-next-line no-alert -- optional UX parity with native leave warnings; no modal primitive here
       !window.confirm(tString('stepperRenderer.previousStepDataLossWarning'))
     ) {
       return;
@@ -429,9 +432,9 @@ export const FlowProvider: React.FC<{
     }));
   };
 
-  const saveFormValue = (
-    field: keyof OnboardingFormValuesSubmit,
-    value: any
+  const saveFormValue = <K extends keyof OnboardingFormValuesSubmit>(
+    field: K,
+    value: OnboardingFormValuesSubmit[K]
   ) => {
     setSavedFormValues((prev) => {
       // When value is undefined, remove the key entirely so that it

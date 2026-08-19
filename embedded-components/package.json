@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.17.5",
+  "version": "0.17.6",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -117,7 +117,7 @@
     "colortranslator": "^4.1.0",
     "date-fns": "^3.6.0",
     "deepmerge": "^4.3.1",
-    "dompurify": "^3.4.12",
+    "dompurify": "^3.4.13",
     "geist": "^1.7.0",
     "i18next": "^24.2.1",
     "input-otp": "^1.4.2",
@@ -149,7 +149,6 @@
   "devDependencies": {
     "@eslint/compat": "^2.1.0",
     "@eslint/js": "^10.0.1",
-    "@faker-js/faker": "^10.4.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.1",
     "@microsoft/api-extractor": "^7.57.7",
     "@mswjs/data": "^0.16.2",
@@ -187,11 +186,11 @@
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^24.1.1",
     "lodash": "^4.18.1",
-    "mermaid": "^11.16.0",
+    "mermaid": "^11.16.1",
     "msw": "2.15.0",
     "msw-storybook-addon": "^2.0.7",
     "orval": "^8.5.3",
-    "postcss": "^8.5.25",
+    "postcss": "^8.5.26",
     "prettier": "3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "prop-types": "^15.8.1",
@@ -239,9 +238,9 @@
     "tar": "^7.5.21",
     "lodash": "^4.18.1",
     "lodash-es": "^4.18.1",
-    "js-yaml": "^4.3.0",
+    "js-yaml": "^4.3.1",
     "uuid": "^14.0.1",
-    "dompurify": "^3.4.12",
+    "dompurify": "^3.4.13",
     "esbuild": "0.28.1",
     "fast-uri": "3.1.5",
     "linkify-it": "5.0.2",
@@ -260,7 +259,10 @@
     "replace": {
       "minimatch": "3.1.5"
     },
-    "brace-expansion@^5.0.5": "5.0.8"
+    "nanoid@^3.3.11": "3.3.18",
+    "brace-expansion@^1.1.7": "1.1.18",
+    "brace-expansion@^2.0.2": "2.1.4",
+    "brace-expansion@^5.0.5": "5.0.9"
   },
   "repository": {
     "type": "git",

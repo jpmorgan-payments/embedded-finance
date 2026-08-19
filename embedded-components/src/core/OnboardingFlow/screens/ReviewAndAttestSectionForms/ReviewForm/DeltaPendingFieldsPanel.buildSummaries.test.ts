@@ -1,7 +1,11 @@
 import { UserIcon } from 'lucide-react';
 import { describe, expect, it } from 'vitest';
 
-import type { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import type {
+  ClientResponse,
+  QuestionResponse,
+} from '@/api/generated/smbdo.schemas';
+import type { SectionScreenConfig } from '@/core/OnboardingFlow/types/flow.types';
 
 import {
   buildDeltaSectionSummaries,
@@ -19,7 +23,7 @@ const sections = [
     isSection: true,
     sectionConfig: { icon: UserIcon, labelKey: 'Business details' },
   },
-] as any;
+] as unknown as SectionScreenConfig[];
 
 const clientData = {
   parties: [
@@ -38,7 +42,7 @@ const clientData = {
       individualDetails: { firstName: 'John', lastName: 'Smith' },
     },
   ],
-} as any;
+} as unknown as ClientResponse;
 
 const group = (key: string) => ({
   key,

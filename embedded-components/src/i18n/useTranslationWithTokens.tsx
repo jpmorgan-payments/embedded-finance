@@ -46,6 +46,14 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
 
   type TFunc = typeof originalT;
 
+  /**
+   * i18next's `t()` return type is pathologically complex (computing it trips
+   * TS2590, "too complex to represent"). At this wrapper boundary the call
+   * resolves to a runtime string, so treat `originalT` as a string-returning
+   * function instead of trying to model — or `any`-erase — its return type.
+   */
+  type RawTranslate = (...args: Parameters<TFunc>) => string;
+
   function extractStringDefaultFromTranslateArgs(
     args: Parameters<TFunc>
   ): string {
@@ -69,7 +77,7 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
    * breaks strings like `Document {{number}}`.
    */
   function t(...args: Parameters<TFunc>): TranslationResult {
-    const translated = (originalT as any)(...args);
+    const translated = (originalT as RawTranslate)(...args);
 
     if (!showTokenIds) {
       return translated;
@@ -122,7 +130,7 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
    * `t` results would otherwise become `[object Object]` in template literals.
    */
   const tString = (...args: Parameters<TFunc>): string => {
-    const raw = (originalT as any)(...args);
+    const raw = (originalT as RawTranslate)(...args);
     if (typeof raw === 'string') return raw;
     if (raw == null) return extractStringDefaultFromTranslateArgs(args);
     if (typeof raw === 'number' || typeof raw === 'boolean') {

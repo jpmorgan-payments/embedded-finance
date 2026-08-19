@@ -21,15 +21,19 @@ import {
   useFormUtilsWithClientContext,
 } from '@/core/OnboardingFlow/utils/formUtils';
 
+/** Union of all possible onboarding field values, used when reading generic
+ * field-config callbacks off the party field map. */
+type ReviewFieldValue =
+  OnboardingFormValuesInitial[keyof OnboardingFormValuesInitial];
+
 type StepsReviewCardsProps = {
   steps: StepConfig[];
   partyData: PartyResponse | undefined;
-  onEditClick: (stepId: string) => void;
-  /**
+  onEditClick: (stepId: string) => void /**
    * - `'card'` (default) — each step is a bordered card.
    * - `'plain'` — borderless blocks separated by dividers, so the steps sit
    *   flush inside a parent container (e.g. a review section card).
-   */
+   */;
   variant?: 'card' | 'plain';
   /**
    * `'plain'` only: when true, the first step keeps its top divider + padding
@@ -109,8 +113,11 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
           const field = key as keyof OnboardingFormValuesInitial;
           const value = formValues?.[field];
           const fc = partyFieldMap?.[field] as {
-            isHiddenInReviewFn?: (val: any, values: any) => boolean;
-          } & Record<string, any>;
+            isHiddenInReviewFn?: (
+              val: ReviewFieldValue,
+              values: Partial<OnboardingFormValuesInitial>
+            ) => boolean;
+          };
           return !fc?.isHiddenInReviewFn?.(value, formValues);
         });
         if (schemaKeys.length > 0 && visibleKeys.length === 0) {
@@ -132,7 +139,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
           >
             <div className="eb-mb-1 eb-flex eb-items-start eb-justify-between">
               <h2 className="eb-text-xl eb-font-bold eb-tracking-tight">
-                {t(step.titleKey as any)}
+                {t(step.titleKey as unknown as TemplateStringsArray)}
               </h2>
               {!isValid ? (
                 <Button
@@ -178,13 +185,16 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
 
               const fieldConfig = partyFieldMap?.[field] as {
                 toStringFn?: (
-                  val: any,
+                  val: ReviewFieldValue,
                   values: Partial<OnboardingFormValuesInitial>
                 ) => string | string[] | undefined;
-                generateLabelStringFn?: (val: any) => string | undefined;
-                isHiddenInReviewFn?: (val: any, values: any) => boolean;
-              } & {
-                [key: string]: any;
+                generateLabelStringFn?: (
+                  val: ReviewFieldValue
+                ) => string | undefined;
+                isHiddenInReviewFn?: (
+                  val: ReviewFieldValue,
+                  values: Partial<OnboardingFormValuesInitial>
+                ) => boolean;
               };
 
               const { fieldRule, ruleType } = getFieldRule(field);

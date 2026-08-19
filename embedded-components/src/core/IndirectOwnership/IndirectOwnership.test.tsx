@@ -52,6 +52,17 @@ const mockClientWithOwners: ClientResponse = {
       individualDetails: {
         firstName: 'Jane',
         lastName: 'Smith',
+        birthDate: '1985-03-15',
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['789 Elm St'],
+            city: 'New York',
+            state: 'NY',
+            postalCode: '10003',
+            country: 'US',
+          },
+        ],
       },
       createdAt: '2024-01-01T00:00:00.000Z',
     },
@@ -193,7 +204,7 @@ describe('IndirectOwnership Component', () => {
     expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
   });
 
-  it('calls onOwnershipComplete callback when complete button is clicked', () => {
+  it('accepts onOwnershipComplete callback prop without error', () => {
     const onCompleteMock = vi.fn();
 
     render(
@@ -205,11 +216,10 @@ describe('IndirectOwnership Component', () => {
       </TestWrapper>
     );
 
-    // Complete button should be present for hierarchy management
-    const completeButton = screen.queryByRole('button', { name: /Complete/i });
-
-    // This test verifies the callback prop is accepted
-    expect(completeButton).toBeInTheDocument();
+    // The component should render the ownership structure with the existing owner
+    expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
+    // The Add Owner button should be available
+    expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument();
   });
 
   it('accepts onValidationChange callback prop', () => {
@@ -355,15 +365,12 @@ describe('IndirectOwnership Component', () => {
       </TestWrapper>
     );
 
-    const addButton = screen.queryByRole('button', {
-      name: /Add new beneficial owner/i,
-    });
-    const completeButton = screen.queryByRole('button', {
-      name: /Complete/i,
-    });
-
-    expect(addButton).toBeNull();
-    expect(completeButton).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: /Add new beneficial owner/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Complete/i })
+    ).not.toBeInTheDocument();
   });
 
   it('tracks user events when handler provided', () => {

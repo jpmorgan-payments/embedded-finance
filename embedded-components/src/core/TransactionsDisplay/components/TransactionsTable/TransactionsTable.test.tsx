@@ -10,7 +10,7 @@ import { getTransactionsColumns } from './TransactionsTable.columns';
 // Mock translation function for tests
 const mockT = (
   key: string,
-  options?: { defaultValue?: string; [key: string]: any }
+  options?: { defaultValue?: string; [key: string]: unknown }
 ): string => {
   return options?.defaultValue || key;
 };

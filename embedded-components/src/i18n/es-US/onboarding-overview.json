@@ -337,7 +337,8 @@
         "cancelButton": "No, mantener propietario"
       },
       "saveAndReturnToReviewButton": "Guardar y volver a la revisión",
-      "saveAndContinueButton": "Guardar y continuar a detalles operativos"
+      "saveAndContinueButton": "Guardar y continuar a detalles operativos",
+      "saveAndContinueToOwnerDetailsButton": "Guardar y continuar a detalles del propietario"
     },
     "overview": {
       "title": "Resumen",
@@ -476,6 +477,20 @@
         "description": "Asegúrese de que sus respuestas sean precisas y complete cualquier elemento que haya omitido."
       }
     },
+    "intermediarySteps": {
+      "orgDetails": {
+        "title": "Datos del intermediario",
+        "description": "Nombre de la organización, porcentaje de propiedad y país de constitución"
+      },
+      "orgAddress": {
+        "title": "Dirección comercial",
+        "description": "Dirección comercial legal de la entidad intermediaria"
+      },
+      "checkAnswers": {
+        "title": "Revise sus respuestas",
+        "description": "Revise la información proporcionada para esta entidad"
+      }
+    },
     "personalSection": {
       "label": "Datos del controlador",
       "shortLabel": "Datos del controlador",
@@ -593,6 +608,7 @@
   },
   "fields": {
     "controllerFirstName": {
+      "fieldName": "Nombre",
       "label": "Nombre",
       "placeholder": "Ingrese el nombre",
       "description": "",
@@ -610,6 +626,7 @@
       }
     },
     "controllerMiddleName": {
+      "fieldName": "Segundo nombre",
       "label": "Segundo nombre",
       "placeholder": "Ingrese el segundo nombre",
       "description": "",
@@ -625,6 +642,7 @@
       }
     },
     "controllerLastName": {
+      "fieldName": "Apellido",
       "label": "Apellido",
       "placeholder": "Ingrese el apellido",
       "description": "",
@@ -644,6 +662,7 @@
       }
     },
     "controllerNameSuffix": {
+      "fieldName": "Sufijo",
       "label": "Sufijo",
       "placeholder": "Ingrese el sufijo",
       "description": "(p. ej., Jr., Sr. II, etc.)",
@@ -655,6 +674,7 @@
       }
     },
     "controllerJobTitle": {
+      "fieldName": "Cargo",
       "label": "Cargo",
       "placeholder": "Seleccionar cargo",
       "description": {
@@ -689,6 +709,7 @@
       }
     },
     "natureOfOwnership": {
+      "fieldName": "Naturaleza de la propiedad",
       "label": "Naturaleza de la propiedad",
       "placeholder": "Seleccionar naturaleza de la propiedad",
       "description": "Cómo posee o controla la organización",
@@ -712,6 +733,7 @@
       }
     },
     "countryOfResidence": {
+      "fieldName": "País de residencia",
       "label": "País de residencia",
       "tooltip": "",
       "placeholder": "Seleccionar país",

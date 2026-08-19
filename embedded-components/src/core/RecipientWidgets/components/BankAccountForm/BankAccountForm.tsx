@@ -256,7 +256,7 @@ const formatRole = (role: string): string => {
  * IndividualSelector - Dropdown selector for multiple individuals
  */
 interface IndividualSelectorProps {
-  control: any;
+  control: UseFormReturn<BankAccountFormData>['control'];
   individuals: Array<{
     id: string | undefined;
     firstName: string;
@@ -427,7 +427,7 @@ interface RoutingNumberFieldsProps {
   useSameForAll: boolean;
   onUseSameForAllChange: (value: boolean) => void;
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
-  control: any; // React Hook Form control
+  control: UseFormReturn<BankAccountFormData>['control'];
   disabled?: boolean;
   /** Cross-border (FX) overrides for the bank/routing code field. */
   internationalConfig?: BankAccountFormProps['config']['internationalFieldConfig'];
@@ -1458,6 +1458,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     setAcknowledgementChecked(
       Object.fromEntries(reviewAcknowledgements.map((a) => [a.id, false]))
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset checked-state only when the set of acknowledgement IDs changes (reviewAckIdsKey); reviewAcknowledgements read as latest
   }, [reviewAckIdsKey]);
 
   const reviewAcknowledgementsComplete =
@@ -1623,12 +1624,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         ...modifications,
       },
     };
-  }, [
-    configWithReviewAcknowledgements,
-    organizationName,
-    individualParties,
-    recipient,
-  ]);
+  }, [configWithReviewAcknowledgements, organizationName, recipient]);
 
   // Create dynamic schema based on effective config
   const createSchema = useBankAccountFormSchema();
@@ -1766,7 +1762,9 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       routingNumbers: initialRoutingNumbers,
       useSameRoutingNumber: useSameRouting,
       accountNumber: recipient?.account?.number || '',
-      bankAccountType: (recipient?.account?.type as any) || 'CHECKING',
+      bankAccountType:
+        (recipient?.account?.type as 'CHECKING' | 'SAVINGS' | undefined) ||
+        'CHECKING',
       paymentTypes: initialPaymentTypes,
       address: recipient?.partyDetails?.address
         ? {
@@ -1796,7 +1794,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     effectiveConfig.accountHolder.prefillFromClient,
     individualParties,
     organizationName,
-    orgPartyInfo,
     initialRoutingNumbers,
     initialPaymentTypes,
     initialContacts,
@@ -2038,6 +2035,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     if (!recipientState) return false;
     // If state is not a valid 2-letter code, use text field
     return !US_STATE_CODES.includes(recipientState.toUpperCase());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- US_STATE_CODES is a constant list; excluded to avoid recomputing on every render
   }, [recipient?.partyDetails?.address?.state]);
 
   // Initialize address object when address fields become required

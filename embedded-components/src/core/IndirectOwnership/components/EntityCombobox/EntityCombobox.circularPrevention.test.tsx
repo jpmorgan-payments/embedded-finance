@@ -115,18 +115,13 @@ describe('EntityCombobox - Circular Reference Prevention', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('No existing companies found')
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          '"Completely New Company" will be added as a new company'
-        )
+        screen.getByText('Add "Completely New Company" as a new company')
       ).toBeInTheDocument();
     });
 
     // Should be able to select the new company
     const newCompanyOption = screen.getByText(
-      '"Completely New Company" will be added as a new company'
+      'Add "Completely New Company" as a new company'
     );
     await user.click(newCompanyOption);
 

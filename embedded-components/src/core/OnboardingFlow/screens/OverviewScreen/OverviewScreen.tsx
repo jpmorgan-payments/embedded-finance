@@ -30,6 +30,8 @@ import { cn } from '@/lib/utils';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
+import type { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
@@ -229,9 +231,9 @@ const BusinessTypeNewSection = () => {
           </div>
         ) : (
           enablePubliclyTradedCompanies &&
-          PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(
-            organizationType as any
-          ) && (
+          (
+            PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES as readonly (typeof organizationType)[]
+          ).includes(organizationType) && (
             <p className="eb-mt-2 eb-text-xs eb-text-muted-foreground">
               {t('screens.overview.verifyBusinessSection.ptcHint')}
             </p>
@@ -925,8 +927,10 @@ export const OverviewScreen = () => {
                 deltaPartyError ||
                 deltaClientError ||
                 (deltaSaveError
-                  ? ({ message: 'Failed to save remaining details' } as any)
-                  : undefined)
+                  ? ({
+                      message: 'Failed to save remaining details',
+                    } as unknown as ErrorType<ApiError>)
+                  : null)
               }
             />
             <div className="eb-flex eb-flex-col eb-gap-3">
@@ -1048,7 +1052,10 @@ export const OverviewScreen = () => {
                               )}
                             >
                               <LockIcon className="eb-size-4" />
-                              {t(section.sectionConfig.onHoldTextKey as any)}
+                              {t(
+                                section.sectionConfig
+                                  .onHoldTextKey as unknown as TemplateStringsArray
+                              )}
                             </p>
                           )}
                         <Card
@@ -1076,7 +1083,10 @@ export const OverviewScreen = () => {
                                   }
                                 )}
                               >
-                                {t(section.sectionConfig.labelKey as any)}
+                                {t(
+                                  section.sectionConfig
+                                    .labelKey as unknown as TemplateStringsArray
+                                )}
                               </h3>
                             </div>
 
@@ -1123,7 +1133,7 @@ export const OverviewScreen = () => {
                                 .map((step) =>
                                   step.requirementSummaryKey
                                     ? (t(
-                                        step.requirementSummaryKey as any
+                                        step.requirementSummaryKey as unknown as TemplateStringsArray
                                       ) as string)
                                     : undefined
                                 )
@@ -1132,7 +1142,10 @@ export const OverviewScreen = () => {
                               stepSummaries.length > 0
                                 ? stepSummaries
                                 : section.sectionConfig.requirementsListKeys?.map(
-                                    (key) => t(key as any) as string
+                                    (key) =>
+                                      t(
+                                        key as unknown as TemplateStringsArray
+                                      ) as string
                                   );
                             return items && items.length > 0 ? (
                               <ul className="eb-mt-1.5 eb-w-full eb-list-disc eb-whitespace-break-spaces eb-pl-8 eb-text-start eb-font-sans eb-text-sm eb-font-normal">
@@ -1157,10 +1170,10 @@ export const OverviewScreen = () => {
                                 ['on_hold', 'not_started'].includes(
                                   sectionStatus
                                 )
-                                  ? `${t('common:start')} ${t(section.sectionConfig.labelKey as any)}`
+                                  ? `${t('common:start')} ${t(section.sectionConfig.labelKey as unknown as TemplateStringsArray)}`
                                   : sectionStatus === 'completed'
-                                    ? `${t('common:edit')} ${t(section.sectionConfig.labelKey as any)}`
-                                    : `${t('common:continue')} ${t(section.sectionConfig.labelKey as any)}`
+                                    ? `${t('common:edit')} ${t(section.sectionConfig.labelKey as unknown as TemplateStringsArray)}`
+                                    : `${t('common:continue')} ${t(section.sectionConfig.labelKey as unknown as TemplateStringsArray)}`
                               }
                               onClick={() => {
                                 goTo(section.id, {

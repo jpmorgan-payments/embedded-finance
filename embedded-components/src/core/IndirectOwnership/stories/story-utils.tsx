@@ -8,7 +8,11 @@ import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import type { EBTheme } from '@/core/EBComponentsProvider/config.types';
 
 import { IndirectOwnership } from '../IndirectOwnership';
-import type { IndirectOwnershipProps } from '../IndirectOwnership.types';
+import type {
+  BeneficialOwner,
+  IndirectOwnershipProps,
+  ValidationSummary,
+} from '../IndirectOwnership.types';
 
 // ============================================================================
 // Story Wrapper Component
@@ -69,11 +73,11 @@ export const commonArgs = {
   headers: {},
   theme: SELLSENSE_THEME,
   contentTokens: { name: 'enUS' as const },
-  onOwnershipComplete: (owners: any) => {
+  onOwnershipComplete: (owners: BeneficialOwner[]) => {
     // eslint-disable-next-line no-console
     console.log('Ownership completed:', owners);
   },
-  onValidationChange: (summary: any) => {
+  onValidationChange: (summary: ValidationSummary) => {
     // eslint-disable-next-line no-console
     console.log('Validation changed:', summary);
   },

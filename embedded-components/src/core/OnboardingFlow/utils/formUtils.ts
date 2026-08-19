@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   DefaultValues,
   FieldPath,
+  FieldValues,
   useForm,
   useFormContext,
   UseFormProps,
@@ -307,8 +308,8 @@ export function sanitizeServerErrorMessage(message: string): string {
  * Shows toast notifications for unhandled errors in development mode
  * Focuses the first field with an error
  */
-export function setApiFormErrors(
-  form: UseFormReturn<any, any, any>,
+export function setApiFormErrors<TFieldValues extends FieldValues>(
+  form: UseFormReturn<TFieldValues>,
   apiFormErrors: FormError[]
 ) {
   let unhandledErrorString = '';
@@ -318,11 +319,12 @@ export function setApiFormErrors(
       unhandledErrorString += `\n${formError.path}: ${formError.message}`;
     } else {
       const friendlyMessage = sanitizeServerErrorMessage(formError.message);
-      form.setError(formError.field, {
+      const fieldPath = formError.field as FieldPath<TFieldValues>;
+      form.setError(fieldPath, {
         message: `Server Error: ${friendlyMessage}`,
       });
       if (!focused) {
-        form.setFocus(formError.field);
+        form.setFocus(fieldPath);
         focused = true;
       }
     }
@@ -344,7 +346,13 @@ export function setApiFormErrors(
  * Creates nested objects/arrays as needed while traversing
  * Joins arrays if they already exist at the same path
  */
-function setValueByPath(obj: any, path: string, value: any) {
+function setValueByPath(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic string-path setter mutates arbitrary nested API request shapes
+  obj: any,
+  path: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- value type varies per mapped field
+  value: any
+) {
   const keys = path.replace(/\[(\w+)\]/g, '.$1').split('.');
   keys.reduce((acc, key, index) => {
     if (index === keys.length - 1) {
@@ -386,7 +394,9 @@ export function generateClientRequestBody(
     const path = `${arrayName}.${partyIndex}.${fieldConfig.path}`;
     if (value !== '' && value !== undefined) {
       const modifiedValue = fieldConfig.toRequestFn
-        ? (fieldConfig as { toRequestFn: (val: any) => any }).toRequestFn(value)
+        ? (
+            fieldConfig as { toRequestFn: (val: unknown) => unknown }
+          ).toRequestFn(value)
         : value;
 
       if (modifiedValue !== undefined && modifiedValue !== null) {
@@ -418,7 +428,9 @@ export function generatePartyRequestBody(
     const path = `${fieldConfig.path}`;
     if (value !== '' && value !== undefined) {
       const modifiedValue = fieldConfig.toRequestFn
-        ? (fieldConfig as { toRequestFn: (val: any) => any }).toRequestFn(value)
+        ? (
+            fieldConfig as { toRequestFn: (val: unknown) => unknown }
+          ).toRequestFn(value)
         : value;
 
       if (modifiedValue !== undefined && modifiedValue !== null) {
@@ -436,7 +448,12 @@ export function generatePartyRequestBody(
  * @param pathTemplate - Dot notation path, supports array indices
  * @returns Value at the specified path or undefined if not found
  */
-export function getValueByPath(obj: any, pathTemplate: string): any {
+export function getValueByPath(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic string-path getter reads arbitrary nested API response shapes
+  obj: any,
+  pathTemplate: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- return type varies per resolved path
+): any {
   const keys = pathTemplate.replace(/\[(\w+)\]/g, '.$1').split('.');
   return keys.reduce(
     (acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined),
@@ -609,10 +626,10 @@ export function useFormUtilsWithClientContext(
   };
 
   function modifySchema(
-    schema: z.ZodObject<Record<string, z.ZodType<any>>>,
+    schema: z.ZodObject<Record<string, z.ZodTypeAny>>,
     refineFn?: (
-      schema: z.ZodObject<Record<string, z.ZodType<any>>>
-    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>
+      schema: z.ZodObject<Record<string, z.ZodTypeAny>>
+    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodTypeAny>>>
   ) {
     return modifySchemaByClientContext(
       schema,
@@ -680,7 +697,7 @@ function applyFieldRuleSegment(
     // Otherwise, it's a subfield name
     const subFieldName =
       segment as keyof OnboardingFormValuesSubmit[OnboardingTopLevelArrayFieldNames][number];
-    // @ts-ignore -- TS can't infer this properly
+    // @ts-expect-error -- TS can't infer this properly
     const subFieldConfig = currentConfig.subFields?.[subFieldName];
     if (!subFieldConfig) {
       throw new Error(
@@ -830,11 +847,11 @@ export function getFieldRuleByClientContext(
  * the element is an object; otherwise returns it unchanged.
  */
 function resolveArrayElementSchema(
-  elementSchema: z.ZodType<any>,
+  elementSchema: z.ZodTypeAny,
   fullKey: string,
   clientContext: ClientContext,
   currentScreenId: ScreenId
-): z.ZodType<any> {
+): z.ZodTypeAny {
   if (elementSchema instanceof z.ZodObject) {
     // For array elements, we add a placeholder index (0) to the key
     return modifySchemaByClientContext(
@@ -854,13 +871,13 @@ function resolveArrayElementSchema(
  * arrays.
  */
 function modifyArrayFieldSchema(
-  modifiedSchema: z.ZodType<any>,
+  modifiedSchema: z.ZodTypeAny,
   fieldRule: OptionalDefaults<ArrayFieldRule>,
   fullKey: string,
   key: string,
   clientContext: ClientContext,
   currentScreenId: ScreenId
-): z.ZodType<any> {
+): z.ZodTypeAny {
   const min = fieldRule.requiredItems ?? fieldRule.minItems ?? 0;
   const max = fieldRule.maxItems ?? Infinity;
   const tName = fullKey
@@ -893,7 +910,7 @@ function modifyArrayFieldSchema(
         clientContext,
         currentScreenId
       );
-      const modifiedInner: z.ZodType<any> = z
+      const modifiedInner: z.ZodTypeAny = z
         .array(newElementSchema)
         .min(min, minMessage)
         .max(max, maxMessage);
@@ -930,11 +947,11 @@ function modifyArrayFieldSchema(
  * Relaxes a non-required single field schema so it also accepts empty string
  * and undefined. Object schemas are relaxed field-by-field.
  */
-function relaxOptionalFieldSchema(schema: z.ZodType<any>): z.ZodType<any> {
+function relaxOptionalFieldSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
   if (schema instanceof z.ZodObject) {
-    const relaxedShape: Record<string, z.ZodType<any>> = {};
+    const relaxedShape: Record<string, z.ZodTypeAny> = {};
     for (const [k, v] of Object.entries(
-      schema.shape as Record<string, z.ZodType<any>>
+      schema.shape as Record<string, z.ZodTypeAny>
     )) {
       relaxedShape[k] = v.or(z.literal('')).or(z.undefined());
     }
@@ -951,19 +968,19 @@ function relaxOptionalFieldSchema(schema: z.ZodType<any>): z.ZodType<any> {
  * @returns Modified Zod schema with context-appropriate validations
  */
 export function modifySchemaByClientContext(
-  schema: z.ZodObject<Record<string, z.ZodType<any>>>,
+  schema: z.ZodObject<Record<string, z.ZodTypeAny>>,
   clientContext: ClientContext,
   currentScreenId: ScreenId,
   refineFn?: (
-    schema: z.ZodObject<Record<string, z.ZodType<any>>>
-  ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>,
+    schema: z.ZodObject<Record<string, z.ZodTypeAny>>
+  ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodTypeAny>>>,
   parentKey: string = '' // used to track full key path
 ):
-  | z.ZodObject<Record<string, z.ZodType<any>>>
-  | z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>> {
+  | z.ZodObject<Record<string, z.ZodTypeAny>>
+  | z.ZodEffects<z.ZodObject<Record<string, z.ZodTypeAny>>> {
   const { shape } = schema;
 
-  const filteredSchema: Record<string, z.ZodType<any>> = {};
+  const filteredSchema: Record<string, z.ZodTypeAny> = {};
   objectEntries(shape).forEach(([key, value]) => {
     const fullKey = parentKey ? `${parentKey}.${key}` : key;
 
@@ -979,7 +996,7 @@ export function modifySchemaByClientContext(
     }
 
     // Modify the field schema based on the field rule
-    let modifiedSchema: z.ZodType<any> = value;
+    let modifiedSchema: z.ZodTypeAny = value;
 
     if (ruleType === 'array') {
       modifiedSchema = modifyArrayFieldSchema(
@@ -1030,15 +1047,15 @@ export function modifyDefaultValuesByClientContext(
 }
 
 export function useFormWithFilters<
-  TSchema extends z.ZodObject<Record<string, z.ZodType<any>>>,
+  TSchema extends z.ZodObject<Record<string, z.ZodTypeAny>>,
 >(
   props: Omit<UseFormProps<z.input<TSchema>>, 'resolver'> & {
     clientData: ClientResponse | undefined;
     screenId: ScreenId;
     schema: TSchema;
     refineSchemaFn?: (
-      schema: z.ZodObject<Record<string, z.ZodType<any>>>
-    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodType<any>>>>;
+      schema: z.ZodObject<Record<string, z.ZodTypeAny>>
+    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodTypeAny>>>;
     overrideDefaultValues?: Partial<OnboardingFormValuesInitial>;
     /**
      * When true, runs form.trigger() on mount to surface validation
@@ -1047,7 +1064,7 @@ export function useFormWithFilters<
      */
     validateOnMount?: boolean;
   }
-): UseFormReturn<z.input<TSchema>, any, z.output<TSchema>> {
+): UseFormReturn<z.input<TSchema>, unknown, z.output<TSchema>> {
   const { modifyDefaultValues, modifySchema } = useFormUtilsWithClientContext(
     props.clientData,
     props.screenId
@@ -1080,7 +1097,7 @@ export function useFormWithFilters<
     };
   }
 
-  const form = useForm<z.input<TSchema>, any, z.output<TSchema>>({
+  const form = useForm<z.input<TSchema>, unknown, z.output<TSchema>>({
     mode: 'onBlur',
     reValidateMode: 'onChange',
     ...props,
@@ -1115,23 +1132,26 @@ export function useFormWithFilters<
         // Phone fields with only a country code (e.g. "+1") are empty
         (typeof val === 'string' && /^\+\d{1,3}$/.test(val.trim()));
 
-      const isFullyPopulated = (obj: Record<string, any>): boolean =>
+      const isFullyPopulated = (obj: Record<string, unknown>): boolean =>
         Object.values(obj).every((val) => {
           if (val != null && typeof val === 'object' && !Array.isArray(val)) {
-            return isFullyPopulated(val);
+            return isFullyPopulated(val as Record<string, unknown>);
           }
           return !isEffectivelyEmpty(val);
         });
 
-      const collectPopulated = (obj: Record<string, any>, prefix = '') => {
+      const collectPopulated = (obj: Record<string, unknown>, prefix = '') => {
         for (const [key, val] of Object.entries(obj)) {
           const path = prefix ? `${prefix}.${key}` : key;
           if (Array.isArray(val)) {
             val.forEach((item, idx) => {
               if (item != null && typeof item === 'object') {
                 // For array items that are objects, only include if fully populated
-                if (isFullyPopulated(item)) {
-                  collectPopulated(item, `${path}.${idx}`);
+                if (isFullyPopulated(item as Record<string, unknown>)) {
+                  collectPopulated(
+                    item as Record<string, unknown>,
+                    `${path}.${idx}`
+                  );
                 }
               } else if (!isEffectivelyEmpty(item)) {
                 populatedFields.push(`${path}.${idx}`);
@@ -1143,18 +1163,18 @@ export function useFormWithFilters<
             !Array.isArray(val)
           ) {
             // Only recurse into objects where all leaves are populated
-            if (isFullyPopulated(val)) {
-              collectPopulated(val, path);
+            if (isFullyPopulated(val as Record<string, unknown>)) {
+              collectPopulated(val as Record<string, unknown>, path);
             }
           } else if (!isEffectivelyEmpty(val)) {
             populatedFields.push(path);
           }
         }
       };
-      collectPopulated(values);
+      collectPopulated(values as Record<string, unknown>);
 
       if (populatedFields.length > 0) {
-        form.trigger(populatedFields as any);
+        form.trigger(populatedFields as FieldPath<z.input<TSchema>>[]);
       }
     }
   }, [shouldValidateOnMount, form]);
@@ -1182,6 +1202,7 @@ export function shapeFormValuesBySchema<T extends z.ZodRawShape>(
       }
       return acc;
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- reduce accumulator bridges schema input/output value types
     {} as Record<string, any>
   );
 }

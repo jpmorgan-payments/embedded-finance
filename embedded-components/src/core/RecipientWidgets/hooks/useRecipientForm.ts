@@ -211,7 +211,6 @@ export function useRecipientForm({
         data: { account, partyDetails },
       });
     } else {
-      // eslint-disable-next-line no-console
       console.error('Edit mode requires recipientId');
     }
   };

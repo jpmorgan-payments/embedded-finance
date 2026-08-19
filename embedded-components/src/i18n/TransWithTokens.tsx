@@ -1,6 +1,19 @@
+import { type ComponentProps, type ReactElement, type ReactNode } from 'react';
 import { Trans } from 'react-i18next';
 
 import { useContentTokens } from '@/core/EBComponentsProvider';
+
+const richTextComponents: Record<string, ReactElement> = {
+  p: <p />,
+  br: <br />,
+  strong: <strong />,
+  b: <strong />,
+  em: <em />,
+  i: <em />,
+  ul: <ul />,
+  ol: <ol />,
+  li: <li />,
+};
 
 /**
  * A wrapper around react-i18next's Trans component that adds token ID annotations
@@ -28,9 +41,9 @@ export function TransWithTokens({
   i18nKey: string;
   ns?: string;
   values?: Record<string, unknown>;
-  components?: Record<string, React.ReactElement>;
+  components?: Record<string, ReactElement>;
   defaults?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }) {
   const contentTokensConfig = useContentTokens();
   const showTokenIds = contentTokensConfig?.showTokenIds ?? false;
@@ -43,10 +56,10 @@ export function TransWithTokens({
     i18nKey,
     ns,
     values,
-    components,
+    components: { ...richTextComponents, ...components },
     defaults,
     children,
-  } as any;
+  } as unknown as ComponentProps<typeof Trans>;
 
   if (!showTokenIds) {
     return <Trans {...transProps} />;

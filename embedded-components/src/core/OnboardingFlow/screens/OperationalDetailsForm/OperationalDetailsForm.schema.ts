@@ -230,7 +230,7 @@ const wrapArrayValueSchema = (
   // so FormMessage can display them (zod nests them at path [0] otherwise).
   return (arraySchema as z.ZodArray<z.ZodTypeAny>).superRefine(
     (values, context) => {
-      values.forEach((value: any) => {
+      values.forEach((value: unknown) => {
         const result = childSchema.safeParse(value);
         if (result.error) {
           context.addIssue(result.error.issues[0]);

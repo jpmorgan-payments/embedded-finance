@@ -131,7 +131,7 @@ export const ImportantDateSelector = forwardRef<
           onChange?.(null, errorMessage);
         }
       },
-      [onChange]
+      [onChange, tString]
     );
 
     useEffect(() => {
@@ -142,6 +142,7 @@ export const ImportantDateSelector = forwardRef<
         setIsValid(true);
         isTouched && onChange?.(null);
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- validate only when date inputs / touched flags change; onChange & updateDate excluded to avoid re-validating every render
     }, [day, month, year, isTouched, isPrepopulated]);
 
     useEffect(() => {
@@ -158,6 +159,7 @@ export const ImportantDateSelector = forwardRef<
         setMonth(newMonth);
         setYear(newYear);
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- one-way sync from `value` prop; date parts excluded so manually clearing fields does not re-populate
     }, [value]);
 
     const handleDayChange = (inputValue: string) => {
@@ -310,3 +312,4 @@ export const ImportantDateSelector = forwardRef<
     );
   }
 );
+ImportantDateSelector.displayName = 'ImportantDateSelector';

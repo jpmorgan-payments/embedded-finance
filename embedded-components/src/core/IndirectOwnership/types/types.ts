@@ -18,7 +18,7 @@ export interface IndirectOwnershipComponentProps extends UserTrackingProps {
   /** Callback when ownership structure is updated */
   onOwnershipStructureUpdate?: (
     ownershipData?: OwnershipStructure,
-    error?: any
+    error?: unknown
   ) => void;
 
   /** Whether to show the ownership visualization tree */

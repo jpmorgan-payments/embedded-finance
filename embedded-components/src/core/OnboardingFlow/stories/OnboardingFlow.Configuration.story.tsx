@@ -296,7 +296,6 @@ export const WithUserTracking: Story = {
   args: {
     ...commonArgs,
     hideSidebar: false,
-    // eslint-disable-next-line no-console
     userEventsHandler: (context) => {
       // eslint-disable-next-line no-console
       console.group('🔍 Onboarding Journey Event');

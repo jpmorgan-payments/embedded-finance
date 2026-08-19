@@ -12,7 +12,7 @@ import {
 import {
   useDropzone,
   type DropzoneProps as _DropzoneProps,
-  type DropzoneState as _DropzoneState,
+  type DropzoneState,
 } from 'react-dropzone';
 import truncate from 'truncate';
 
@@ -31,23 +31,32 @@ import {
  * to a DOM sink (an `<img>` / `<iframe>` `src` or `window.open`).
  *
  * URLs produced by `URL.createObjectURL` always use the `blob:` scheme and point
- * at in-memory browser data, so they are not attacker-controllable. This applies
- * strict allowlist validation on the scheme and returns the value extracted from
- * a regex match, so only a well-formed `blob:` URL can ever reach a sink —
- * `javascript:`, `data:`, `http(s):` and any other scheme are rejected. This
+ * at in-memory browser data, so they are not attacker-controllable. The value is
+ * parsed with the `URL` Web API and its protocol is checked against a hard-coded
+ * allow-list; only a `blob:` URL passes and the API-normalized `href` is returned
+ * so `javascript:`, `data:`, `http(s):` and any other scheme are rejected. This
  * mitigates DOM-based XSS (CWE-79) and Open Redirect (CWE-601).
  */
+const ALLOWED_URL_PROTOCOLS = ['blob:'] as const;
+
 export const sanitizeBlobUrl = (url: string | null): string => {
   if (!url) return '';
-  // Allowlist: only a well-formed blob: URL (no whitespace or characters that
-  // could break out of an attribute). Return the regex-matched value so the
-  // downstream sink receives a string constrained by the anchored pattern
-  // rather than the raw input.
-  const match = /^blob:[^\s"'<>]+$/i.exec(url);
-  return match ? match[0] : '';
+  try {
+    // Parse with the URL API and check the protocol against a hard-coded
+    // allow-list; return the API-normalized href so the sink never receives
+    // the raw input value.
+    const parsed = new URL(url);
+    return ALLOWED_URL_PROTOCOLS.includes(
+      parsed.protocol as (typeof ALLOWED_URL_PROTOCOLS)[number]
+    )
+      ? parsed.href
+      : '';
+  } catch {
+    return '';
+  }
 };
 
-export interface DropzoneState extends _DropzoneState {}
+export type { DropzoneState };
 
 interface CompressionStatus {
   isCompressing: boolean;

@@ -88,7 +88,11 @@ export function useLinkAccountFormConfig({
       const pt = prefillSummaryFormData.paymentTypes;
       if (pt?.length) return [...pt];
       return ['ACH'];
-    }, [linkAccountStepOptions, prefillSummaryFormData]);
+    }, [
+      linkAccountStepOptions,
+      prefillSummaryFormData,
+      effectiveCompletionMode,
+    ]);
 
   return {
     configWithOverride,

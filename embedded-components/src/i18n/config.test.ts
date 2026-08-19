@@ -122,7 +122,7 @@ describe('i18n/config', () => {
     it('applies custom content tokens', () => {
       const instance = createI18nInstance({
         tokens: {
-          common: { errors: { unknownError: 'Custom Error' } } as any,
+          common: { errors: { unknownError: 'Custom Error' } },
         },
       });
 
@@ -135,7 +135,7 @@ describe('i18n/config', () => {
 
       createI18nInstance({
         tokens: {
-          common: { errors: { unknownError: 'Changed!' } } as any,
+          common: { errors: { unknownError: 'Changed!' } },
         },
       });
 

@@ -381,7 +381,8 @@
         "cancelButton": "No, keep owner"
       },
       "saveAndReturnToReviewButton": "Save and return to review",
-      "saveAndContinueButton": "Save and continue to operational details"
+      "saveAndContinueButton": "Save and continue to operational details",
+      "saveAndContinueToOwnerDetailsButton": "Save and continue to owner details"
     },
     "overview": {
       "title": "Overview",
@@ -532,6 +533,20 @@
         "description": "Please ensure your answers are accurate and complete anything you may have missed."
       }
     },
+    "intermediarySteps": {
+      "orgDetails": {
+        "title": "Intermediary details",
+        "description": "Organization name, ownership percentage, and country of formation"
+      },
+      "orgAddress": {
+        "title": "Business address",
+        "description": "Legal business address of the intermediary entity"
+      },
+      "checkAnswers": {
+        "title": "Check your answers",
+        "description": "Review the information provided for this entity"
+      }
+    },
     "personalSection": {
       "label": "Controller details",
       "shortLabel": "Controller details",
@@ -653,6 +668,7 @@
   },
   "fields": {
     "controllerFirstName": {
+      "fieldName": "First name",
       "label": "First name",
       "placeholder": "Enter first name",
       "description": "",
@@ -670,6 +686,7 @@
       }
     },
     "controllerMiddleName": {
+      "fieldName": "Middle name",
       "label": "Middle name",
       "placeholder": "Enter middle name",
       "description": "",
@@ -685,6 +702,7 @@
       }
     },
     "controllerLastName": {
+      "fieldName": "Last name",
       "label": "Last name",
       "placeholder": "Enter last name",
       "description": "",
@@ -704,6 +722,7 @@
       }
     },
     "controllerNameSuffix": {
+      "fieldName": "Suffix",
       "label": "Suffix",
       "placeholder": "Enter name suffix",
       "description": "(e.g. Jr., Sr. II, etc)",
@@ -715,6 +734,7 @@
       }
     },
     "controllerJobTitle": {
+      "fieldName": "Job title",
       "label": "Job title",
       "placeholder": "Select job title",
       "description": {
@@ -749,6 +769,7 @@
       }
     },
     "natureOfOwnership": {
+      "fieldName": "Nature of ownership",
       "label": "Nature of ownership",
       "placeholder": "Select nature of ownership",
       "description": "How you own or control the organization",
@@ -772,6 +793,7 @@
       }
     },
     "countryOfResidence": {
+      "fieldName": "Country of residence",
       "label": "Country of residence",
       "tooltip": "",
       "placeholder": "Select country",
@@ -882,6 +904,7 @@
       }
     },
     "countryOfFormation": {
+      "fieldName": "Country of registration",
       "label": "Country of registration",
       "description": "",
       "placeholder": "Select country of formation",
@@ -890,6 +913,18 @@
         "exactlyTwoChars": "Country code must be exactly 2 characters",
         "invalid": "Invalid country code",
         "usOnly": "Only US is supported at this time"
+      }
+    },
+    "ownershipPercentage": {
+      "fieldName": "Ownership percentage",
+      "label": "Ownership percentage",
+      "description": "Percentage of the root client owned by this intermediary (1–100)",
+      "placeholder": "Enter percentage",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "min": "Must be at least 1",
+        "max": "Cannot exceed 100"
       }
     },
     "organizationName": {
@@ -909,6 +944,21 @@
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)"
       }
     },
+    "organizationType": {
+      "fieldName": "Organization type",
+      "label": "Organization type",
+      "placeholder": "Select organization type",
+      "description": "The legal classification of the entity",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
+    "organizationAddress": {
+      "label": "Legal business address",
+      "description": "The entity's registered legal address",
+      "tooltip": ""
+    },
     "yearOfFormation": {
       "label": "Year of formation",
       "placeholder": "YYYY",
@@ -921,6 +971,7 @@
       }
     },
     "organizationIdEin": {
+      "fieldName": "EIN",
       "label": "$t(onboarding-overview:idValueLabels.EIN)",
       "description": {
         "default": "$t(onboarding-overview:idValueDescriptions.EIN)",

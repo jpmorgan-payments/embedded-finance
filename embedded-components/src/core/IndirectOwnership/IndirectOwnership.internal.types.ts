@@ -39,9 +39,8 @@ export interface OwnershipConfig {
  */
 export const VALIDATION_MESSAGES = {
   pendingHierarchy:
-    "Ownership hierarchy required - click 'Build Ownership Hierarchy' to continue",
-  invalidHierarchy:
-    "Ownership hierarchy has errors - click 'Edit Hierarchy' to fix",
+    "Ownership chain required - click 'Build Ownership Chain' to continue",
+  invalidHierarchy: "Ownership chain has errors - click 'Edit Chain' to fix",
   belowThreshold: 'Owner must have 25% or more beneficial ownership',
   duplicateName: 'Owner with this name already exists',
   missingRequired: 'First name and last name are required',

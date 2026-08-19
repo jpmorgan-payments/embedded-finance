@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
+import type {
+  ApiErrorReasonV2,
+  ClientResponse,
+  PartyResponse,
+} from '@/api/generated/smbdo.schemas';
+import type { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types';
+
 import {
   convertClientResponseToFormValues,
   convertPartyResponseToFormValues,
@@ -12,6 +19,17 @@ import {
   sanitizeServerErrorMessage,
 } from './formUtils';
 
+// Minimal shapes for the dynamically-built request bodies under test.
+type RequestBodyOrgDetails = {
+  organizationName?: string;
+  countryOfFormation?: string;
+  addresses?: Array<{ addressType?: string; addressLines?: string[] }>;
+};
+type ClientRequestBodyShape = {
+  parties?: Array<{ organizationDetails?: RequestBodyOrgDetails }>;
+};
+type PartyRequestBodyShape = { organizationDetails?: RequestBodyOrgDetails };
+
 describe('formUtils', () => {
   describe('getPartyFieldConfig', () => {
     it('returns config for a known field', () => {
@@ -21,7 +39,7 @@ describe('formUtils', () => {
     });
 
     it('throws for an unknown field', () => {
-      expect(() => getPartyFieldConfig('totallyFakeField' as any)).toThrow(
+      expect(() => getPartyFieldConfig('totallyFakeField' as never)).toThrow(
         '"totallyFakeField" is not mapped in fieldMap'
       );
     });
@@ -92,50 +110,38 @@ describe('formUtils', () => {
 
   describe('mapClientApiErrorsToFormErrors', () => {
     it('maps errors with matching field paths', () => {
-      const errors = [
+      const errors: ApiErrorReasonV2[] = [
         {
           field: '$.parties.0.individualDetails.firstName',
           message: 'Required',
         },
       ];
-      const result = mapClientApiErrorsToFormErrors(
-        errors as any,
-        0,
-        'parties'
-      );
+      const result = mapClientApiErrorsToFormErrors(errors, 0, 'parties');
       expect(result).toHaveLength(1);
       expect(result[0].field).toBe('controllerFirstName');
       expect(result[0].message).toBe('Required');
     });
 
     it('returns unmatched fields with undefined field', () => {
-      const errors = [
+      const errors: ApiErrorReasonV2[] = [
         {
           field: '$.parties.0.unknownPath.deep',
           message: 'Unknown error',
         },
       ];
-      const result = mapClientApiErrorsToFormErrors(
-        errors as any,
-        0,
-        'parties'
-      );
+      const result = mapClientApiErrorsToFormErrors(errors, 0, 'parties');
       expect(result).toHaveLength(1);
       expect(result[0].field).toBeUndefined();
     });
 
     it('maps errors on addParties array', () => {
-      const errors = [
+      const errors: ApiErrorReasonV2[] = [
         {
           field: '$.addParties.0.organizationDetails.organizationName',
           message: 'Required',
         },
       ];
-      const result = mapClientApiErrorsToFormErrors(
-        errors as any,
-        0,
-        'addParties'
-      );
+      const result = mapClientApiErrorsToFormErrors(errors, 0, 'addParties');
       expect(result).toHaveLength(1);
       expect(result[0].field).toBe('organizationName');
     });
@@ -143,47 +149,47 @@ describe('formUtils', () => {
 
   describe('mapPartyApiErrorsToFormErrors', () => {
     it('maps errors with $. prefix', () => {
-      const errors = [
+      const errors: ApiErrorReasonV2[] = [
         {
           field: '$.organizationDetails.organizationName',
           message: 'Required',
         },
       ];
-      const result = mapPartyApiErrorsToFormErrors(errors as any);
+      const result = mapPartyApiErrorsToFormErrors(errors);
       expect(result.some((e) => e.field === 'organizationName')).toBe(true);
     });
 
     it('maps errors with $.party. prefix', () => {
-      const errors = [
+      const errors: ApiErrorReasonV2[] = [
         {
           field: '$.party.organizationDetails.organizationName',
           message: 'Required',
         },
       ];
-      const result = mapPartyApiErrorsToFormErrors(errors as any);
+      const result = mapPartyApiErrorsToFormErrors(errors);
       expect(result.some((e) => e.field === 'organizationName')).toBe(true);
     });
 
     it('handles unmatched paths as unhandled', () => {
-      const errors = [
+      const errors: ApiErrorReasonV2[] = [
         {
           field: '$.completelyUnknown.path',
           message: 'Unknown',
         },
       ];
-      const result = mapPartyApiErrorsToFormErrors(errors as any);
+      const result = mapPartyApiErrorsToFormErrors(errors);
       expect(result).toHaveLength(1);
       expect(result[0].field).toBeUndefined();
     });
 
     it('emits errors for remaining path with modifyErrorField', () => {
-      const errors = [
+      const errors: ApiErrorReasonV2[] = [
         {
           field: '$.individualDetails.addresses[0].addressLines[0]',
           message: 'Address required',
         },
       ];
-      const result = mapPartyApiErrorsToFormErrors(errors as any);
+      const result = mapPartyApiErrorsToFormErrors(errors);
       expect(result.length).toBeGreaterThanOrEqual(1);
       expect(result[0].message).toBe('Address required');
     });
@@ -191,60 +197,77 @@ describe('formUtils', () => {
 
   describe('generateClientRequestBody', () => {
     it('maps organization form values to request body', () => {
-      const formValues = { organizationName: 'Acme Corp' };
-      const result = generateClientRequestBody(
-        formValues as any,
-        0,
-        'parties',
-        {}
-      );
+      const formValues: Partial<OnboardingFormValuesSubmit> = {
+        organizationName: 'Acme Corp',
+      };
+      const result = generateClientRequestBody(formValues, 0, 'parties', {});
       expect(
-        (result as any).parties[0].organizationDetails.organizationName
+        (result as ClientRequestBodyShape).parties?.[0]?.organizationDetails
+          ?.organizationName
       ).toBe('Acme Corp');
     });
 
     it('skips empty string values', () => {
-      const formValues = {
+      const formValues: Partial<OnboardingFormValuesSubmit> = {
         organizationName: '',
         countryOfFormation: 'US',
       };
-      const result = generateClientRequestBody(
-        formValues as any,
-        0,
-        'parties',
-        {}
-      );
-      const org = (result as any).parties?.[0]?.organizationDetails;
+      const result = generateClientRequestBody(formValues, 0, 'parties', {});
+      const org = (result as ClientRequestBodyShape).parties?.[0]
+        ?.organizationDetails;
       expect(org?.organizationName).toBeUndefined();
       expect(org?.countryOfFormation).toBe('US');
     });
 
     it('skips undefined values', () => {
-      const formValues = { organizationName: undefined };
-      const result = generateClientRequestBody(
-        formValues as any,
-        0,
-        'parties',
-        {}
-      );
-      expect((result as any).parties).toBeUndefined();
+      const formValues: Partial<OnboardingFormValuesSubmit> = {
+        organizationName: undefined,
+      };
+      const result = generateClientRequestBody(formValues, 0, 'parties', {});
+      expect((result as ClientRequestBodyShape).parties).toBeUndefined();
     });
   });
 
   describe('generatePartyRequestBody', () => {
     it('maps form values to party request', () => {
-      const formValues = { organizationName: 'Acme' };
-      const result = generatePartyRequestBody(formValues as any, {});
-      expect((result as any).organizationDetails.organizationName).toBe('Acme');
+      const formValues: Partial<OnboardingFormValuesSubmit> = {
+        organizationName: 'Acme',
+      };
+      const result = generatePartyRequestBody(formValues, {});
+      expect(
+        (result as PartyRequestBodyShape).organizationDetails?.organizationName
+      ).toBe('Acme');
     });
 
     it('skips empty and undefined values', () => {
-      const formValues = {
+      const formValues: Partial<OnboardingFormValuesSubmit> = {
         organizationName: '',
         countryOfFormation: undefined,
       };
-      const result = generatePartyRequestBody(formValues as any, {});
-      expect((result as any).organizationDetails).toBeUndefined();
+      const result = generatePartyRequestBody(formValues, {});
+      expect(
+        (result as PartyRequestBodyShape).organizationDetails
+      ).toBeUndefined();
+    });
+
+    it('maps the canonical organizationAddress into addresses[0]', () => {
+      const formValues = {
+        organizationAddress: {
+          addressType: 'LEGAL_ADDRESS',
+          primaryAddressLine: '1 Market St',
+          secondaryAddressLine: '',
+          tertiaryAddressLine: '',
+          city: 'San Francisco',
+          state: 'CA',
+          postalCode: '94105',
+          country: 'US',
+        },
+      } as unknown as Partial<OnboardingFormValuesSubmit>;
+      const result = generatePartyRequestBody(formValues, {});
+      const address = (result as PartyRequestBodyShape).organizationDetails
+        ?.addresses?.[0];
+      expect(address?.addressType).toBe('LEGAL_ADDRESS');
+      expect(address?.addressLines?.[0]).toBe('1 Market St');
     });
   });
 
@@ -261,7 +284,10 @@ describe('formUtils', () => {
           },
         ],
       };
-      const result = convertClientResponseToFormValues(response as any, 'p1');
+      const result = convertClientResponseToFormValues(
+        response as unknown as ClientResponse,
+        'p1'
+      );
       expect(result.organizationName).toBe('Test Corp');
       expect(result.countryOfFormation).toBe('US');
     });
@@ -269,7 +295,7 @@ describe('formUtils', () => {
     it('handles missing party gracefully', () => {
       const response = { parties: [] };
       const result = convertClientResponseToFormValues(
-        response as any,
+        response as unknown as ClientResponse,
         'nonexistent'
       );
       expect(result).toBeDefined();
@@ -284,7 +310,9 @@ describe('formUtils', () => {
           countryOfFormation: 'US',
         },
       };
-      const result = convertPartyResponseToFormValues(response as any);
+      const result = convertPartyResponseToFormValues(
+        response as unknown as PartyResponse
+      );
       expect(result.organizationName).toBe('Acme');
       expect(result.countryOfFormation).toBe('US');
     });
@@ -303,7 +331,9 @@ describe('formUtils', () => {
           ],
         },
       };
-      const result = convertPartyResponseToFormValues(response as any);
+      const result = convertPartyResponseToFormValues(
+        response as unknown as PartyResponse
+      );
       expect(result.countryOfResidence).toBe('CA');
       if (result.controllerIds?.length) {
         expect(result.controllerIds[0].issuer).toBe('CA');
@@ -316,7 +346,9 @@ describe('formUtils', () => {
           countryOfResidence: 'US',
         },
       };
-      const result = convertPartyResponseToFormValues(response as any);
+      const result = convertPartyResponseToFormValues(
+        response as unknown as PartyResponse
+      );
       if (result.controllerIds?.length) {
         expect(result.controllerIds[0].issuer).toBe('US');
         expect(result.controllerIds[0].idType).toBe('SSN');

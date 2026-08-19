@@ -14,7 +14,7 @@ describe('OwnershipCalculationsTooltip', () => {
     expect(button).toBeInTheDocument();
   });
 
-  test('shows popover content on click', async () => {
+  test('shows dialog content on click', async () => {
     const user = userEvent.setup();
     render(<OwnershipCalculationsTooltip />);
 
@@ -25,7 +25,7 @@ describe('OwnershipCalculationsTooltip', () => {
     // Click the button
     await user.click(button);
 
-    // Wait for popover to appear
+    // Wait for dialog to appear
     await waitFor(() => {
       expect(
         screen.getByText(/How to Calculate Beneficial Ownership/i)
@@ -33,7 +33,7 @@ describe('OwnershipCalculationsTooltip', () => {
     });
   });
 
-  test('displays example calculations in popover', async () => {
+  test('displays example calculations in dialog', async () => {
     const user = userEvent.setup();
     render(<OwnershipCalculationsTooltip />);
 

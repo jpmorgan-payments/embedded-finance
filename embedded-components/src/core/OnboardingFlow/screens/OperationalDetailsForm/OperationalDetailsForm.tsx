@@ -7,7 +7,6 @@ import {
   useState,
 } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -107,7 +106,10 @@ export const OperationalDetailsForm = () => {
 
   // Get outstanding question IDs and existing question responses
   const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
-  const existingQuestionResponses = clientData?.questionResponses ?? [];
+  const existingQuestionResponses = useMemo(
+    () => clientData?.questionResponses ?? [],
+    [clientData?.questionResponses]
+  );
 
   // Fetch the full question tree (handles arbitrary nesting depth)
   const {
@@ -130,6 +132,7 @@ export const OperationalDetailsForm = () => {
             : [];
           return acc;
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic-question form: default values are heterogeneous per question and drive useForm's field-value inference
         {} as Record<string, any>
       ),
     [allFormQuestionIds, existingQuestionResponses]
@@ -562,7 +565,7 @@ export const OperationalDetailsForm = () => {
   const isQuestionParent = (question: QuestionResponse): boolean =>
     isTopLevelQuestion(question, allQuestions);
 
-  const onSubmit = (values: any) => {
+  const onSubmit = (values: Record<string, unknown>) => {
     if (clientData?.id) {
       const questionResponses = Object.entries(values)
         .filter(([key]) => {
@@ -637,6 +640,7 @@ export const OperationalDetailsForm = () => {
 
   useEffect(() => {
     setIsFormSubmitting(updateClientStatus === 'pending');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror the mutation status only when it changes; setIsFormSubmitting is a stable setter and intentionally excluded
   }, [updateClientStatus]);
 
   const isFormDisabled = isQuestionsLoading || updateClientStatus === 'pending';

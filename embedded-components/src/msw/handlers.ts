@@ -178,8 +178,10 @@ export const handlers = [
           // Ensure partyType and roles are present as they are required
           partyType: partyData.partyType || 'ORGANIZATION',
           roles: partyData.roles || ['OWNER'],
-          // Set parent party ID to link to the client
-          parentPartyId: updatedClient.partyId,
+          // Link to the parent supplied by the caller (e.g. a chain
+          // intermediary nested under its owner); default to the client only
+          // when no parent was provided (top-level owners).
+          parentPartyId: partyData.parentPartyId || updatedClient.partyId,
         };
 
         // Create the party in the database

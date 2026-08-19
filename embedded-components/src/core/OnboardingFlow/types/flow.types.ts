@@ -10,7 +10,7 @@ import {
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types/form.types';
 import type { StepSchemaMap } from '@/core/OnboardingFlow/utils/flowUtils';
 
-type DefaultSchema = z.ZodObject<Record<string, z.ZodType<any>>>;
+type DefaultSchema = z.ZodObject<Record<string, z.ZodTypeAny>>;
 
 export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
   React.ComponentType<{
@@ -67,6 +67,8 @@ export type StaticScreenId =
   | 'checklist'
   | 'overview'
   | 'owner-stepper'
+  | 'indirect-owner-details'
+  | 'intermediary-stepper'
   | 'document-upload-form'
   | 'link-account'
   // Virtual id for the delta completion stage shown in the delta sidebar
@@ -128,7 +130,7 @@ type BaseScreenConfig = BaseScreenComponentConfig | BaseScreenStepperConfig;
 
 interface BaseScreenComponentConfig {
   type: 'component';
-  Component: React.ComponentType<any>;
+  Component: React.ComponentType;
   stepperConfig?: never;
 }
 
@@ -185,6 +187,7 @@ export type FlowProgress = {
 export type FlowSessionData = {
   isControllerOwnerQuestionAnswered?: boolean;
   isOwnersSectionDone?: boolean;
+  indirectOwnershipGatingAnswer?: 'direct-only' | 'has-indirect';
   mockedVerifyingSectionId?: ScreenId;
   hideGatewayInfoAlert?: boolean;
   hideOverviewInfoAlert?: boolean;

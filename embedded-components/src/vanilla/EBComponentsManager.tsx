@@ -1,3 +1,4 @@
+import { createElement, type ComponentProps, type ComponentType } from 'react';
 import ReactDOMClient from 'react-dom/client';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
@@ -16,9 +17,9 @@ class EBComponentsManager {
     this.roots = new Map();
   }
 
-  public mountComponent(
-    componentName: keyof ComponentRegistry,
-    props: any,
+  public mountComponent<K extends keyof ComponentRegistry>(
+    componentName: K,
+    props: ComponentProps<ComponentRegistry[K]>,
     containerId: string
   ): void {
     const container = document.getElementById(containerId);
@@ -32,7 +33,7 @@ class EBComponentsManager {
       const root = ReactDOMClient.createRoot(container);
       root.render(
         <EBComponentsProvider {...this.config}>
-          <Component {...props} />
+          {createElement(Component as ComponentType, props as never)}
         </EBComponentsProvider>
       );
       this.roots.set(containerId, root);

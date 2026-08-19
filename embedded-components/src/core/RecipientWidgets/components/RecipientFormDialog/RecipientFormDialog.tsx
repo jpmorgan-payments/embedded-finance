@@ -3,6 +3,8 @@ import { TranslationResult, useTranslationWithTokens } from '@/i18n';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
+import { ApiError } from '@/api/generated/smbdo.schemas';
+import type { ErrorType } from '@/api/use-axios-instance';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -339,7 +341,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
     if (status === 'success') {
       if (responseData?.status) {
         const statusKey =
-          `forms.${translationKey}.titleSuccessByStatus.${responseData.status}` as any;
+          `forms.${translationKey}.titleSuccessByStatus.${responseData.status}` as unknown as TemplateStringsArray;
         return t(statusKey);
       }
       // Fallback to descriptionSuccess if no status
@@ -405,7 +407,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
                   )}
                   {formError ? (
                     <FriendlyErrorAlert
-                      error={formError as any}
+                      error={formError as ErrorType<ApiError>}
                       showDetails
                       customTitle={t(`forms.${translationKey}.error.title`)}
                       i18nNamespace={i18nNamespace}

@@ -19,11 +19,13 @@ const createWrapper = () => {
     },
   });
 
-  return ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <EBComponentsProvider apiBaseUrl="/" headers={{}}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </EBComponentsProvider>
   );
+  Wrapper.displayName = 'TestWrapper';
+  return Wrapper;
 };
 
 // Mock recipient data

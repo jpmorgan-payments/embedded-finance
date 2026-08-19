@@ -165,12 +165,12 @@ const ClientErrorDetails: React.FC<{
             <div className="eb-mb-2">
               <span className="eb-font-medium">Reasons:</span>
               <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                {errorInfo.reasons.map((reason: any) => (
+                {errorInfo.reasons.map((reason) => (
                   <li key={`${reason.field ?? ''}-${reason.message ?? reason}`}>
                     {reason.field && (
                       <span className="eb-font-medium">{reason.field}: </span>
                     )}
-                    {reason.message || reason}
+                    {reason.message}
                   </li>
                 ))}
               </ul>
@@ -180,7 +180,7 @@ const ClientErrorDetails: React.FC<{
             <div>
               <span className="eb-font-medium">Context:</span>
               <ul className="eb-mt-1 eb-list-inside eb-list-disc eb-space-y-1 eb-text-muted-foreground">
-                {errorInfo.context.map((ctx: any) => (
+                {errorInfo.context.map((ctx) => (
                   <li key={`${ctx.field ?? ''}-${ctx.message ?? ''}`}>
                     {ctx.field && (
                       <span className="eb-font-medium">{ctx.field}: </span>

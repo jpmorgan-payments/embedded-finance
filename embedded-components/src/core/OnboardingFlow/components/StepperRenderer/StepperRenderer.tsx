@@ -77,12 +77,12 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
 
   const resolveStepTitle = (step: StepConfig) => {
-    return t(step.titleKey as any);
+    return t(step.titleKey as ParseKeys<'onboarding-overview'>);
   };
 
   const resolveStepDescription = (step: StepConfig) => {
     if (step.descriptionKey) {
-      return t(step.descriptionKey as any);
+      return t(step.descriptionKey as ParseKeys<'onboarding-overview'>);
     }
     return undefined;
   };
@@ -171,6 +171,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (lastSubmittedParty) {
       setLastSubmittedParty(undefined);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed only on partyDataFromCache; adding lastSubmittedParty would clear the bridge before propagation finishes
   }, [partyDataFromCache]);
 
   const setExistingPartyData = (partyData: PartyResponse | undefined) => {
@@ -199,6 +200,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
 
   useEffect(() => {
     setCurrentStepper(currentStepper);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync the active stepper into context only when it changes; setCurrentStepper is a stable setter and intentionally excluded
   }, [currentStepper]);
 
   if (!currentStep) {
@@ -296,7 +298,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (currentStep.stepType === 'check-answers') {
       return nextSection
         ? t('stepperRenderer.buttons.continueToSection', {
-            sectionLabel: tString(nextSection.sectionConfig.labelKey as any),
+            sectionLabel: tString(
+              nextSection.sectionConfig
+                .labelKey as ParseKeys<'onboarding-overview'>
+            ),
           })
         : t('stepperRenderer.buttons.continueToNextSection');
     }
@@ -322,7 +327,6 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       !willInvokeFlowGoBack &&
       !shouldSuppressOnboardingLeaveWarnings(clientData) &&
       unsavedChangesRef.current &&
-      // eslint-disable-next-line no-alert -- optional UX parity with native leave warnings; no modal primitive here
       !window.confirm(tString('stepperRenderer.previousStepDataLossWarning'))
     ) {
       return;
@@ -372,7 +376,10 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     }
     if (canNavigateToPrevSection) {
       return t('stepperRenderer.buttons.backToSection', {
-        sectionLabel: tString(prevSection?.sectionConfig.labelKey as any),
+        sectionLabel: tString(
+          prevSection?.sectionConfig
+            .labelKey as ParseKeys<'onboarding-overview'>
+        ),
       });
     }
     return t('stepperRenderer.buttons.previous');
@@ -630,6 +637,7 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     if (isMutationPending) {
       setIsFormSubmitting(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mirror the mutation-pending flag only when it changes; setIsFormSubmitting is a stable setter and intentionally excluded
   }, [isMutationPending]);
 
   // Use the context-level flag so the form stays disabled through

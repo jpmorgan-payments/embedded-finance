@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building, Check, ChevronsUpDown } from 'lucide-react';
+import { Building, Check, ChevronsUpDown, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,13 @@ interface EntityComboboxProps {
   value: string;
   /** Callback when the value changes */
   onChange: (value: string) => void;
+  /**
+   * Callback fired when the user commits a choice from the dropdown (an
+   * existing entity or the "add new" option). Hosts can use this to act on the
+   * selection immediately (e.g. add it to a list) instead of requiring a
+   * separate button click.
+   */
+  onSelect?: (value: string) => void;
   /** Array of existing entity names to suggest */
   existingEntities: string[];
   /** Placeholder text */
@@ -46,6 +53,7 @@ interface EntityComboboxProps {
 export function EntityCombobox({
   value,
   onChange,
+  onSelect,
   existingEntities,
   placeholder = 'Enter company name',
   id,
@@ -63,19 +71,36 @@ export function EntityCombobox({
     entity.toLowerCase().includes(activeSearchValue.toLowerCase())
   );
 
+  // Whether the typed value already matches an existing entity exactly. When
+  // it doesn't, we always offer an "add new" option — even alongside partial
+  // matches — so a brand-new business can be added regardless of whether its
+  // name happens to overlap an existing one.
+  const trimmedSearch = searchValue.trim();
+  const searchMatchesExistingExactly = existingEntities.some(
+    (entity) => entity.toLowerCase() === trimmedSearch.toLowerCase()
+  );
+  const canAddNew = trimmedSearch.length > 0 && !searchMatchesExistingExactly;
+
   // Check if current value matches an existing entity (case-insensitive)
   const isExistingEntity = existingEntities.some(
     (entity) => entity.toLowerCase() === value.toLowerCase()
   );
 
   const handleSelect = (selectedValue: string) => {
+    // Commit the chosen value, then notify the host so it can act on the
+    // selection immediately (e.g. add it to the chain). The input is cleared
+    // for the next entry.
     onChange(selectedValue);
     setSearchValue('');
     setOpen(false);
+    onSelect?.(selectedValue);
   };
 
   const handleInputChange = (inputValue: string) => {
     setSearchValue(inputValue);
+    // Commit the typed value live so it is immediately usable by the host
+    // (e.g. an external "Add" button) without requiring an explicit select.
+    onChange(inputValue);
   };
 
   // Reset search when popover opens
@@ -126,12 +151,45 @@ export function EntityCombobox({
               <span>{placeholder}</span>
             )}
           </div>
-          <ChevronsUpDown className="eb-ml-2 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
+          {value && !disabled && (
+            <span
+              role="button"
+              tabIndex={0}
+              className="eb-ml-1 eb-rounded-sm eb-p-0.5 eb-text-muted-foreground hover:eb-bg-accent hover:eb-text-foreground"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onChange('');
+                setOpen(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onChange('');
+                  setOpen(false);
+                }
+              }}
+              aria-label="Clear selection"
+            >
+              <X className="eb-h-3 eb-w-3" />
+            </span>
+          )}
+          <ChevronsUpDown className="eb-ml-1 eb-h-4 eb-w-4 eb-shrink-0 eb-opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         className="eb-w-[--radix-popover-trigger-width] eb-p-0"
         align="start"
+        // Prefer opening upward so the suggestion list doesn't overlay the
+        // action buttons rendered directly below the combobox (e.g. "Yes/No -
+        // Continue Chain"); overlaying them made clicks get swallowed so
+        // adding a company appeared to fail. Collision avoidance stays ON so
+        // Radix flips it back down (instead of rendering off-screen) when
+        // there isn't enough room above.
+        side="top"
+        sideOffset={4}
+        collisionPadding={8}
       >
         <Command shouldFilter={false}>
           <CommandInput
@@ -140,7 +198,7 @@ export function EntityCombobox({
             onValueChange={handleInputChange}
           />
           <CommandList>
-            {filteredEntities.length > 0 ? (
+            {filteredEntities.length > 0 && (
               <CommandGroup heading="Previously added companies">
                 {filteredEntities.map((entity) => (
                   <CommandItem
@@ -162,27 +220,24 @@ export function EntityCombobox({
                   </CommandItem>
                 ))}
               </CommandGroup>
-            ) : searchValue ? (
-              <CommandGroup>
+            )}
+            {canAddNew && (
+              <CommandGroup
+                heading={filteredEntities.length > 0 ? 'Add new' : undefined}
+              >
                 <CommandItem
-                  value={searchValue}
-                  onSelect={() => handleSelect(searchValue)}
+                  value={`__add_new__:${trimmedSearch}`}
+                  onSelect={() => handleSelect(trimmedSearch)}
                   className="eb-cursor-pointer"
                 >
-                  <div className="eb-flex eb-w-full eb-flex-col eb-items-center eb-gap-2 eb-py-2">
-                    <Building className="eb-h-8 eb-w-8 eb-text-muted-foreground" />
-                    <div className="eb-text-center">
-                      <div className="eb-font-medium">
-                        No existing companies found
-                      </div>
-                      <div className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-                        &quot;{searchValue}&quot; will be added as a new company
-                      </div>
-                    </div>
-                  </div>
+                  <Building className="eb-mr-2 eb-h-4 eb-w-4 eb-text-muted-foreground" />
+                  <span className="eb-flex-1">
+                    Add &quot;{trimmedSearch}&quot; as a new company
+                  </span>
                 </CommandItem>
               </CommandGroup>
-            ) : (
+            )}
+            {filteredEntities.length === 0 && !canAddNew && (
               <CommandEmpty>
                 <div className="eb-py-4 eb-text-center">
                   <div className="eb-text-sm eb-text-muted-foreground">

@@ -28,6 +28,7 @@ function buildAttestationLinkComponents(
   const out: Record<string, ReactElement> = {};
   for (const [tag, href] of Object.entries(linkHrefs)) {
     out[tag] = (
+      // eslint-disable-next-line jsx-a11y/anchor-has-content -- content is injected by the <Trans> interpolation at render time
       <a
         href={href}
         target="_blank"

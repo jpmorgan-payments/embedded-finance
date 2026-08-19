@@ -59,6 +59,8 @@ export const PhoneSchema = z.object({
  * Country-specific postal code format definitions.
  * Maps country codes to their regex pattern and the i18n validation message key.
  * Countries that share the same digit-length format reuse a common message key.
+ * Private: postal validation is owned by useAddressSchemas; callers should use
+ * the schema rather than reading this table directly.
  */
 const POSTAL_CODE_FORMATS: Record<
   string,

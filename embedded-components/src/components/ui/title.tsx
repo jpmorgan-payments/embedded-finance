@@ -32,15 +32,14 @@ const Title = React.forwardRef<
   React.HTMLAttributes<HTMLHeadingElement> &
     VariantProps<typeof titleVariants> &
     tTitle
->(({ className, asChild, as: Tag, children, ...props }: any, ref) => (
-  <Slot
-    ref={ref}
-    className={cn(titleVariants({ as: Tag }), className)}
-    {...props}
-  >
-    {asChild ? children : <Tag>{children}</Tag>}
-  </Slot>
-));
+>(({ className, asChild, as, children, ...props }, ref) => {
+  const Tag = (as ?? 'h3') as React.ElementType;
+  return (
+    <Slot ref={ref} className={cn(titleVariants({ as }), className)} {...props}>
+      {asChild ? children : <Tag>{children}</Tag>}
+    </Slot>
+  );
+});
 Title.displayName = 'Title';
 
 export { Title };

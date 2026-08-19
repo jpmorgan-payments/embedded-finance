@@ -48,7 +48,7 @@ export function ControllerIdFields({
     'common',
   ]);
   const form = useFormContext();
-  const control = form.control as any;
+  const control = form.control;
 
   const isPrefixed = namePrefix !== '';
   const idTypeName = `${namePrefix}controllerIds.0.idType`;
@@ -75,10 +75,10 @@ export function ControllerIdFields({
 
   const getValueLabel = (idType: IdTypeSelection) =>
     idType
-      ? tString([`idValueLabels.${idType}`] as any)
-      : tString(['idValueLabels.placeholder'] as any, 'ID number');
+      ? tString([`idValueLabels.${idType}`] as unknown as TemplateStringsArray)
+      : tString(['idValueLabels.placeholder'] as string[], 'ID number');
   const getValueDescription = (idType: IdTypeSelection) =>
-    idType ? tString([`idValueDescriptions.${idType}`] as any, '') : '';
+    idType ? tString([`idValueDescriptions.${idType}`] as string[], '') : '';
 
   // Reset the ID type when switching between US and non-US so the value matches
   // the available types. Non-US starts empty so the user picks explicitly. In
@@ -86,20 +86,22 @@ export function ControllerIdFields({
   useEffect(() => {
     const currentType = form.getValues(idTypeName) as IdTypeSelection;
     if (isUS && !US_ID_TYPES.includes(currentType)) {
-      form.setValue(idTypeName as any, 'SSN');
-      form.setValue(valueName as any, '');
+      form.setValue(idTypeName, 'SSN');
+      form.setValue(valueName, '');
     } else if (
       !isUS &&
       currentType !== '' &&
       !NON_US_ID_TYPES.includes(currentType)
     ) {
-      form.setValue(idTypeName as any, '');
-      form.setValue(valueName as any, '');
+      form.setValue(idTypeName, '');
+      form.setValue(valueName, '');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset the ID type only when the US/non-US issuer toggles; form/idTypeName/valueName are read as latest and intentionally excluded (adding them re-runs the reset during the flow and can loop)
   }, [isUS]);
 
   useEffect(() => {
     form.clearErrors(valueName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- clear the value error only when the selected ID type changes; form/valueName are read as latest and intentionally excluded
   }, [currentIdType]);
 
   // For owner-prefixed paths (not in partyFieldMap) supply explicit copy and
@@ -119,11 +121,11 @@ export function ControllerIdFields({
           required
           disableFieldRuleMapping
           label={tString(
-            ['fields.controllerIds.idType.label'] as any,
+            ['fields.controllerIds.idType.label'] as string[],
             'ID type'
           )}
           description={tString(
-            ['fields.controllerIds.idType.description'] as any,
+            ['fields.controllerIds.idType.description'] as string[],
             ''
           )}
           tooltip=""
@@ -169,9 +171,9 @@ export function ControllerIdFields({
                 key={idType}
                 disabled={currentIdType === idType}
                 onClick={() => {
-                  form.setValue(idTypeName as any, idType);
-                  form.setValue(issuerName as any, 'US');
-                  form.setValue(valueName as any, '', { shouldDirty: true });
+                  form.setValue(idTypeName, idType);
+                  form.setValue(issuerName, 'US');
+                  form.setValue(valueName, '', { shouldDirty: true });
                 }}
               >
                 {getValueLabel(idType)}

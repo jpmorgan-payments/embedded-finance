@@ -192,6 +192,22 @@ export default tseslint.config(
   },
 
   // ---------------------------------------------------------------------------
+  // 7b. MSW dev/demo mock server — allow `@ts-nocheck`.
+  //     `src/msw/**` is dev-only infrastructure (Storybook + tests). Its mock
+  //     data intentionally does not conform to the generated API response types
+  //     and `@mswjs/data`'s `factory` returns loosely-typed models, so these
+  //     files rely on `// @ts-nocheck` (removing it surfaces ~114 type errors
+  //     with no production benefit). Type safety here is not meaningful; exempt
+  //     just this directory from `ban-ts-comment`.
+  // ---------------------------------------------------------------------------
+  {
+    files: ['src/msw/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/ban-ts-comment': 'off',
+    },
+  },
+
+  // ---------------------------------------------------------------------------
   // 8. Opt-in Tailwind / eb- prefix linting (`npm run lint:styles`, ESLINT_STYLES=1)
   //    eslint-plugin-tailwindcss@3 targets ESLint <=9 (shimmed via @eslint/compat)
   //    and `no-custom-classname` is pathologically slow (~65% of total lint time),

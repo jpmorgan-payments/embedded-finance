@@ -268,6 +268,20 @@
   "errors": {
     "tryAgain": "Réessayer",
     "showDetails": "Afficher les détails",
-    "hideDetails": "Masquer les détails"
+    "hideDetails": "Masquer les détails",
+    "status": "État :",
+    "reasons": "Raisons :",
+    "context": "Contexte :",
+    "reason": "Raison :",
+    "value": "Valeur :",
+    "unknownError": "Erreur inconnue",
+    "footnote": "",
+    "defaultMessages": {
+      "400": "Veuillez vérifier les renseignements saisis et réessayer.",
+      "401": "Veuillez ouvrir une session et réessayer.",
+      "500": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
+      "503": "Le service est actuellement indisponible. Veuillez réessayer plus tard.",
+      "default": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
+    }
   }
 }

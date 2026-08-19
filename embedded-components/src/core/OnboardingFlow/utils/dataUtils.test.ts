@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import type {
+  ClientQuestionResponse,
   ClientResponse,
   PartyResponse,
+  Role,
 } from '@/api/generated/smbdo.schemas';
 
 import {
@@ -87,7 +89,7 @@ describe('dataUtils', () => {
     it('returns only active beneficial owners', () => {
       const owners = getActiveOwners(mockClient);
       expect(owners).toHaveLength(1);
-      expect((owners?.[0] as any).id).toBe('owner-1');
+      expect(owners?.[0]?.id).toBe('owner-1');
     });
   });
 
@@ -95,7 +97,7 @@ describe('dataUtils', () => {
     it('returns only inactive beneficial owners', () => {
       const owners = getInactiveOwners(mockClient);
       expect(owners).toHaveLength(1);
-      expect((owners?.[0] as any).id).toBe('owner-2');
+      expect(owners?.[0]?.id).toBe('owner-2');
     });
   });
 
@@ -121,13 +123,13 @@ describe('dataUtils', () => {
         partyType: 'INDIVIDUAL',
         roles: ['CONTROLLER'],
       });
-      expect((party as any).id).toBe('ctrl-1');
+      expect((party as PartyResponse).id).toBe('ctrl-1');
     });
 
     it('returns empty object when no match', () => {
       const party = getPartyByAssociatedPartyFilters(mockClient, {
         partyType: 'INDIVIDUAL',
-        roles: ['NONEXISTENT' as any],
+        roles: ['NONEXISTENT' as unknown as Role],
       });
       expect(party).toEqual({});
     });
@@ -138,14 +140,14 @@ describe('dataUtils', () => {
         roles: ['BENEFICIAL_OWNER'],
       });
       // Should find owner-1 (active), not owner-2 (inactive)
-      expect((party as any).id).toBe('owner-1');
+      expect((party as PartyResponse).id).toBe('owner-1');
     });
   });
 
   describe('getOrganizationParty', () => {
     it('returns the active organization party', () => {
       const org = getOrganizationParty(mockClient);
-      expect((org as any).id).toBe('org-1');
+      expect(org?.id).toBe('org-1');
     });
 
     it('returns undefined for undefined client', () => {
@@ -156,7 +158,7 @@ describe('dataUtils', () => {
   describe('getControllerParty', () => {
     it('returns the active controller', () => {
       const ctrl = getControllerParty(mockClient);
-      expect((ctrl as any).id).toBe('ctrl-1');
+      expect(ctrl?.id).toBe('ctrl-1');
     });
 
     it('returns undefined for undefined client', () => {
@@ -231,7 +233,7 @@ describe('dataUtils', () => {
       expect(
         getPartyName({
           organizationDetails: { organizationName: 'Acme Corp' },
-        } as any)
+        } as unknown as PartyResponse)
       ).toBe('Acme Corp');
     });
 
@@ -244,7 +246,7 @@ describe('dataUtils', () => {
             lastName: 'Doe',
             nameSuffix: 'Jr',
           },
-        } as any)
+        } as unknown as PartyResponse)
       ).toBe('John Q Doe Jr');
     });
 
@@ -252,7 +254,7 @@ describe('dataUtils', () => {
       expect(
         getPartyName({
           individualDetails: { firstName: 'Jane', lastName: 'Smith' },
-        } as any)
+        } as unknown as PartyResponse)
       ).toBe('Jane Smith');
     });
 
@@ -291,7 +293,7 @@ describe('dataUtils', () => {
       const result = formatQuestionResponse({
         questionId: '30005',
         values: ['50000'],
-      } as any);
+      } as unknown as ClientQuestionResponse);
       expect(result).toContain('50,000');
     });
 
@@ -299,7 +301,7 @@ describe('dataUtils', () => {
       const result = formatQuestionResponse({
         questionId: '30001',
         values: ['true'],
-      } as any);
+      } as unknown as ClientQuestionResponse);
       expect(result.toLowerCase()).toContain('yes');
     });
 
@@ -307,7 +309,7 @@ describe('dataUtils', () => {
       const result = formatQuestionResponse({
         questionId: '30001',
         values: ['false'],
-      } as any);
+      } as unknown as ClientQuestionResponse);
       expect(result.toLowerCase()).toContain('no');
     });
 
@@ -315,7 +317,7 @@ describe('dataUtils', () => {
       const result = formatQuestionResponse({
         questionId: '30002',
         values: ['A', 'B', 'C'],
-      } as any);
+      } as unknown as ClientQuestionResponse);
       expect(result).toBe('A, B, C');
     });
 
@@ -323,7 +325,7 @@ describe('dataUtils', () => {
       const result = formatQuestionResponse({
         questionId: '30002',
         values: undefined,
-      } as any);
+      } as unknown as ClientQuestionResponse);
       expect(result).toBe('');
     });
   });
@@ -399,7 +401,7 @@ describe('dataUtils', () => {
       const clientWithBOController = {
         ...mockClient,
         parties: mockClient.parties?.map((p) =>
-          (p as any).id === 'ctrl-1'
+          p.id === 'ctrl-1'
             ? { ...p, roles: ['CONTROLLER', 'BENEFICIAL_OWNER'] }
             : p
         ),

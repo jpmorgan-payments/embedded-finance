@@ -292,8 +292,22 @@
     "RESIDENTIAL_ADDRESS": "Residential address"
   },
   "errors": {
-    "tryAgain": "Try Again",
-    "showDetails": "Show Details",
-    "hideDetails": "Hide Details"
+    "tryAgain": "Intentar de nuevo",
+    "showDetails": "Mostrar detalles",
+    "hideDetails": "Ocultar detalles",
+    "status": "Estado:",
+    "reasons": "Motivos:",
+    "context": "Contexto:",
+    "reason": "Motivo:",
+    "value": "Valor:",
+    "unknownError": "Error desconocido",
+    "footnote": "",
+    "defaultMessages": {
+      "400": "Revise la información que ingresó e inténtelo de nuevo.",
+      "401": "Inicie sesión e inténtelo de nuevo.",
+      "500": "Ocurrió un error inesperado. Inténtelo de nuevo más tarde.",
+      "503": "El servicio no está disponible actualmente. Inténtelo de nuevo más tarde.",
+      "default": "Ocurrió un error inesperado. Inténtelo de nuevo más tarde."
+    }
   }
 }

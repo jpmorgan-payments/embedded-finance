@@ -241,6 +241,7 @@ function PaymentFlowFXContent({
     } else if (formData.fxQuote) {
       setFormData({ fxQuote: undefined });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync resolved quote into formData only when the quote signature changes; guarded by lastQuoteSigRef, other values read as latest
   }, [quoteSig, fxQuoteResult.status]);
 
   // FR-FX-4: drop a now-disallowed method (e.g. RTP) when FX turns on.

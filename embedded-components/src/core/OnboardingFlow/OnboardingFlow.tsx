@@ -497,6 +497,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     ) {
       goTo('gateway', { resetHistory: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- redirect only when screen/mode/orgType changes; goTo excluded to avoid re-running on every provider render
   }, [currentScreenId, docUploadOnlyMode, organizationType]);
 
   // Clear mocked verifying state after a timeout
@@ -511,6 +512,7 @@ const FlowRenderer: React.FC = React.memo(() => {
       return () => clearTimeout(timeout);
     }
     return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- clear the mocked-verifying flag ~1.5s after it is set; updateSessionData excluded so re-renders do not restart the timer
   }, [sessionData.mockedVerifyingSectionId]);
 
   const screen = flowConfig.screens.find((s) => s.id === currentScreenId);
@@ -539,6 +541,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     }
 
     return <div>{t('onboarding-overview:errors.unhandledScreenError')}</div>;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- editingPartyIdForScreen intentionally included to remount the stepper when switching owners
   }, [screen, currentScreenId, editingPartyIdForScreen, t]);
 
   // ---------------------------------------------------------------
@@ -996,3 +999,4 @@ const FlowRenderer: React.FC = React.memo(() => {
     </div>
   );
 });
+FlowRenderer.displayName = 'FlowRenderer';

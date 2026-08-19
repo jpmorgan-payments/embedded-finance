@@ -8,6 +8,7 @@ import {
   SectionStatus,
   StepConfig,
   StepperValidation,
+  StepValidationMap,
 } from '@/core/OnboardingFlow/types/flow.types';
 
 import {
@@ -221,7 +222,7 @@ export const getStepperValidation = (
   // render and pass them here; this function then does only pure `safeParse`.
   stepSchemas?: StepSchemaMap
 ): StepperValidation => {
-  const stepValidationMap: Record<string, any> = {};
+  const stepValidationMap: StepValidationMap = {};
   let allStepsValid = true;
   const formOverlay = resolvePartyFormOverlay(partyData, savedFormValues);
 

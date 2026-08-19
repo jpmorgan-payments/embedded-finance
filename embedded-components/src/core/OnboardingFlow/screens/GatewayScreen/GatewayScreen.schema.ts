@@ -58,14 +58,14 @@ export const GatewayScreenFormSchema = z.object({
  * - ticker and exchange required when PTC/subsidiary selected
  */
 export const refineGatewaySchema = (
-  schema: z.ZodObject<Record<string, z.ZodType<any>>>
+  schema: z.ZodObject<Record<string, z.ZodTypeAny>>
 ) => {
   return schema.superRefine((data, ctx) => {
     const orgType =
       data.organizationTypeHierarchy?.specificOrganizationType ?? '';
-    const isPTCEligibleOrg = PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES.includes(
-      orgType as any
-    );
+    const isPTCEligibleOrg = (
+      PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES as readonly string[]
+    ).includes(orgType);
 
     // Require the radio selection when the org type is PTC-eligible
     if (isPTCEligibleOrg && !data.isPTCOrSubsidiary) {

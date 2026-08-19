@@ -562,6 +562,7 @@ export function useTermsAndConditions(options?: {
     if (hasNewDocuments) {
       setTermsDocumentsOpened(initialDocumentStates);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-init opened-state when the set of loaded terms documents changes; documentQueries/termsDocumentsOpened read as latest
   }, [documentQueries.map((query) => query.data?.id).filter(Boolean)]);
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);

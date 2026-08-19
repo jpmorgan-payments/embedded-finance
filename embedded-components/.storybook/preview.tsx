@@ -12,6 +12,8 @@ import { ThemeName, THEMES } from './themes';
 
 import '@/index.css';
 
+import { EBContentTokens } from '@/i18n/config';
+
 import { EBTheme } from '@/core/EBComponentsProvider/config.types';
 
 // ============================================================================
@@ -69,7 +71,7 @@ function MswStatusIndicator() {
           // 404 is expected - we just want to know fetch completes
           // AbortError means timeout
           if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-            throw new Error('Fetch timeout');
+            throw new Error('Fetch timeout', { cause: fetchError });
           }
         } finally {
           clearTimeout(timeoutId);
@@ -163,6 +165,9 @@ if (!g.__EB_MSW_INITIALIZED__) {
   // Prevents edge cases where the service worker is not ready when the preview is loaded
   g.__EB_MOCK_WATCHER__ = new Promise<void>((resolve) => {
     navigator.serviceWorker.addEventListener('message', (event) => {
+      // Only trust same-origin service worker messages (postMessage validation).
+      if (event.origin !== '' && event.origin !== window.location.origin)
+        return;
       if (event.data.type === 'MOCKING_ENABLED') resolve();
     });
   });
@@ -236,7 +241,7 @@ export interface BaseStoryArgs {
   /** Locale preset for content tokens, or `custom` to edit `contentTokens` in Controls */
   contentTokensPreset?: keyof typeof defaultResources | 'custom';
   /** Custom content tokens object (only used when contentTokensPreset is 'custom') */
-  contentTokens?: Record<string, any>;
+  contentTokens?: EBContentTokens;
   /**
    * Show content token IDs for easy discovery during customization.
    * When enabled, hovering over translated text shows the token ID.

@@ -1024,7 +1024,8 @@ function MainTransferView({
                   <div className="eb-flex eb-items-center eb-gap-2 eb-rounded-md eb-bg-destructive/10 eb-px-3 eb-py-2 eb-text-sm eb-text-destructive">
                     <AlertCircle className="eb-h-4 eb-w-4 eb-shrink-0" />
                     <span>
-                      {(saveUnsavedRecipientError as any)?.message ||
+                      {(saveUnsavedRecipientError as { message?: string })
+                        ?.message ||
                         tString(
                           'unsavedRecipient.saveError',
                           'Failed to save recipient. Please try again.'
@@ -1736,7 +1737,7 @@ function PaymentFlowContent({
     onError: (apiError) => {
       // Only navigate to form on 400 errors (bad request - user can fix the data)
       // Other errors (401, 500, etc.) should just show an error message
-      const httpStatus = (apiError as any)?.httpStatus;
+      const httpStatus = (apiError as { httpStatus?: number })?.httpStatus;
       if (httpStatus === 400 && formData.unsavedRecipient) {
         // Store the error to display in the form
         setSaveRecipientError(apiError as unknown as Error);
@@ -2874,6 +2875,8 @@ export function PaymentFlow({
       createTransactionMutation,
       onTransactionComplete,
       generateTransactionReferenceId,
+      setTransactionError,
+      setTransactionResponse,
     ]
   );
 

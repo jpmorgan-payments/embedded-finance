@@ -58,11 +58,13 @@ const mockLocalStorage = (() => {
 
 // Create a wrapper that provides all necessary contexts for tests
 const createWrapper = () => {
-  return ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <EBComponentsProvider apiBaseUrl="https://api.test">
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </EBComponentsProvider>
   );
+  Wrapper.displayName = 'TestWrapper';
+  return Wrapper;
 };
 
 describe('useIndustrySuggestions', () => {
