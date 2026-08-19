@@ -6,6 +6,7 @@ import type {
 
 import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
 import { TEST_SCENARIO_2_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-2-theme';
+import { TEST_SCENARIO_3_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-3-theme';
 import { TEST_SCENARIO_5_NAICS_CODES } from '@/components/test-scenario/test-scenario-naics-codes';
 import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '@/mocks/testScenarioFasterFulfilmentClient.mock';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '@/mocks/testScenarioHealthBenefitClient.mock';
@@ -310,7 +311,8 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
   'test-scenario-3': {
     id: 'test-scenario-3',
     headerOrgDisplayName: 'Health & Benefit Solutions, LLC',
-    theme: 'Empty',
+    theme: 'Custom',
+    themeVariables: TEST_SCENARIO_3_THEME_VARIABLES,
     contentTokens: buildContentTokens({
       controllerJobTitle: 'Role',
       controllerJobTitleDescription: 'Role details',

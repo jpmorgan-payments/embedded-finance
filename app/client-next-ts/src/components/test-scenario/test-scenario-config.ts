@@ -192,7 +192,7 @@ export const TEST_SCENARIO_PRESETS: TestScenarioPresetMeta[] = [
     label: 'Health & Benefit Solutions',
     orgDisplayName: 'Health & Benefit Solutions, LLC',
     bundleId: 'test-scenario-3',
-    themeLabel: 'Empty (component defaults)',
+    themeLabel: 'Custom deep green',
     linkAccountMode: 'editable',
     industryFocus: 'Health-sector NAICS',
     availableLoginCases: OPERATOR_LOGIN_CASES,
