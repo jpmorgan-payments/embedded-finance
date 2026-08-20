@@ -212,6 +212,11 @@ describe('OnboardingArrayField', () => {
     });
 
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // React dispatches the uncaught render error to window 'error'; jsdom's
+    // virtual console logs it as "Uncaught [...]" (a channel the console.error
+    // spy can't intercept). preventDefault marks it handled so it stays quiet.
+    const swallow = (e: ErrorEvent) => e.preventDefault();
+    window.addEventListener('error', swallow);
     try {
       expect(() =>
         renderWithFlowNoErrorBoundary(
@@ -219,6 +224,7 @@ describe('OnboardingArrayField', () => {
         )
       ).toThrow(/not configured as an array field/i);
     } finally {
+      window.removeEventListener('error', swallow);
       errSpy.mockRestore();
     }
   });

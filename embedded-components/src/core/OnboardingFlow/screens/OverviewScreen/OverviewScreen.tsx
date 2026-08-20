@@ -516,7 +516,11 @@ const LinkedBankAccountSection = () => {
     <Card className="eb-mt-6 eb-rounded-md eb-border-none eb-bg-card">
       <CardHeader className="eb-p-3">
         <CardTitle className="eb-font-header eb-text-2xl eb-font-medium">
-          {t('screens.overview.bankAccountSection.title')}
+          {t(
+            linkedAccounts.length > 0
+              ? 'screens.overview.bankAccountSection.linkedTitle'
+              : 'screens.overview.bankAccountSection.title'
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="eb-p-3 eb-pt-0">

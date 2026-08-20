@@ -184,6 +184,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
   );
   const checkAnswersMode = checkAnswersStepId !== null;
   const reviewMode = originScreenId === 'review-attest-section';
+  const isOwnerStepper = currentScreenId === 'owner-stepper';
 
   const { useStepper, utils: stepperUtils } = defineStepper(...steps);
   const currentStepper = useStepper({
@@ -266,7 +267,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       updateSessionData({
         mockedVerifyingSectionId: currentScreenId,
       });
-    } else if (originScreenId === 'owners-section') {
+    } else if (isOwnerStepper) {
       goTo('owners-section');
     } else if (
       currentScreenId === 'review-attest-section' &&
@@ -289,10 +290,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
       return null;
     }
-    if (
-      currentStep.stepType === 'check-answers' &&
-      originScreenId === 'owners-section'
-    ) {
+    if (currentStep.stepType === 'check-answers' && isOwnerStepper) {
       return t('stepperRenderer.buttons.returnToAllOwnersOverview');
     }
     if (currentStep.stepType === 'check-answers') {
@@ -318,8 +316,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     const willInvokeFlowGoBack =
       !checkAnswersMode &&
       !reviewMode &&
-      originScreenId === 'owners-section' &&
-      currentScreenId !== 'review-attest-section' &&
+      isOwnerStepper &&
       (currentStepNumber === 1 || currentStep.stepType === 'check-answers');
 
     if (
@@ -341,8 +338,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
         reviewScreenOpenedSectionId: currentSection?.id,
       });
     } else if (
-      originScreenId === 'owners-section' &&
-      currentScreenId !== 'review-attest-section' &&
+      isOwnerStepper &&
       (currentStepNumber === 1 || currentStep.stepType === 'check-answers')
     ) {
       goBack();
@@ -369,7 +365,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
       return t('stepperRenderer.buttons.cancel');
     }
     if (currentStep.stepType === 'check-answers' && previouslyCompleted) {
-      if (originScreenId === 'owners-section') {
+      if (isOwnerStepper) {
         return t('stepperRenderer.buttons.backToAllOwnersOverview');
       }
       return t('stepperRenderer.buttons.returnToOverview');
@@ -389,7 +385,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
     currentStepNumber === 1 &&
     !checkAnswersMode &&
     !reviewMode &&
-    originScreenId !== 'owners-section' &&
+    !isOwnerStepper &&
     !canNavigateToPrevSection;
 
   const { stepValidationMap } = getStepperValidation(
@@ -479,7 +475,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
                 <ArrowLeftIcon className="eb-size-3.5" />
                 {t('stepperRenderer.buttons.overviewHeader')}
               </Button>
-              {originScreenId === 'owners-section' && (
+              {isOwnerStepper && (
                 <>
                   <ChevronRightIcon className="eb-size-3.5" />
                   <Button
@@ -508,7 +504,7 @@ export const StepperRenderer: React.FC<StepperRendererProps> = ({
                 </>
               )}
             </nav>
-            {originScreenId === 'owners-section' && (
+            {isOwnerStepper && (
               <div className="eb-mt-4 eb-flex eb-items-center eb-gap-2">
                 <span className="eb-truncate eb-text-base eb-font-semibold eb-text-foreground">
                   {getPartyName(existingPartyData) ||

@@ -2,6 +2,18 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.7] - 2026-08-20
+
+### Changes
+
+#### Features
+
+- **onboarding,i18n:** update text on approved state and linked state
+
+#### Bug Fixes
+
+- **onboarding:** prevent incorrect navigation to owners section after submission
+
 ## [0.17.6] - 2026-08-19
 
 ### Changes

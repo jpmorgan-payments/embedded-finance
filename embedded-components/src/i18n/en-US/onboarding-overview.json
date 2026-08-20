@@ -435,7 +435,7 @@
           "description": "We're sorry, but we cannot proceed with your application at this time."
         },
         "approved": {
-          "title": "All set!",
+          "title": "Business Verification Complete!",
           "description": "Your business details have been verified"
         },
         "businessTypeLabel": "Your selected business type",
@@ -451,6 +451,7 @@
       },
       "bankAccountSection": {
         "title": "Link a bank account for payouts",
+        "linkedTitle": "Linked bank account for payouts",
         "lockedMessage": "Available after your application has been submitted",
         "linkAccountTitle": "Link an account",
         "multiAccountOverviewDescriptionSingular": "You have 1 linked account for payouts. Open the bank linking step to add another account or manage details.",
