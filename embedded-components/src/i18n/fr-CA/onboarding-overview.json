@@ -391,7 +391,7 @@
           "description": "Nous sommes désolés, mais nous ne pouvons pas procéder avec votre demande pour le moment."
         },
         "approved": {
-          "title": "Tout est prêt!",
+          "title": "Vérification de l’entreprise terminée!",
           "description": "Les renseignements de votre entreprise ont été vérifiés"
         },
         "businessTypeLabel": "Votre type d'entreprise sélectionné",
@@ -407,6 +407,7 @@
       },
       "bankAccountSection": {
         "title": "Lier un compte bancaire pour les paiements",
+        "linkedTitle": "Compte bancaire lié pour les paiements",
         "lockedMessage": "Disponible après la soumission de votre demande",
         "linkAccountTitle": "Lier un compte",
         "multiAccountOverviewDescriptionSingular": "Vous avez 1 compte lié pour les paiements. Ouvrez l’étape de liaison bancaire pour ajouter un autre compte ou gérer les détails.",

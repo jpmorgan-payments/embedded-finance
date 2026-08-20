@@ -391,7 +391,7 @@
           "description": "Lo sentimos, pero no podemos proceder con su solicitud en este momento."
         },
         "approved": {
-          "title": "¡Todo listo!",
+          "title": "¡Verificación del negocio completada!",
           "description": "Los datos de su negocio han sido verificados"
         },
         "businessTypeLabel": "Su tipo de negocio seleccionado",
@@ -407,6 +407,7 @@
       },
       "bankAccountSection": {
         "title": "Vincular una cuenta bancaria para pagos",
+        "linkedTitle": "Cuenta bancaria vinculada para pagos",
         "lockedMessage": "Disponible después de que se envíe su solicitud",
         "linkAccountTitle": "Vincular una cuenta",
         "multiAccountOverviewDescriptionSingular": "Tiene 1 cuenta vinculada para pagos. Abra el paso de vinculación bancaria para agregar otra cuenta o administrar los detalles.",

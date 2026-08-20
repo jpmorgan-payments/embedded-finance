@@ -147,9 +147,7 @@ describe('OverviewScreen', () => {
       clientData: buildClient('APPROVED'),
     });
 
-    const approvedTitle = i18n.t(
-      'onboarding-overview:screens.overview.verifyBusinessSection.approved.title'
-    );
+    const approvedTitle = 'Business Verification Complete!';
     expect(getVerifyBusinessHeadingText(approvedTitle)).toBeInTheDocument();
     expect(
       screen.getAllByText(approvedTitle, { selector: 'h2.eb-font-header' })
@@ -243,6 +241,13 @@ describe('OverviewScreen', () => {
       showLinkAccountStep: true,
       clientData: buildClient('APPROVED'),
     });
+
+    expect(
+      screen.getByText('Linked bank account for payouts')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Link a bank account for payouts')
+    ).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(

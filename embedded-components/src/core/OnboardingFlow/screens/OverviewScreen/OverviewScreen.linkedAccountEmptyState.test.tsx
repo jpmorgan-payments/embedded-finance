@@ -125,6 +125,13 @@ describe('OverviewScreen — linked account empty state', () => {
       ).toBeInTheDocument();
     });
 
+    expect(
+      screen.getByText('Link a bank account for payouts')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Linked bank account for payouts')
+    ).not.toBeInTheDocument();
+
     // Legacy "Start" CTA and locked card must not appear.
     expect(
       screen.queryByRole('button', { name: /^Start$/i })
