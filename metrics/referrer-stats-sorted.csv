@@ -1,7 +1,7 @@
 repository_name,site,views,unique_visitors/cloners
 embedded-banking,Bing,1,1
 embedded-banking,DuckDuckGo,1,1
-embedded-banking,Google,14,7
+embedded-banking,Google,12,5
 embedded-banking,bitbucketdc-cluster07.jpmchase.net,2,1
 embedded-banking,bitbucketdc.jpmchase.net,1,1
 embedded-banking,chatgpt.com,1,1
@@ -20,7 +20,7 @@ embedded-banking,embedded-finance-dev.com,16,8
 embedded-banking,embedded-finance-showcase-next.apps.dev.na-4z.gap.jpmchase.net,3,1
 embedded-banking,gemini.google.com,1,1
 embedded-banking,gitdiagram.com,1,1
-embedded-banking,github.com,30,11
+embedded-banking,github.com,35,10
 embedded-banking,gtassist.prod.aws.jpmchase.net,1,1
 embedded-banking,jira.vwfspay.eu,1,1
 embedded-banking,jiradc-cib-cluster02.prod.aws.jpmchase.net,1,1
@@ -32,6 +32,7 @@ embedded-banking,mail.google.com,1,1
 embedded-banking,next.embedded-finance-dev.com,1,1
 embedded-banking,online-payments-dev.com,2,1
 embedded-banking,opensourceindex.io,1,1
+embedded-banking,oss-reporting-107928d107929-gkp-dev.apps.mt-d2.na-nw-s01.gkp.jpmchase.net,1,1
 embedded-banking,p97.sharepoint.com,7,1
 embedded-banking,payments-preview.prod.aws.jpmchase.net,9,1
 embedded-banking,payments-preview.uat.aws.jpmchase.net,2,2
