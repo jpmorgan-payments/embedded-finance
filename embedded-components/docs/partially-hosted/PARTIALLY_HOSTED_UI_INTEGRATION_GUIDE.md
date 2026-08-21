@@ -44,6 +44,7 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 |----------------|-------------|
 | `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
 | `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
+| `HOSTED_LINKED_ACCOUNTS_UI` | Standalone linked bank account management, including linking and microdeposit verification |
 
 > **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
 
@@ -311,6 +312,92 @@ UI by appending optional URL parameters to the iframe `src` URL.
 | `disclosurePlatformAgreementUrl` | `string` | URL for the platform agreement link |
 | `disclosurePlatformAgreementLabel` | `string` | Label for the platform agreement link |
 | `showDisclosureFooter` | `boolean` | When `true`, shows the regulatory disclosure footer (e.g. FDIC / "not a bank" language) at the bottom of the flow. Still requires `disclosurePlatformName` for the footer to render. Default: `false` |
+| `showLinkAccountStep` | `boolean` | When `true`, shows linked bank account functionality inside the full onboarding flow. Default: `false` |
+
+#### Linked Account Step in Onboarding
+
+Use the exact property name `showLinkAccountStep` to expose linked bank account
+functionality inside `HOSTED_ONBOARDING_UI`. `showLinkedAccounts` and
+`shoeLinkedAccounts` are not valid property names and are ignored by strict
+component-property validation.
+
+This property controls visibility only. The client's status and the hosted
+service's account-linking rules still determine whether the user can create or
+manage an account. Existing linked accounts can appear on the onboarding
+Overview, and accounts requiring microdeposit verification expose the
+verification action there.
+
+**Example — show linked accounts during onboarding:**
+
+```javascript
+const params = new URLSearchParams({
+  hostedExperienceType: 'HOSTED_ONBOARDING_UI',
+  componentProperties: JSON.stringify({
+    showLinkAccountStep: true
+  })
+});
+
+const iframeUrl = `${sessionData.url}&${params.toString()}`;
+```
+
+#### Standalone Linked Account Component
+
+Use `HOSTED_LINKED_ACCOUNTS_UI` when linked account management should be a
+separate hosted experience rather than a step inside onboarding. It renders the
+`LinkedAccountWidget`, which supports listing, linking, editing, removing, and
+microdeposit verification.
+
+Only JSON-serializable properties can be supplied through the
+`componentProperties` URL parameter. React callbacks, custom render functions,
+CSS class names, and tracking callbacks from the React component API are not
+available through partially hosted URLs.
+
+**All supported standalone linked-account properties:**
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `mode` | `'list' \| 'single'` | `'list'` | Show all linked accounts, or limit the experience to one account. In single mode, the create action is hidden after an active account exists. |
+| `viewMode` | `'cards' \| 'compact-cards' \| 'table'` | `'compact-cards'` | Controls how linked accounts are displayed. |
+| `scrollable` | `boolean` | `false` | Enables a height-constrained virtualized account list. |
+| `scrollableMaxHeight` | `number \| string` | `'400px'` | Maximum list height when `scrollable` is enabled. |
+| `pageSize` | `number` | `10` | Number of linked accounts requested per page. |
+| `paginationStyle` | `'loadMore' \| 'pages'` | `'pages'` | Pagination for card views. Table view always uses pages. |
+| `hideCreateButton` | `boolean` | `false` | Hides the action for linking a new bank account. |
+| `showPaymentFees` | `boolean` | `false` | Shows fees in the default payment review flow opened from an account. |
+| `showRejectedAccounts` | `boolean` | `false` | Shows a collapsible section of recently rejected accounts. |
+| `linkAccountReviewAcknowledgements` | `Array<{ id, labelKey, linkHrefs? }>` | `[]` | Adds required host-defined acknowledgement checkboxes to the link-account create dialog. Labels are resolved from linked-account content tokens. |
+| `showLinkAccountAcknowledgementsIntro` | `boolean` | `false` | Shows the acknowledgement lead-in text when acknowledgement rows are configured. |
+| `linkAccountBankFormConfigOverride` | `object` | `{}` | Partially overrides linked-account bank form configuration, such as available payment methods and account-holder defaults. |
+| `hideRemoveRecipient` | `boolean` | `false` | Hides Remove actions in standalone linked-account cards and table rows. This is separate from onboarding's `hideLinkedAccountRemoval` property. |
+
+**Example — standalone linked-account list:**
+
+```javascript
+const params = new URLSearchParams({
+  hostedExperienceType: 'HOSTED_LINKED_ACCOUNTS_UI',
+  componentProperties: JSON.stringify({
+    mode: 'list',
+    viewMode: 'compact-cards',
+    pageSize: 10
+  })
+});
+
+const iframeUrl = `${sessionData.url}&${params.toString()}`;
+```
+
+**Example — single linked account without unlink:**
+
+```javascript
+const componentProperties = {
+  mode: 'single',
+  hideRemoveRecipient: true,
+  showRejectedAccounts: true
+};
+```
+
+> `showLinkAccountStep` belongs to `HOSTED_ONBOARDING_UI`.
+> `HOSTED_LINKED_ACCOUNTS_UI` is the separate widget experience and does not use
+> that visibility property.
 
 **Example — Customizing with disclosure and theme props:**
 
@@ -346,8 +433,10 @@ const iframeUrl = `${baseIframeUrl}&${params.toString()}`;
 ```
 
 > **Note:** All URL parameter values are validated and sanitized by the hosted
-> UI. Unknown property names and invalid value types are silently ignored and
-> the component falls back to its defaults.
+> UI. Component-property validation is strict: an unknown property or invalid
+> value can reject the entire `componentProperties` object, causing the
+> component to use its defaults. Send only properties supported by the selected
+> experience type.
 
 ### 3.3. JavaScript Utility Library for Simplified Integration
 
@@ -361,7 +450,7 @@ For a streamlined integration experience, you can use our lightweight JavaScript
 
 - **ES Module:** [`partially-hosted-ui-component.mjs`](./partially-hosted-ui-component.mjs) - Modern ES6+ module format
 - **UMD Build:** [`partially-hosted-ui-component.js`](./partially-hosted-ui-component.js) - Universal module for broader compatibility
-- **Documentation:** [`PARTIALLY_HOSTED_UI_COMPONENT_README.md`](./PARTIALLY_HOSTED_UI_COMPONENT_README.md) - Complete API reference
+- **Documentation:** [`PARTIALLY_HOSTED_UTILITY_GUIDE.md`](./PARTIALLY_HOSTED_UTILITY_GUIDE.md) - Complete API reference
 
 #### 3.3.1. Using the Library
 
@@ -535,7 +624,7 @@ The complete, production-ready library implementation is available in the follow
 
 - **[`partially-hosted-ui-component.mjs`](./partially-hosted-ui-component.mjs)** - ES Module implementation (~700 lines)
 - **[`partially-hosted-ui-component.js`](./partially-hosted-ui-component.js)** - UMD build for broader compatibility
-- **[`PARTIALLY_HOSTED_UI_COMPONENT_README.md`](./PARTIALLY_HOSTED_UI_COMPONENT_README.md)** - Complete API documentation
+- **[`PARTIALLY_HOSTED_UTILITY_GUIDE.md`](./PARTIALLY_HOSTED_UTILITY_GUIDE.md)** - Complete API documentation
 
 **Key Implementation Details:**
 

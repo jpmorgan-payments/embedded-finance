@@ -42,8 +42,9 @@ const REFRESH_DELAY_MS = 100;
  * @enum {string}
  */
 export const ExperienceType = {
+  HOSTED_ONBOARDING_UI: 'HOSTED_ONBOARDING_UI',
   HOSTED_DOC_UPLOAD_ONBOARDING_UI: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-  // Add more experience types as they become available
+  HOSTED_LINKED_ACCOUNTS_UI: 'HOSTED_LINKED_ACCOUNTS_UI',
 };
 
 /**
@@ -94,7 +95,7 @@ function encodeJsonParam(obj) {
  * Build the complete iframe URL with all parameters
  * 
  * URL structure:
- * {baseUrl}/onboarding?token={jwt}&experienceType={type}&theme={encoded}&contentTokens={encoded}
+ * {baseUrl}/onboarding?token={jwt}&hostedExperienceType={type}&themeTokens={encoded}&contentTokens={encoded}&componentProperties={encoded}
  * 
  * @param {object} config - Configuration object
  * @param {string} config.baseUrl - Base URL for the hosted UI
@@ -102,6 +103,7 @@ function encodeJsonParam(obj) {
  * @param {string} config.experienceType - Type of experience to load
  * @param {object} [config.theme] - Optional theme configuration
  * @param {object} [config.contentTokens] - Optional content tokens
+ * @param {object} [config.componentProperties] - Optional serializable component props
  * @returns {string} Complete iframe URL with all parameters
  * @private
  */
@@ -112,12 +114,13 @@ function buildIframeUrl(config) {
     experienceType = DEFAULT_EXPERIENCE_TYPE,
     theme,
     contentTokens,
+    componentProperties,
   } = config;
 
   // Build query parameters
   const params = new URLSearchParams({
     token: sessionToken,
-    experienceType: experienceType,
+    hostedExperienceType: experienceType,
   });
 
   // Add optional theme parameter (JSON encoded)
@@ -133,6 +136,14 @@ function buildIframeUrl(config) {
     const encodedTokens = encodeJsonParam(contentTokens);
     if (encodedTokens) {
       params.append('contentTokens', encodedTokens);
+    }
+  }
+
+  // Add optional component properties parameter (JSON encoded)
+  if (componentProperties) {
+    const encodedProperties = encodeJsonParam(componentProperties);
+    if (encodedProperties) {
+      params.append('componentProperties', encodedProperties);
     }
   }
 
@@ -261,6 +272,7 @@ export class PartiallyHostedUIComponent {
    * @param {string} [config.baseUrl] - Base URL for hosted UI
    * @param {object} [config.theme] - Theme configuration object
    * @param {object} [config.contentTokens] - Content localization tokens
+  * @param {object} [config.componentProperties] - Serializable props for the selected experience
    * @param {object} [config.iframeAttributes] - Additional iframe attributes
    * @throws {Error} If sessionToken is not provided
    */
@@ -317,6 +329,7 @@ export class PartiallyHostedUIComponent {
       experienceType: this.config.experienceType,
       hasTheme: !!this.config.theme,
       hasContentTokens: !!this.config.contentTokens,
+      hasComponentProperties: !!this.config.componentProperties,
     });
   }
 
@@ -578,6 +591,31 @@ export class PartiallyHostedUIComponent {
   }
 
   /**
+   * Update serializable component properties dynamically.
+   *
+   * Note: This requires reloading the iframe to apply the new properties.
+   *
+   * @param {object} componentProperties - New component props (merged with existing)
+   * @throws {Error} If component is not mounted
+   * @public
+   */
+  updateComponentProperties(componentProperties) {
+    if (!this.isMounted) {
+      throw new Error(
+        '[PartiallyHostedUIComponent] Cannot update component properties: component is not mounted'
+      );
+    }
+
+    this.config.componentProperties = {
+      ...(this.config.componentProperties || {}),
+      ...componentProperties,
+    };
+
+    this._log('info', 'Component properties updated, refreshing iframe');
+    this.refresh();
+  }
+
+  /**
    * Refresh the iframe
    * 
    * Useful when:
@@ -627,6 +665,7 @@ export class PartiallyHostedUIComponent {
       experienceType: this.config.experienceType,
       hasTheme: !!this.config.theme,
       hasContentTokens: !!this.config.contentTokens,
+      hasComponentProperties: !!this.config.componentProperties,
       subscriberCount: this.subscribers.length,
     };
   }
