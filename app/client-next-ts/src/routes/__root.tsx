@@ -5,8 +5,10 @@ import { Footer } from '../components/landing/footer';
 import { LandingHeader } from '../components/landing/landing-header';
 import { DemoNotice } from '../components/ui/demo-notice';
 
-function isTestScenarioPath(pathname: string): boolean {
+function usesMinimalDemoShell(pathname: string): boolean {
   return (
+    pathname === '/sellsense-demo' ||
+    pathname === '/approved-client-maintenance' ||
     pathname === '/test-scenario' ||
     pathname.startsWith('/test-scenario/') ||
     /^\/test-scenario-[\w-]+$/.test(pathname)
@@ -19,11 +21,10 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   const location = useLocation();
-  const isSellsenseDemo = location.pathname === '/sellsense-demo';
   const isYearInReview = location.pathname === '/year-in-review';
-  const isTestScenario = isTestScenarioPath(location.pathname);
+  const usesMinimalShell = usesMinimalDemoShell(location.pathname);
 
-  if (isSellsenseDemo || isTestScenario) {
+  if (usesMinimalShell) {
     return (
       <>
         <main>
