@@ -24,6 +24,7 @@ import type {
 import merge from 'lodash/merge';
 import { http, HttpResponse, type RequestHandler } from 'msw';
 
+import { createClientMaintenanceHandlers } from '../components/client-maintenance/mocks/create-client-maintenance-handlers';
 import {
   getClientStatusOverrideForScenario,
   usesMicrodepositLinkedAccountMock,
@@ -464,6 +465,7 @@ function buildV3FxEnrichedResponse(id: string) {
 }
 
 export const createHandlers = (apiUrl: string): RequestHandler[] => [
+  ...createClientMaintenanceHandlers(apiUrl),
   http.get(`${apiUrl}/ef/do/v1/clients/:clientId`, (req) => {
     const { clientId } = req.params as ClientIdParams;
 

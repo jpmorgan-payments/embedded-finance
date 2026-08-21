@@ -9,126 +9,37 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ComponentsRouteImport } from './routes/components'
-import { Route as DemosRouteImport } from './routes/demos'
-import { Route as DocumentationRouteImport } from './routes/documentation'
-import { Route as GhTrafficStatsRouteImport } from './routes/gh-traffic-stats'
-import { Route as GithubRouteImport } from './routes/github'
-import { Route as MswTestRouteImport } from './routes/msw-test'
-import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
-import { Route as PaymentsFlowSimulatorRouteImport } from './routes/payments-flow-simulator'
-import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
-import { Route as SolutionsRouteImport } from './routes/solutions'
-import { Route as StoriesRouteImport } from './routes/stories'
-import { Route as TestScenarioRouteImport } from './routes/test-scenario'
-import { Route as TestScenario2RouteImport } from './routes/test-scenario-2'
-import { Route as TestScenario3RouteImport } from './routes/test-scenario-3'
-import { Route as TestScenario4RouteImport } from './routes/test-scenario-4'
-import { Route as TestScenario5RouteImport } from './routes/test-scenario-5'
-import { Route as TestScenarioC1RouteImport } from './routes/test-scenario-c1'
-import { Route as UtilsRouteImport } from './routes/utils'
-import { Route as WebhookExplorerRouteImport } from './routes/webhook-explorer'
 import { Route as YearInReviewRouteImport } from './routes/year-in-review'
-import { Route as StoriesIndexRouteImport } from './routes/stories.index'
-import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
+import { Route as WebhookExplorerRouteImport } from './routes/webhook-explorer'
+import { Route as UtilsRouteImport } from './routes/utils'
+import { Route as TestScenarioC1RouteImport } from './routes/test-scenario-c1'
+import { Route as TestScenario5RouteImport } from './routes/test-scenario-5'
+import { Route as TestScenario4RouteImport } from './routes/test-scenario-4'
+import { Route as TestScenario3RouteImport } from './routes/test-scenario-3'
+import { Route as TestScenario2RouteImport } from './routes/test-scenario-2'
+import { Route as TestScenarioRouteImport } from './routes/test-scenario'
+import { Route as StoriesRouteImport } from './routes/stories'
+import { Route as SolutionsRouteImport } from './routes/solutions'
+import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
+import { Route as PaymentsFlowSimulatorRouteImport } from './routes/payments-flow-simulator'
+import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
+import { Route as MswTestRouteImport } from './routes/msw-test'
+import { Route as GithubRouteImport } from './routes/github'
+import { Route as GhTrafficStatsRouteImport } from './routes/gh-traffic-stats'
+import { Route as DocumentationRouteImport } from './routes/documentation'
+import { Route as DemosRouteImport } from './routes/demos'
+import { Route as ComponentsRouteImport } from './routes/components'
+import { Route as ApprovedClientMaintenanceRouteImport } from './routes/approved-client-maintenance'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestScenarioIndexRouteImport } from './routes/test-scenario.index'
-import { Route as TestScenarioConstructorRouteImport } from './routes/test-scenario.constructor'
+import { Route as StoriesIndexRouteImport } from './routes/stories.index'
 import { Route as TestScenarioPlayRouteImport } from './routes/test-scenario.play'
+import { Route as TestScenarioConstructorRouteImport } from './routes/test-scenario.constructor'
+import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComponentsRoute = ComponentsRouteImport.update({
-  id: '/components',
-  path: '/components',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemosRoute = DemosRouteImport.update({
-  id: '/demos',
-  path: '/demos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocumentationRoute = DocumentationRouteImport.update({
-  id: '/documentation',
-  path: '/documentation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GhTrafficStatsRoute = GhTrafficStatsRouteImport.update({
-  id: '/gh-traffic-stats',
-  path: '/gh-traffic-stats',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GithubRoute = GithubRouteImport.update({
-  id: '/github',
-  path: '/github',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MswTestRoute = MswTestRouteImport.update({
-  id: '/msw-test',
-  path: '/msw-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PartiallyHostedDemoRoute = PartiallyHostedDemoRouteImport.update({
-  id: '/partially-hosted-demo',
-  path: '/partially-hosted-demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PaymentsFlowSimulatorRoute = PaymentsFlowSimulatorRouteImport.update({
-  id: '/payments-flow-simulator',
-  path: '/payments-flow-simulator',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
-  id: '/sellsense-demo',
-  path: '/sellsense-demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SolutionsRoute = SolutionsRouteImport.update({
-  id: '/solutions',
-  path: '/solutions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StoriesRoute = StoriesRouteImport.update({
-  id: '/stories',
-  path: '/stories',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestScenarioRoute = TestScenarioRouteImport.update({
-  id: '/test-scenario',
-  path: '/test-scenario',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestScenario2Route = TestScenario2RouteImport.update({
-  id: '/test-scenario-2',
-  path: '/test-scenario-2',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestScenario3Route = TestScenario3RouteImport.update({
-  id: '/test-scenario-3',
-  path: '/test-scenario-3',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestScenario4Route = TestScenario4RouteImport.update({
-  id: '/test-scenario-4',
-  path: '/test-scenario-4',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestScenario5Route = TestScenario5RouteImport.update({
-  id: '/test-scenario-5',
-  path: '/test-scenario-5',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TestScenarioC1Route = TestScenarioC1RouteImport.update({
-  id: '/test-scenario-c1',
-  path: '/test-scenario-c1',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UtilsRoute = UtilsRouteImport.update({
-  id: '/utils',
-  path: '/utils',
+const YearInReviewRoute = YearInReviewRouteImport.update({
+  id: '/year-in-review',
+  path: '/year-in-review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WebhookExplorerRoute = WebhookExplorerRouteImport.update({
@@ -136,24 +47,120 @@ const WebhookExplorerRoute = WebhookExplorerRouteImport.update({
   path: '/webhook-explorer',
   getParentRoute: () => rootRouteImport,
 } as any)
-const YearInReviewRoute = YearInReviewRouteImport.update({
-  id: '/year-in-review',
-  path: '/year-in-review',
+const UtilsRoute = UtilsRouteImport.update({
+  id: '/utils',
+  path: '/utils',
   getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenarioC1Route = TestScenarioC1RouteImport.update({
+  id: '/test-scenario-c1',
+  path: '/test-scenario-c1',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenario5Route = TestScenario5RouteImport.update({
+  id: '/test-scenario-5',
+  path: '/test-scenario-5',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenario4Route = TestScenario4RouteImport.update({
+  id: '/test-scenario-4',
+  path: '/test-scenario-4',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenario3Route = TestScenario3RouteImport.update({
+  id: '/test-scenario-3',
+  path: '/test-scenario-3',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenario2Route = TestScenario2RouteImport.update({
+  id: '/test-scenario-2',
+  path: '/test-scenario-2',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenarioRoute = TestScenarioRouteImport.update({
+  id: '/test-scenario',
+  path: '/test-scenario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoriesRoute = StoriesRouteImport.update({
+  id: '/stories',
+  path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsRoute = SolutionsRouteImport.update({
+  id: '/solutions',
+  path: '/solutions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
+  id: '/sellsense-demo',
+  path: '/sellsense-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaymentsFlowSimulatorRoute = PaymentsFlowSimulatorRouteImport.update({
+  id: '/payments-flow-simulator',
+  path: '/payments-flow-simulator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartiallyHostedDemoRoute = PartiallyHostedDemoRouteImport.update({
+  id: '/partially-hosted-demo',
+  path: '/partially-hosted-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MswTestRoute = MswTestRouteImport.update({
+  id: '/msw-test',
+  path: '/msw-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GithubRoute = GithubRouteImport.update({
+  id: '/github',
+  path: '/github',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GhTrafficStatsRoute = GhTrafficStatsRouteImport.update({
+  id: '/gh-traffic-stats',
+  path: '/gh-traffic-stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentationRoute = DocumentationRouteImport.update({
+  id: '/documentation',
+  path: '/documentation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemosRoute = DemosRouteImport.update({
+  id: '/demos',
+  path: '/demos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComponentsRoute = ComponentsRouteImport.update({
+  id: '/components',
+  path: '/components',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApprovedClientMaintenanceRoute =
+  ApprovedClientMaintenanceRouteImport.update({
+    id: '/approved-client-maintenance',
+    path: '/approved-client-maintenance',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenarioIndexRoute = TestScenarioIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TestScenarioRoute,
 } as any)
 const StoriesIndexRoute = StoriesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => StoriesRoute,
 } as any)
-const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
-  id: '/$storyId',
-  path: '/$storyId',
-  getParentRoute: () => StoriesRoute,
-} as any)
-const TestScenarioIndexRoute = TestScenarioIndexRouteImport.update({
-  id: '/',
-  path: '/',
+const TestScenarioPlayRoute = TestScenarioPlayRouteImport.update({
+  id: '/play',
+  path: '/play',
   getParentRoute: () => TestScenarioRoute,
 } as any)
 const TestScenarioConstructorRoute = TestScenarioConstructorRouteImport.update({
@@ -161,14 +168,15 @@ const TestScenarioConstructorRoute = TestScenarioConstructorRouteImport.update({
   path: '/constructor',
   getParentRoute: () => TestScenarioRoute,
 } as any)
-const TestScenarioPlayRoute = TestScenarioPlayRouteImport.update({
-  id: '/play',
-  path: '/play',
-  getParentRoute: () => TestScenarioRoute,
+const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
+  id: '/$storyId',
+  path: '/$storyId',
+  getParentRoute: () => StoriesRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/approved-client-maintenance': typeof ApprovedClientMaintenanceRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -197,6 +205,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/approved-client-maintenance': typeof ApprovedClientMaintenanceRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -224,6 +233,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/approved-client-maintenance': typeof ApprovedClientMaintenanceRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/approved-client-maintenance'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -282,6 +293,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/approved-client-maintenance'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -308,6 +320,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/approved-client-maintenance'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -337,6 +350,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApprovedClientMaintenanceRoute: typeof ApprovedClientMaintenanceRoute
   ComponentsRoute: typeof ComponentsRoute
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
@@ -361,137 +375,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/components': {
-      id: '/components'
-      path: '/components'
-      fullPath: '/components'
-      preLoaderRoute: typeof ComponentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demos': {
-      id: '/demos'
-      path: '/demos'
-      fullPath: '/demos'
-      preLoaderRoute: typeof DemosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/documentation': {
-      id: '/documentation'
-      path: '/documentation'
-      fullPath: '/documentation'
-      preLoaderRoute: typeof DocumentationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gh-traffic-stats': {
-      id: '/gh-traffic-stats'
-      path: '/gh-traffic-stats'
-      fullPath: '/gh-traffic-stats'
-      preLoaderRoute: typeof GhTrafficStatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/github': {
-      id: '/github'
-      path: '/github'
-      fullPath: '/github'
-      preLoaderRoute: typeof GithubRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/msw-test': {
-      id: '/msw-test'
-      path: '/msw-test'
-      fullPath: '/msw-test'
-      preLoaderRoute: typeof MswTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/partially-hosted-demo': {
-      id: '/partially-hosted-demo'
-      path: '/partially-hosted-demo'
-      fullPath: '/partially-hosted-demo'
-      preLoaderRoute: typeof PartiallyHostedDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/payments-flow-simulator': {
-      id: '/payments-flow-simulator'
-      path: '/payments-flow-simulator'
-      fullPath: '/payments-flow-simulator'
-      preLoaderRoute: typeof PaymentsFlowSimulatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sellsense-demo': {
-      id: '/sellsense-demo'
-      path: '/sellsense-demo'
-      fullPath: '/sellsense-demo'
-      preLoaderRoute: typeof SellsenseDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/solutions': {
-      id: '/solutions'
-      path: '/solutions'
-      fullPath: '/solutions'
-      preLoaderRoute: typeof SolutionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/stories': {
-      id: '/stories'
-      path: '/stories'
-      fullPath: '/stories'
-      preLoaderRoute: typeof StoriesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-scenario': {
-      id: '/test-scenario'
-      path: '/test-scenario'
-      fullPath: '/test-scenario'
-      preLoaderRoute: typeof TestScenarioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-scenario-2': {
-      id: '/test-scenario-2'
-      path: '/test-scenario-2'
-      fullPath: '/test-scenario-2'
-      preLoaderRoute: typeof TestScenario2RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-scenario-3': {
-      id: '/test-scenario-3'
-      path: '/test-scenario-3'
-      fullPath: '/test-scenario-3'
-      preLoaderRoute: typeof TestScenario3RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-scenario-4': {
-      id: '/test-scenario-4'
-      path: '/test-scenario-4'
-      fullPath: '/test-scenario-4'
-      preLoaderRoute: typeof TestScenario4RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-scenario-5': {
-      id: '/test-scenario-5'
-      path: '/test-scenario-5'
-      fullPath: '/test-scenario-5'
-      preLoaderRoute: typeof TestScenario5RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test-scenario-c1': {
-      id: '/test-scenario-c1'
-      path: '/test-scenario-c1'
-      fullPath: '/test-scenario-c1'
-      preLoaderRoute: typeof TestScenarioC1RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/utils': {
-      id: '/utils'
-      path: '/utils'
-      fullPath: '/utils'
-      preLoaderRoute: typeof UtilsRouteImport
+    '/year-in-review': {
+      id: '/year-in-review'
+      path: '/year-in-review'
+      fullPath: '/year-in-review'
+      preLoaderRoute: typeof YearInReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/webhook-explorer': {
@@ -501,12 +389,152 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WebhookExplorerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/year-in-review': {
-      id: '/year-in-review'
-      path: '/year-in-review'
-      fullPath: '/year-in-review'
-      preLoaderRoute: typeof YearInReviewRouteImport
+    '/utils': {
+      id: '/utils'
+      path: '/utils'
+      fullPath: '/utils'
+      preLoaderRoute: typeof UtilsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario-c1': {
+      id: '/test-scenario-c1'
+      path: '/test-scenario-c1'
+      fullPath: '/test-scenario-c1'
+      preLoaderRoute: typeof TestScenarioC1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario-5': {
+      id: '/test-scenario-5'
+      path: '/test-scenario-5'
+      fullPath: '/test-scenario-5'
+      preLoaderRoute: typeof TestScenario5RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario-4': {
+      id: '/test-scenario-4'
+      path: '/test-scenario-4'
+      fullPath: '/test-scenario-4'
+      preLoaderRoute: typeof TestScenario4RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario-3': {
+      id: '/test-scenario-3'
+      path: '/test-scenario-3'
+      fullPath: '/test-scenario-3'
+      preLoaderRoute: typeof TestScenario3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario-2': {
+      id: '/test-scenario-2'
+      path: '/test-scenario-2'
+      fullPath: '/test-scenario-2'
+      preLoaderRoute: typeof TestScenario2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario': {
+      id: '/test-scenario'
+      path: '/test-scenario'
+      fullPath: '/test-scenario'
+      preLoaderRoute: typeof TestScenarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stories': {
+      id: '/stories'
+      path: '/stories'
+      fullPath: '/stories'
+      preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions': {
+      id: '/solutions'
+      path: '/solutions'
+      fullPath: '/solutions'
+      preLoaderRoute: typeof SolutionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sellsense-demo': {
+      id: '/sellsense-demo'
+      path: '/sellsense-demo'
+      fullPath: '/sellsense-demo'
+      preLoaderRoute: typeof SellsenseDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/payments-flow-simulator': {
+      id: '/payments-flow-simulator'
+      path: '/payments-flow-simulator'
+      fullPath: '/payments-flow-simulator'
+      preLoaderRoute: typeof PaymentsFlowSimulatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partially-hosted-demo': {
+      id: '/partially-hosted-demo'
+      path: '/partially-hosted-demo'
+      fullPath: '/partially-hosted-demo'
+      preLoaderRoute: typeof PartiallyHostedDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/msw-test': {
+      id: '/msw-test'
+      path: '/msw-test'
+      fullPath: '/msw-test'
+      preLoaderRoute: typeof MswTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/github': {
+      id: '/github'
+      path: '/github'
+      fullPath: '/github'
+      preLoaderRoute: typeof GithubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gh-traffic-stats': {
+      id: '/gh-traffic-stats'
+      path: '/gh-traffic-stats'
+      fullPath: '/gh-traffic-stats'
+      preLoaderRoute: typeof GhTrafficStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documentation': {
+      id: '/documentation'
+      path: '/documentation'
+      fullPath: '/documentation'
+      preLoaderRoute: typeof DocumentationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demos': {
+      id: '/demos'
+      path: '/demos'
+      fullPath: '/demos'
+      preLoaderRoute: typeof DemosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/components': {
+      id: '/components'
+      path: '/components'
+      fullPath: '/components'
+      preLoaderRoute: typeof ComponentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/approved-client-maintenance': {
+      id: '/approved-client-maintenance'
+      path: '/approved-client-maintenance'
+      fullPath: '/approved-client-maintenance'
+      preLoaderRoute: typeof ApprovedClientMaintenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario/': {
+      id: '/test-scenario/'
+      path: '/'
+      fullPath: '/test-scenario/'
+      preLoaderRoute: typeof TestScenarioIndexRouteImport
+      parentRoute: typeof TestScenarioRoute
     }
     '/stories/': {
       id: '/stories/'
@@ -515,18 +543,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoriesIndexRouteImport
       parentRoute: typeof StoriesRoute
     }
-    '/stories/$storyId': {
-      id: '/stories/$storyId'
-      path: '/$storyId'
-      fullPath: '/stories/$storyId'
-      preLoaderRoute: typeof StoriesStoryIdRouteImport
-      parentRoute: typeof StoriesRoute
-    }
-    '/test-scenario/': {
-      id: '/test-scenario/'
-      path: '/'
-      fullPath: '/test-scenario/'
-      preLoaderRoute: typeof TestScenarioIndexRouteImport
+    '/test-scenario/play': {
+      id: '/test-scenario/play'
+      path: '/play'
+      fullPath: '/test-scenario/play'
+      preLoaderRoute: typeof TestScenarioPlayRouteImport
       parentRoute: typeof TestScenarioRoute
     }
     '/test-scenario/constructor': {
@@ -536,12 +557,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestScenarioConstructorRouteImport
       parentRoute: typeof TestScenarioRoute
     }
-    '/test-scenario/play': {
-      id: '/test-scenario/play'
-      path: '/play'
-      fullPath: '/test-scenario/play'
-      preLoaderRoute: typeof TestScenarioPlayRouteImport
-      parentRoute: typeof TestScenarioRoute
+    '/stories/$storyId': {
+      id: '/stories/$storyId'
+      path: '/$storyId'
+      fullPath: '/stories/$storyId'
+      preLoaderRoute: typeof StoriesStoryIdRouteImport
+      parentRoute: typeof StoriesRoute
     }
   }
 }
@@ -577,6 +598,7 @@ const TestScenarioRouteWithChildren = TestScenarioRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApprovedClientMaintenanceRoute: ApprovedClientMaintenanceRoute,
   ComponentsRoute: ComponentsRoute,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,

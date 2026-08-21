@@ -1,0 +1,151 @@
+// Local prototype types derived from the Commerce Digital Onboarding API v1.4.1.
+// They intentionally do not use the Embedded Payments generated API models.
+export type ClientStatus =
+  | 'APPROVED'
+  | 'DECLINED'
+  | 'INFORMATION_REQUESTED'
+  | 'NEW'
+  | 'REVIEW_IN_PROGRESS'
+  | 'SUSPENDED'
+  | 'TERMINATED';
+
+export type KycUpdateRequestStatus =
+  | 'NEW'
+  | 'REVIEW_IN_PROGRESS'
+  | 'INFORMATION_REQUESTED'
+  | 'APPROVED'
+  | 'DECLINED'
+  | 'TERMINATED';
+
+export type ActiveKycUpdateRequestStatus = Extract<
+  KycUpdateRequestStatus,
+  'NEW' | 'REVIEW_IN_PROGRESS' | 'INFORMATION_REQUESTED'
+>;
+
+export type KycUpdateRequestAction = 'ADD' | 'MODIFY' | 'DELETE';
+
+export type PartyRole =
+  | 'AUTHORIZED_USER'
+  | 'BENEFICIAL_OWNER'
+  | 'CLIENT'
+  | 'CONTROLLER'
+  | 'DIRECTOR'
+  | 'INTERMEDIARY_OWNER'
+  | 'PRIMARY_CONTACT'
+  | 'TRUSTEE';
+
+export type Address = {
+  addressType?:
+    | 'LEGAL_ADDRESS'
+    | 'MAILING_ADDRESS'
+    | 'BUSINESS_ADDRESS'
+    | 'RESIDENTIAL_ADDRESS';
+  addressLines: string[];
+  city: string;
+  state?: string;
+  postalCode: string;
+  country: string;
+};
+
+export type Phone = {
+  phoneType?: 'BUSINESS_PHONE' | 'MOBILE_PHONE' | 'ALTERNATE_PHONE';
+  countryCode: string;
+  phoneNumber: string;
+};
+
+export type IndividualIdentity = {
+  idType:
+    | 'SSN'
+    | 'ITIN'
+    | 'NATIONAL_ID'
+    | 'DRIVERS_LICENSE'
+    | 'PASSPORT'
+    | 'SOCIAL_INSURANCE_NUMBER'
+    | 'OTHER_GOVERNMENT_ID';
+  value: string;
+  issuer: string;
+};
+
+export type OrganizationIdentity = {
+  idType:
+    | 'EIN'
+    | 'BUSINESS_REGISTRATION_ID'
+    | 'BUSINESS_NUMBER'
+    | 'BUSINESS_REGISTRATION_NUMBER'
+    | 'OTHER_GOVERNMENT_ID';
+  value: string;
+  issuer: string;
+};
+
+export type IndividualDetails = {
+  addresses?: Address[];
+  birthDate?: string;
+  countryOfResidence?: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  individualIds?: IndividualIdentity[];
+  jobTitle?: string;
+  jobTitleDescription?: string;
+  natureOfOwnership?: 'Direct' | 'Indirect';
+  phone?: Phone;
+};
+
+export type OrganizationDetails = {
+  addresses?: Address[];
+  countryOfFormation?: string;
+  dbaName?: string;
+  industryCategory?: string;
+  industryType?: string;
+  organizationDescription?: string;
+  organizationIds?: OrganizationIdentity[];
+  organizationName?: string;
+  organizationType?: string;
+  phone?: Phone;
+  website?: string;
+  yearOfFormation?: string;
+};
+
+export type KycUpdateRequest = {
+  status?: KycUpdateRequestStatus;
+  action?: KycUpdateRequestAction;
+  requestId?: string;
+  submittedAt?: string;
+};
+
+export type PartyResponse = {
+  id?: string;
+  email?: string;
+  active?: boolean;
+  partyType?: 'INDIVIDUAL' | 'ORGANIZATION';
+  parentPartyId?: string;
+  profileStatus?: ClientStatus;
+  roles?: PartyRole[];
+  individualDetails?: IndividualDetails;
+  organizationDetails?: OrganizationDetails;
+  updateRequest?: KycUpdateRequest;
+};
+
+export type ClientResponse = {
+  id: string;
+  partyId: string;
+  products: Array<'EMBEDDED_PAYMENTS' | 'MERCHANT_SERVICES'>;
+  parties: PartyResponse[];
+  status: ClientStatus;
+  outstanding: {
+    attestationDocumentIds: string[];
+    documentRequestIds: string[];
+    partyIds: string[];
+    partyRoles: PartyRole[];
+    questionIds: string[];
+  };
+};
+
+export type ListKycPartyUpdateRequests = {
+  parties: PartyResponse[];
+  metadata: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+};
