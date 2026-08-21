@@ -42,7 +42,9 @@
 
   // Enums
   const ExperienceType = {
+    HOSTED_ONBOARDING_UI: 'HOSTED_ONBOARDING_UI',
     HOSTED_DOC_UPLOAD_ONBOARDING_UI: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+    HOSTED_LINKED_ACCOUNTS_UI: 'HOSTED_LINKED_ACCOUNTS_UI',
   };
 
   const EventNamespace = {
@@ -78,11 +80,12 @@
       experienceType = DEFAULT_EXPERIENCE_TYPE,
       theme,
       contentTokens,
+      componentProperties,
     } = config;
 
     const params = new URLSearchParams({
       token: sessionToken,
-      experienceType: experienceType,
+      hostedExperienceType: experienceType,
     });
 
     if (theme) {
@@ -93,6 +96,11 @@
     if (contentTokens) {
       const encodedTokens = encodeJsonParam(contentTokens);
       if (encodedTokens) params.append('contentTokens', encodedTokens);
+    }
+
+    if (componentProperties) {
+      const encodedProperties = encodeJsonParam(componentProperties);
+      if (encodedProperties) params.append('componentProperties', encodedProperties);
     }
 
     return `${baseUrl}/onboarding?${params.toString()}`;
@@ -169,6 +177,7 @@
       experienceType: this.config.experienceType,
       hasTheme: !!this.config.theme,
       hasContentTokens: !!this.config.contentTokens,
+      hasComponentProperties: !!this.config.componentProperties,
     });
   }
 
@@ -309,6 +318,22 @@
     this.refresh();
   };
 
+  PartiallyHostedUIComponent.prototype.updateComponentProperties = function(componentProperties) {
+    if (!this.isMounted) {
+      throw new Error('[PartiallyHostedUIComponent] Cannot update component properties: component is not mounted');
+    }
+
+    this.config.componentProperties = this.config.componentProperties || {};
+    for (var key in componentProperties) {
+      if (componentProperties.hasOwnProperty(key)) {
+        this.config.componentProperties[key] = componentProperties[key];
+      }
+    }
+
+    this._log('info', 'Component properties updated, refreshing iframe');
+    this.refresh();
+  };
+
   PartiallyHostedUIComponent.prototype.refresh = function() {
     if (!this.iframe || !this.targetElement) {
       throw new Error('[PartiallyHostedUIComponent] Cannot refresh: component is not mounted');
@@ -331,6 +356,7 @@
       experienceType: this.config.experienceType,
       hasTheme: !!this.config.theme,
       hasContentTokens: !!this.config.contentTokens,
+      hasComponentProperties: !!this.config.componentProperties,
       subscriberCount: this.subscribers.length,
     };
   };

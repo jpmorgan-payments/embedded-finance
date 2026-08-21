@@ -15,6 +15,8 @@ A lightweight, framework-agnostic JavaScript utility library for embedding JPMor
 - ✅ **Secure by Default** - Proper iframe sandbox attributes and origin validation
 - ✅ **Theme Support** - Pass custom themes via encoded URL parameters
 - ✅ **Localization** - Support for content tokens and multi-language
+- ✅ **Component Properties** - Configure serializable props for each hosted experience
+- ✅ **Linked Accounts** - Embed account linking and microdeposit verification during or after onboarding
 - ✅ **Event System** - Pub/sub pattern for iframe communication
 - ✅ **TypeScript Ready** - JSDoc comments for IDE autocomplete
 - ✅ **Multiple Formats** - ES Module (.mjs) and UMD (.js) builds
@@ -27,6 +29,7 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 |----------------|-------------|
 | `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
 | `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
+| `HOSTED_LINKED_ACCOUNTS_UI` | Standalone linked bank account management, including microdeposit verification |
 
 > **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
 
@@ -77,8 +80,8 @@ const ui = new PartiallyHostedUIComponent({ /* config */ });
     // Initialize
     const ui = new PartiallyHostedUIComponent({
       sessionToken: 'your-jwt-token-from-backend',
-      experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-      themeTokens: {
+      experienceType: 'HOSTED_ONBOARDING_UI',
+      theme: {
         colorScheme: 'light',
         variables: {
           primaryColor: '#0070f3',
@@ -88,6 +91,9 @@ const ui = new PartiallyHostedUIComponent({ /* config */ });
       contentTokens: {
         locale: 'en-US',
         brandName: 'Your Platform'
+      },
+      componentProperties: {
+        showLinkAccountStep: true
       }
     });
 
@@ -124,6 +130,7 @@ new PartiallyHostedUIComponent(config)
 | `config.baseUrl` | `string` | ❌ No | Base URL for hosted UI (default: production URL) |
 | `config.theme` | `object` | ❌ No | Theme configuration object |
 | `config.contentTokens` | `object` | ❌ No | Content localization tokens |
+| `config.componentProperties` | `object` | ❌ No | JSON-serializable props supported by the selected experience |
 | `config.iframeAttributes` | `object` | ❌ No | Additional iframe HTML attributes |
 | `config.debug` | `boolean` | ❌ No | Enable debug logging (default: `false`) |
 
@@ -225,6 +232,22 @@ ui.updateContentTokens({
 
 ---
 
+#### `updateComponentProperties(componentProperties)`
+
+Dynamically merge component properties and reload the iframe.
+
+```javascript
+ui.updateComponentProperties({
+  mode: 'single',
+  hideRemoveRecipient: true
+});
+```
+
+**Parameters:**
+- `componentProperties` (object) - Serializable properties to merge with the current configuration
+
+---
+
 #### `refresh()`
 
 Refresh the iframe (unmount and remount with current configuration).
@@ -248,6 +271,7 @@ console.log(state);
 //   experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
 //   hasTheme: true,
 //   hasContentTokens: true,
+//   hasComponentProperties: true,
 //   subscriberCount: 2
 // }
 ```
@@ -310,6 +334,86 @@ Content tokens allow customization of text and localization:
 
 For complete content token documentation, see [Embedded Components Content Tokens](../../../embedded-components/README.md#content-tokens).
 
+### Component Properties
+
+`componentProperties` is JSON-encoded into the iframe URL and validated against
+the selected experience. Validation is strict: an unknown property or invalid
+value can reject the entire property object and make the component use its
+defaults. Only serializable values are supported; React callbacks, render
+functions, CSS class names, and tracking callbacks cannot be passed through
+this utility.
+
+#### Linked Account Step in Onboarding
+
+For `HOSTED_ONBOARDING_UI`, use the exact property name
+`showLinkAccountStep`. It displays linked bank account functionality within the
+onboarding journey. `showLinkedAccounts` and `shoeLinkedAccounts` are not valid
+aliases.
+
+```javascript
+const onboardingUI = new PartiallyHostedUIComponent({
+  sessionToken,
+  experienceType: 'HOSTED_ONBOARDING_UI',
+  componentProperties: {
+    showLinkAccountStep: true
+  }
+});
+```
+
+The property controls visibility only. Client status and hosted service rules
+still determine whether account linking is enabled. Existing linked accounts
+and microdeposit verification actions can appear on the onboarding Overview.
+
+#### Standalone Linked Account Component
+
+Choose `HOSTED_LINKED_ACCOUNTS_UI` to render `LinkedAccountWidget` as a
+separate hosted experience.
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `mode` | `'list' \| 'single'` | `'list'` | Shows all accounts or limits the experience to one active account. |
+| `viewMode` | `'cards' \| 'compact-cards' \| 'table'` | `'compact-cards'` | Account display layout. |
+| `scrollable` | `boolean` | `false` | Enables a height-constrained virtualized list. |
+| `scrollableMaxHeight` | `number \| string` | `'400px'` | Maximum height when `scrollable` is enabled. |
+| `pageSize` | `number` | `10` | Accounts requested per page. |
+| `paginationStyle` | `'loadMore' \| 'pages'` | `'pages'` | Pagination for card views; tables always use pages. |
+| `hideCreateButton` | `boolean` | `false` | Hides the Link New Account action. |
+| `showPaymentFees` | `boolean` | `false` | Shows fees in the default payment review flow. |
+| `showRejectedAccounts` | `boolean` | `false` | Shows recently rejected accounts in a collapsible section. |
+| `linkAccountReviewAcknowledgements` | `Array<{ id, labelKey, linkHrefs? }>` | `[]` | Required host-defined acknowledgement rows in the create dialog. |
+| `showLinkAccountAcknowledgementsIntro` | `boolean` | `false` | Shows lead-in copy above configured acknowledgements. |
+| `linkAccountBankFormConfigOverride` | `object` | `{}` | Partially overrides bank form payment-method and account-holder configuration. |
+| `hideRemoveRecipient` | `boolean` | `false` | Hides standalone card and table Remove actions. Onboarding uses `hideLinkedAccountRemoval` instead. |
+
+**Example — compact linked-account list:**
+
+```javascript
+const linkedAccountsUI = new PartiallyHostedUIComponent({
+  sessionToken,
+  experienceType: 'HOSTED_LINKED_ACCOUNTS_UI',
+  componentProperties: {
+    mode: 'list',
+    viewMode: 'compact-cards',
+    pageSize: 10
+  }
+});
+
+linkedAccountsUI.mount('linked-accounts-container');
+```
+
+**Example — one account with unlink hidden:**
+
+```javascript
+const linkedAccountsUI = new PartiallyHostedUIComponent({
+  sessionToken,
+  experienceType: 'HOSTED_LINKED_ACCOUNTS_UI',
+  componentProperties: {
+    mode: 'single',
+    hideRemoveRecipient: true
+  }
+});
+```
+
 ### Iframe Attributes
 
 You can pass additional HTML attributes for the iframe:
@@ -365,7 +469,7 @@ function OnboardingComponent({ sessionToken }) {
     const ui = new PartiallyHostedUIComponent({
       sessionToken,
       experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-      themeTokens: { colorScheme: 'light' },
+      theme: { colorScheme: 'light' },
       debug: true
     });
 
@@ -417,7 +521,7 @@ export default {
       ui = new PartiallyHostedUIComponent({
         sessionToken: props.sessionToken,
         experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-        themeTokens: { colorScheme: 'light' }
+        theme: { colorScheme: 'light' }
       });
 
       ui.subscribe((event) => {
@@ -464,7 +568,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     this.ui = new PartiallyHostedUIComponent({
       sessionToken: 'your-token',
       experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-      themeTokens: { colorScheme: 'light' }
+      theme: { colorScheme: 'light' }
     });
 
     this.ui.subscribe((event: any) => {
@@ -584,7 +688,7 @@ Apache License 2.0
 
 ## Related Documentation
 
-- [Integration Guide](./PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md)
+- [Integration Guide](./PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md)
 - [Embedded Components README](../../../embedded-components/README.md)
 - [Theme Documentation](../../../embedded-components/README.md#theming)
 - [Content Tokens](../../../embedded-components/README.md#content-tokens)
@@ -596,5 +700,5 @@ For questions or issues, please contact your JPMorgan Chase integration team.
 ---
 
 **Version:** 1.0.0-alpha  
-**Last Updated:** November 2025  
+**Last Updated:** August 2026
 **Status:** Work in Progress - Reference Implementation
