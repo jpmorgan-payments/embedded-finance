@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useContentTokens } from '@/core/EBComponentsProvider';
 
+import { hasRichTextMarkup, TransWithTokens } from './TransWithTokens';
+
 /** Valid namespace keys from default resources */
 type ValidNamespace = keyof (typeof defaultResources)['enUS'];
 
@@ -70,7 +72,8 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
 
   /**
    * Translate a key, optionally annotating with token ID.
-   * Returns ReactNode when showTokenIds is enabled, string otherwise.
+   * Returns ReactNode when showTokenIds is enabled or the translated content
+   * contains allow-listed rich markup, and returns a string otherwise.
    *
    * Must forward all arguments to i18next `t` (e.g. `t(key, defaultValue, options)`
    * for interpolation). Only passing `(key, options)` drops the third argument and
@@ -78,10 +81,6 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
    */
   function t(...args: Parameters<TFunc>): TranslationResult {
     const translated = (originalT as RawTranslate)(...args);
-
-    if (!showTokenIds) {
-      return translated;
-    }
 
     // If the translated content is empty, return empty string to avoid rendering empty spans
     // This preserves the behavior of conditional rendering based on empty content
@@ -113,6 +112,28 @@ export function useTranslationWithTokens<N extends ValidNamespace>(
     const namespace =
       (optionsForNs as { ns?: string } | undefined)?.ns ??
       (keyStr.includes(':') ? undefined : primaryNs);
+
+    if (hasRichTextMarkup(translated)) {
+      const richOptions = optionsForNs as
+        | { count?: number; context?: string }
+        | undefined;
+
+      return (
+        <TransWithTokens
+          i18nKey={keyStr}
+          ns={namespace}
+          values={optionsForNs}
+          defaults={translated}
+          count={richOptions?.count}
+          context={richOptions?.context}
+        />
+      );
+    }
+
+    if (!showTokenIds) {
+      return translated;
+    }
+
     const tokenId = namespace ? `${namespace}:${keyStr}` : keyStr;
 
     return (
