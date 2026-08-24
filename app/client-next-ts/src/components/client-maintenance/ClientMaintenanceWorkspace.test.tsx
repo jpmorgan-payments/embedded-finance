@@ -46,6 +46,12 @@ describe('ClientMaintenanceWorkspace', () => {
       'href',
       'https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/update-party'
     );
+    const apiSequence = screen
+      .getByRole('heading', { name: 'Commerce API sequence' })
+      .closest('section');
+    const apiCalls = within(apiSequence!).getByRole('list');
+    expect(apiCalls).toHaveClass('grid');
+    expect(apiCalls).not.toHaveClass('overflow-x-auto');
     await user.click(
       screen.getByRole('button', { name: 'Review proposed changes' })
     );
@@ -57,6 +63,9 @@ describe('ClientMaintenanceWorkspace', () => {
       screen.getAllByText('Marketplace Vendor Collective')
     ).not.toHaveLength(0);
     expect(screen.getAllByText('Diaz')).not.toHaveLength(0);
+    expect(
+      screen.getAllByText('Maintenance request 4000001049').length
+    ).toBeGreaterThan(0);
 
     await user.click(
       screen.getByRole('button', { name: 'Continue to attestation' })
@@ -117,5 +126,55 @@ describe('ClientMaintenanceWorkspace', () => {
       })
     ).toBeInTheDocument();
     expect(screen.getAllByText('Johnson').length).toBeGreaterThan(0);
+  });
+
+  it('compares field, profile, and request-oriented review options', async () => {
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await screen.findByRole('heading', {
+      level: 1,
+      name: 'Marketplace Vendor LLC',
+    });
+    await user.click(
+      screen.getByRole('button', { name: 'Review proposed changes' })
+    );
+
+    const reviewNote = screen.getByRole('note');
+    expect(reviewNote).toHaveTextContent(
+      'Best for: Fast, precise validation of every changed value.'
+    );
+    expect(reviewNote).toHaveTextContent(
+      'Trade-off: Unchanged profile context stays out of view.'
+    );
+
+    await user.click(screen.getByRole('tab', { name: 'Profiles' }));
+    expect(
+      screen.getByRole('heading', { name: 'Complete profile comparison' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Approved profile' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Proposed profile' })
+    ).toBeInTheDocument();
+    expect(reviewNote).toHaveTextContent(
+      'Trade-off: Repeats unchanged data and becomes longer on mobile.'
+    );
+
+    await user.click(screen.getByRole('tab', { name: 'Request' }));
+    expect(
+      screen.getByRole('heading', {
+        name: 'Maintenance request 4000001049',
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'This request groups all 4 draft changes across 2 parties.'
+      )
+    ).toBeInTheDocument();
+    expect(reviewNote).toHaveTextContent(
+      'Trade-off: Reviewers must expand a party before seeing every value.'
+    );
   });
 });

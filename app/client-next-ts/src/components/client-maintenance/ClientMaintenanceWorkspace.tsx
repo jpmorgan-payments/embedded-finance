@@ -19,12 +19,12 @@ import { Button } from '@/components/ui/button';
 
 import { ApiSequence } from './components/ApiSequence';
 import { AttestationPanel } from './components/AttestationPanel';
-import { ChangeReview } from './components/ChangeReview';
 import { DemoLifecyclePanel } from './components/DemoLifecyclePanel';
 import {
   MaintenanceProgress,
   type MaintenanceStep,
 } from './components/MaintenanceProgress';
+import { MaintenanceReviewOptions } from './components/MaintenanceReviewOptions';
 import { PartyEditDrawer } from './components/PartyEditDrawer';
 import { ProfileOverview } from './components/ProfileOverview';
 import { useClientMaintenanceWorkspace } from './hooks/use-client-maintenance-workspace';
@@ -200,7 +200,7 @@ export function ClientMaintenanceWorkspace() {
                   </AlertDescription>
                 </Alert>
               ) : null}
-              <ChangeReview
+              <MaintenanceReviewOptions
                 projection={projection}
                 onEditParty={setEditingParty}
               />

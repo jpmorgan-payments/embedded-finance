@@ -26,7 +26,7 @@ function actionClasses(action: PartyChange['action']): string {
 function RequestProvenance({ change }: { change: FieldChange }) {
   return (
     <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500">
-      <span>Source {change.source.requestId}</span>
+      <span>Maintenance request {change.source.requestId}</span>
       {change.supersededSources.length > 0 ? (
         <span className="inline-flex items-center gap-1 text-amber-800">
           <AlertTriangle className="h-3 w-3" />
