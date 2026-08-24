@@ -4,16 +4,21 @@ import { Trans } from 'react-i18next';
 import { useContentTokens } from '@/core/EBComponentsProvider';
 
 const richTextComponents: Record<string, ReactElement> = {
-  p: <p />,
+  p: <p className="eb-leading-relaxed" />,
   br: <br />,
   strong: <strong />,
   b: <strong />,
   em: <em />,
   i: <em />,
-  ul: <ul />,
-  ol: <ol />,
-  li: <li />,
+  ul: <ul className="eb-my-2 eb-list-disc eb-pl-5" />,
+  ol: <ol className="eb-my-2 eb-list-decimal eb-pl-5" />,
+  li: <li className="eb-mt-1" />,
 };
+
+const richTextTagPattern = /<\/?(?:p|br|strong|b|em|i|ul|ol|li)\s*\/?>/;
+
+export const hasRichTextMarkup = (content: string) =>
+  richTextTagPattern.test(content);
 
 /**
  * A wrapper around react-i18next's Trans component that adds token ID annotations
@@ -36,6 +41,8 @@ export function TransWithTokens({
   values,
   components,
   defaults,
+  count,
+  context,
   children,
 }: {
   i18nKey: string;
@@ -43,6 +50,8 @@ export function TransWithTokens({
   values?: Record<string, unknown>;
   components?: Record<string, ReactElement>;
   defaults?: string;
+  count?: number;
+  context?: string;
   children?: ReactNode;
 }) {
   const contentTokensConfig = useContentTokens();
@@ -58,6 +67,8 @@ export function TransWithTokens({
     values,
     components: { ...richTextComponents, ...components },
     defaults,
+    count,
+    context,
     children,
   } as unknown as ComponentProps<typeof Trans>;
 

@@ -122,8 +122,9 @@ describe('ServerErrorAlert', () => {
       wrapper: richContentWrapper,
     });
 
-    expect(container.querySelector('ul')?.parentElement?.className).toContain(
-      '[&_ul]:eb-list-disc'
+    expect(container.querySelector('ul')).toHaveClass(
+      'eb-list-disc',
+      'eb-pl-5'
     );
     expect(container.querySelectorAll('li')).toHaveLength(2);
     expect(container.querySelector('strong')).toHaveTextContent('Business');

@@ -1,8 +1,8 @@
 /**
- * OnboardingFlow — stylized content-token overrides inside an Alert.
+ * OnboardingFlow — stylized content-token overrides in rich prose surfaces.
  *
- * Each story opens the Owners section and overrides the existing informational
- * Alert through `contentTokens.tokens['onboarding-overview']`.
+ * Demonstrates automatic structured rendering through ordinary `t()` calls in
+ * Operational Details and through the existing Owners informational Alert.
  */
 
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -23,7 +23,7 @@ import {
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
 
 const meta: Meta<OnboardingFlowStoryArgs> = {
-  title: 'Core/OnboardingFlow/Content tokens/Stylized alert content',
+  title: 'Core/OnboardingFlow/Content tokens/Stylized content',
   component: OnboardingFlowTemplate,
   tags: ['@core', '@onboarding', '@i18n'],
   parameters: {
@@ -31,7 +31,7 @@ const meta: Meta<OnboardingFlowStoryArgs> = {
     docs: {
       description: {
         component:
-          'Demonstrates safe inline formatting in Alert content-token overrides. Supported tags include paragraphs, line breaks, emphasis, and ordered or unordered lists.',
+          'Demonstrates package-wide automatic formatting in content-token overrides. Supported tags include paragraphs, line breaks, emphasis, and ordered or unordered lists.',
       },
     },
     msw: {
@@ -57,11 +57,60 @@ const seededOwnersSectionArgs: Partial<OnboardingFlowStoryArgs> = {
   contentTokensPreset: 'custom',
 };
 
+const seededOperationalDetailsArgs: Partial<OnboardingFlowStoryArgs> = {
+  ...commonArgs,
+  clientId: DEFAULT_CLIENT_ID,
+  flowEntry: { screenId: 'additional-questions-section' },
+  contentTokensPreset: 'custom',
+};
+
 const seededNewClientLoader = () =>
   resetAndSeedClient(mockClientNew, DEFAULT_CLIENT_ID);
 
-export const BulletedList: Story = {
-  name: 'Bulleted list',
+export const OperationalDetailsBulletedDescription: Story = {
+  name: 'Operational details — bulleted description',
+  loaders: [seededNewClientLoader],
+  args: {
+    ...seededOperationalDetailsArgs,
+    contentTokens: {
+      name: 'enUS',
+      tokens: {
+        'onboarding-overview': {
+          screens: {
+            operationalDetails: {
+              description:
+                'Please provide details about:<ul><li>How your business receives funds</li><li>Where your customers are located</li><li>Your expected account activity</li></ul>',
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const OperationalDetailsNumberedDescription: Story = {
+  name: 'Operational details — numbered description',
+  loaders: [seededNewClientLoader],
+  args: {
+    ...seededOperationalDetailsArgs,
+    contentTokens: {
+      name: 'enUS',
+      tokens: {
+        'onboarding-overview': {
+          screens: {
+            operationalDetails: {
+              description:
+                'Complete these steps:<ol><li>Review each question</li><li>Provide the requested business details</li><li>Save and continue to review</li></ol>',
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+export const AlertBulletedList: Story = {
+  name: 'Alert — bulleted list',
   loaders: [seededNewClientLoader],
   args: {
     ...seededOwnersSectionArgs,
@@ -83,8 +132,8 @@ export const BulletedList: Story = {
   },
 };
 
-export const NumberedList: Story = {
-  name: 'Numbered list',
+export const AlertNumberedList: Story = {
+  name: 'Alert — numbered list',
   loaders: [seededNewClientLoader],
   args: {
     ...seededOwnersSectionArgs,
@@ -107,7 +156,7 @@ export const NumberedList: Story = {
 };
 
 export const MixedFormatting: Story = {
-  name: 'Emphasis and line break',
+  name: 'Alert — emphasis and line break',
   loaders: [seededNewClientLoader],
   args: {
     ...seededOwnersSectionArgs,

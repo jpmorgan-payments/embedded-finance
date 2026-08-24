@@ -41,7 +41,7 @@ export const StepLayout: FC<StepLayoutProps> = ({
       </div>
 
       {description && (
-        <p className="eb-text-sm eb-font-normal">{description}</p>
+        <div className="eb-text-sm eb-font-normal">{description}</div>
       )}
 
       {alert}

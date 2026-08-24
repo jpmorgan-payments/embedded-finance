@@ -38,6 +38,146 @@ describe('useTranslationWithTokens', () => {
     expect(result.textContent).toBeTruthy();
   });
 
+  it('t automatically renders allow-listed structured content', () => {
+    function RichContentComponent() {
+      const { t } = useTranslationWithTokens('common');
+      return (
+        <div data-testid="rich-content">{t('errors.defaultMessages.400')}</div>
+      );
+    }
+
+    rtlRender(
+      <EBComponentsProvider
+        apiBaseUrl=""
+        contentTokens={{
+          tokens: {
+            common: {
+              errors: {
+                defaultMessages: {
+                  '400':
+                    'Before continuing:<ul><li>Review <strong>business details</strong></li><li>Confirm the address</li></ul>',
+                },
+              },
+            },
+          },
+        }}
+      >
+        <RichContentComponent />
+      </EBComponentsProvider>
+    );
+
+    const content = screen.getByTestId('rich-content');
+    expect(content.querySelector('ul')).toHaveClass('eb-list-disc', 'eb-pl-5');
+    expect(content.querySelectorAll('li')).toHaveLength(2);
+    expect(content.querySelector('strong')).toHaveTextContent(
+      'business details'
+    );
+  });
+
+  it('t interpolates values in automatically rendered rich content', () => {
+    function InterpolatedRichContent() {
+      const { t } = useTranslationWithTokens('common');
+      return (
+        <div data-testid="interpolated-rich-content">
+          {t('errors.defaultMessages.400', { businessName: 'Acme LLC' })}
+        </div>
+      );
+    }
+
+    rtlRender(
+      <EBComponentsProvider
+        apiBaseUrl=""
+        contentTokens={{
+          tokens: {
+            common: {
+              errors: {
+                defaultMessages: {
+                  '400': 'Review <strong>{{businessName}}</strong>.',
+                },
+              },
+            },
+          },
+        }}
+      >
+        <InterpolatedRichContent />
+      </EBComponentsProvider>
+    );
+
+    expect(
+      screen.getByTestId('interpolated-rich-content').querySelector('strong')
+    ).toHaveTextContent('Acme LLC');
+  });
+
+  it('annotates automatically rendered rich content when token IDs are enabled', () => {
+    function AnnotatedRichContent() {
+      const { t } = useTranslationWithTokens('common');
+      return <div>{t('errors.defaultMessages.400')}</div>;
+    }
+
+    const { container } = rtlRender(
+      <EBComponentsProvider
+        apiBaseUrl=""
+        contentTokens={{
+          showTokenIds: true,
+          tokens: {
+            common: {
+              errors: {
+                defaultMessages: {
+                  '400': '<ul><li>Review the details</li></ul>',
+                },
+              },
+            },
+          },
+        }}
+      >
+        <AnnotatedRichContent />
+      </EBComponentsProvider>
+    );
+
+    expect(
+      container.querySelector(
+        '[data-content-token="common:errors.defaultMessages.400"]'
+      )
+    ).toBeInTheDocument();
+    expect(container.querySelector('ul')).toHaveClass('eb-list-disc');
+  });
+
+  it('does not parse markup outside the allow-list', () => {
+    function UnsupportedMarkupContent() {
+      const { t } = useTranslationWithTokens('common');
+      return (
+        <div data-testid="unsupported-markup">
+          {t('errors.defaultMessages.400')}
+        </div>
+      );
+    }
+
+    rtlRender(
+      <EBComponentsProvider
+        apiBaseUrl=""
+        contentTokens={{
+          tokens: {
+            common: {
+              errors: {
+                defaultMessages: {
+                  '400': '<a href="https://example.com">Unsupported</a>',
+                },
+              },
+            },
+          },
+        }}
+      >
+        <UnsupportedMarkupContent />
+      </EBComponentsProvider>
+    );
+
+    const content = screen.getByTestId('unsupported-markup');
+    expect(content.querySelector('a')).not.toBeInTheDocument();
+    expect(content).toHaveTextContent(
+      '<a href="https://example.com">Unsupported</a>'
+    );
+  });
+
   it('tString returns a plain string', () => {
     render(<TestComponent ns="common" />);
 
