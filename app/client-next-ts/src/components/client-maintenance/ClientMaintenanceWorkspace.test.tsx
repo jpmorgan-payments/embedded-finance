@@ -24,6 +24,15 @@ function renderWorkspace() {
   );
 }
 
+async function loadAllExamples(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Load all examples' }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole('button', { name: 'Review proposed changes' })
+    ).toBeEnabled()
+  );
+}
+
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(async () => {
   server.resetHandlers();
@@ -52,6 +61,10 @@ describe('ClientMaintenanceWorkspace', () => {
     const apiCalls = within(apiSequence!).getByRole('list');
     expect(apiCalls).toHaveClass('grid');
     expect(apiCalls).not.toHaveClass('overflow-x-auto');
+    expect(
+      screen.getByRole('button', { name: 'Review proposed changes' })
+    ).toBeDisabled();
+    await loadAllExamples(user);
     await user.click(
       screen.getByRole('button', { name: 'Review proposed changes' })
     );
@@ -59,10 +72,12 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       screen.getByRole('heading', { name: 'Approved and proposed details' })
     ).toBeInTheDocument();
-    expect(
-      screen.getAllByText('Marketplace Vendor Collective')
-    ).not.toHaveLength(0);
+    expect(screen.getAllByText('Limited DDA Payments')).not.toHaveLength(0);
     expect(screen.getAllByText('Diaz')).not.toHaveLength(0);
+    expect(screen.getAllByText('Sam Lee')).not.toHaveLength(0);
+    expect(
+      screen.getByText(/This approved party is proposed for removal/)
+    ).toBeInTheDocument();
     expect(
       screen.getAllByText('Maintenance request 4000001049').length
     ).toBeGreaterThan(0);
@@ -128,6 +143,33 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(screen.getAllByText('Johnson').length).toBeGreaterThan(0);
   });
 
+  it('supports individual product, add-party, and remove-party operations', async () => {
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await screen.findByRole('heading', {
+      level: 1,
+      name: 'Marketplace Vendor LLC',
+    });
+    await user.click(screen.getByRole('button', { name: 'Request product' }));
+    expect(await screen.findByText('Proposed addition')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Add party' }));
+    expect(
+      await screen.findByRole('heading', { name: 'Sam Lee' })
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Remove Alex Smith' }));
+    const confirmation = screen.getByRole('dialog', {
+      name: 'Remove Alex Smith?',
+    });
+    expect(confirmation).toHaveTextContent('active set to false');
+    await user.click(
+      within(confirmation).getByRole('button', { name: 'Confirm removal' })
+    );
+    expect(await screen.findAllByText('Removal requested')).not.toHaveLength(0);
+  });
+
   it('compares field, profile, and request-oriented review options', async () => {
     const user = userEvent.setup();
     renderWorkspace();
@@ -136,6 +178,7 @@ describe('ClientMaintenanceWorkspace', () => {
       level: 1,
       name: 'Marketplace Vendor LLC',
     });
+    await loadAllExamples(user);
     await user.click(
       screen.getByRole('button', { name: 'Review proposed changes' })
     );
@@ -158,6 +201,16 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       screen.getByRole('region', { name: 'Proposed profile' })
     ).toBeInTheDocument();
+    expect(
+      within(
+        screen.getByRole('region', { name: 'Proposed profile' })
+      ).getByText(/EMBEDDED PAYMENTS · LIMITED DDA PAYMENTS/)
+    ).toBeInTheDocument();
+    expect(
+      within(
+        screen.getByRole('region', { name: 'Approved profile' })
+      ).getByText('Proposed removal')
+    ).toBeInTheDocument();
     expect(reviewNote).toHaveTextContent(
       'Trade-off: Repeats unchanged data and becomes longer on mobile.'
     );
@@ -169,9 +222,7 @@ describe('ClientMaintenanceWorkspace', () => {
       })
     ).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'This request groups all 4 draft changes across 2 parties.'
-      )
+      screen.getByText('This request groups all 9 draft changes into 4 tasks.')
     ).toBeInTheDocument();
     expect(reviewNote).toHaveTextContent(
       'Trade-off: Reviewers must expand a party before seeing every value.'

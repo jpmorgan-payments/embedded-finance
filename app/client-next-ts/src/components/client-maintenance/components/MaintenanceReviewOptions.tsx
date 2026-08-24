@@ -38,7 +38,9 @@ export function MaintenanceReviewOptions({
 }) {
   const [mode, setMode] = useState<ReviewMode>('fields');
   const requestId =
-    projection.activeProposals[0]?.updateRequest?.requestId ?? 'unavailable';
+    projection.activeProposals[0]?.updateRequest?.requestId ??
+    projection.productChanges[0]?.source.requestId ??
+    'unavailable';
   const option = REVIEW_OPTIONS[mode];
 
   return (

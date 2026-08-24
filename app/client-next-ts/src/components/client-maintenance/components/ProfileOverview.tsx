@@ -1,8 +1,27 @@
-import { Building2, Pencil, ShieldCheck, UserRound } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Building2,
+  Layers3,
+  Loader2,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  UserPlus,
+  UserRound,
+} from 'lucide-react';
 
 import type { MaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 import type { PartyResponse } from '../models/maintenance-api';
 
@@ -35,22 +54,62 @@ export function ProfileOverview({
   projection,
   onEditParty,
   onReview,
+  onRequestProduct,
+  onAddParty,
+  onRemoveParty,
+  onLoadAllExamples,
+  isOperating,
+  operationError,
 }: {
   projection: MaintenanceProjection;
   onEditParty: (party: PartyResponse) => void;
   onReview: () => void;
+  onRequestProduct: () => void;
+  onAddParty: () => void;
+  onRemoveParty: (partyId: string) => Promise<void>;
+  onLoadAllExamples: () => void;
+  isOperating: boolean;
+  operationError?: string;
 }) {
-  const organization = projection.proposedClient.parties.find(
+  const [partyToRemove, setPartyToRemove] = useState<PartyResponse>();
+  const proposedById = new Map(
+    projection.proposedClient.parties.flatMap((party) =>
+      party.id ? [[party.id, party] as const] : []
+    )
+  );
+  const visibleParties = projection.approvedClient.parties.map(
+    (party) => (party.id ? proposedById.get(party.id) : undefined) ?? party
+  );
+  const approvedIds = new Set(
+    projection.approvedClient.parties.flatMap((party) =>
+      party.id ? [party.id] : []
+    )
+  );
+  visibleParties.push(
+    ...projection.proposedClient.parties.filter(
+      (party) => !party.id || !approvedIds.has(party.id)
+    )
+  );
+  const organization = visibleParties.find(
     (party) => party.partyType === 'ORGANIZATION'
   );
-  const people = projection.proposedClient.parties.filter(
+  const people = visibleParties.filter(
     (party) => party.partyType === 'INDIVIDUAL'
   );
-  const changeCount = projection.partyChanges.reduce(
-    (total, party) =>
-      total +
-      Math.max(party.fieldChanges.length, party.action === 'DELETE' ? 1 : 0),
+  const partyChangeCount = projection.partyChanges.reduce(
+    (total, party) => total + Math.max(1, party.fieldChanges.length),
     0
+  );
+  const changeCount = projection.productChanges.length + partyChangeCount;
+  const limitedDdaRequested = projection.productChanges.some(
+    (change) => change.subProduct === 'LIMITED_DDA_PAYMENTS'
+  );
+  const limitedDdaApproved =
+    projection.approvedClient.productDetails?.some(
+      (detail) => detail.subProduct === 'LIMITED_DDA_PAYMENTS'
+    ) ?? false;
+  const examplePartyAdded = visibleParties.some(
+    (party) => party.email === 'sam.lee@marketplacevendor.example'
   );
 
   const renderParty = (party: PartyResponse) => {
@@ -80,8 +139,9 @@ export function ProfileOverview({
                   variant="outline"
                   className="border-amber-300 bg-amber-50 text-amber-900"
                 >
-                  {changes.fieldChanges.length || 1}{' '}
-                  {changes.fieldChanges.length === 1 ? 'change' : 'changes'}
+                  {changes.removesParty
+                    ? 'Removal requested'
+                    : `${changes.fieldChanges.length || 1} ${changes.fieldChanges.length === 1 ? 'change' : 'changes'}`}
                 </Badge>
               ) : (
                 <Badge
@@ -98,16 +158,35 @@ export function ProfileOverview({
             <p className="mt-1 text-xs text-gray-500">{party.email}</p>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => onEditParty(party)}
-          aria-label={`Edit ${partyName(party)}`}
-        >
-          <Pencil />
-          Edit
-        </Button>
+        <div className="flex flex-wrap gap-2 sm:justify-end">
+          {!changes?.removesParty && changes?.action !== 'ADD' ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onEditParty(party)}
+              aria-label={`Edit ${partyName(party)}`}
+              disabled={isOperating}
+            >
+              <Pencil />
+              Edit
+            </Button>
+          ) : null}
+          {party.partyType === 'INDIVIDUAL' && changes?.action !== 'ADD' ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setPartyToRemove(party)}
+              aria-label={`Remove ${partyName(party)}`}
+              disabled={isOperating || changes?.removesParty}
+              className="text-red-700 hover:bg-red-50 hover:text-red-800"
+            >
+              <Trash2 />
+              {changes?.removesParty ? 'Removal requested' : 'Remove'}
+            </Button>
+          ) : null}
+        </div>
       </article>
     );
   };
@@ -119,19 +198,114 @@ export function ProfileOverview({
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-sp-brand" />
           <div>
             <h2 className="font-semibold text-gray-950">
-              Approved profile with pending maintenance
+              {changeCount > 0
+                ? 'Approved profile with pending maintenance'
+                : 'Choose a maintenance operation'}
             </h2>
             <p className="mt-1 text-sm text-gray-700">
-              {changeCount} proposed {changeCount === 1 ? 'change' : 'changes'}{' '}
-              across {projection.partyChanges.length}{' '}
-              {projection.partyChanges.length === 1 ? 'party' : 'parties'}.
+              {changeCount > 0
+                ? `${changeCount} proposed ${changeCount === 1 ? 'change' : 'changes'} across products and parties.`
+                : 'Start one operation, or load all four examples into one draft request.'}
             </p>
           </div>
         </div>
-        <Button type="button" onClick={onReview} disabled={changeCount === 0}>
-          Review proposed changes
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onLoadAllExamples}
+            disabled={isOperating}
+          >
+            {isOperating ? <Loader2 className="animate-spin" /> : <Layers3 />}
+            Load all examples
+          </Button>
+          <Button type="button" onClick={onReview} disabled={changeCount === 0}>
+            Review proposed changes
+          </Button>
+        </div>
       </div>
+
+      {operationError ? (
+        <p
+          role="alert"
+          className="rounded-md bg-red-50 p-3 text-sm text-red-800"
+        >
+          {operationError}
+        </p>
+      ) : null}
+
+      <section aria-labelledby="products-heading">
+        <div className="mb-2 flex items-center justify-between">
+          <h2
+            id="products-heading"
+            className="text-sm font-semibold text-gray-950"
+          >
+            Products
+          </h2>
+          <span className="text-xs text-gray-500">
+            Client-level maintenance
+          </span>
+        </div>
+        <div className="divide-y divide-gray-200 overflow-hidden rounded-md border border-gray-200 bg-white">
+          <div className="flex items-center justify-between gap-4 px-4 py-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-100 text-gray-700">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
+              <div>
+                <h3 className="font-semibold text-gray-950">
+                  Merchant Services
+                </h3>
+                <p className="mt-0.5 text-xs text-gray-500">Approved</p>
+              </div>
+            </div>
+            <Badge
+              variant="outline"
+              className="border-emerald-200 bg-emerald-50 text-emerald-800"
+            >
+              Current
+            </Badge>
+          </div>
+          <div className="grid gap-3 px-4 py-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-md bg-cyan-50 text-cyan-800">
+                <Plus className="h-4 w-4" />
+              </span>
+              <div>
+                <h3 className="font-semibold text-gray-950">
+                  Limited DDA Payments
+                </h3>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  Embedded Payments sub-product
+                </p>
+              </div>
+            </div>
+            {limitedDdaRequested || limitedDdaApproved ? (
+              <Badge
+                variant="outline"
+                className={`w-fit ${
+                  limitedDdaApproved
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border-amber-300 bg-amber-50 text-amber-900'
+                }`}
+              >
+                {limitedDdaApproved ? 'Current' : 'Proposed addition'}
+              </Badge>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onRequestProduct}
+                disabled={isOperating}
+              >
+                <Plus />
+                Request product
+              </Button>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section aria-labelledby="organization-heading">
         <div className="mb-2 flex items-center justify-between">
@@ -156,14 +330,62 @@ export function ProfileOverview({
           >
             People
           </h2>
-          <span className="text-xs text-gray-500">
-            {people.length} associated
-          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onAddParty}
+            disabled={isOperating || examplePartyAdded}
+          >
+            <UserPlus />
+            {examplePartyAdded ? 'Party added' : 'Add party'}
+          </Button>
         </div>
         <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
           {people.map(renderParty)}
         </div>
       </section>
+
+      <Dialog
+        open={partyToRemove !== undefined}
+        onOpenChange={(open) => {
+          if (!open && !isOperating) setPartyToRemove(undefined);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {partyName(partyToRemove ?? {})}?</DialogTitle>
+            <DialogDescription>
+              This sends a sparse party update with active set to false. The
+              approved party remains visible until the maintenance request is
+              approved.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPartyToRemove(undefined)}
+              disabled={isOperating}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isOperating || !partyToRemove?.id}
+              onClick={async () => {
+                if (!partyToRemove?.id) return;
+                await onRemoveParty(partyToRemove.id);
+                setPartyToRemove(undefined);
+              }}
+            >
+              {isOperating ? <Loader2 className="animate-spin" /> : <Trash2 />}
+              Confirm removal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,8 +3,10 @@ import isEqual from 'lodash/isEqual';
 import type {
   ActiveKycUpdateRequestStatus,
   ClientResponse,
+  KycUpdateRequest,
   KycUpdateRequestAction,
   PartyResponse,
+  ProductDetailsStatusItem,
 } from '@/components/client-maintenance/models/maintenance-api';
 
 const ACTIVE_STATUSES = new Set<ActiveKycUpdateRequestStatus>([
@@ -14,6 +16,7 @@ const ACTIVE_STATUSES = new Set<ActiveKycUpdateRequestStatus>([
 ]);
 
 export type EditablePartyPath =
+  | 'active'
   | 'email'
   | 'roles'
   | 'individualDetails.firstName'
@@ -60,14 +63,23 @@ export type PartyChange = {
   partyId: string;
   partyName: string;
   action: KycUpdateRequestAction;
+  removesParty: boolean;
   approvedParty?: PartyResponse;
   proposedParty?: PartyResponse;
   fieldChanges: FieldChange[];
 };
 
+export type ProductChange = {
+  product: ProductDetailsStatusItem['product'];
+  subProduct?: ProductDetailsStatusItem['subProduct'];
+  action: 'ADD';
+  source: ChangeSource;
+};
+
 export type MaintenanceProjection = {
   approvedClient: ClientResponse;
   proposedClient: ClientResponse;
+  productChanges: ProductChange[];
   partyChanges: PartyChange[];
   conflicts: FieldChange[];
   activeProposals: PartyResponse[];
@@ -93,7 +105,7 @@ const hasOwn = (value: object, key: PropertyKey): boolean =>
   Object.prototype.hasOwnProperty.call(value, key);
 
 function topLevelDescriptor(
-  path: Extract<EditablePartyPath, 'email' | 'roles'>,
+  path: Extract<EditablePartyPath, 'active' | 'email' | 'roles'>,
   label: string
 ): FieldDescriptor {
   return {
@@ -102,6 +114,7 @@ function topLevelDescriptor(
     isPresent: (party) => hasOwn(party, path),
     read: (party) => party[path],
     write: (party, value) => {
+      if (path === 'active') party.active = value as boolean | undefined;
       if (path === 'email') party.email = value as string | undefined;
       if (path === 'roles') party.roles = value as PartyResponse['roles'];
     },
@@ -149,6 +162,7 @@ function organizationDescriptor(
 }
 
 const FIELD_DESCRIPTORS: FieldDescriptor[] = [
+  topLevelDescriptor('active', 'Active'),
   topLevelDescriptor('email', 'Email'),
   topLevelDescriptor('roles', 'Roles'),
   individualDescriptor('firstName', 'First name'),
@@ -180,8 +194,9 @@ const FIELD_DESCRIPTORS: FieldDescriptor[] = [
   organizationDescriptor('website', 'Website'),
 ];
 
-function getChangeSource(party: PartyResponse): ChangeSource | undefined {
-  const request = party.updateRequest;
+function getChangeSourceFromRequest(
+  request: KycUpdateRequest | undefined
+): ChangeSource | undefined {
   if (
     request?.requestId === undefined ||
     request.submittedAt === undefined ||
@@ -195,6 +210,10 @@ function getChangeSource(party: PartyResponse): ChangeSource | undefined {
     submittedAt: request.submittedAt,
     status: request.status as ActiveKycUpdateRequestStatus,
   };
+}
+
+function getChangeSource(party: PartyResponse): ChangeSource | undefined {
+  return getChangeSourceFromRequest(party.updateRequest);
 }
 
 function getPartyName(party: PartyResponse | undefined): string {
@@ -230,10 +249,45 @@ function bySubmissionThenRequestId(
 }
 
 export function buildMaintenanceProjection(
-  approvedClient: ClientResponse,
+  clientResponse: ClientResponse,
   maintenanceParties: PartyResponse[]
 ): MaintenanceProjection {
+  const approvedClient = structuredClone(clientResponse);
+  const productSource = getChangeSourceFromRequest(
+    clientResponse.updateRequest
+  );
+  const activeProductDetails = productSource
+    ? (approvedClient.productDetails ?? []).filter((detail) =>
+        ACTIVE_STATUSES.has(
+          detail.onboardingStatus as ActiveKycUpdateRequestStatus
+        )
+      )
+    : [];
+  approvedClient.productDetails = (approvedClient.productDetails ?? []).filter(
+    (detail) =>
+      !ACTIVE_STATUSES.has(
+        detail.onboardingStatus as ActiveKycUpdateRequestStatus
+      )
+  );
+  delete approvedClient.updateRequest;
+
   const proposedClient = structuredClone(approvedClient);
+  const productChanges: ProductChange[] = [];
+  if (productSource) {
+    for (const detail of activeProductDetails) {
+      proposedClient.productDetails ??= [];
+      proposedClient.productDetails.push(structuredClone(detail));
+      if (!proposedClient.products.includes(detail.product)) {
+        proposedClient.products.push(detail.product);
+      }
+      productChanges.push({
+        product: detail.product,
+        subProduct: detail.subProduct,
+        action: 'ADD',
+        source: productSource,
+      });
+    }
+  }
   const proposedById = new Map(
     proposedClient.parties.flatMap((party) =>
       party.id ? [[party.id, party] as const] : []
@@ -298,7 +352,13 @@ export function buildMaintenanceProjection(
       continue;
     }
 
-    if (action === 'DELETE') {
+    if (
+      action === 'DELETE' ||
+      (action === 'MODIFY' && proposal.active === false)
+    ) {
+      if (proposal.active === false) {
+        fieldProvenance.set(`${partyId}:active`, [{ source, value: false }]);
+      }
       proposedClient.parties = proposedClient.parties.filter(
         (party) => party.id !== partyId
       );
@@ -334,13 +394,13 @@ export function buildMaintenanceProjection(
       const approvedValue = approvedParty
         ? descriptor.read(approvedParty)
         : undefined;
-      const proposedValue = proposedParty
-        ? descriptor.read(proposedParty)
-        : undefined;
-      if (isEqual(approvedValue, proposedValue)) continue;
-
       const entries =
         fieldProvenance.get(`${partyId}:${descriptor.path}`) ?? [];
+      const proposedValue = proposedParty
+        ? descriptor.read(proposedParty)
+        : entries.at(-1)?.value;
+      if (isEqual(approvedValue, proposedValue)) continue;
+
       const latestEntry = entries.at(-1);
       if (!latestEntry) continue;
       const fieldChange: FieldChange = {
@@ -366,6 +426,7 @@ export function buildMaintenanceProjection(
       partyId,
       partyName: getPartyName(proposedParty ?? approvedParty),
       action,
+      removesParty: approvedParty !== undefined && proposedParty === undefined,
       approvedParty,
       proposedParty,
       fieldChanges,
@@ -375,6 +436,7 @@ export function buildMaintenanceProjection(
   return {
     approvedClient,
     proposedClient,
+    productChanges,
     partyChanges,
     conflicts,
     activeProposals,

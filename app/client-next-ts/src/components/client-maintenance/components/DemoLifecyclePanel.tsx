@@ -27,16 +27,22 @@ export function DemoLifecyclePanel({
   onReset: () => void;
 }) {
   const activeStatuses = Array.from(
-    new Set(
-      projection.activeProposals.flatMap((party) =>
+    new Set([
+      ...projection.activeProposals.flatMap((party) =>
         party.updateRequest?.status ? [party.updateRequest.status] : []
-      )
-    )
+      ),
+      ...projection.productChanges.map((change) => change.source.status),
+    ])
   );
+  const activeChangeCount =
+    projection.productChanges.length + projection.activeProposals.length;
   const readyToApprove =
-    projection.activeProposals.length > 0 &&
+    activeChangeCount > 0 &&
     projection.activeProposals.every(
       (party) => party.updateRequest?.status === 'REVIEW_IN_PROGRESS'
+    ) &&
+    projection.productChanges.every(
+      (change) => change.source.status === 'REVIEW_IN_PROGRESS'
     );
 
   return (

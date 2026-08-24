@@ -4,6 +4,8 @@ import type { MaintenanceStep } from './MaintenanceProgress';
 
 const calls = [
   { method: 'GET', path: '/clients/{id}', step: 0 },
+  { method: 'PATCH', path: '/clients/{id} · product', step: 0 },
+  { method: 'POST', path: '/parties', step: 0 },
   { method: 'PATCH', path: '/parties/{partyId}', step: 0 },
   { method: 'GET', path: '/maintenance-requests?clientId={id}', step: 1 },
   { method: 'PATCH', path: '/clients/{id}', step: 2 },
@@ -43,7 +45,7 @@ export function ApiSequence({ currentStep }: { currentStep: MaintenanceStep }) {
             <ExternalLink className="h-3.5 w-3.5" />
           </a>
         </div>
-        <ol className="mt-3 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
+        <ol className="mt-3 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           {calls.map((call) => {
             const complete = call.step < currentIndex;
             const active = call.step === currentIndex;

@@ -1,8 +1,10 @@
 import { API_URL } from '@/data/constants';
 
 import type {
+  ClientProductUpdate,
   ClientResponse,
   ListKycPartyUpdateRequests,
+  MaintenancePartyCreate,
   MaintenancePartyUpdate,
   PartyResponse,
 } from './models/maintenance-api';
@@ -60,6 +62,25 @@ export const clientMaintenanceApi = {
     update: MaintenancePartyUpdate
   ): Promise<PartyResponse> {
     return requestJson(`${BASE_URL}/parties/${partyId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(update),
+      headers: { 'Idempotency-Key': crypto.randomUUID() },
+    });
+  },
+
+  createParty(party: MaintenancePartyCreate): Promise<PartyResponse> {
+    return requestJson(`${BASE_URL}/parties`, {
+      method: 'POST',
+      body: JSON.stringify(party),
+      headers: { 'Idempotency-Key': crypto.randomUUID() },
+    });
+  },
+
+  requestProduct(
+    clientId: string,
+    update: ClientProductUpdate
+  ): Promise<ClientResponse> {
+    return requestJson(`${BASE_URL}/clients/${clientId}`, {
       method: 'PATCH',
       body: JSON.stringify(update),
       headers: { 'Idempotency-Key': crypto.randomUUID() },

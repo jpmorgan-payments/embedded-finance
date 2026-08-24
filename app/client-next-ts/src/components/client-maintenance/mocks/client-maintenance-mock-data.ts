@@ -14,7 +14,7 @@ export function createMaintenanceDemoClient(): ClientResponse {
     products: ['MERCHANT_SERVICES'],
     status: 'APPROVED',
     outstanding: {
-      attestationDocumentIds: [MAINTENANCE_ATTESTATION_DOCUMENT_ID],
+      attestationDocumentIds: [],
       documentRequestIds: [],
       partyIds: [],
       partyRoles: [],
@@ -116,41 +116,6 @@ export function createMaintenanceDemoClient(): ClientResponse {
 
 export function createMaintenanceDemoProposals(): PartyResponse[] {
   return [
-    {
-      id: '2000000555',
-      organizationDetails: {
-        dbaName: 'Marketplace Vendor Collective',
-        addresses: [
-          {
-            addressType: 'BUSINESS_ADDRESS',
-            addressLines: ['120 Greene Street', 'Floor 3'],
-            city: 'New York',
-            state: 'NY',
-            postalCode: '10012',
-            country: 'US',
-          },
-        ],
-      },
-      updateRequest: {
-        status: 'NEW',
-        action: 'MODIFY',
-        requestId: '4000001049',
-        submittedAt: '2026-04-11T10:00:00.000Z',
-      },
-    },
-    {
-      id: '2000000556',
-      individualDetails: {
-        lastName: 'Diaz',
-        birthDate: '1988-06-15',
-      },
-      updateRequest: {
-        status: 'NEW',
-        action: 'MODIFY',
-        requestId: '4000001049',
-        submittedAt: '2026-04-11T10:05:00.000Z',
-      },
-    },
     {
       id: '2000000556',
       individualDetails: {

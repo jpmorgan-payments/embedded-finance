@@ -24,6 +24,28 @@ export type ActiveKycUpdateRequestStatus = Extract<
 
 export type KycUpdateRequestAction = 'ADD' | 'MODIFY' | 'DELETE';
 
+export type ClientProduct = 'EMBEDDED_PAYMENTS' | 'MERCHANT_SERVICES';
+
+export type ClientSubProduct = 'LIMITED_DDA' | 'LIMITED_DDA_PAYMENTS' | 'FX';
+
+export type ProductDetailsOnboardingStatus = ClientStatus;
+
+export type ProductDetailsStatusItem = {
+  product: ClientProduct;
+  subProduct?: ClientSubProduct;
+  onboardingStatus: ProductDetailsOnboardingStatus;
+};
+
+export type ProductDetailsUpdateItem = {
+  product: ClientProduct;
+  subProduct?: ClientSubProduct;
+  action: 'ADD' | 'REMOVE';
+};
+
+export type ClientProductUpdate = {
+  productDetails: ProductDetailsUpdateItem[];
+};
+
 export type IndividualJobTitle =
   | 'CEO'
   | 'CFO'
@@ -148,12 +170,23 @@ export type MaintenancePartyUpdate = {
   >;
 };
 
+export type MaintenancePartyCreate = {
+  parentPartyId: string;
+  partyType: 'INDIVIDUAL' | 'ORGANIZATION';
+  roles: PartyRole[];
+  email?: string;
+  individualDetails?: IndividualDetails;
+  organizationDetails?: OrganizationDetails;
+};
+
 export type ClientResponse = {
   id: string;
   partyId: string;
-  products: Array<'EMBEDDED_PAYMENTS' | 'MERCHANT_SERVICES'>;
+  products: ClientProduct[];
+  productDetails?: ProductDetailsStatusItem[];
   parties: PartyResponse[];
   status: ClientStatus;
+  updateRequest?: KycUpdateRequest;
   outstanding: {
     attestationDocumentIds: string[];
     documentRequestIds: string[];

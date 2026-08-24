@@ -171,6 +171,85 @@ describe('buildMaintenanceProjection', () => {
     ]);
   });
 
+  it('projects active false as a removal while preserving the MODIFY action', () => {
+    const source = structuredClone(approvedClient);
+    source.parties[1].active = true;
+
+    const result = buildMaintenanceProjection(source, [
+      proposal(
+        { id: '2000000112', active: false },
+        {
+          action: 'MODIFY',
+          requestId: '4000001049',
+          status: 'NEW',
+          submittedAt: '2026-04-12T10:00:00.000Z',
+        }
+      ),
+    ]);
+
+    expect(result.proposedClient.parties).toHaveLength(1);
+    expect(result.partyChanges[0]).toMatchObject({
+      action: 'MODIFY',
+      removesParty: true,
+      fieldChanges: [
+        {
+          path: 'active',
+          approvedValue: true,
+          proposedValue: false,
+        },
+      ],
+    });
+  });
+
+  it('joins an active client product request into the proposed snapshot', () => {
+    const source: ClientResponse = {
+      ...structuredClone(approvedClient),
+      productDetails: [
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
+          onboardingStatus: 'NEW',
+        },
+      ],
+      updateRequest: {
+        action: 'MODIFY',
+        requestId: '4000001049',
+        status: 'NEW',
+        submittedAt: '2026-04-12T10:00:00.000Z',
+      },
+    };
+
+    const result = buildMaintenanceProjection(source, []);
+
+    expect(result.approvedClient).toMatchObject({
+      products: ['MERCHANT_SERVICES'],
+      productDetails: [],
+    });
+    expect(result.approvedClient.updateRequest).toBeUndefined();
+    expect(result.proposedClient).toMatchObject({
+      products: ['MERCHANT_SERVICES', 'EMBEDDED_PAYMENTS'],
+      productDetails: [
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
+          onboardingStatus: 'NEW',
+        },
+      ],
+    });
+    expect(result.productChanges).toEqual([
+      {
+        product: 'EMBEDDED_PAYMENTS',
+        subProduct: 'LIMITED_DDA_PAYMENTS',
+        action: 'ADD',
+        source: {
+          requestId: '4000001049',
+          status: 'NEW',
+          submittedAt: '2026-04-12T10:00:00.000Z',
+        },
+      },
+    ]);
+  });
+
   it('preserves API order when one request has equal timestamps', () => {
     const result = buildMaintenanceProjection(approvedClient, [
       proposal(

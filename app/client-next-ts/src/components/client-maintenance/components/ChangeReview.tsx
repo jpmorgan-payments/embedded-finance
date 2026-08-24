@@ -1,4 +1,10 @@
-import { AlertTriangle, Pencil, UserMinus, UserPlus } from 'lucide-react';
+import {
+  AlertTriangle,
+  PackagePlus,
+  Pencil,
+  UserMinus,
+  UserPlus,
+} from 'lucide-react';
 
 import type { PartyResponse } from '@/components/client-maintenance/models/maintenance-api';
 import type {
@@ -144,9 +150,67 @@ export function ChangeReview({
 
       <Accordion
         type="multiple"
-        defaultValue={projection.partyChanges.map((change) => change.partyId)}
+        defaultValue={[
+          ...projection.productChanges.map(
+            (change) => `product-${change.product}-${change.subProduct}`
+          ),
+          ...projection.partyChanges.map((change) => change.partyId),
+        ]}
         className="overflow-hidden rounded-md border border-gray-200 bg-white"
       >
+        {projection.productChanges.map((productChange) => {
+          const value = `product-${productChange.product}-${productChange.subProduct}`;
+          return (
+            <AccordionItem
+              key={value}
+              value={value}
+              className="px-4 last:border-b-0 sm:px-5"
+            >
+              <AccordionTrigger className="gap-3 text-left hover:no-underline">
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                  <span className="font-semibold text-gray-950">
+                    Limited DDA Payments
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={actionClasses(productChange.action)}
+                  >
+                    {productChange.action}
+                  </Badge>
+                  <span className="text-xs font-normal text-gray-500">
+                    Product
+                  </span>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="mb-3 flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                  <PackagePlus className="mt-0.5 h-4 w-4 shrink-0" />
+                  Embedded Payments with Limited DDA Payments is proposed for
+                  this approved client.
+                </div>
+                <dl className="grid gap-3 rounded-md border border-gray-200 p-4 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-xs font-semibold uppercase text-gray-500">
+                      Approved
+                    </dt>
+                    <dd className="mt-1 text-gray-700">Not enabled</dd>
+                  </div>
+                  <div className="border-l-2 border-sp-brand bg-sp-accent/50 px-3 py-2">
+                    <dt className="text-xs font-semibold uppercase text-sp-brand">
+                      Proposed
+                    </dt>
+                    <dd className="mt-1 font-medium text-gray-950">
+                      Embedded Payments · Limited DDA Payments
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-2 text-[11px] text-gray-500">
+                  Maintenance request {productChange.source.requestId}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          );
+        })}
         {projection.partyChanges.map((partyChange) => (
           <AccordionItem
             key={partyChange.partyId}
@@ -162,7 +226,7 @@ export function ChangeReview({
                   variant="outline"
                   className={actionClasses(partyChange.action)}
                 >
-                  {partyChange.action}
+                  {partyChange.removesParty ? 'REMOVE' : partyChange.action}
                 </Badge>
                 <span className="text-xs font-normal text-gray-500">
                   {partyChange.fieldChanges.length}{' '}
@@ -171,7 +235,7 @@ export function ChangeReview({
               </span>
             </AccordionTrigger>
             <AccordionContent>
-              {partyChange.action === 'DELETE' ? (
+              {partyChange.removesParty ? (
                 <div className="flex items-start gap-3 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-900">
                   <UserMinus className="mt-0.5 h-4 w-4 shrink-0" />
                   This approved party is proposed for removal. The party remains
@@ -189,7 +253,9 @@ export function ChangeReview({
                 <ComparisonRows changes={partyChange.fieldChanges} />
               ) : null}
 
-              {partyChange.proposedParty ? (
+              {partyChange.proposedParty &&
+              partyChange.action === 'MODIFY' &&
+              !partyChange.removesParty ? (
                 <div className="mt-4 flex justify-end">
                   <Button
                     type="button"

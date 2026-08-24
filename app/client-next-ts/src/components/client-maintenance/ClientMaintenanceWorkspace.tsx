@@ -56,6 +56,7 @@ export function ClientMaintenanceWorkspace() {
   const isComplete =
     step === 'submitted' &&
     projection?.partyChanges.length === 0 &&
+    projection.productChanges.length === 0 &&
     projection.historicalProposals.length > 0;
 
   if (workspace.clientQuery.isLoading || workspace.maintenanceQuery.isLoading) {
@@ -103,10 +104,22 @@ export function ClientMaintenanceWorkspace() {
     setStep('profile');
   };
 
-  const changeCount = projection.partyChanges.reduce(
-    (total, party) => total + Math.max(1, party.fieldChanges.length),
-    0
-  );
+  const changeCount =
+    projection.productChanges.length +
+    projection.partyChanges.reduce(
+      (total, party) => total + Math.max(1, party.fieldChanges.length),
+      0
+    );
+  const isOperating =
+    workspace.requestProduct.isPending ||
+    workspace.addParty.isPending ||
+    workspace.removeParty.isPending ||
+    workspace.loadAllExamples.isPending;
+  const operationError =
+    workspace.requestProduct.error?.message ??
+    workspace.addParty.error?.message ??
+    workspace.removeParty.error?.message ??
+    workspace.loadAllExamples.error?.message;
   const organizationName =
     projection.approvedClient.parties.find(
       (party) =>
@@ -134,9 +147,8 @@ export function ClientMaintenanceWorkspace() {
                 {organizationName}
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-gray-600">
-                Review proposed party updates, attest to their accuracy, and
-                submit them for asynchronous verification using one possible
-                maintenance workflow.
+                Request products and maintain related parties, then attest to
+                one grouped request before asynchronous verification.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -183,6 +195,16 @@ export function ClientMaintenanceWorkspace() {
               projection={projection}
               onEditParty={setEditingParty}
               onReview={() => setStep('review')}
+              onRequestProduct={() => workspace.requestProduct.mutate()}
+              onAddParty={() =>
+                workspace.addParty.mutate(projection.approvedClient.partyId)
+              }
+              onRemoveParty={async (partyId) => {
+                await workspace.removeParty.mutateAsync(partyId);
+              }}
+              onLoadAllExamples={() => workspace.loadAllExamples.mutate()}
+              isOperating={isOperating}
+              operationError={operationError}
             />
           ) : null}
 

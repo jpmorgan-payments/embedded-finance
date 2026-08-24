@@ -81,6 +81,18 @@ function ProfileSnapshot({
   const changesByParty = new Map(
     projection.partyChanges.map((change) => [change.partyId, change])
   );
+  const client = proposed
+    ? projection.proposedClient
+    : projection.approvedClient;
+  const productLabels = client.products.map((product) => {
+    const details = client.productDetails?.find(
+      (detail) => detail.product === product
+    );
+    return [product, details?.subProduct]
+      .filter(Boolean)
+      .join(' · ')
+      .replaceAll('_', ' ');
+  });
 
   return (
     <section
@@ -96,6 +108,30 @@ function ProfileSnapshot({
       >
         <h3 className="font-semibold text-gray-950">{title}</h3>
         <p className="mt-0.5 text-xs text-gray-600">{description}</p>
+      </div>
+
+      <div className="border-b border-gray-200 p-4">
+        <h4 className="text-xs font-semibold uppercase text-gray-500">
+          Products
+        </h4>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {productLabels.map((product) => (
+            <Badge
+              key={product}
+              variant="outline"
+              className={
+                proposed && product.includes('LIMITED DDA PAYMENTS')
+                  ? 'border-amber-300 bg-amber-50 text-amber-900'
+                  : 'border-gray-200 bg-gray-50 text-gray-800'
+              }
+            >
+              {product}
+              {proposed && product.includes('LIMITED DDA PAYMENTS')
+                ? ' · Proposed'
+                : ''}
+            </Badge>
+          ))}
+        </div>
       </div>
 
       <div className="divide-y divide-gray-200">
@@ -128,8 +164,11 @@ function ProfileSnapshot({
                     variant="outline"
                     className="shrink-0 border-amber-300 bg-amber-50 text-amber-900"
                   >
-                    {change.fieldChanges.length || 1}{' '}
-                    {change.fieldChanges.length === 1 ? 'change' : 'changes'}
+                    {change.removesParty
+                      ? 'Proposed removal'
+                      : change.action === 'ADD'
+                        ? 'Proposed addition'
+                        : `${change.fieldChanges.length || 1} ${change.fieldChanges.length === 1 ? 'change' : 'changes'}`}
                   </Badge>
                 ) : null}
               </div>

@@ -17,18 +17,47 @@ afterEach(async () => {
 });
 afterAll(() => server.close());
 
+async function createFourOperationDraft() {
+  const product = await clientMaintenanceApi.requestProduct(
+    MAINTENANCE_DEMO_CLIENT_ID,
+    {
+      productDetails: [
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
+          action: 'ADD',
+        },
+      ],
+    }
+  );
+  const added = await clientMaintenanceApi.createParty({
+    parentPartyId: '2000000555',
+    partyType: 'INDIVIDUAL',
+    roles: ['AUTHORIZED_USER'],
+    email: 'sam.lee@marketplacevendor.example',
+    individualDetails: {
+      firstName: 'Sam',
+      lastName: 'Lee',
+      countryOfResidence: 'US',
+    },
+  });
+  const modified = await clientMaintenanceApi.updateParty('2000000556', {
+    individualDetails: { lastName: 'Diaz' },
+  });
+  const removed = await clientMaintenanceApi.updateParty('2000000557', {
+    active: false,
+  });
+  return { product, added, modified, removed };
+}
+
 describe('client maintenance mock API', () => {
-  it('reuses the draft request while returning persisted party values', async () => {
+  it('groups four operations while returning persisted client and party values', async () => {
     const approvedBefore = await clientMaintenanceApi.getClient(
       MAINTENANCE_DEMO_CLIENT_ID
     );
 
-    const created = await clientMaintenanceApi.updateParty('2000000556', {
-      individualDetails: { lastName: 'Diaz-Williams' },
-    });
-    const second = await clientMaintenanceApi.updateParty('2000000555', {
-      organizationDetails: { dbaName: 'Marketplace Vendor Market' },
-    });
+    const { product, added, modified, removed } =
+      await createFourOperationDraft();
     const approvedAfter = await clientMaintenanceApi.getClient(
       MAINTENANCE_DEMO_CLIENT_ID
     );
@@ -36,7 +65,26 @@ describe('client maintenance mock API', () => {
       MAINTENANCE_DEMO_CLIENT_ID
     );
 
-    expect(created).toMatchObject({
+    expect(product).toMatchObject({
+      products: ['MERCHANT_SERVICES'],
+      productDetails: [
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
+          onboardingStatus: 'NEW',
+        },
+      ],
+      updateRequest: { requestId: '4000001049', status: 'NEW' },
+    });
+    expect(added).toMatchObject({
+      parentPartyId: '2000000555',
+      updateRequest: {
+        action: 'ADD',
+        requestId: '4000001049',
+        status: 'NEW',
+      },
+    });
+    expect(modified).toMatchObject({
       id: '2000000556',
       individualDetails: { lastName: 'Doe' },
       updateRequest: {
@@ -45,12 +93,26 @@ describe('client maintenance mock API', () => {
         status: 'NEW',
       },
     });
-    expect(second.updateRequest?.requestId).toBe('4000001049');
-    expect(approvedAfter).toEqual(approvedBefore);
+    expect(removed).toMatchObject({
+      id: '2000000557',
+      active: true,
+      updateRequest: {
+        action: 'MODIFY',
+        requestId: '4000001049',
+        status: 'NEW',
+      },
+    });
+    expect(approvedAfter.products).toEqual(approvedBefore.products);
+    expect(approvedAfter.parties).toEqual(approvedBefore.parties);
+    const projection = buildMaintenanceProjection(
+      approvedAfter,
+      maintenance.parties
+    );
+    expect(projection.productChanges).toHaveLength(1);
+    expect(projection.partyChanges).toHaveLength(3);
     expect(
-      maintenance.parties.find((party) => party.id === '2000000556')
-        ?.individualDetails?.lastName
-    ).toBe('Diaz-Williams');
+      projection.partyChanges.find((change) => change.partyId === '2000000557')
+    ).toMatchObject({ action: 'MODIFY', removesParty: true });
     expect(
       new Set(
         maintenance.parties
@@ -61,10 +123,11 @@ describe('client maintenance mock API', () => {
   });
 
   it('returns request-scoped proposal details', async () => {
+    await createFourOperationDraft();
     const result =
       await clientMaintenanceApi.getMaintenanceRequest('4000001049');
 
-    expect(result.parties).toHaveLength(2);
+    expect(result.parties).toHaveLength(3);
     expect(
       result.parties.every(
         (party) => party.updateRequest?.requestId === '4000001049'
@@ -73,6 +136,7 @@ describe('client maintenance mock API', () => {
   });
 
   it('requires attestation, accepts verification, and applies approval later', async () => {
+    await createFourOperationDraft();
     await expect(
       clientMaintenanceApi.startVerification(MAINTENANCE_DEMO_CLIENT_ID)
     ).rejects.toThrow('Complete outstanding attestations first.');
@@ -103,6 +167,13 @@ describe('client maintenance mock API', () => {
         .filter((party) => party.updateRequest?.requestId === '4000001049')
         .every((party) => party.updateRequest?.status === 'REVIEW_IN_PROGRESS')
     ).toBe(true);
+    const submittedClient = await clientMaintenanceApi.getClient(
+      MAINTENANCE_DEMO_CLIENT_ID
+    );
+    expect(submittedClient).toMatchObject({
+      productDetails: [{ onboardingStatus: 'REVIEW_IN_PROGRESS' }],
+      updateRequest: { status: 'REVIEW_IN_PROGRESS' },
+    });
     await expect(
       clientMaintenanceApi.updateParty('2000000555', {
         organizationDetails: { dbaName: 'Too late to edit' },
@@ -117,10 +188,12 @@ describe('client maintenance mock API', () => {
     const maintenanceBefore = await clientMaintenanceApi.getMaintenanceRequests(
       MAINTENANCE_DEMO_CLIENT_ID
     );
-    expect(
-      buildMaintenanceProjection(beforeApproval, maintenanceBefore.parties)
-        .partyChanges
-    ).not.toHaveLength(0);
+    const beforeProjection = buildMaintenanceProjection(
+      beforeApproval,
+      maintenanceBefore.parties
+    );
+    expect(beforeProjection.productChanges).toHaveLength(1);
+    expect(beforeProjection.partyChanges).toHaveLength(3);
 
     await clientMaintenanceApi.approve();
 
@@ -138,6 +211,27 @@ describe('client maintenance mock API', () => {
       approved.parties.find((party) => party.id === '2000000556')
         ?.individualDetails?.lastName
     ).toBe('Diaz');
+    expect(approved.products).toEqual([
+      'MERCHANT_SERVICES',
+      'EMBEDDED_PAYMENTS',
+    ]);
+    expect(approved.productDetails).toMatchObject([
+      {
+        product: 'EMBEDDED_PAYMENTS',
+        subProduct: 'LIMITED_DDA_PAYMENTS',
+        onboardingStatus: 'APPROVED',
+      },
+    ]);
+    expect(
+      approved.parties.find((party) => party.id === '2000000558')
+    ).toMatchObject({
+      parentPartyId: '2000000555',
+      individualDetails: { firstName: 'Sam', lastName: 'Lee' },
+    });
+    expect(
+      approved.parties.find((party) => party.id === '2000000557')
+    ).toBeUndefined();
+    expect(projection.productChanges).toHaveLength(0);
     expect(projection.partyChanges).toHaveLength(0);
     expect(projection.historicalProposals).toHaveLength(
       maintenanceAfter.parties.length
