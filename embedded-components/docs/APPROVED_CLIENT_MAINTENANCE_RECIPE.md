@@ -117,7 +117,7 @@ sequenceDiagram
     API-->>UX: ClientUpdatedResponse
     UX->>API: POST /clients/{clientId}/verifications with {}
     API-->>UX: 202 ClientVerificationResponse
-    API->>JPMC: NEW becomes REVIEW_IN_PROGRESS; edits lock
+    API->>JPMC: NEW becomes REVIEW_IN_PROGRESS and editing locks
     JPMC-->>UX: Later INFORMATION_REQUESTED, APPROVED, or DECLINED status
     Note over UX,API: Approved values may take 24-48 hours to appear in GET /clients/{id}
 ```
