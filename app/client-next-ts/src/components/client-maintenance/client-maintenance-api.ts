@@ -3,6 +3,7 @@ import { API_URL } from '@/data/constants';
 import type {
   ClientResponse,
   ListKycPartyUpdateRequests,
+  MaintenancePartyUpdate,
   PartyResponse,
 } from './models/maintenance-api';
 
@@ -56,7 +57,7 @@ export const clientMaintenanceApi = {
 
   updateParty(
     partyId: string,
-    update: Partial<PartyResponse>
+    update: MaintenancePartyUpdate
   ): Promise<PartyResponse> {
     return requestJson(`${BASE_URL}/parties/${partyId}`, {
       method: 'PATCH',
@@ -95,12 +96,6 @@ export const clientMaintenanceApi = {
       method: 'POST',
       body: '{}',
       headers: { 'Idempotency-Key': crypto.randomUUID() },
-    });
-  },
-
-  advanceReview(): Promise<ListKycPartyUpdateRequests> {
-    return requestJson(`${BASE_URL}/_maintenance-demo/advance-review`, {
-      method: 'POST',
     });
   },
 

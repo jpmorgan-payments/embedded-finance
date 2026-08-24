@@ -39,7 +39,7 @@ const approvedClient: ClientResponse = {
       individualDetails: {
         firstName: 'Jane',
         lastName: 'Doe',
-        jobTitle: 'Treasurer',
+        jobTitle: 'CFO',
         individualIds: [{ idType: 'SSN', issuer: 'US', value: '100010001' }],
       },
     },
@@ -55,29 +55,29 @@ const proposal = (
 });
 
 describe('buildMaintenanceProjection', () => {
-  it('applies sparse active proposals in submitted order and retains conflict provenance', () => {
+  it('applies repeated proposals in one draft request and retains provenance', () => {
     const result = buildMaintenanceProjection(approvedClient, [
       proposal(
         {
           id: '2000000112',
-          individualDetails: { jobTitle: 'Finance director' },
+          individualDetails: { lastName: 'Doe-Smith' },
         },
         {
           action: 'MODIFY',
-          requestId: '4000001042',
-          status: 'REVIEW_IN_PROGRESS',
+          requestId: '4000001049',
+          status: 'NEW',
           submittedAt: '2026-04-08T10:00:00.000Z',
         }
       ),
       proposal(
         {
           id: '2000000112',
-          individualDetails: { jobTitle: 'Chief financial officer' },
+          individualDetails: { lastName: 'Diaz' },
         },
         {
           action: 'MODIFY',
-          requestId: '4000001048',
-          status: 'INFORMATION_REQUESTED',
+          requestId: '4000001049',
+          status: 'NEW',
           submittedAt: '2026-04-10T10:00:00.000Z',
         }
       ),
@@ -97,9 +97,7 @@ describe('buildMaintenanceProjection', () => {
         {
           id: '2000000112',
           individualDetails: {
-            individualIds: [
-              { idType: 'SSN', issuer: 'US', value: '999999999' },
-            ],
+            middleName: 'R.',
           },
         },
         {
@@ -116,17 +114,17 @@ describe('buildMaintenanceProjection', () => {
     );
     expect(jane?.individualDetails).toMatchObject({
       firstName: 'Jane',
-      lastName: 'Doe',
-      jobTitle: 'Chief financial officer',
+      lastName: 'Diaz',
+      jobTitle: 'CFO',
       individualIds: [{ idType: 'SSN', issuer: 'US', value: '100010001' }],
     });
     expect(jane?.email).toBe('jane@marketplacevendor.example');
     expect(result.historicalProposals).toHaveLength(2);
     expect(result.conflicts).toHaveLength(1);
     expect(result.conflicts[0]).toMatchObject({
-      path: 'individualDetails.jobTitle',
-      source: { requestId: '4000001048' },
-      supersededSources: [{ requestId: '4000001042' }],
+      path: 'individualDetails.lastName',
+      source: { requestId: '4000001049' },
+      supersededSources: [{ requestId: '4000001049' }],
     });
   });
 
@@ -173,16 +171,16 @@ describe('buildMaintenanceProjection', () => {
     ]);
   });
 
-  it('uses requestId as a deterministic tie-breaker', () => {
+  it('preserves API order when one request has equal timestamps', () => {
     const result = buildMaintenanceProjection(approvedClient, [
       proposal(
         {
           id: '2000000112',
-          individualDetails: { jobTitle: 'President' },
+          individualDetails: { lastName: 'Doe-Smith' },
         },
         {
           action: 'MODIFY',
-          requestId: '4000001052',
+          requestId: '4000001051',
           status: 'NEW',
           submittedAt: '2026-04-12T10:00:00.000Z',
         }
@@ -190,7 +188,7 @@ describe('buildMaintenanceProjection', () => {
       proposal(
         {
           id: '2000000112',
-          individualDetails: { jobTitle: 'CFO' },
+          individualDetails: { lastName: 'Diaz' },
         },
         {
           action: 'MODIFY',
@@ -203,13 +201,13 @@ describe('buildMaintenanceProjection', () => {
 
     expect(
       result.proposedClient.parties.find((party) => party.id === '2000000112')
-        ?.individualDetails?.jobTitle
-    ).toBe('President');
+        ?.individualDetails?.lastName
+    ).toBe('Diaz');
   });
 
   it('reports active proposals that cannot be correlated to an approved party', () => {
     const missingId = proposal(
-      { individualDetails: { jobTitle: 'CFO' } },
+      { individualDetails: { birthDate: '1988-06-15' } },
       {
         action: 'MODIFY',
         requestId: '4000001053',

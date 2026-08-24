@@ -69,10 +69,11 @@ export function createMaintenanceDemoClient(): ClientResponse {
         email: 'jane.doe@marketplacevendor.example',
         individualDetails: {
           firstName: 'Jane',
+          middleName: 'R.',
           lastName: 'Doe',
           birthDate: '1988-06-14',
           countryOfResidence: 'US',
-          jobTitle: 'Treasurer',
+          jobTitle: 'CFO',
           natureOfOwnership: 'Direct',
           addresses: [
             {
@@ -104,7 +105,8 @@ export function createMaintenanceDemoClient(): ClientResponse {
           firstName: 'Alex',
           lastName: 'Smith',
           countryOfResidence: 'US',
-          jobTitle: 'Head of product',
+          jobTitle: 'Other',
+          jobTitleDescription: 'Head of product',
           natureOfOwnership: 'Direct',
         },
       },
@@ -115,41 +117,19 @@ export function createMaintenanceDemoClient(): ClientResponse {
 export function createMaintenanceDemoProposals(): PartyResponse[] {
   return [
     {
-      id: '2000000556',
-      individualDetails: { jobTitle: 'Finance director' },
-      updateRequest: {
-        status: 'REVIEW_IN_PROGRESS',
-        action: 'MODIFY',
-        requestId: '4000001042',
-        submittedAt: '2026-04-08T10:00:00.000Z',
-      },
-    },
-    {
-      id: '2000000556',
-      individualDetails: {
-        jobTitle: 'Chief financial officer',
+      id: '2000000555',
+      organizationDetails: {
+        dbaName: 'Marketplace Vendor Collective',
         addresses: [
           {
-            addressType: 'RESIDENTIAL_ADDRESS',
-            addressLines: ['28 Pine Avenue'],
-            city: 'Brooklyn',
+            addressType: 'BUSINESS_ADDRESS',
+            addressLines: ['120 Greene Street', 'Floor 3'],
+            city: 'New York',
             state: 'NY',
-            postalCode: '11217',
+            postalCode: '10012',
             country: 'US',
           },
         ],
-      },
-      updateRequest: {
-        status: 'INFORMATION_REQUESTED',
-        action: 'MODIFY',
-        requestId: '4000001048',
-        submittedAt: '2026-04-10T10:00:00.000Z',
-      },
-    },
-    {
-      id: '2000000555',
-      organizationDetails: {
-        website: 'https://shop.marketplacevendor.example',
       },
       updateRequest: {
         status: 'NEW',
@@ -161,7 +141,20 @@ export function createMaintenanceDemoProposals(): PartyResponse[] {
     {
       id: '2000000556',
       individualDetails: {
-        individualIds: [{ idType: 'SSN', issuer: 'US', value: '999999999' }],
+        lastName: 'Diaz',
+        birthDate: '1988-06-15',
+      },
+      updateRequest: {
+        status: 'NEW',
+        action: 'MODIFY',
+        requestId: '4000001049',
+        submittedAt: '2026-04-11T10:05:00.000Z',
+      },
+    },
+    {
+      id: '2000000556',
+      individualDetails: {
+        middleName: 'R.',
       },
       updateRequest: {
         status: 'APPROVED',

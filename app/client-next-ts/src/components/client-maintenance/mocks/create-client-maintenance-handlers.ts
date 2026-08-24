@@ -10,6 +10,7 @@ import type {
   ClientResponse,
   KycUpdateRequestStatus,
   ListKycPartyUpdateRequests,
+  MaintenancePartyUpdate,
   PartyResponse,
 } from '@/components/client-maintenance/models/maintenance-api';
 import { buildMaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
@@ -68,6 +69,14 @@ function setActiveStatuses(
   });
 }
 
+function isOpenStatus(status: KycUpdateRequestStatus | undefined): boolean {
+  return (
+    status === 'NEW' ||
+    status === 'REVIEW_IN_PROGRESS' ||
+    status === 'INFORMATION_REQUESTED'
+  );
+}
+
 export function createClientMaintenanceHandlers(
   apiUrl: string
 ): RequestHandler[] {
@@ -89,18 +98,72 @@ export function createClientMaintenanceHandlers(
       );
       if (!approvedParty) return new HttpResponse(null, { status: 404 });
 
-      const update = (await request.json()) as PartyResponse;
+      const openProposals = state.proposals.filter((party) =>
+        isOpenStatus(party.updateRequest?.status)
+      );
+      const openRequestIds = new Set(
+        openProposals.flatMap((party) =>
+          party.updateRequest?.requestId ? [party.updateRequest.requestId] : []
+        )
+      );
+      if (openRequestIds.size > 1) {
+        return HttpResponse.json(
+          {
+            title: 'Conflict',
+            httpStatus: 409,
+            context: [{ message: 'More than one open request was found.' }],
+          },
+          { status: 409 }
+        );
+      }
+      if (
+        openProposals.some((party) => party.updateRequest?.status !== 'NEW')
+      ) {
+        return HttpResponse.json(
+          {
+            title: 'Conflict',
+            httpStatus: 409,
+            context: [
+              {
+                message:
+                  'No further edits are allowed after the request is submitted.',
+              },
+            ],
+          },
+          { status: 409 }
+        );
+      }
+
+      const update = (await request.json()) as MaintenancePartyUpdate;
+      const requestId =
+        openRequestIds.values().next().value ?? String(state.nextRequestId++);
+      const existingIndex = state.proposals.findIndex(
+        (party) =>
+          party.id === partyId &&
+          party.updateRequest?.requestId === requestId &&
+          party.updateRequest.status === 'NEW'
+      );
+      const existing =
+        existingIndex >= 0 ? state.proposals[existingIndex] : undefined;
       const proposal: PartyResponse = {
+        ...existing,
         ...update,
         id: partyId,
+        individualDetails: update.individualDetails
+          ? { ...existing?.individualDetails, ...update.individualDetails }
+          : existing?.individualDetails,
+        organizationDetails: update.organizationDetails
+          ? { ...existing?.organizationDetails, ...update.organizationDetails }
+          : existing?.organizationDetails,
         updateRequest: {
           action: 'MODIFY',
-          requestId: String(state.nextRequestId++),
+          requestId,
           status: 'NEW',
           submittedAt: new Date().toISOString(),
         },
       };
-      state.proposals.push(proposal);
+      if (existingIndex >= 0) state.proposals[existingIndex] = proposal;
+      else state.proposals.push(proposal);
       if (
         !state.client.outstanding.attestationDocumentIds.includes(
           MAINTENANCE_ATTESTATION_DOCUMENT_ID
@@ -110,7 +173,10 @@ export function createClientMaintenanceHandlers(
           MAINTENANCE_ATTESTATION_DOCUMENT_ID
         );
       }
-      return HttpResponse.json(proposal);
+      return HttpResponse.json({
+        ...structuredClone(approvedParty),
+        updateRequest: proposal.updateRequest,
+      });
     }),
 
     http.get(`${baseUrl}/maintenance-requests`, ({ request }) => {
@@ -172,18 +238,33 @@ export function createClientMaintenanceHandlers(
           { status: 422 }
         );
       }
+      if (
+        !state.proposals.some((party) => party.updateRequest?.status === 'NEW')
+      ) {
+        return HttpResponse.json(
+          {
+            title: 'Unprocessable Entity',
+            httpStatus: 422,
+            context: [{ message: 'No draft maintenance request was found.' }],
+          },
+          { status: 422 }
+        );
+      }
+      state.proposals = state.proposals.map((party) =>
+        party.updateRequest?.status === 'NEW'
+          ? {
+              ...party,
+              updateRequest: {
+                ...party.updateRequest,
+                status: 'REVIEW_IN_PROGRESS',
+              },
+            }
+          : party
+      );
       return HttpResponse.json(
         { acceptedAt: new Date().toISOString() },
         { status: 202 }
       );
-    }),
-
-    http.post(`${baseUrl}/_maintenance-demo/advance-review`, () => {
-      state.proposals = setActiveStatuses(
-        state.proposals,
-        'REVIEW_IN_PROGRESS'
-      );
-      return HttpResponse.json(listResponse(state.proposals));
     }),
 
     http.post(`${baseUrl}/_maintenance-demo/approve`, () => {

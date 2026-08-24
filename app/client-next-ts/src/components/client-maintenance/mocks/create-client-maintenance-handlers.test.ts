@@ -18,13 +18,16 @@ afterEach(async () => {
 afterAll(() => server.close());
 
 describe('client maintenance mock API', () => {
-  it('creates a sparse proposal without mutating the approved client', async () => {
+  it('reuses the draft request while returning persisted party values', async () => {
     const approvedBefore = await clientMaintenanceApi.getClient(
       MAINTENANCE_DEMO_CLIENT_ID
     );
 
     const created = await clientMaintenanceApi.updateParty('2000000556', {
-      individualDetails: { jobTitle: 'Chief operating officer' },
+      individualDetails: { lastName: 'Diaz-Williams' },
+    });
+    const second = await clientMaintenanceApi.updateParty('2000000555', {
+      organizationDetails: { dbaName: 'Marketplace Vendor Market' },
     });
     const approvedAfter = await clientMaintenanceApi.getClient(
       MAINTENANCE_DEMO_CLIENT_ID
@@ -35,19 +38,38 @@ describe('client maintenance mock API', () => {
 
     expect(created).toMatchObject({
       id: '2000000556',
-      individualDetails: { jobTitle: 'Chief operating officer' },
-      updateRequest: { action: 'MODIFY', status: 'NEW' },
+      individualDetails: { lastName: 'Doe' },
+      updateRequest: {
+        action: 'MODIFY',
+        requestId: '4000001049',
+        status: 'NEW',
+      },
     });
+    expect(second.updateRequest?.requestId).toBe('4000001049');
     expect(approvedAfter).toEqual(approvedBefore);
-    expect(maintenance.parties).toContainEqual(created);
+    expect(
+      maintenance.parties.find((party) => party.id === '2000000556')
+        ?.individualDetails?.lastName
+    ).toBe('Diaz-Williams');
+    expect(
+      new Set(
+        maintenance.parties
+          .filter((party) => party.updateRequest?.status === 'NEW')
+          .map((party) => party.updateRequest?.requestId)
+      )
+    ).toEqual(new Set(['4000001049']));
   });
 
   it('returns request-scoped proposal details', async () => {
     const result =
-      await clientMaintenanceApi.getMaintenanceRequest('4000001048');
+      await clientMaintenanceApi.getMaintenanceRequest('4000001049');
 
-    expect(result.parties).toHaveLength(1);
-    expect(result.parties[0].updateRequest?.requestId).toBe('4000001048');
+    expect(result.parties).toHaveLength(2);
+    expect(
+      result.parties.every(
+        (party) => party.updateRequest?.requestId === '4000001049'
+      )
+    ).toBe(true);
   });
 
   it('requires attestation, accepts verification, and applies approval later', async () => {
@@ -72,6 +94,22 @@ describe('client maintenance mock API', () => {
       MAINTENANCE_DEMO_CLIENT_ID
     );
     expect(accepted.acceptedAt).toBeTruthy();
+
+    const submitted = await clientMaintenanceApi.getMaintenanceRequests(
+      MAINTENANCE_DEMO_CLIENT_ID
+    );
+    expect(
+      submitted.parties
+        .filter((party) => party.updateRequest?.requestId === '4000001049')
+        .every((party) => party.updateRequest?.status === 'REVIEW_IN_PROGRESS')
+    ).toBe(true);
+    await expect(
+      clientMaintenanceApi.updateParty('2000000555', {
+        organizationDetails: { dbaName: 'Too late to edit' },
+      })
+    ).rejects.toThrow(
+      'No further edits are allowed after the request is submitted.'
+    );
 
     const beforeApproval = await clientMaintenanceApi.getClient(
       MAINTENANCE_DEMO_CLIENT_ID
@@ -98,8 +136,8 @@ describe('client maintenance mock API', () => {
     );
     expect(
       approved.parties.find((party) => party.id === '2000000556')
-        ?.individualDetails?.jobTitle
-    ).toBe('Chief financial officer');
+        ?.individualDetails?.lastName
+    ).toBe('Diaz');
     expect(projection.partyChanges).toHaveLength(0);
     expect(projection.historicalProposals).toHaveLength(
       maintenanceAfter.parties.length

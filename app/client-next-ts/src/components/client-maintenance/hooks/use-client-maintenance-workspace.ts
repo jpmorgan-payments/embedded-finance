@@ -7,7 +7,7 @@ import {
   type AttestationInput,
 } from '@/components/client-maintenance/client-maintenance-api';
 import { MAINTENANCE_DEMO_CLIENT_ID } from '@/components/client-maintenance/mocks/client-maintenance-mock-data';
-import type { PartyResponse } from '@/components/client-maintenance/models/maintenance-api';
+import type { MaintenancePartyUpdate } from '@/components/client-maintenance/models/maintenance-api';
 import { buildMaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
 
 const clientQueryKey = ['client-maintenance', 'client'] as const;
@@ -46,7 +46,7 @@ export function useClientMaintenanceWorkspace() {
       update,
     }: {
       partyId: string;
-      update: Partial<PartyResponse>;
+      update: MaintenancePartyUpdate;
     }) => clientMaintenanceApi.updateParty(partyId, update),
     onSuccess: refreshWorkspace,
   });
@@ -80,11 +80,6 @@ export function useClientMaintenanceWorkspace() {
     onSuccess: refreshWorkspace,
   });
 
-  const advanceReview = useMutation({
-    mutationFn: clientMaintenanceApi.advanceReview,
-    onSuccess: refreshWorkspace,
-  });
-
   const approve = useMutation({
     mutationFn: clientMaintenanceApi.approve,
     onSuccess: refreshWorkspace,
@@ -94,7 +89,6 @@ export function useClientMaintenanceWorkspace() {
     mutationFn: clientMaintenanceApi.reset,
     onSuccess: async () => {
       submitForVerification.reset();
-      advanceReview.reset();
       approve.reset();
       updateParty.reset();
       await refreshWorkspace();
@@ -107,7 +101,6 @@ export function useClientMaintenanceWorkspace() {
     projection,
     updateParty,
     submitForVerification,
-    advanceReview,
     approve,
     reset,
     refreshWorkspace,

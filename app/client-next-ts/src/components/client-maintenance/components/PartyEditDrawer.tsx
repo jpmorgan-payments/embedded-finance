@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Loader2, Save, X } from 'lucide-react';
 
-import type { PartyResponse } from '@/components/client-maintenance/models/maintenance-api';
+import type {
+  MaintenancePartyUpdate,
+  PartyResponse,
+} from '@/components/client-maintenance/models/maintenance-api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 type EditValues = {
-  email: string;
   primaryName: string;
+  middleName: string;
   secondaryName: string;
-  jobTitle: string;
-  website: string;
+  birthDate: string;
   addressLine: string;
   city: string;
   state: string;
@@ -26,7 +28,6 @@ function toEditValues(party: PartyResponse): EditValues {
       : party.individualDetails;
   const address = details?.addresses?.[0];
   return {
-    email: party.email ?? '',
     primaryName:
       party.partyType === 'ORGANIZATION'
         ? (party.organizationDetails?.organizationName ?? '')
@@ -35,8 +36,8 @@ function toEditValues(party: PartyResponse): EditValues {
       party.partyType === 'ORGANIZATION'
         ? (party.organizationDetails?.dbaName ?? '')
         : (party.individualDetails?.lastName ?? ''),
-    jobTitle: party.individualDetails?.jobTitle ?? '',
-    website: party.organizationDetails?.website ?? '',
+    middleName: party.individualDetails?.middleName ?? '',
+    birthDate: party.individualDetails?.birthDate ?? '',
     addressLine: address?.addressLines[0] ?? '',
     city: address?.city ?? '',
     state: address?.state ?? '',
@@ -49,17 +50,15 @@ function buildSparseUpdate(
   party: PartyResponse,
   original: EditValues,
   current: EditValues
-): Partial<PartyResponse> {
-  const update: Partial<PartyResponse> = {};
-  if (current.email !== original.email) update.email = current.email;
+): MaintenancePartyUpdate {
+  const update: MaintenancePartyUpdate = {};
 
-  const addressChanged = (
-    ['addressLine', 'city', 'state', 'postalCode', 'country'] as const
-  ).some((key) => current[key] !== original[key]);
-  const originalAddress =
-    party.partyType === 'ORGANIZATION'
-      ? party.organizationDetails?.addresses?.[0]
-      : party.individualDetails?.addresses?.[0];
+  const addressChanged =
+    party.partyType === 'ORGANIZATION' &&
+    (['addressLine', 'city', 'state', 'postalCode', 'country'] as const).some(
+      (key) => current[key] !== original[key]
+    );
+  const originalAddress = party.organizationDetails?.addresses?.[0];
   const addresses = addressChanged
     ? [
         {
@@ -87,9 +86,6 @@ function buildSparseUpdate(
     if (current.secondaryName !== original.secondaryName) {
       organizationDetails.dbaName = current.secondaryName;
     }
-    if (current.website !== original.website) {
-      organizationDetails.website = current.website;
-    }
     if (addresses) organizationDetails.addresses = addresses;
     if (Object.keys(organizationDetails).length > 0) {
       update.organizationDetails = organizationDetails;
@@ -103,8 +99,11 @@ function buildSparseUpdate(
     if (current.secondaryName !== original.secondaryName) {
       individualDetails.lastName = current.secondaryName;
     }
-    if (current.jobTitle !== original.jobTitle) {
-      individualDetails.jobTitle = current.jobTitle;
+    if (current.middleName !== original.middleName) {
+      individualDetails.middleName = current.middleName;
+    }
+    if (current.birthDate !== original.birthDate) {
+      individualDetails.birthDate = current.birthDate;
     }
     if (addresses) individualDetails.addresses = addresses;
     if (Object.keys(individualDetails).length > 0) {
@@ -125,7 +124,7 @@ export function PartyEditDrawer({
   isSaving: boolean;
   error?: string;
   onClose: () => void;
-  onSave: (update: Partial<PartyResponse>) => Promise<void>;
+  onSave: (update: MaintenancePartyUpdate) => Promise<void>;
 }) {
   const [values, setValues] = useState(() => toEditValues(party));
   const originalValues = useRef(values);
@@ -198,138 +197,156 @@ export function PartyEditDrawer({
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4 sm:p-6">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <Label htmlFor="party-email">Email</Label>
-                <Input
-                  id="party-email"
-                  type="email"
-                  required
-                  autoFocus
-                  value={values.email}
-                  onChange={(event) => updateValue('email', event.target.value)}
-                  className="mt-1.5"
-                />
-              </div>
-              <div>
-                <Label htmlFor="party-primary-name">
-                  {isOrganization ? 'Legal business name' : 'First name'}
-                </Label>
-                <Input
-                  id="party-primary-name"
-                  required
-                  value={values.primaryName}
-                  onChange={(event) =>
-                    updateValue('primaryName', event.target.value)
-                  }
-                  className="mt-1.5"
-                />
-              </div>
-              <div>
-                <Label htmlFor="party-secondary-name">
-                  {isOrganization ? 'Doing business as' : 'Last name'}
-                </Label>
-                <Input
-                  id="party-secondary-name"
-                  required={!isOrganization}
-                  value={values.secondaryName}
-                  onChange={(event) =>
-                    updateValue('secondaryName', event.target.value)
-                  }
-                  className="mt-1.5"
-                />
-              </div>
               {isOrganization ? (
-                <div className="sm:col-span-2">
-                  <Label htmlFor="party-website">Website</Label>
-                  <Input
-                    id="party-website"
-                    type="url"
-                    value={values.website}
-                    onChange={(event) =>
-                      updateValue('website', event.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                </div>
+                <>
+                  <div>
+                    <Label htmlFor="party-primary-name">
+                      Legal business name
+                    </Label>
+                    <Input
+                      id="party-primary-name"
+                      required
+                      autoFocus
+                      value={values.primaryName}
+                      onChange={(event) =>
+                        updateValue('primaryName', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="party-secondary-name">
+                      Doing business as
+                    </Label>
+                    <Input
+                      id="party-secondary-name"
+                      value={values.secondaryName}
+                      onChange={(event) =>
+                        updateValue('secondaryName', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                </>
               ) : (
-                <div className="sm:col-span-2">
-                  <Label htmlFor="party-job-title">Job title</Label>
-                  <Input
-                    id="party-job-title"
-                    required
-                    value={values.jobTitle}
-                    onChange={(event) =>
-                      updateValue('jobTitle', event.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                </div>
+                <>
+                  <div>
+                    <Label htmlFor="party-primary-name">First name</Label>
+                    <Input
+                      id="party-primary-name"
+                      required
+                      autoFocus
+                      value={values.primaryName}
+                      onChange={(event) =>
+                        updateValue('primaryName', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="party-middle-name">Middle name</Label>
+                    <Input
+                      id="party-middle-name"
+                      value={values.middleName}
+                      onChange={(event) =>
+                        updateValue('middleName', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="party-secondary-name">Last name</Label>
+                    <Input
+                      id="party-secondary-name"
+                      required
+                      value={values.secondaryName}
+                      onChange={(event) =>
+                        updateValue('secondaryName', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="party-birth-date">Date of birth</Label>
+                    <Input
+                      id="party-birth-date"
+                      type="date"
+                      value={values.birthDate}
+                      onChange={(event) =>
+                        updateValue('birthDate', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                </>
               )}
             </div>
 
-            <fieldset>
-              <legend className="text-sm font-semibold text-gray-950">
-                {isOrganization ? 'Business address' : 'Residential address'}
-              </legend>
-              <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <Label htmlFor="party-address-line">Address line</Label>
-                  <Input
-                    id="party-address-line"
-                    value={values.addressLine}
-                    onChange={(event) =>
-                      updateValue('addressLine', event.target.value)
-                    }
-                    className="mt-1.5"
-                  />
+            {isOrganization ? (
+              <fieldset>
+                <legend className="text-sm font-semibold text-gray-950">
+                  Business address
+                </legend>
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="party-address-line">Address line</Label>
+                    <Input
+                      id="party-address-line"
+                      value={values.addressLine}
+                      onChange={(event) =>
+                        updateValue('addressLine', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="party-city">City</Label>
+                    <Input
+                      id="party-city"
+                      value={values.city}
+                      onChange={(event) =>
+                        updateValue('city', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="party-state">State</Label>
+                    <Input
+                      id="party-state"
+                      value={values.state}
+                      onChange={(event) =>
+                        updateValue('state', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="party-postal-code">Postal code</Label>
+                    <Input
+                      id="party-postal-code"
+                      value={values.postalCode}
+                      onChange={(event) =>
+                        updateValue('postalCode', event.target.value)
+                      }
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="party-country">Country</Label>
+                    <Input
+                      id="party-country"
+                      value={values.country}
+                      onChange={(event) =>
+                        updateValue('country', event.target.value)
+                      }
+                      className="mt-1.5"
+                      maxLength={2}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="party-city">City</Label>
-                  <Input
-                    id="party-city"
-                    value={values.city}
-                    onChange={(event) =>
-                      updateValue('city', event.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="party-state">State</Label>
-                  <Input
-                    id="party-state"
-                    value={values.state}
-                    onChange={(event) =>
-                      updateValue('state', event.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="party-postal-code">Postal code</Label>
-                  <Input
-                    id="party-postal-code"
-                    value={values.postalCode}
-                    onChange={(event) =>
-                      updateValue('postalCode', event.target.value)
-                    }
-                    className="mt-1.5"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="party-country">Country</Label>
-                  <Input
-                    id="party-country"
-                    value={values.country}
-                    onChange={(event) =>
-                      updateValue('country', event.target.value)
-                    }
-                    className="mt-1.5"
-                    maxLength={2}
-                  />
-                </div>
-              </div>
-            </fieldset>
+              </fieldset>
+            ) : null}
 
             {error ? (
               <p

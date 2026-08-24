@@ -24,6 +24,15 @@ export type ActiveKycUpdateRequestStatus = Extract<
 
 export type KycUpdateRequestAction = 'ADD' | 'MODIFY' | 'DELETE';
 
+export type IndividualJobTitle =
+  | 'CEO'
+  | 'CFO'
+  | 'COO'
+  | 'President'
+  | 'Chairman'
+  | 'Senior Branch Manager'
+  | 'Other';
+
 export type PartyRole =
   | 'AUTHORIZED_USER'
   | 'BENEFICIAL_OWNER'
@@ -85,7 +94,7 @@ export type IndividualDetails = {
   middleName?: string;
   lastName?: string;
   individualIds?: IndividualIdentity[];
-  jobTitle?: string;
+  jobTitle?: IndividualJobTitle;
   jobTitleDescription?: string;
   natureOfOwnership?: 'Direct' | 'Indirect';
   phone?: Phone;
@@ -124,6 +133,19 @@ export type PartyResponse = {
   individualDetails?: IndividualDetails;
   organizationDetails?: OrganizationDetails;
   updateRequest?: KycUpdateRequest;
+};
+
+// Fields exposed by this illustration follow the narrower update-party guide.
+export type MaintenancePartyUpdate = {
+  active?: false;
+  individualDetails?: Pick<
+    IndividualDetails,
+    'firstName' | 'middleName' | 'lastName' | 'birthDate'
+  >;
+  organizationDetails?: Pick<
+    OrganizationDetails,
+    'organizationName' | 'dbaName' | 'addresses'
+  >;
 };
 
 export type ClientResponse = {

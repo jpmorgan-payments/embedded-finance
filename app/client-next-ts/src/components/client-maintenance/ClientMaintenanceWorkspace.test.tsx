@@ -32,7 +32,7 @@ afterEach(async () => {
 afterAll(() => server.close());
 
 describe('ClientMaintenanceWorkspace', () => {
-  it('reviews overlapping proposals and completes the manual lifecycle', async () => {
+  it('reviews one draft request and completes the asynchronous lifecycle', async () => {
     const user = userEvent.setup();
     renderWorkspace();
 
@@ -40,6 +40,12 @@ describe('ClientMaintenanceWorkspace', () => {
       level: 1,
       name: 'Marketplace Vendor LLC',
     });
+    expect(
+      screen.getByRole('link', { name: /Official update-party guide/ })
+    ).toHaveAttribute(
+      'href',
+      'https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/update-party'
+    );
     await user.click(
       screen.getByRole('button', { name: 'Review proposed changes' })
     );
@@ -48,15 +54,9 @@ describe('ClientMaintenanceWorkspace', () => {
       screen.getByRole('heading', { name: 'Approved and proposed details' })
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Latest-request preview policy applied')
-    ).toBeInTheDocument();
-    expect(screen.getAllByText('Treasurer').length).toBeGreaterThan(0);
-    expect(
-      screen.getAllByText('Chief financial officer').length
-    ).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Supersedes 4000001042/).length).toBeGreaterThan(
-      0
-    );
+      screen.getAllByText('Marketplace Vendor Collective')
+    ).not.toHaveLength(0);
+    expect(screen.getAllByText('Diaz')).not.toHaveLength(0);
 
     await user.click(
       screen.getByRole('button', { name: 'Continue to attestation' })
@@ -77,7 +77,6 @@ describe('ClientMaintenanceWorkspace', () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText(/202 Accepted/)).toHaveLength(2);
 
-    await user.click(screen.getByRole('button', { name: 'Advance to review' }));
     await waitFor(() =>
       expect(screen.getByText('Review In Progress')).toBeInTheDocument()
     );
@@ -105,9 +104,9 @@ describe('ClientMaintenanceWorkspace', () => {
     });
     await user.click(screen.getByRole('button', { name: 'Edit Alex Smith' }));
     const drawer = screen.getByRole('dialog', { name: 'Edit person' });
-    const jobTitle = within(drawer).getByLabelText('Job title');
-    await user.clear(jobTitle);
-    await user.type(jobTitle, 'Chief product officer');
+    const lastName = within(drawer).getByLabelText('Last name');
+    await user.clear(lastName);
+    await user.type(lastName, 'Johnson');
     await user.click(
       within(drawer).getByRole('button', { name: 'Save proposed update' })
     );
@@ -117,8 +116,6 @@ describe('ClientMaintenanceWorkspace', () => {
         name: 'Approved and proposed details',
       })
     ).toBeInTheDocument();
-    expect(screen.getAllByText('Chief product officer').length).toBeGreaterThan(
-      0
-    );
+    expect(screen.getAllByText('Johnson').length).toBeGreaterThan(0);
   });
 });

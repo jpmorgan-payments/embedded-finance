@@ -1,4 +1,4 @@
-import { Check, Code2 } from 'lucide-react';
+import { Check, Code2, ExternalLink } from 'lucide-react';
 
 import type { MaintenanceStep } from './MaintenanceProgress';
 
@@ -54,6 +54,15 @@ export function ApiSequence({ currentStep }: { currentStep: MaintenanceStep }) {
             );
           })}
         </ol>
+        <a
+          href="https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/update-party"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-cyan-200 underline-offset-4 hover:text-cyan-100 hover:underline"
+        >
+          Official update-party guide
+          <ExternalLink className="h-3.5 w-3.5" />
+        </a>
       </div>
     </section>
   );

@@ -9,7 +9,10 @@ import {
 } from 'lucide-react';
 
 import { MAINTENANCE_ATTESTATION_DOCUMENT_ID } from '@/components/client-maintenance/mocks/client-maintenance-mock-data';
-import type { PartyResponse } from '@/components/client-maintenance/models/maintenance-api';
+import type {
+  MaintenancePartyUpdate,
+  PartyResponse,
+} from '@/components/client-maintenance/models/maintenance-api';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -84,7 +87,7 @@ export function ClientMaintenanceWorkspace() {
     );
   }
 
-  const saveParty = async (update: Partial<PartyResponse>) => {
+  const saveParty = async (update: MaintenancePartyUpdate) => {
     if (!editingParty?.id) return;
     await workspace.updateParty.mutateAsync({
       partyId: editingParty.id,
@@ -188,12 +191,12 @@ export function ClientMaintenanceWorkspace() {
               {projection.conflicts.length > 0 ? (
                 <Alert className="border-amber-300 bg-amber-50 text-amber-950">
                   <AlertTriangle />
-                  <AlertTitle>Latest-request preview policy applied</AlertTitle>
+                  <AlertTitle>Duplicate field proposals returned</AlertTitle>
                   <AlertDescription>
-                    {projection.conflicts.length} field has overlapping active
-                    proposals. The newest submitted value is shown for this
-                    prototype; J.P. Morgan may adjudicate concurrent requests
-                    differently.
+                    {projection.conflicts.length} field has multiple values in
+                    the open request. This illustration shows the latest item; a
+                    production flow should block submission and reconcile the
+                    unexpected response.
                   </AlertDescription>
                 </Alert>
               ) : null}
@@ -267,7 +270,7 @@ export function ClientMaintenanceWorkspace() {
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-700">
                 {isComplete
-                  ? 'The approved client profile now includes the accepted changes. Approved maintenance requests no longer contribute to the proposed snapshot.'
+                  ? 'The approved client profile now includes the accepted changes. Approved maintenance requests no longer contribute to the proposed snapshot. In production, approved values may take 24-48 hours to appear in client GET responses.'
                   : 'J.P. Morgan accepted the verification request. This does not mean the maintenance changes are approved; use the demo controls to simulate later status updates.'}
               </p>
               {acceptedAt ? (
@@ -293,26 +296,21 @@ export function ClientMaintenanceWorkspace() {
           <DemoLifecyclePanel
             projection={projection}
             acceptedAt={acceptedAt}
-            isAdvancing={workspace.advanceReview.isPending}
             isApproving={workspace.approve.isPending}
             isResetting={workspace.reset.isPending}
-            onAdvance={() => workspace.advanceReview.mutate()}
             onApprove={() => workspace.approve.mutate()}
             onReset={resetDemo}
           />
           <div className="rounded-md border border-gray-200 bg-white p-4 text-xs leading-5 text-gray-600">
             <strong className="block text-gray-900">Preview policy</strong>
-            Active requests are ordered by <code>submittedAt</code>, then
-            request ID. Approved, declined, and terminated requests are excluded
-            from the future profile.
+            One open request is expected per client. Draft edits share its
+            request ID; approved, declined, and terminated requests are excluded
+            from the proposed profile.
           </div>
         </div>
       </div>
 
       <div className="sr-only" aria-live="polite">
-        {workspace.advanceReview.isSuccess
-          ? 'Maintenance moved to review in progress.'
-          : ''}
         {workspace.approve.isSuccess
           ? 'Maintenance approved and profile refreshed.'
           : ''}

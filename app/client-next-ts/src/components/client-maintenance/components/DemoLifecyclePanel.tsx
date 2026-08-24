@@ -1,4 +1,4 @@
-import { CheckCircle2, FastForward, RotateCcw } from 'lucide-react';
+import { CheckCircle2, RotateCcw } from 'lucide-react';
 
 import type { MaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
 import { Button } from '@/components/ui/button';
@@ -14,19 +14,15 @@ function formatStatus(status: string): string {
 export function DemoLifecyclePanel({
   projection,
   acceptedAt,
-  isAdvancing,
   isApproving,
   isResetting,
-  onAdvance,
   onApprove,
   onReset,
 }: {
   projection: MaintenanceProjection;
   acceptedAt?: string;
-  isAdvancing: boolean;
   isApproving: boolean;
   isResetting: boolean;
-  onAdvance: () => void;
   onApprove: () => void;
   onReset: () => void;
 }) {
@@ -58,8 +54,8 @@ export function DemoLifecyclePanel({
         Asynchronous review
       </h2>
       <p className="mt-2 text-xs leading-5 text-gray-700">
-        These controls simulate later server or webhook updates. Verification
-        acceptance does not approve a request.
+        Verification moves the draft to review. Approval is a later server or
+        webhook update; production profile data may take 24-48 hours to appear.
       </p>
 
       <dl className="mt-4 space-y-2 text-xs">
@@ -80,21 +76,6 @@ export function DemoLifecyclePanel({
       </dl>
 
       <div className="mt-4 grid gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={
-            !acceptedAt ||
-            isAdvancing ||
-            projection.activeProposals.length === 0
-          }
-          onClick={onAdvance}
-          className="justify-start bg-white"
-        >
-          <FastForward />
-          Advance to review
-        </Button>
         <Button
           type="button"
           size="sm"
