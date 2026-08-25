@@ -81,18 +81,27 @@ function ProfileSnapshot({
   const changesByParty = new Map(
     projection.partyChanges.map((change) => [change.partyId, change])
   );
+  const approvedPartyIds = new Set(
+    projection.approvedClient.parties.flatMap((party) =>
+      party.id ? [party.id] : []
+    )
+  );
   const client = proposed
     ? projection.proposedClient
     : projection.approvedClient;
-  const productLabels = client.products.map((product) => {
-    const details = client.productDetails?.find(
-      (detail) => detail.product === product
-    );
-    return [product, details?.subProduct]
-      .filter(Boolean)
-      .join(' · ')
-      .replaceAll('_', ' ');
-  });
+  const proposedProducts = new Set(
+    projection.productChanges.map(
+      (change) => `${change.product}:${change.subProduct ?? ''}`
+    )
+  );
+  const productLabels =
+    client.productDetails?.map((detail) => ({
+      key: `${detail.product}:${detail.subProduct ?? ''}`,
+      label: [detail.product, detail.subProduct]
+        .filter(Boolean)
+        .join(' · ')
+        .replaceAll('_', ' '),
+    })) ?? client.products.map((product) => ({ key: product, label: product }));
 
   return (
     <section
@@ -115,28 +124,32 @@ function ProfileSnapshot({
           Products
         </h4>
         <div className="mt-2 flex flex-wrap gap-2">
-          {productLabels.map((product) => (
-            <Badge
-              key={product}
-              variant="outline"
-              className={
-                proposed && product.includes('LIMITED DDA PAYMENTS')
-                  ? 'border-amber-300 bg-amber-50 text-amber-900'
-                  : 'border-gray-200 bg-gray-50 text-gray-800'
-              }
-            >
-              {product}
-              {proposed && product.includes('LIMITED DDA PAYMENTS')
-                ? ' · Proposed'
-                : ''}
-            </Badge>
-          ))}
+          {productLabels.map((product) => {
+            const isProposed = proposed && proposedProducts.has(product.key);
+            return (
+              <Badge
+                key={product.key}
+                variant="outline"
+                className={
+                  isProposed
+                    ? 'border-amber-300 bg-amber-50 text-amber-900'
+                    : 'border-gray-200 bg-gray-50 text-gray-800'
+                }
+              >
+                {product.label}
+                {isProposed ? ' · Proposed' : ''}
+              </Badge>
+            );
+          })}
         </div>
       </div>
 
       <div className="divide-y divide-gray-200">
         {parties.map((party) => {
           const change = party.id ? changesByParty.get(party.id) : undefined;
+          const isApprovedParty = party.id
+            ? approvedPartyIds.has(party.id)
+            : false;
           return (
             <article key={party.id} className="p-4">
               <div className="flex items-start justify-between gap-3">
@@ -159,18 +172,28 @@ function ProfileSnapshot({
                     </p>
                   </div>
                 </div>
-                {change ? (
-                  <Badge
-                    variant="outline"
-                    className="shrink-0 border-amber-300 bg-amber-50 text-amber-900"
-                  >
-                    {change.removesParty
-                      ? 'Proposed removal'
-                      : change.action === 'ADD'
-                        ? 'Proposed addition'
-                        : `${change.fieldChanges.length || 1} ${change.fieldChanges.length === 1 ? 'change' : 'changes'}`}
-                  </Badge>
-                ) : null}
+                <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                  {isApprovedParty ? (
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-200 bg-emerald-50 text-emerald-800"
+                    >
+                      Approved
+                    </Badge>
+                  ) : null}
+                  {change ? (
+                    <Badge
+                      variant="outline"
+                      className="border-amber-300 bg-amber-50 text-amber-900"
+                    >
+                      {change.removesParty
+                        ? 'Proposed removal'
+                        : change.action === 'ADD'
+                          ? 'New party · pending approval'
+                          : `${change.fieldChanges.length || 1} ${change.fieldChanges.length === 1 ? 'change' : 'changes'}`}
+                    </Badge>
+                  ) : null}
+                </div>
               </div>
 
               <dl className="mt-4 grid gap-x-4 gap-y-3 text-sm sm:grid-cols-2">

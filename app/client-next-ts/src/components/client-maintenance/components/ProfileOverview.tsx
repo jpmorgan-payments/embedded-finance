@@ -57,7 +57,9 @@ export function ProfileOverview({
   onRequestProduct,
   onAddParty,
   onRemoveParty,
-  onLoadAllExamples,
+  disclosureAnswer,
+  onDisclosureAnswerChange,
+  onLoadCompleteStory,
   isOperating,
   operationError,
 }: {
@@ -67,7 +69,9 @@ export function ProfileOverview({
   onRequestProduct: () => void;
   onAddParty: () => void;
   onRemoveParty: (partyId: string) => Promise<void>;
-  onLoadAllExamples: () => void;
+  disclosureAnswer?: 'yes' | 'no';
+  onDisclosureAnswerChange: (answer: 'yes' | 'no') => void;
+  onLoadCompleteStory: () => void;
   isOperating: boolean;
   operationError?: string;
 }) {
@@ -102,12 +106,15 @@ export function ProfileOverview({
   );
   const changeCount = projection.productChanges.length + partyChangeCount;
   const limitedDdaRequested = projection.productChanges.some(
-    (change) => change.subProduct === 'LIMITED_DDA_PAYMENTS'
+    (change) => change.subProduct === 'LIMITED_DDA'
   );
   const limitedDdaApproved =
     projection.approvedClient.productDetails?.some(
-      (detail) => detail.subProduct === 'LIMITED_DDA_PAYMENTS'
+      (detail) => detail.subProduct === 'LIMITED_DDA'
     ) ?? false;
+  const hasPartyDisclosures = projection.partyChanges.length > 0;
+  const canReview =
+    changeCount > 0 && limitedDdaRequested && disclosureAnswer !== undefined;
   const examplePartyAdded = visibleParties.some(
     (party) => party.email === 'sam.lee@marketplacevendor.example'
   );
@@ -116,6 +123,7 @@ export function ProfileOverview({
     const changes = projection.partyChanges.find(
       (change) => change.partyId === party.id
     );
+    const isApprovedParty = party.id ? approvedIds.has(party.id) : false;
     return (
       <article
         key={party.id}
@@ -134,22 +142,27 @@ export function ProfileOverview({
               <h3 className="font-semibold text-gray-950">
                 {partyName(party)}
               </h3>
+              {isApprovedParty ? (
+                <Badge
+                  variant="outline"
+                  className="border-emerald-200 bg-emerald-50 text-emerald-800"
+                >
+                  Approved
+                </Badge>
+              ) : null}
               {changes ? (
                 <Badge
                   variant="outline"
                   className="border-amber-300 bg-amber-50 text-amber-900"
                 >
-                  {changes.removesParty
-                    ? 'Removal requested'
-                    : `${changes.fieldChanges.length || 1} ${changes.fieldChanges.length === 1 ? 'change' : 'changes'}`}
+                  {changes.action === 'ADD'
+                    ? 'New party · pending approval'
+                    : changes.removesParty
+                      ? 'Removal requested'
+                      : `${changes.fieldChanges.length || 1} ${changes.fieldChanges.length === 1 ? 'change' : 'changes'}`}
                 </Badge>
               ) : (
-                <Badge
-                  variant="outline"
-                  className="border-emerald-200 bg-emerald-50 text-emerald-800"
-                >
-                  Current
-                </Badge>
+                !isApprovedParty && <Badge variant="outline">Current</Badge>
               )}
             </div>
             <p className="mt-1 text-sm capitalize text-gray-600">
@@ -160,19 +173,23 @@ export function ProfileOverview({
         </div>
         <div className="flex flex-wrap gap-2 sm:justify-end">
           {!changes?.removesParty && changes?.action !== 'ADD' ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onEditParty(party)}
-              aria-label={`Edit ${partyName(party)}`}
-              disabled={isOperating}
-            >
-              <Pencil />
-              Edit
-            </Button>
+            disclosureAnswer === 'yes' ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onEditParty(party)}
+                aria-label={`Edit ${partyName(party)}`}
+                disabled={isOperating}
+              >
+                <Pencil />
+                Edit
+              </Button>
+            ) : null
           ) : null}
-          {party.partyType === 'INDIVIDUAL' && changes?.action !== 'ADD' ? (
+          {disclosureAnswer === 'yes' &&
+          party.partyType === 'INDIVIDUAL' &&
+          changes?.action !== 'ADD' ? (
             <Button
               type="button"
               variant="outline"
@@ -199,13 +216,13 @@ export function ProfileOverview({
           <div>
             <h2 className="font-semibold text-gray-950">
               {changeCount > 0
-                ? 'Approved profile with pending maintenance'
-                : 'Choose a maintenance operation'}
+                ? 'Product and disclosure request in progress'
+                : 'Start the product addition'}
             </h2>
             <p className="mt-1 text-sm text-gray-700">
               {changeCount > 0
                 ? `${changeCount} proposed ${changeCount === 1 ? 'change' : 'changes'} across products and parties.`
-                : 'Start one operation, or load all four examples into one draft request.'}
+                : 'Request Limited DDA, then confirm whether anything changed since the previous approval.'}
             </p>
           </div>
         </div>
@@ -213,13 +230,13 @@ export function ProfileOverview({
           <Button
             type="button"
             variant="outline"
-            onClick={onLoadAllExamples}
+            onClick={onLoadCompleteStory}
             disabled={isOperating}
           >
             {isOperating ? <Loader2 className="animate-spin" /> : <Layers3 />}
-            Load all examples
+            Load complete story
           </Button>
-          <Button type="button" onClick={onReview} disabled={changeCount === 0}>
+          <Button type="button" onClick={onReview} disabled={!canReview}>
             Review proposed changes
           </Button>
         </div>
@@ -254,9 +271,11 @@ export function ProfileOverview({
               </span>
               <div>
                 <h3 className="font-semibold text-gray-950">
-                  Merchant Services
+                  Limited DDA Payments
                 </h3>
-                <p className="mt-0.5 text-xs text-gray-500">Approved</p>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  Embedded Payments sub-product · Approved
+                </p>
               </div>
             </div>
             <Badge
@@ -272,11 +291,9 @@ export function ProfileOverview({
                 <Plus className="h-4 w-4" />
               </span>
               <div>
-                <h3 className="font-semibold text-gray-950">
-                  Limited DDA Payments
-                </h3>
+                <h3 className="font-semibold text-gray-950">Limited DDA</h3>
                 <p className="mt-0.5 text-xs text-gray-500">
-                  Embedded Payments sub-product
+                  Additional Embedded Payments sub-product
                 </p>
               </div>
             </div>
@@ -300,11 +317,97 @@ export function ProfileOverview({
                 disabled={isOperating}
               >
                 <Plus />
-                Request product
+                Request sub-product
               </Button>
             )}
           </div>
         </div>
+      </section>
+
+      <section aria-labelledby="disclosure-heading">
+        <div className="mb-2 flex items-center justify-between">
+          <h2
+            id="disclosure-heading"
+            className="text-sm font-semibold text-gray-950"
+          >
+            Changes since previous approval
+          </h2>
+          <span className="text-xs text-gray-500">Required disclosure</span>
+        </div>
+        <fieldset
+          disabled={!limitedDdaRequested || isOperating}
+          className="rounded-md border border-gray-200 bg-white p-4 disabled:bg-gray-50"
+        >
+          <legend className="px-1 font-semibold text-gray-950">
+            Has anything changed since your previous approval?
+          </legend>
+          <p className="mt-1 text-sm text-gray-600">
+            Include changes to the organization and its related parties. All
+            disclosed changes join the same request as the new sub-product.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label
+              className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 ${
+                disclosureAnswer === 'no'
+                  ? 'border-sp-brand bg-sp-accent'
+                  : 'border-gray-200 bg-white'
+              }`}
+            >
+              <input
+                type="radio"
+                name="changes-since-approval"
+                value="no"
+                checked={disclosureAnswer === 'no'}
+                onChange={() => onDisclosureAnswerChange('no')}
+                disabled={hasPartyDisclosures}
+                className="mt-0.5 h-4 w-4 accent-sp-brand"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-gray-950">
+                  No, nothing else changed
+                </span>
+                <span className="mt-0.5 block text-xs text-gray-600">
+                  Continue with the Limited DDA addition only.
+                </span>
+              </span>
+            </label>
+            <label
+              className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 ${
+                disclosureAnswer === 'yes'
+                  ? 'border-sp-brand bg-sp-accent'
+                  : 'border-gray-200 bg-white'
+              }`}
+            >
+              <input
+                type="radio"
+                name="changes-since-approval"
+                value="yes"
+                checked={disclosureAnswer === 'yes'}
+                onChange={() => onDisclosureAnswerChange('yes')}
+                className="mt-0.5 h-4 w-4 accent-sp-brand"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-gray-950">
+                  Yes, I have changes to disclose
+                </span>
+                <span className="mt-0.5 block text-xs text-gray-600">
+                  Review and update the organization and related parties below.
+                </span>
+              </span>
+            </label>
+          </div>
+          {!limitedDdaRequested ? (
+            <p className="mt-3 text-xs text-gray-500">
+              Request the Limited DDA sub-product before answering.
+            </p>
+          ) : null}
+          {hasPartyDisclosures ? (
+            <p className="mt-3 text-xs text-amber-800">
+              Party changes are already disclosed in this request, so the No
+              option is unavailable.
+            </p>
+          ) : null}
+        </fieldset>
       </section>
 
       <section aria-labelledby="organization-heading">
@@ -315,7 +418,11 @@ export function ProfileOverview({
           >
             Organization
           </h2>
-          <span className="text-xs text-gray-500">Approved client</span>
+          <span className="text-xs text-gray-500">
+            {disclosureAnswer === 'yes'
+              ? 'Disclose applicable changes'
+              : 'Approved client'}
+          </span>
         </div>
         <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
           {organization ? renderParty(organization) : null}
@@ -330,16 +437,20 @@ export function ProfileOverview({
           >
             People
           </h2>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onAddParty}
-            disabled={isOperating || examplePartyAdded}
-          >
-            <UserPlus />
-            {examplePartyAdded ? 'Party added' : 'Add party'}
-          </Button>
+          {disclosureAnswer === 'yes' ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onAddParty}
+              disabled={isOperating || examplePartyAdded}
+            >
+              <UserPlus />
+              {examplePartyAdded ? 'Party added' : 'Add party'}
+            </Button>
+          ) : (
+            <span className="text-xs text-gray-500">Approved parties</span>
+          )}
         </div>
         <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
           {people.map(renderParty)}

@@ -1,4 +1,4 @@
-import { CheckCircle2, RotateCcw } from 'lucide-react';
+import { CheckCircle2, MessageSquareWarning, RotateCcw } from 'lucide-react';
 
 import type { MaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
 import { Button } from '@/components/ui/button';
@@ -15,15 +15,19 @@ export function DemoLifecyclePanel({
   projection,
   acceptedAt,
   isApproving,
+  isRequestingInformation,
   isResetting,
   onApprove,
+  onRequestInformation,
   onReset,
 }: {
   projection: MaintenanceProjection;
   acceptedAt?: string;
   isApproving: boolean;
+  isRequestingInformation: boolean;
   isResetting: boolean;
   onApprove: () => void;
+  onRequestInformation: () => void;
   onReset: () => void;
 }) {
   const activeStatuses = Array.from(
@@ -60,8 +64,8 @@ export function DemoLifecyclePanel({
         Asynchronous review
       </h2>
       <p className="mt-2 text-xs leading-5 text-gray-700">
-        Verification moves the draft to review. Approval is a later server or
-        webhook update; production profile data may take 24-48 hours to appear.
+        Verification moves the draft to review. A later server or webhook update
+        can approve it or request more information.
       </p>
 
       <dl className="mt-4 space-y-2 text-xs">
@@ -82,6 +86,17 @@ export function DemoLifecyclePanel({
       </dl>
 
       <div className="mt-4 grid gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={!acceptedAt || !readyToApprove || isRequestingInformation}
+          onClick={onRequestInformation}
+          className="justify-start border-amber-500 bg-white text-amber-900 hover:bg-amber-100"
+        >
+          <MessageSquareWarning />
+          Request more information
+        </Button>
         <Button
           type="button"
           size="sm"

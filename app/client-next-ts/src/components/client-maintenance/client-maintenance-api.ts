@@ -3,10 +3,12 @@ import { API_URL } from '@/data/constants';
 import type {
   ClientProductUpdate,
   ClientResponse,
+  DocumentRequestResponse,
   ListKycPartyUpdateRequests,
   MaintenancePartyCreate,
   MaintenancePartyUpdate,
   PartyResponse,
+  QuestionListResponse,
 } from './models/maintenance-api';
 
 const BASE_URL = `${API_URL}/onboarding/v1`;
@@ -117,6 +119,25 @@ export const clientMaintenanceApi = {
       method: 'POST',
       body: '{}',
       headers: { 'Idempotency-Key': crypto.randomUUID() },
+    });
+  },
+
+  getQuestions(questionIds: string[]): Promise<QuestionListResponse> {
+    const ids = encodeURIComponent(questionIds.join(','));
+    return requestJson(`${BASE_URL}/questions?questionIds=${ids}`);
+  },
+
+  getDocumentRequest(
+    documentRequestId: string
+  ): Promise<DocumentRequestResponse> {
+    return requestJson(
+      `${BASE_URL}/document-requests/${encodeURIComponent(documentRequestId)}`
+    );
+  },
+
+  requestInformation(): Promise<ClientResponse> {
+    return requestJson(`${BASE_URL}/_maintenance-demo/request-information`, {
+      method: 'POST',
     });
   },
 

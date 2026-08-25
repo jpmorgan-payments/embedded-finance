@@ -3,12 +3,16 @@ import { http, HttpResponse, type RequestHandler } from 'msw';
 import {
   createMaintenanceDemoClient,
   createMaintenanceDemoProposals,
+  MAINTENANCE_ADDED_PARTY_ID,
   MAINTENANCE_ATTESTATION_DOCUMENT_ID,
   MAINTENANCE_DEMO_CLIENT_ID,
+  MAINTENANCE_DOCUMENT_REQUEST_ID,
+  MAINTENANCE_QUESTION_ID,
 } from '@/components/client-maintenance/mocks/client-maintenance-mock-data';
 import type {
   ClientProductUpdate,
   ClientResponse,
+  DocumentRequestResponse,
   KycUpdateRequest,
   KycUpdateRequestStatus,
   ListKycPartyUpdateRequests,
@@ -16,6 +20,7 @@ import type {
   MaintenancePartyUpdate,
   PartyResponse,
   ProductDetailsStatusItem,
+  QuestionListResponse,
 } from '@/components/client-maintenance/models/maintenance-api';
 import { buildMaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
 
@@ -112,6 +117,16 @@ function conflict(message: string) {
   );
 }
 
+function hasRequestStatus(
+  state: DemoState,
+  status: KycUpdateRequestStatus
+): boolean {
+  return (
+    state.clientProductProposal?.updateRequest.status === status ||
+    state.proposals.some((party) => party.updateRequest?.status === status)
+  );
+}
+
 function resolveDraftRequest(
   state: DemoState
 ):
@@ -192,7 +207,7 @@ export function createClientMaintenanceHandlers(
         ...party,
         id: String(state.nextPartyId++),
         active: true,
-        profileStatus: 'APPROVED',
+        profileStatus: 'NEW',
         updateRequest: {
           action: 'ADD',
           requestId: draft.requestId,
@@ -347,6 +362,10 @@ export function createClientMaintenanceHandlers(
         party.updateRequest?.status === 'NEW'
           ? {
               ...party,
+              profileStatus:
+                party.updateRequest.action === 'ADD'
+                  ? 'REVIEW_IN_PROGRESS'
+                  : party.profileStatus,
               updateRequest: {
                 ...party.updateRequest,
                 status: 'REVIEW_IN_PROGRESS',
@@ -374,7 +393,131 @@ export function createClientMaintenanceHandlers(
       );
     }),
 
+    http.get(`${baseUrl}/questions`, ({ request }) => {
+      const questionIds = new URL(request.url).searchParams
+        .get('questionIds')
+        ?.split(',');
+      const questions: QuestionListResponse = {
+        questions: questionIds?.includes(MAINTENANCE_QUESTION_ID)
+          ? [
+              {
+                id: MAINTENANCE_QUESTION_ID,
+                defaultLocale: 'en-US',
+                description:
+                  'Additional information requested during maintenance review.',
+                content: [
+                  {
+                    locale: 'en-US',
+                    label:
+                      'Will the newly added party initiate account activity on behalf of the client?',
+                  },
+                ],
+              },
+            ]
+          : [],
+        metadata: { page: 0, limit: 25, total: 0 },
+      };
+      questions.metadata!.total = questions.questions!.length;
+      return HttpResponse.json(questions);
+    }),
+
+    http.get(
+      `${baseUrl}/document-requests/:documentRequestId`,
+      ({ params }) => {
+        if (
+          params.documentRequestId !== MAINTENANCE_DOCUMENT_REQUEST_ID ||
+          !state.client.outstanding.documentRequestIds.includes(
+            MAINTENANCE_DOCUMENT_REQUEST_ID
+          )
+        ) {
+          return new HttpResponse(null, { status: 404 });
+        }
+        const documentRequest: DocumentRequestResponse = {
+          id: MAINTENANCE_DOCUMENT_REQUEST_ID,
+          clientId: MAINTENANCE_DEMO_CLIENT_ID,
+          partyId: MAINTENANCE_ADDED_PARTY_ID,
+          createdAt: '2026-04-14T14:30:00.000Z',
+          updatedAt: '2026-04-14T14:30:00.000Z',
+          validForDays: 30,
+          status: 'ACTIVE',
+          description:
+            'Please provide one government-issued identification document for Sam Lee.',
+          requirements: [
+            {
+              documentTypes: [
+                'DRIVERS_LICENSE',
+                'PASSPORT',
+                'GOV_ISSUED_ID_CARD',
+              ],
+              level: 'PRIMARY',
+              minRequired: 1,
+            },
+          ],
+          outstanding: {
+            documentTypes: [
+              'DRIVERS_LICENSE',
+              'PASSPORT',
+              'GOV_ISSUED_ID_CARD',
+            ],
+          },
+        };
+        return HttpResponse.json(documentRequest);
+      }
+    ),
+
+    http.post(`${baseUrl}/_maintenance-demo/request-information`, () => {
+      if (!hasRequestStatus(state, 'REVIEW_IN_PROGRESS')) {
+        return conflict(
+          'Information can be requested only while maintenance is in review.'
+        );
+      }
+      const hasAddedParty = state.proposals.some(
+        (party) =>
+          party.id === MAINTENANCE_ADDED_PARTY_ID &&
+          party.updateRequest?.action === 'ADD'
+      );
+      state.client = {
+        ...state.client,
+        status: 'INFORMATION_REQUESTED',
+        outstanding: {
+          ...state.client.outstanding,
+          documentRequestIds: hasAddedParty
+            ? [MAINTENANCE_DOCUMENT_REQUEST_ID]
+            : [],
+          questionIds: [MAINTENANCE_QUESTION_ID],
+        },
+      };
+      state.proposals = setActiveStatuses(
+        state.proposals,
+        'INFORMATION_REQUESTED'
+      ).map((party) =>
+        party.id === MAINTENANCE_ADDED_PARTY_ID
+          ? { ...party, profileStatus: 'INFORMATION_REQUESTED' }
+          : party
+      );
+      if (state.clientProductProposal) {
+        state.clientProductProposal = {
+          productDetails: state.clientProductProposal.productDetails.map(
+            (detail) => ({
+              ...detail,
+              onboardingStatus: 'INFORMATION_REQUESTED',
+            })
+          ),
+          updateRequest: {
+            ...state.clientProductProposal.updateRequest,
+            status: 'INFORMATION_REQUESTED',
+          },
+        };
+      }
+      return HttpResponse.json(getClientResponse(state));
+    }),
+
     http.post(`${baseUrl}/_maintenance-demo/approve`, () => {
+      if (!hasRequestStatus(state, 'REVIEW_IN_PROGRESS')) {
+        return conflict(
+          'Only a maintenance request in review can be approved.'
+        );
+      }
       const projection = buildMaintenanceProjection(
         getClientResponse(state),
         state.proposals

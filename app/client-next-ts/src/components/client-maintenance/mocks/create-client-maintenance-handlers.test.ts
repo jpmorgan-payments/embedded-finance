@@ -2,7 +2,10 @@ import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { clientMaintenanceApi } from '@/components/client-maintenance/client-maintenance-api';
-import { MAINTENANCE_DEMO_CLIENT_ID } from '@/components/client-maintenance/mocks/client-maintenance-mock-data';
+import {
+  MAINTENANCE_ADDED_PARTY_ID,
+  MAINTENANCE_DEMO_CLIENT_ID,
+} from '@/components/client-maintenance/mocks/client-maintenance-mock-data';
 import { buildMaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
 import { API_URL } from '@/data/constants';
 
@@ -24,7 +27,7 @@ async function createFourOperationDraft() {
       productDetails: [
         {
           product: 'EMBEDDED_PAYMENTS',
-          subProduct: 'LIMITED_DDA_PAYMENTS',
+          subProduct: 'LIMITED_DDA',
           action: 'ADD',
         },
       ],
@@ -66,11 +69,16 @@ describe('client maintenance mock API', () => {
     );
 
     expect(product).toMatchObject({
-      products: ['MERCHANT_SERVICES'],
+      products: ['EMBEDDED_PAYMENTS'],
       productDetails: [
         {
           product: 'EMBEDDED_PAYMENTS',
           subProduct: 'LIMITED_DDA_PAYMENTS',
+          onboardingStatus: 'APPROVED',
+        },
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA',
           onboardingStatus: 'NEW',
         },
       ],
@@ -171,7 +179,18 @@ describe('client maintenance mock API', () => {
       MAINTENANCE_DEMO_CLIENT_ID
     );
     expect(submittedClient).toMatchObject({
-      productDetails: [{ onboardingStatus: 'REVIEW_IN_PROGRESS' }],
+      productDetails: [
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
+          onboardingStatus: 'APPROVED',
+        },
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA',
+          onboardingStatus: 'REVIEW_IN_PROGRESS',
+        },
+      ],
       updateRequest: { status: 'REVIEW_IN_PROGRESS' },
     });
     await expect(
@@ -211,14 +230,16 @@ describe('client maintenance mock API', () => {
       approved.parties.find((party) => party.id === '2000000556')
         ?.individualDetails?.lastName
     ).toBe('Diaz');
-    expect(approved.products).toEqual([
-      'MERCHANT_SERVICES',
-      'EMBEDDED_PAYMENTS',
-    ]);
+    expect(approved.products).toEqual(['EMBEDDED_PAYMENTS']);
     expect(approved.productDetails).toMatchObject([
       {
         product: 'EMBEDDED_PAYMENTS',
         subProduct: 'LIMITED_DDA_PAYMENTS',
+        onboardingStatus: 'APPROVED',
+      },
+      {
+        product: 'EMBEDDED_PAYMENTS',
+        subProduct: 'LIMITED_DDA',
         onboardingStatus: 'APPROVED',
       },
     ]);
@@ -235,6 +256,94 @@ describe('client maintenance mock API', () => {
     expect(projection.partyChanges).toHaveLength(0);
     expect(projection.historicalProposals).toHaveLength(
       maintenanceAfter.parties.length
+    );
+  });
+
+  it('returns client-level questions and a party-linked document request during information requested', async () => {
+    await createFourOperationDraft();
+    const client = await clientMaintenanceApi.getClient(
+      MAINTENANCE_DEMO_CLIENT_ID
+    );
+    await clientMaintenanceApi.addAttestation(MAINTENANCE_DEMO_CLIENT_ID, {
+      attester: {
+        firstName: 'Jordan',
+        lastName: 'Lee',
+        designation: 'Chief executive officer',
+      },
+      attestationTime: '2026-04-12T15:00:00.000Z',
+      documentId: client.outstanding.attestationDocumentIds[0],
+      ipAddress: '192.0.2.10',
+    });
+    await clientMaintenanceApi.startVerification(MAINTENANCE_DEMO_CLIENT_ID);
+    const returned = await clientMaintenanceApi.requestInformation();
+
+    expect(returned.parties).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: '2000000555',
+          profileStatus: 'APPROVED',
+        }),
+        expect.objectContaining({
+          id: '2000000556',
+          profileStatus: 'APPROVED',
+        }),
+        expect.objectContaining({
+          id: '2000000557',
+          profileStatus: 'APPROVED',
+        }),
+      ])
+    );
+    expect(returned).toMatchObject({
+      status: 'INFORMATION_REQUESTED',
+      outstanding: {
+        documentRequestIds: ['3000011675'],
+        questionIds: ['300001'],
+      },
+      updateRequest: { status: 'INFORMATION_REQUESTED' },
+    });
+    const maintenance = await clientMaintenanceApi.getMaintenanceRequests(
+      MAINTENANCE_DEMO_CLIENT_ID
+    );
+    expect(
+      maintenance.parties.find(
+        (party) => party.id === MAINTENANCE_ADDED_PARTY_ID
+      )
+    ).toMatchObject({
+      profileStatus: 'INFORMATION_REQUESTED',
+      updateRequest: {
+        action: 'ADD',
+        status: 'INFORMATION_REQUESTED',
+      },
+    });
+    const questions = await clientMaintenanceApi.getQuestions(
+      returned.outstanding.questionIds
+    );
+    expect(questions.questions).toEqual([
+      expect.objectContaining({
+        id: '300001',
+        content: [
+          expect.objectContaining({
+            label:
+              'Will the newly added party initiate account activity on behalf of the client?',
+          }),
+        ],
+      }),
+    ]);
+    expect(questions.questions?.[0]).not.toHaveProperty('partyId');
+
+    const documentRequest = await clientMaintenanceApi.getDocumentRequest(
+      returned.outstanding.documentRequestIds[0]
+    );
+    expect(documentRequest).toMatchObject({
+      id: '3000011675',
+      partyId: '2000000558',
+      status: 'ACTIVE',
+      outstanding: {
+        documentTypes: ['DRIVERS_LICENSE', 'PASSPORT', 'GOV_ISSUED_ID_CARD'],
+      },
+    });
+    await expect(clientMaintenanceApi.approve()).rejects.toThrow(
+      'Only a maintenance request in review can be approved.'
     );
   });
 });

@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { ApiSequence } from './components/ApiSequence';
 import { AttestationPanel } from './components/AttestationPanel';
 import { DemoLifecyclePanel } from './components/DemoLifecyclePanel';
+import { InformationRequiredPanel } from './components/InformationRequiredPanel';
 import {
   MaintenanceProgress,
   type MaintenanceStep,
@@ -49,10 +50,20 @@ export function ClientMaintenanceWorkspace() {
   const workspace = useClientMaintenanceWorkspace();
   const [step, setStep] = useState<MaintenanceStep>('profile');
   const [editingParty, setEditingParty] = useState<PartyResponse>();
+  const [disclosureAnswer, setDisclosureAnswer] = useState<'yes' | 'no'>();
   const projection = workspace.projection;
   const queryError =
     workspace.clientQuery.error ?? workspace.maintenanceQuery.error;
   const acceptedAt = workspace.submitForVerification.data?.acceptedAt;
+  const isInformationRequested =
+    projection !== undefined &&
+    (projection.approvedClient.status === 'INFORMATION_REQUESTED' ||
+      projection.activeProposals.some(
+        (party) => party.updateRequest?.status === 'INFORMATION_REQUESTED'
+      ) ||
+      projection.productChanges.some(
+        (change) => change.source.status === 'INFORMATION_REQUESTED'
+      ));
   const isComplete =
     step === 'submitted' &&
     projection?.partyChanges.length === 0 &&
@@ -101,6 +112,7 @@ export function ClientMaintenanceWorkspace() {
   const resetDemo = async () => {
     await workspace.reset.mutateAsync();
     setEditingParty(undefined);
+    setDisclosureAnswer(undefined);
     setStep('profile');
   };
 
@@ -114,12 +126,12 @@ export function ClientMaintenanceWorkspace() {
     workspace.requestProduct.isPending ||
     workspace.addParty.isPending ||
     workspace.removeParty.isPending ||
-    workspace.loadAllExamples.isPending;
+    workspace.loadCompleteStory.isPending;
   const operationError =
     workspace.requestProduct.error?.message ??
     workspace.addParty.error?.message ??
     workspace.removeParty.error?.message ??
-    workspace.loadAllExamples.error?.message;
+    workspace.loadCompleteStory.error?.message;
   const organizationName =
     projection.approvedClient.parties.find(
       (party) =>
@@ -147,8 +159,8 @@ export function ClientMaintenanceWorkspace() {
                 {organizationName}
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-gray-600">
-                Request products and maintain related parties, then attest to
-                one grouped request before asynchronous verification.
+                Add the Limited DDA sub-product, disclose anything that changed
+                since the previous approval, and submit one grouped request.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -202,7 +214,12 @@ export function ClientMaintenanceWorkspace() {
               onRemoveParty={async (partyId) => {
                 await workspace.removeParty.mutateAsync(partyId);
               }}
-              onLoadAllExamples={() => workspace.loadAllExamples.mutate()}
+              disclosureAnswer={disclosureAnswer}
+              onDisclosureAnswerChange={setDisclosureAnswer}
+              onLoadCompleteStory={() => {
+                setDisclosureAnswer('yes');
+                workspace.loadCompleteStory.mutate();
+              }}
               isOperating={isOperating}
               operationError={operationError}
             />
@@ -273,44 +290,77 @@ export function ClientMaintenanceWorkspace() {
           ) : null}
 
           {step === 'submitted' ? (
-            <section
-              aria-labelledby="submitted-heading"
-              className={`rounded-md border p-6 sm:p-8 ${
-                isComplete
-                  ? 'border-emerald-300 bg-emerald-50'
-                  : 'border-cyan-200 bg-cyan-50'
-              }`}
-            >
-              <CheckCircle2
-                className={`h-8 w-8 ${isComplete ? 'text-emerald-700' : 'text-cyan-700'}`}
-              />
-              <h2
-                id="submitted-heading"
-                className="mt-4 text-xl font-semibold text-gray-950"
+            <div className="space-y-6">
+              <section
+                aria-labelledby="submitted-heading"
+                className={`rounded-md border p-6 sm:p-8 ${
+                  isComplete
+                    ? 'border-emerald-300 bg-emerald-50'
+                    : isInformationRequested
+                      ? 'border-amber-300 bg-amber-50'
+                      : 'border-cyan-200 bg-cyan-50'
+                }`}
               >
-                {isComplete ? 'Maintenance approved' : 'Submitted for review'}
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-700">
-                {isComplete
-                  ? 'The approved client profile now includes the accepted changes. Approved maintenance requests no longer contribute to the proposed snapshot. In production, approved values may take 24-48 hours to appear in client GET responses.'
-                  : 'J.P. Morgan accepted the verification request. This does not mean the maintenance changes are approved; use the demo controls to simulate later status updates.'}
-              </p>
-              {acceptedAt ? (
-                <p className="mt-4 font-mono text-xs text-gray-600">
-                  202 Accepted · {new Date(acceptedAt).toLocaleString()}
-                </p>
-              ) : null}
-              {isComplete ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-5 bg-white"
-                  onClick={() => setStep('profile')}
+                {isInformationRequested ? (
+                  <AlertTriangle className="h-8 w-8 text-amber-700" />
+                ) : (
+                  <CheckCircle2
+                    className={`h-8 w-8 ${isComplete ? 'text-emerald-700' : 'text-cyan-700'}`}
+                  />
+                )}
+                <h2
+                  id="submitted-heading"
+                  className="mt-4 text-xl font-semibold text-gray-950"
                 >
-                  View approved profile
-                </Button>
+                  {isComplete
+                    ? 'Maintenance approved'
+                    : isInformationRequested
+                      ? 'Maintenance returned for information'
+                      : 'Submitted for review'}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-700">
+                  {isComplete
+                    ? 'The approved client profile now includes the accepted changes. Approved maintenance requests no longer contribute to the proposed snapshot. In production, approved values may take 24-48 hours to appear in client GET responses.'
+                    : isInformationRequested
+                      ? 'J.P. Morgan needs additional information before review can continue. The submitted changes remain read-only.'
+                      : 'J.P. Morgan accepted the verification request. This does not mean the maintenance changes are approved; use the demo controls to simulate later status updates.'}
+                </p>
+                {acceptedAt ? (
+                  <p className="mt-4 font-mono text-xs text-gray-600">
+                    202 Accepted · {new Date(acceptedAt).toLocaleString()}
+                  </p>
+                ) : null}
+                {isComplete ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-5 bg-white"
+                    onClick={() => setStep('profile')}
+                  >
+                    View approved profile
+                  </Button>
+                ) : null}
+              </section>
+
+              {isInformationRequested ? (
+                <InformationRequiredPanel
+                  questions={workspace.questionsQuery.data?.questions ?? []}
+                  documentRequests={workspace.documentRequestsQuery.data ?? []}
+                  parties={projection.proposedClient.parties}
+                  newPartyIds={projection.partyChanges.flatMap((change) =>
+                    change.action === 'ADD' ? [change.partyId] : []
+                  )}
+                  isLoading={
+                    workspace.questionsQuery.isLoading ||
+                    workspace.documentRequestsQuery.isLoading
+                  }
+                  error={
+                    workspace.questionsQuery.error?.message ??
+                    workspace.documentRequestsQuery.error?.message
+                  }
+                />
               ) : null}
-            </section>
+            </div>
           ) : null}
         </main>
 
@@ -319,8 +369,10 @@ export function ClientMaintenanceWorkspace() {
             projection={projection}
             acceptedAt={acceptedAt}
             isApproving={workspace.approve.isPending}
+            isRequestingInformation={workspace.requestInformation.isPending}
             isResetting={workspace.reset.isPending}
             onApprove={() => workspace.approve.mutate()}
+            onRequestInformation={() => workspace.requestInformation.mutate()}
             onReset={resetDemo}
           />
           <div className="rounded-md border border-gray-200 bg-white p-4 text-xs leading-5 text-gray-600">

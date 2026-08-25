@@ -3,7 +3,7 @@ import { Check, Circle } from 'lucide-react';
 export type MaintenanceStep = 'profile' | 'review' | 'attest' | 'submitted';
 
 const steps: Array<{ id: MaintenanceStep; label: string }> = [
-  { id: 'profile', label: 'Profile' },
+  { id: 'profile', label: 'Disclose changes' },
   { id: 'review', label: 'Review changes' },
   { id: 'attest', label: 'Attest' },
   { id: 'submitted', label: 'Submitted' },

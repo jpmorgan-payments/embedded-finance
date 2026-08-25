@@ -162,7 +162,7 @@ export type MaintenancePartyUpdate = {
   active?: false;
   individualDetails?: Pick<
     IndividualDetails,
-    'firstName' | 'middleName' | 'lastName' | 'birthDate'
+    'firstName' | 'middleName' | 'lastName' | 'birthDate' | 'addresses'
   >;
   organizationDetails?: Pick<
     OrganizationDetails,
@@ -194,6 +194,48 @@ export type ClientResponse = {
     partyRoles: PartyRole[];
     questionIds: string[];
   };
+};
+
+export type QuestionContentItem = {
+  description?: string;
+  label: string;
+  locale: string;
+};
+
+export type QuestionResponse = {
+  content?: QuestionContentItem[];
+  defaultLocale?: string;
+  description?: string;
+  id?: string;
+  parentQuestionId?: string;
+};
+
+export type QuestionListResponse = {
+  questions?: QuestionResponse[];
+  metadata?: {
+    page?: number;
+    limit?: number;
+    total?: number;
+  };
+};
+
+export type DocumentRequestResponse = {
+  clientId?: string;
+  createdAt?: string;
+  description?: string;
+  id?: string;
+  partyId?: string;
+  outstanding?: {
+    documentTypes: string[];
+  };
+  requirements?: Array<{
+    documentTypes?: string[];
+    level?: 'PRIMARY' | 'SECONDARY';
+    minRequired?: number;
+  }>;
+  status?: 'ACTIVE' | 'CLOSED' | 'EXPIRED';
+  updatedAt?: string;
+  validForDays?: number;
 };
 
 export type ListKycPartyUpdateRequests = {

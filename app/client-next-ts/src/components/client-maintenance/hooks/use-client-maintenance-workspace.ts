@@ -15,6 +15,11 @@ import { buildMaintenanceProjection } from '@/components/client-maintenance/util
 
 const clientQueryKey = ['client-maintenance', 'client'] as const;
 const maintenanceQueryKey = ['client-maintenance', 'requests'] as const;
+const questionsQueryKey = ['client-maintenance', 'questions'] as const;
+const documentRequestsQueryKey = [
+  'client-maintenance',
+  'document-requests',
+] as const;
 
 const EXAMPLE_PARTY: Omit<MaintenancePartyCreate, 'parentPartyId'> = {
   partyType: 'INDIVIDUAL',
@@ -27,12 +32,12 @@ const EXAMPLE_PARTY: Omit<MaintenancePartyCreate, 'parentPartyId'> = {
   },
 };
 
-function requestLimitedDdaPayments() {
+function requestLimitedDda() {
   return clientMaintenanceApi.requestProduct(MAINTENANCE_DEMO_CLIENT_ID, {
     productDetails: [
       {
         product: 'EMBEDDED_PAYMENTS',
-        subProduct: 'LIMITED_DDA_PAYMENTS',
+        subProduct: 'LIMITED_DDA',
         action: 'ADD',
       },
     ],
@@ -56,12 +61,12 @@ function removeExampleParty() {
   return clientMaintenanceApi.updateParty('2000000557', { active: false });
 }
 
-function hasLimitedDdaPayments(
+function hasLimitedDda(
   client: Parameters<typeof buildMaintenanceProjection>[0]
 ): boolean {
   return (
     client.productDetails?.some(
-      (detail) => detail.subProduct === 'LIMITED_DDA_PAYMENTS'
+      (detail) => detail.subProduct === 'LIMITED_DDA'
     ) ?? false
   );
 }
@@ -76,6 +81,24 @@ export function useClientMaintenanceWorkspace() {
     queryKey: maintenanceQueryKey,
     queryFn: () =>
       clientMaintenanceApi.getMaintenanceRequests(MAINTENANCE_DEMO_CLIENT_ID),
+  });
+  const questionIds = clientQuery.data?.outstanding.questionIds ?? [];
+  const documentRequestIds =
+    clientQuery.data?.outstanding.documentRequestIds ?? [];
+  const questionsQuery = useQuery({
+    queryKey: [...questionsQueryKey, questionIds],
+    queryFn: () => clientMaintenanceApi.getQuestions(questionIds),
+    enabled: questionIds.length > 0,
+  });
+  const documentRequestsQuery = useQuery({
+    queryKey: [...documentRequestsQueryKey, documentRequestIds],
+    queryFn: () =>
+      Promise.all(
+        documentRequestIds.map((documentRequestId) =>
+          clientMaintenanceApi.getDocumentRequest(documentRequestId)
+        )
+      ),
+    enabled: documentRequestIds.length > 0,
   });
 
   const projection =
@@ -105,7 +128,7 @@ export function useClientMaintenanceWorkspace() {
   });
 
   const requestProduct = useMutation({
-    mutationFn: requestLimitedDdaPayments,
+    mutationFn: requestLimitedDda,
     onSuccess: refreshWorkspace,
   });
 
@@ -120,7 +143,7 @@ export function useClientMaintenanceWorkspace() {
     onSuccess: refreshWorkspace,
   });
 
-  const loadAllExamples = useMutation({
+  const loadCompleteStory = useMutation({
     mutationFn: async () => {
       const [latestClient, latestMaintenance] = await Promise.all([
         clientMaintenanceApi.getClient(MAINTENANCE_DEMO_CLIENT_ID),
@@ -132,9 +155,9 @@ export function useClientMaintenanceWorkspace() {
       );
       if (
         latestProjection.productChanges.length === 0 &&
-        !hasLimitedDdaPayments(latestProjection.approvedClient)
+        !hasLimitedDda(latestProjection.approvedClient)
       ) {
-        await requestLimitedDdaPayments();
+        await requestLimitedDda();
       }
       if (
         !latestProjection.proposedClient.parties.some(
@@ -204,16 +227,22 @@ export function useClientMaintenanceWorkspace() {
     onSuccess: refreshWorkspace,
   });
 
+  const requestInformation = useMutation({
+    mutationFn: clientMaintenanceApi.requestInformation,
+    onSuccess: refreshWorkspace,
+  });
+
   const reset = useMutation({
     mutationFn: clientMaintenanceApi.reset,
     onSuccess: async () => {
       submitForVerification.reset();
       approve.reset();
+      requestInformation.reset();
       updateParty.reset();
       requestProduct.reset();
       addParty.reset();
       removeParty.reset();
-      loadAllExamples.reset();
+      loadCompleteStory.reset();
       await refreshWorkspace();
     },
   });
@@ -221,14 +250,17 @@ export function useClientMaintenanceWorkspace() {
   return {
     clientQuery,
     maintenanceQuery,
+    questionsQuery,
+    documentRequestsQuery,
     projection,
     updateParty,
     requestProduct,
     addParty,
     removeParty,
-    loadAllExamples,
+    loadCompleteStory,
     submitForVerification,
     approve,
+    requestInformation,
     reset,
     refreshWorkspace,
   };

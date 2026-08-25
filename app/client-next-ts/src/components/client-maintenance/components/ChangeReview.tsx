@@ -169,7 +169,7 @@ export function ChangeReview({
               <AccordionTrigger className="gap-3 text-left hover:no-underline">
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                   <span className="font-semibold text-gray-950">
-                    Limited DDA Payments
+                    Limited DDA
                   </span>
                   <Badge
                     variant="outline"
@@ -185,22 +185,24 @@ export function ChangeReview({
               <AccordionContent>
                 <div className="mb-3 flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
                   <PackagePlus className="mt-0.5 h-4 w-4 shrink-0" />
-                  Embedded Payments with Limited DDA Payments is proposed for
-                  this approved client.
+                  Limited DDA is proposed as an additional Embedded Payments
+                  sub-product for this approved client.
                 </div>
                 <dl className="grid gap-3 rounded-md border border-gray-200 p-4 text-sm sm:grid-cols-2">
                   <div>
                     <dt className="text-xs font-semibold uppercase text-gray-500">
                       Approved
                     </dt>
-                    <dd className="mt-1 text-gray-700">Not enabled</dd>
+                    <dd className="mt-1 text-gray-700">
+                      Embedded Payments · Limited DDA Payments
+                    </dd>
                   </div>
                   <div className="border-l-2 border-sp-brand bg-sp-accent/50 px-3 py-2">
                     <dt className="text-xs font-semibold uppercase text-sp-brand">
                       Proposed
                     </dt>
                     <dd className="mt-1 font-medium text-gray-950">
-                      Embedded Payments · Limited DDA Payments
+                      Embedded Payments · Limited DDA
                     </dd>
                   </div>
                 </dl>

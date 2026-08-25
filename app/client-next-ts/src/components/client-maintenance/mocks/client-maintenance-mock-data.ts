@@ -6,12 +6,22 @@ import type {
 export const MAINTENANCE_DEMO_CLIENT_ID = '1000010400';
 export const MAINTENANCE_ATTESTATION_DOCUMENT_ID =
   'c4e4739f-33ed-47f6-82fa-0b1c5c992d0b';
+export const MAINTENANCE_DOCUMENT_REQUEST_ID = '3000011675';
+export const MAINTENANCE_QUESTION_ID = '300001';
+export const MAINTENANCE_ADDED_PARTY_ID = '2000000558';
 
 export function createMaintenanceDemoClient(): ClientResponse {
   return {
     id: MAINTENANCE_DEMO_CLIENT_ID,
     partyId: '2000000555',
-    products: ['MERCHANT_SERVICES'],
+    products: ['EMBEDDED_PAYMENTS'],
+    productDetails: [
+      {
+        product: 'EMBEDDED_PAYMENTS',
+        subProduct: 'LIMITED_DDA_PAYMENTS',
+        onboardingStatus: 'APPROVED',
+      },
+    ],
     status: 'APPROVED',
     outstanding: {
       attestationDocumentIds: [],

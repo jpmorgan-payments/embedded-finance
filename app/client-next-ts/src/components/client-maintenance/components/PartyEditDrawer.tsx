@@ -53,12 +53,13 @@ function buildSparseUpdate(
 ): MaintenancePartyUpdate {
   const update: MaintenancePartyUpdate = {};
 
-  const addressChanged =
-    party.partyType === 'ORGANIZATION' &&
-    (['addressLine', 'city', 'state', 'postalCode', 'country'] as const).some(
-      (key) => current[key] !== original[key]
-    );
-  const originalAddress = party.organizationDetails?.addresses?.[0];
+  const addressChanged = (
+    ['addressLine', 'city', 'state', 'postalCode', 'country'] as const
+  ).some((key) => current[key] !== original[key]);
+  const originalAddress =
+    party.partyType === 'ORGANIZATION'
+      ? party.organizationDetails?.addresses?.[0]
+      : party.individualDetails?.addresses?.[0];
   const addresses = addressChanged
     ? [
         {
@@ -282,71 +283,69 @@ export function PartyEditDrawer({
               )}
             </div>
 
-            {isOrganization ? (
-              <fieldset>
-                <legend className="text-sm font-semibold text-gray-950">
-                  Business address
-                </legend>
-                <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <Label htmlFor="party-address-line">Address line</Label>
-                    <Input
-                      id="party-address-line"
-                      value={values.addressLine}
-                      onChange={(event) =>
-                        updateValue('addressLine', event.target.value)
-                      }
-                      className="mt-1.5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="party-city">City</Label>
-                    <Input
-                      id="party-city"
-                      value={values.city}
-                      onChange={(event) =>
-                        updateValue('city', event.target.value)
-                      }
-                      className="mt-1.5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="party-state">State</Label>
-                    <Input
-                      id="party-state"
-                      value={values.state}
-                      onChange={(event) =>
-                        updateValue('state', event.target.value)
-                      }
-                      className="mt-1.5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="party-postal-code">Postal code</Label>
-                    <Input
-                      id="party-postal-code"
-                      value={values.postalCode}
-                      onChange={(event) =>
-                        updateValue('postalCode', event.target.value)
-                      }
-                      className="mt-1.5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="party-country">Country</Label>
-                    <Input
-                      id="party-country"
-                      value={values.country}
-                      onChange={(event) =>
-                        updateValue('country', event.target.value)
-                      }
-                      className="mt-1.5"
-                      maxLength={2}
-                    />
-                  </div>
+            <fieldset>
+              <legend className="text-sm font-semibold text-gray-950">
+                {isOrganization ? 'Business address' : 'Residential address'}
+              </legend>
+              <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <Label htmlFor="party-address-line">Address line</Label>
+                  <Input
+                    id="party-address-line"
+                    value={values.addressLine}
+                    onChange={(event) =>
+                      updateValue('addressLine', event.target.value)
+                    }
+                    className="mt-1.5"
+                  />
                 </div>
-              </fieldset>
-            ) : null}
+                <div>
+                  <Label htmlFor="party-city">City</Label>
+                  <Input
+                    id="party-city"
+                    value={values.city}
+                    onChange={(event) =>
+                      updateValue('city', event.target.value)
+                    }
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="party-state">State</Label>
+                  <Input
+                    id="party-state"
+                    value={values.state}
+                    onChange={(event) =>
+                      updateValue('state', event.target.value)
+                    }
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="party-postal-code">Postal code</Label>
+                  <Input
+                    id="party-postal-code"
+                    value={values.postalCode}
+                    onChange={(event) =>
+                      updateValue('postalCode', event.target.value)
+                    }
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="party-country">Country</Label>
+                  <Input
+                    id="party-country"
+                    value={values.country}
+                    onChange={(event) =>
+                      updateValue('country', event.target.value)
+                    }
+                    className="mt-1.5"
+                    maxLength={2}
+                  />
+                </div>
+              </div>
+            </fieldset>
 
             {error ? (
               <p

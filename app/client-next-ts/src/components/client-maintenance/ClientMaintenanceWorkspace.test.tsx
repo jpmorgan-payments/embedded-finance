@@ -24,8 +24,8 @@ function renderWorkspace() {
   );
 }
 
-async function loadAllExamples(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: 'Load all examples' }));
+async function loadCompleteStory(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'Load complete story' }));
   await waitFor(() =>
     expect(
       screen.getByRole('button', { name: 'Review proposed changes' })
@@ -64,7 +64,10 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       screen.getByRole('button', { name: 'Review proposed changes' })
     ).toBeDisabled();
-    await loadAllExamples(user);
+    await loadCompleteStory(user);
+    expect(
+      screen.getByRole('radio', { name: /Yes, I have changes to disclose/ })
+    ).toBeChecked();
     await user.click(
       screen.getByRole('button', { name: 'Review proposed changes' })
     );
@@ -72,7 +75,7 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       screen.getByRole('heading', { name: 'Approved and proposed details' })
     ).toBeInTheDocument();
-    expect(screen.getAllByText('Limited DDA Payments')).not.toHaveLength(0);
+    expect(screen.getAllByText('Limited DDA')).not.toHaveLength(0);
     expect(screen.getAllByText('Diaz')).not.toHaveLength(0);
     expect(screen.getAllByText('Sam Lee')).not.toHaveLength(0);
     expect(
@@ -126,6 +129,12 @@ describe('ClientMaintenanceWorkspace', () => {
       level: 1,
       name: 'Marketplace Vendor LLC',
     });
+    await user.click(
+      screen.getByRole('button', { name: 'Request sub-product' })
+    );
+    await user.click(
+      screen.getByRole('radio', { name: /Yes, I have changes to disclose/ })
+    );
     await user.click(screen.getByRole('button', { name: 'Edit Alex Smith' }));
     const drawer = screen.getByRole('dialog', { name: 'Edit person' });
     const lastName = within(drawer).getByLabelText('Last name');
@@ -151,13 +160,20 @@ describe('ClientMaintenanceWorkspace', () => {
       level: 1,
       name: 'Marketplace Vendor LLC',
     });
-    await user.click(screen.getByRole('button', { name: 'Request product' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Request sub-product' })
+    );
     expect(await screen.findByText('Proposed addition')).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('radio', { name: /Yes, I have changes to disclose/ })
+    );
 
     await user.click(screen.getByRole('button', { name: 'Add party' }));
-    expect(
+    const samParty = (
       await screen.findByRole('heading', { name: 'Sam Lee' })
-    ).toBeInTheDocument();
+    ).closest('article');
+    expect(samParty).toHaveTextContent('New party · pending approval');
+    expect(samParty).not.toHaveTextContent('Approved');
 
     await user.click(screen.getByRole('button', { name: 'Remove Alex Smith' }));
     const confirmation = screen.getByRole('dialog', {
@@ -168,6 +184,47 @@ describe('ClientMaintenanceWorkspace', () => {
       within(confirmation).getByRole('button', { name: 'Confirm removal' })
     );
     expect(await screen.findAllByText('Removal requested')).not.toHaveLength(0);
+    const alexParty = screen
+      .getByRole('heading', { name: 'Alex Smith' })
+      .closest('article');
+    expect(alexParty).toHaveTextContent('Approved');
+    expect(alexParty).toHaveTextContent('Removal requested');
+  });
+
+  it('supports a product-only request when nothing changed since approval', async () => {
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await screen.findByRole('heading', {
+      level: 1,
+      name: 'Marketplace Vendor LLC',
+    });
+    expect(
+      screen.getByRole('radio', { name: /No, nothing else changed/ })
+    ).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Request sub-product' })
+    );
+    await user.click(
+      screen.getByRole('radio', { name: /No, nothing else changed/ })
+    );
+
+    expect(
+      screen.queryByRole('button', { name: 'Edit Alex Smith' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Add party' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Review proposed changes' })
+    ).toBeEnabled();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Review proposed changes' })
+    );
+    expect(screen.getAllByText('Limited DDA')).not.toHaveLength(0);
+    expect(screen.queryByText('Diaz')).not.toBeInTheDocument();
   });
 
   it('compares field, profile, and request-oriented review options', async () => {
@@ -178,7 +235,7 @@ describe('ClientMaintenanceWorkspace', () => {
       level: 1,
       name: 'Marketplace Vendor LLC',
     });
-    await loadAllExamples(user);
+    await loadCompleteStory(user);
     await user.click(
       screen.getByRole('button', { name: 'Review proposed changes' })
     );
@@ -204,7 +261,12 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       within(
         screen.getByRole('region', { name: 'Proposed profile' })
-      ).getByText(/EMBEDDED PAYMENTS · LIMITED DDA PAYMENTS/)
+      ).getByText('EMBEDDED PAYMENTS · LIMITED DDA · Proposed')
+    ).toBeInTheDocument();
+    expect(
+      within(
+        screen.getByRole('region', { name: 'Proposed profile' })
+      ).getByText('EMBEDDED PAYMENTS · LIMITED DDA PAYMENTS')
     ).toBeInTheDocument();
     expect(
       within(
@@ -227,5 +289,87 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(reviewNote).toHaveTextContent(
       'Trade-off: Reviewers must expand a party before seeing every value.'
     );
+  });
+
+  it('shows returned questions and party document requests as display-only tasks', async () => {
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await screen.findByRole('heading', {
+      level: 1,
+      name: 'Marketplace Vendor LLC',
+    });
+    await loadCompleteStory(user);
+    await user.click(
+      screen.getByRole('button', { name: 'Review proposed changes' })
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Continue to attestation' })
+    );
+    await user.click(
+      screen.getByRole('checkbox', {
+        name: /I have read the certification/,
+      })
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Attest and submit for verification',
+      })
+    );
+
+    const demoControls = screen.getByRole('complementary', {
+      name: 'Asynchronous review',
+    });
+    await waitFor(() =>
+      expect(
+        within(demoControls).getByRole('button', {
+          name: 'Request more information',
+        })
+      ).toBeEnabled()
+    );
+    await user.click(
+      within(demoControls).getByRole('button', {
+        name: 'Request more information',
+      })
+    );
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Maintenance returned for information',
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'More information required' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('New-party due diligence')).toBeInTheDocument();
+    expect(
+      screen.getByText('New party · information requested')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Existing parties remain approved/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Client-level question for new-party review')
+    ).toBeInTheDocument();
+    expect(screen.getByText('No party ID in response')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Will the newly added party initiate account activity on behalf of the client?'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Document request for Sam Lee' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Party linked')).toBeInTheDocument();
+    expect(screen.getByText('Drivers License')).toBeInTheDocument();
+    expect(screen.getAllByText('Display only')).toHaveLength(2);
+    expect(
+      within(demoControls).getByRole('button', {
+        name: 'Approve maintenance',
+      })
+    ).toBeDisabled();
+    expect(
+      screen.queryByRole('button', { name: /answer|upload/i })
+    ).not.toBeInTheDocument();
   });
 });

@@ -78,7 +78,7 @@ export function RequestTaskReview({
               <AccordionTrigger className="gap-3 text-left hover:no-underline">
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                   <span className="font-semibold text-gray-950">
-                    Limited DDA Payments
+                    Limited DDA
                   </span>
                   <Badge variant="outline">ADD</Badge>
                   <span className="text-xs font-normal text-gray-500">
@@ -89,8 +89,8 @@ export function RequestTaskReview({
               <AccordionContent>
                 <div className="flex items-start gap-3 border-y border-gray-200 py-4 text-sm text-gray-700">
                   <PackagePlus className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
-                  Add Embedded Payments with the Limited DDA Payments
-                  sub-product.
+                  Add Limited DDA alongside the approved Limited DDA Payments
+                  sub-product under Embedded Payments.
                 </div>
               </AccordionContent>
             </AccordionItem>
