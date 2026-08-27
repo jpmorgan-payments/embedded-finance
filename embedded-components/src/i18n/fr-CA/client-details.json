@@ -64,7 +64,22 @@
     "noOwnershipInfo": "Aucune information sur la propriété au dossier",
     "controllerAndOwner": "(Contrôleur et propriétaire)",
     "controller": "(Contrôleur)",
-    "owner": "(Propriétaire)"
+    "owner": "(Propriétaire)",
+    "email": "Courriel",
+    "phone": "Téléphone",
+    "website": "Site Web",
+    "address": "Adresse",
+    "established": "Fondée",
+    "unknownOrganization": "Organisation inconnue",
+    "unknownPerson": "Inconnu",
+    "noQuestionResponses": "Aucune réponse aux questions au dossier.",
+    "questionTextUnavailable": "Texte de la question indisponible"
+  },
+  "srOnly": {
+    "email": "Courriel",
+    "phone": "Téléphone",
+    "website": "Site Web",
+    "address": "Adresse"
   },
   "maskedValue": {
     "showValue": "Afficher la valeur",
@@ -141,5 +156,44 @@
     "true": "Oui",
     "false": "Non"
   },
-  "emptyValue": "—"
+  "partyLabels": {
+    "organizationName": "Nom de l'organisation",
+    "organizationType": "Type d'organisation",
+    "dbaName": "Nom commercial",
+    "description": "Description",
+    "industryCategory": "Catégorie d'industrie",
+    "industryType": "Type d'industrie",
+    "countryOfFormation": "Pays de constitution",
+    "yearOfFormation": "Année de constitution",
+    "jurisdiction": "Juridiction",
+    "email": "Courriel",
+    "phone": "Téléphone",
+    "website": "Site Web",
+    "addresses": "Adresses",
+    "organizationIds": "ID d'organisation",
+    "jobTitle": "Titre du poste",
+    "firstName": "Prénom",
+    "middleName": "Deuxième prénom",
+    "lastName": "Nom de famille",
+    "nameSuffix": "Suffixe",
+    "birthDate": "Date de naissance",
+    "countryOfResidence": "Pays de résidence",
+    "countryOfCitizenship": "Pays de citoyenneté",
+    "natureOfOwnership": "Nature de la propriété",
+    "soleOwner": "Propriétaire unique",
+    "individualIds": "ID de personne"
+  },
+  "emptyValue": "—",
+  "statusBadge": {
+    "approved": "Approuvé",
+    "active": "Actif",
+    "new": "Nouveau",
+    "inReview": "En examen",
+    "infoRequested": "Informations demandées",
+    "declined": "Refusé",
+    "suspended": "Suspendu",
+    "terminated": "Résilié",
+    "notStarted": "Non commencé",
+    "unknown": "Inconnu"
+  }
 }

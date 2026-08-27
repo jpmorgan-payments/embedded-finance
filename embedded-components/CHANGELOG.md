@@ -2,6 +2,21 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.9] - 2026-08-27
+
+### Changes
+
+#### Features
+
+- complete es-US and fr-CA translations with parity tests
+- **i18n,dropzone:** add translations for dropzone component
+
+#### Bug Fixes
+
+- **payment-flow:** localize payee accessible labels
+- replace vulnerable regex patterns with linear parsing
+- **onboarding:** update regex for segment matching in _get function to correctly handle array indices
+
 ## [0.17.8] - 2026-08-24
 
 ### Changes

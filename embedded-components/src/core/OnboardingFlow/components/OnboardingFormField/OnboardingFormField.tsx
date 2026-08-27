@@ -57,6 +57,7 @@ import {
   getFieldPresentation,
   useFormUtils,
   useFormUtilsWithClientContext,
+  useReadonlyLockedFields,
 } from '@/core/OnboardingFlow/utils/formUtils';
 
 interface BaseProps<
@@ -172,6 +173,9 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
     clientData,
     screenIdOverride ?? 'overview'
   );
+  // Host-configured read-only lock (OnboardingFlow `readonlyFields`). Resolved
+  // centrally so a single prop covers every screen that renders the field.
+  const lockedFields = useReadonlyLockedFields();
   // Use the screen-override rule resolver when provided; otherwise the default
   // (current screen). This lets owner fields rendered on the `overview` screen
   // resolve their `owner-stepper` conditional rules (content-token variant etc.)
@@ -216,9 +220,14 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
   const fieldRequired = required ?? fieldRule.required ?? false;
   const fieldDisplay = fieldRule.display ?? 'visible';
 
+  // A host-configured lock applies to the field and — via its root key — every
+  // sub-input of a composite field (e.g. all `organizationAddress` inputs).
+  const lockedByConfig = lockedFields.has(configName.split('.')[0]);
+
   // Check if field has a validation error (used by editableWhenInvalid)
   const fieldError = form.getFieldState(name)?.error;
-  const isReadonly = readonly || fieldRule.interaction === 'readonly';
+  const isReadonly =
+    readonly || fieldRule.interaction === 'readonly' || lockedByConfig;
   const shouldOverrideReadonly =
     isReadonly && fieldRule.editableWhenInvalid === true && fieldError != null;
 

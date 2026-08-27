@@ -13,7 +13,9 @@ import {
   generateClientRequestBody,
   generatePartyRequestBody,
   getPartyFieldConfig,
+  getPopulatedFormFieldKeys,
   getValueByPath,
+  isValuePopulated,
   mapClientApiErrorsToFormErrors,
   mapPartyApiErrorsToFormErrors,
   sanitizeServerErrorMessage,
@@ -353,6 +355,70 @@ describe('formUtils', () => {
         expect(result.controllerIds[0].issuer).toBe('US');
         expect(result.controllerIds[0].idType).toBe('SSN');
       }
+    });
+  });
+
+  describe('isValuePopulated', () => {
+    it('treats undefined, null and empty/whitespace strings as not populated', () => {
+      expect(isValuePopulated(undefined)).toBe(false);
+      expect(isValuePopulated(null)).toBe(false);
+      expect(isValuePopulated('')).toBe(false);
+      expect(isValuePopulated('   ')).toBe(false);
+    });
+
+    it('treats non-empty strings, numbers and booleans as populated', () => {
+      expect(isValuePopulated('Acme')).toBe(true);
+      expect(isValuePopulated(0)).toBe(true);
+      expect(isValuePopulated(false)).toBe(true);
+    });
+
+    it('treats objects/arrays as populated only when a leaf carries data', () => {
+      expect(isValuePopulated({ primaryAddressLine: '', city: '' })).toBe(
+        false
+      );
+      expect(
+        isValuePopulated({ primaryAddressLine: '1 Main St', city: '' })
+      ).toBe(true);
+      expect(isValuePopulated([])).toBe(false);
+      expect(isValuePopulated(['', '   '])).toBe(false);
+      expect(isValuePopulated(['', 'x'])).toBe(true);
+    });
+  });
+
+  describe('getPopulatedFormFieldKeys', () => {
+    it('returns an empty set when there is no client data', () => {
+      expect(getPopulatedFormFieldKeys(undefined).size).toBe(0);
+    });
+
+    it('collects populated root keys across parties without leaking defaults', () => {
+      const clientData = {
+        parties: [
+          {
+            partyType: 'ORGANIZATION',
+            organizationDetails: {
+              organizationName: 'Acme',
+              organizationType: 'LIMITED_LIABILITY_COMPANY',
+              addresses: [
+                {
+                  addressType: 'BUSINESS_ADDRESS',
+                  addressLines: ['1 Main St'],
+                  city: 'Columbus',
+                  state: 'OH',
+                  postalCode: '43004',
+                  country: 'US',
+                },
+              ],
+              // dbaName intentionally omitted → must NOT be reported populated
+            },
+          },
+        ],
+      } as unknown as ClientResponse;
+
+      const keys = getPopulatedFormFieldKeys(clientData);
+      expect(keys.has('organizationName')).toBe(true);
+      expect(keys.has('organizationTypeHierarchy')).toBe(true);
+      expect(keys.has('organizationAddress')).toBe(true);
+      expect(keys.has('dbaName')).toBe(false);
     });
   });
 });

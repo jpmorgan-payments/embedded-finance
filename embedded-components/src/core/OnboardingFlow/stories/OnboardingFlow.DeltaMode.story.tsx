@@ -215,6 +215,81 @@ function createDeltaModeMissingControllerClient(
   return client;
 }
 
+/**
+ * Sole owner-operator client — the single individual is the combined
+ * CONTROLLER + BENEFICIAL_OWNER + AUTHORIZED_USER (a sole owner), so there are
+ * no separate beneficial owners. Built from the shared rich mock, keeping its
+ * standard business + party identity. Delta review asks for the same data
+ * points that are outstanding for this client type: the operator's SSN and
+ * birthdate (the two delta-counted identity fields), the business and operator
+ * address and phone, and the sanctions question (30158, whose "Yes" reveals the
+ * conditional sanctioned-countries question 30162). The operator runs the
+ * business alone, so the story sets `defaultControllerNotAnOwner: true` to mark
+ * the owners section complete up front — there are no separate beneficial
+ * owners to enumerate.
+ * Keep non-exported — Storybook CSF treats named exports as stories.
+ */
+function createDeltaModeSoleOwnerOperatorClient(
+  clientId = DEFAULT_CLIENT_ID
+): ClientResponse {
+  const client = cloneDeep(mockClientNew);
+  client.id = clientId;
+  client.outstanding = {
+    ...client.outstanding,
+    questionIds: ['30158', '30162'],
+    partyIds: [],
+    partyRoles: [],
+  };
+  client.questionResponses = [];
+
+  client.parties = (client.parties ?? [])
+    // Drop the extra beneficial owner — this client has a single sole owner.
+    .filter(
+      (party) =>
+        !(
+          party.partyType === 'INDIVIDUAL' &&
+          party.roles?.includes('BENEFICIAL_OWNER') &&
+          !party.roles?.includes('CONTROLLER')
+        )
+    )
+    .map((party) => {
+      if (party.partyType === 'ORGANIZATION' && party.organizationDetails) {
+        return {
+          ...party,
+          organizationDetails: {
+            ...party.organizationDetails,
+            // Surfaced by delta review as the business contact data points.
+            addresses: [],
+            phone: undefined,
+          },
+        };
+      }
+      if (
+        party.partyType === 'INDIVIDUAL' &&
+        party.roles?.includes('CONTROLLER') &&
+        party.individualDetails
+      ) {
+        return {
+          ...party,
+          roles: ['CONTROLLER', 'BENEFICIAL_OWNER', 'AUTHORIZED_USER'],
+          individualDetails: {
+            ...party.individualDetails,
+            soleOwner: true,
+            // Surfaced by delta review: SSN + birthdate (the two counted
+            // identity fields) plus the operator's address and phone.
+            birthDate: undefined,
+            individualIds: [],
+            addresses: [],
+            phone: undefined,
+          },
+        };
+      }
+      return party;
+    });
+
+  return client;
+}
+
 const meta: Meta<OnboardingFlowStoryArgs> = {
   title: 'Core/OnboardingFlow/Delta mode',
   component: OnboardingFlowTemplate,
@@ -351,6 +426,39 @@ export const MissingController: Story = {
   args: {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
+/**
+ * **Sole owner-operator (combined controller/owner)**
+ *
+ * The single individual is the combined controller + sole beneficial owner +
+ * authorized user, so there are no separate owners. Built from the shared rich
+ * mock with its standard business + party identity. Delta review asks for the
+ * same outstanding data points for this client type: the owner's SSN and
+ * birthdate (the two delta-counted identity fields), the business and operator
+ * address and phone, and the sanctions question (30158 → conditional
+ * sanctioned-countries question 30162). `defaultControllerNotAnOwner: true`
+ * marks the owners section complete up front, since the operator is the only
+ * person and there are no separate beneficial owners to enumerate.
+ */
+export const SoleOwnerOperator: Story = {
+  name: 'Sole owner-operator (combined controller/owner)',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        createDeltaModeSoleOwnerOperatorClient(),
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    deltaMode: {
+      enabled: true,
+      maxPendingFields: 5,
+      defaultControllerNotAnOwner: true,
+    },
   },
 };
 

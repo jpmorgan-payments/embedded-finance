@@ -22,6 +22,29 @@
   "change": "Change",
   "add": "Add",
   "overview": "Overview",
+  "dropzone": {
+    "dropFilesHere": "Drop your files here!",
+    "cameraPrompt": "Take a photo or upload a file",
+    "uploadPrompt": "Drag and drop a file or click to browse",
+    "acceptedFileTypes": "Accepted file types: {{types}}",
+    "maxFileSize": "Max. file size: {{size}} MB",
+    "compressing": "Compressing image to {{dimension}}px...",
+    "compressed": "compressed",
+    "previewUnavailable": "Preview not available for this file type",
+    "openInNewTab": "Open in New Tab",
+    "aria": {
+      "previewFile": "Preview file",
+      "deleteFile": "Delete file",
+      "openInNewTab": "Open in new tab"
+    },
+    "errors": {
+      "fileTooLarge": "File size exceeds the maximum allowed size of {{maxSize}} MB",
+      "compressedFileTooLarge": "Even after compression, file size exceeds the maximum allowed size of {{maxSize}} MB",
+      "uploadFailed": "Could not upload {{fileName}}",
+      "uploadFailedWithOthers_one": "Could not upload {{fileName}}, and {{count}} other file.",
+      "uploadFailedWithOthers_other": "Could not upload {{fileName}}, and {{count}} other files."
+    }
+  },
   "validation": {
     "required": "This field is required",
     "minItems": "Minimum {{count}} items required",

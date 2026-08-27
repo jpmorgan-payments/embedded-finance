@@ -367,10 +367,8 @@ describe('IndirectOwnership Component', () => {
 
     expect(
       screen.queryByRole('button', { name: /Add new beneficial owner/i })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /Complete/i })
-    ).not.toBeInTheDocument();
+    ).toBeNull();
+    expect(screen.queryByRole('button', { name: /Complete/i })).toBeNull();
   });
 
   it('tracks user events when handler provided', () => {

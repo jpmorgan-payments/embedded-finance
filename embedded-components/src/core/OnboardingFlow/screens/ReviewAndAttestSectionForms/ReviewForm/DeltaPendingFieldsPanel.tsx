@@ -1536,7 +1536,8 @@ function DeltaPendingFieldsPanelComponent({
       presentation.optionsSource === 'countries'
         ? COUNTRIES_OF_FORMATION.map((code) => ({
             value: code,
-            searchValue: `[${code}] ${tString([`common:countries.${code}`], '')}`,
+            searchValue:
+              `[${code}] ` + tString([`common:countries.${code}`], ''),
             label: (
               <span>
                 <span className="eb-font-medium">[{code}]</span>{' '}

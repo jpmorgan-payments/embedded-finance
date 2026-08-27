@@ -290,11 +290,12 @@ const PartyCard: React.FC<PartyCardProps> = ({
   const isOrg = party.partyType === 'ORGANIZATION';
   const isIndirectOwner =
     party.individualDetails?.natureOfOwnership === 'Indirect';
-  const roleLabel = isOrg
-    ? 'Intermediary Entity'
-    : isIndirectOwner
-      ? 'Indirect Beneficial Owner'
-      : 'Direct Beneficial Owner';
+  let roleLabel = 'Direct Beneficial Owner';
+  if (isOrg) {
+    roleLabel = 'Intermediary Entity';
+  } else if (isIndirectOwner) {
+    roleLabel = 'Indirect Beneficial Owner';
+  }
 
   return (
     <Card className="eb-flex eb-items-center eb-justify-between eb-rounded-lg eb-border eb-p-4">

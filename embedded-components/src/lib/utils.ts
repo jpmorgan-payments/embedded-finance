@@ -51,7 +51,7 @@ export function _get(
   let result: unknown = object;
   for (const segment of segments) {
     // Handle array indices in bracket notation e.g. "foo[0].bar"
-    const matches = segment.match(/^([^[]+)|\[(.+)\]$/);
+    const matches = segment.match(/^(?:([^[]+)|\[(.+)\])$/);
     const key = matches ? matches[1] || matches[2] : segment;
 
     result = (result as Record<string, unknown> | null | undefined)?.[key];

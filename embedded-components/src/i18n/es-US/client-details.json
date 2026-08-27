@@ -61,11 +61,26 @@
     "identityVerification": "Verificación de Identidad",
     "clientId": "ID del Cliente",
     "created": "Creado",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "website": "Sitio web",
+    "address": "Dirección",
+    "established": "Fund.",
+    "unknownOrganization": "Organización desconocida",
+    "unknownPerson": "Desconocido",
+    "noQuestionResponses": "No hay respuestas de preguntas registradas.",
+    "questionTextUnavailable": "Texto de la pregunta no disponible",
     "addressContactInfo": "Dirección, información de contacto y más",
     "noOwnershipInfo": "No hay información de propiedad en archivo",
     "controllerAndOwner": "(Controlador y Propietario)",
     "controller": "(Controlador)",
     "owner": "(Propietario)"
+  },
+  "srOnly": {
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "website": "Sitio web",
+    "address": "Dirección"
   },
   "maskedValue": {
     "showValue": "Mostrar valor",
@@ -141,6 +156,45 @@
   "booleanValues": {
     "true": "Sí",
     "false": "No"
+  },
+  "partyLabels": {
+    "organizationName": "Nombre de la organización",
+    "organizationType": "Tipo de organización",
+    "dbaName": "Nombre comercial (DBA)",
+    "description": "Descripción",
+    "industryCategory": "Categoría de industria",
+    "industryType": "Tipo de industria",
+    "countryOfFormation": "País de constitución",
+    "yearOfFormation": "Año de constitución",
+    "jurisdiction": "Jurisdicción",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "website": "Sitio web",
+    "addresses": "Direcciones",
+    "organizationIds": "ID de la organización",
+    "jobTitle": "Cargo",
+    "firstName": "Nombre",
+    "middleName": "Segundo nombre",
+    "lastName": "Apellido",
+    "nameSuffix": "Sufijo del nombre",
+    "birthDate": "Fecha de nacimiento",
+    "countryOfResidence": "País de residencia",
+    "countryOfCitizenship": "País de ciudadanía",
+    "natureOfOwnership": "Naturaleza de la propiedad",
+    "soleOwner": "Propietario único",
+    "individualIds": "ID individuales"
+  },
+  "statusBadge": {
+    "approved": "Aprobado",
+    "active": "Activo",
+    "new": "Nuevo",
+    "inReview": "En revisión",
+    "infoRequested": "Información solicitada",
+    "declined": "Rechazado",
+    "suspended": "Suspendido",
+    "terminated": "Terminado",
+    "notStarted": "No iniciado",
+    "unknown": "Desconocido"
   },
   "emptyValue": "—"
 }

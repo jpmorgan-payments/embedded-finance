@@ -302,6 +302,115 @@ describe('IndirectOwnership add-owner dialog', () => {
       screen.getByRole('listitem', { name: /Ivy Indirect/i })
     ).toBeInTheDocument();
   });
+
+  it('marks invalid fields with aria-invalid and links the error message', async () => {
+    const user = userEvent.setup();
+    renderComponent(makeClient([]));
+
+    const dialog = await openAddOwnerDialog(user);
+    await user.click(
+      within(dialog).getByRole('button', { name: /^Add Owner$/i })
+    );
+
+    const firstName = within(dialog).getByLabelText(/First Name/i);
+    expect(firstName).toHaveAttribute('aria-invalid', 'true');
+    expect(firstName).toHaveAttribute('aria-describedby', 'firstName-error');
+    expect(
+      await within(dialog).findByText(/First name is required/i)
+    ).toHaveAttribute('id', 'firstName-error');
+  });
+
+  it('surfaces a duplicate owner as an accessible alert', async () => {
+    const user = userEvent.setup();
+    renderComponent(
+      makeClient([
+        {
+          id: 'owner-existing',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          active: true,
+          parentPartyId: 'client-1',
+          individualDetails: {
+            firstName: 'Grace',
+            lastName: 'Hopper',
+            natureOfOwnership: 'Direct',
+          },
+          createdAt: '2024-01-02T00:00:00.000Z',
+        },
+      ])
+    );
+
+    const dialog = await openAddOwnerDialog(user);
+    await user.type(within(dialog).getByLabelText(/First Name/i), 'Grace');
+    await user.type(within(dialog).getByLabelText(/Last Name/i), 'Hopper');
+    await user.click(
+      within(dialog).getByRole('button', { name: /^Add Owner$/i })
+    );
+
+    const alert = await within(dialog).findByRole('alert');
+    expect(alert).toHaveTextContent(/already exists/i);
+  });
+
+  it('shows a pending state while the owner is being added (integrated mode)', async () => {
+    const user = userEvent.setup();
+    let resolveAdd: (() => void) | undefined;
+    const onAddOwner = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveAdd = resolve;
+        })
+    );
+    renderComponent(makeClient([]), { onAddOwner });
+
+    const dialog = await openAddOwnerDialog(user);
+    await user.type(within(dialog).getByLabelText(/First Name/i), 'Ada');
+    await user.type(within(dialog).getByLabelText(/Last Name/i), 'Lovelace');
+    await user.click(
+      within(dialog).getByRole('button', { name: /^Add Owner$/i })
+    );
+
+    const adding = await within(dialog).findByRole('button', {
+      name: /Adding/i,
+    });
+    expect(adding).toBeDisabled();
+
+    resolveAdd?.();
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    );
+    expect(onAddOwner).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the dialog open with a retryable error when adding fails (integrated mode)', async () => {
+    const user = userEvent.setup();
+    const onAddOwner = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(undefined);
+    renderComponent(makeClient([]), { onAddOwner });
+
+    const dialog = await openAddOwnerDialog(user);
+    await user.type(within(dialog).getByLabelText(/First Name/i), 'Ada');
+    await user.type(within(dialog).getByLabelText(/Last Name/i), 'Lovelace');
+    await user.click(
+      within(dialog).getByRole('button', { name: /^Add Owner$/i })
+    );
+
+    // Failure: the dialog stays open with a retryable error.
+    expect(
+      await within(dialog).findByText(/could not add this owner/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // Retry succeeds and closes the dialog.
+    await user.click(
+      within(dialog).getByRole('button', { name: /^Add Owner$/i })
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    );
+    expect(onAddOwner).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('IndirectOwnership gating question and owner removal', () => {
@@ -600,5 +709,60 @@ describe('IndirectOwnership chain builder — carries selected party id', () => 
         partyId: 'int-shared',
       }),
     ]);
+  });
+
+  // Shared steps: open the chain builder for Cara Chain, pick the existing
+  // "Shared Holdings" entity, and click "Yes, save and complete".
+  async function buildAndSaveSharedChain(
+    user: ReturnType<typeof userEvent.setup>
+  ) {
+    const card = screen.getByRole('listitem', { name: /Cara Chain/i });
+    await user.click(
+      within(card).getByRole('button', { name: /Add intermediary owner/i })
+    );
+    const dialog = await screen.findByRole('dialog');
+    await user.click(
+      within(dialog).getByRole('combobox', { name: /Company Name/i })
+    );
+    const search = await screen.findByPlaceholderText('Search companies...');
+    await user.type(search, 'Shared');
+    await user.click(
+      await screen.findByRole('option', { name: /Shared Holdings/i })
+    );
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: /Yes, save and complete/i,
+      })
+    );
+  }
+
+  it('keeps the chain builder open and shows an error when host persistence rejects', async () => {
+    const user = userEvent.setup();
+    const onSaveHierarchy = vi
+      .fn()
+      .mockRejectedValue(new Error('persist failed'));
+    renderComponent(clientWithReusableEntity, { onSaveHierarchy });
+
+    await buildAndSaveSharedChain(user);
+
+    await waitFor(() => expect(onSaveHierarchy).toHaveBeenCalled());
+    // Local completion is not recorded: the dialog stays open with an error.
+    expect(
+      await screen.findByText(/could not save the ownership chain/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('closes the chain builder after host persistence resolves', async () => {
+    const user = userEvent.setup();
+    const onSaveHierarchy = vi.fn().mockResolvedValue(undefined);
+    renderComponent(clientWithReusableEntity, { onSaveHierarchy });
+
+    await buildAndSaveSharedChain(user);
+
+    await waitFor(() => expect(onSaveHierarchy).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    );
   });
 });

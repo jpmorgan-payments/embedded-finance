@@ -94,13 +94,12 @@ const buildOwnershipSection = (
   description: SectionInfo['description']
 ): SectionInfo | null => {
   if (data.beneficialOwners.length === 0 && !data.controller) return null;
+  const ownerCount = data.beneficialOwners.length + Number(!!data.controller);
+
   return {
     id: 'ownership',
     icon: getSectionIcon('ownership'),
-    badge:
-      data.beneficialOwners.length > 0
-        ? `${data.beneficialOwners.length + (data.controller ? 1 : 0)}`
-        : undefined,
+    badge: data.beneficialOwners.length > 0 ? `${ownerCount}` : undefined,
     description,
     status: 'complete',
   };

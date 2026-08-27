@@ -1274,6 +1274,12 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
   );
 };
 
+const renderCancelButton = (
+  cancelButton: ReactNode,
+  embedded: boolean
+): ReactNode =>
+  embedded ? cancelButton : <DialogClose asChild>{cancelButton}</DialogClose>;
+
 interface BankAccountFormFooterProps {
   embedded: boolean;
   currentStep: 1 | 2;
@@ -1327,11 +1333,7 @@ const BankAccountFormFooter: FC<BankAccountFormFooterProps> = ({
   if (layout === 'singlePage') {
     const singlePageButtons = (
       <>
-        {embedded ? (
-          cancelButton
-        ) : (
-          <DialogClose asChild>{cancelButton}</DialogClose>
-        )}
+        {renderCancelButton(cancelButton, embedded)}
         {submitButton}
       </>
     );
@@ -1384,11 +1386,7 @@ const BankAccountFormFooter: FC<BankAccountFormFooterProps> = ({
   const step1Content =
     currentStep === 1 ? (
       <>
-        {embedded ? (
-          cancelButton
-        ) : (
-          <DialogClose asChild>{cancelButton}</DialogClose>
-        )}
+        {renderCancelButton(cancelButton, embedded)}
         {continueButton}
       </>
     ) : null;
