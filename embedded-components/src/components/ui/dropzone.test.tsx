@@ -1,7 +1,10 @@
 import { act } from 'react';
+import { render as testingLibraryRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@test-utils';
+
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
 import Dropzone, { sanitizeBlobUrl, type DropzoneProps } from './dropzone';
 
@@ -98,6 +101,27 @@ describe('Dropzone', () => {
 
       const input = document.querySelector('input[type="file"]');
       expect(input).toHaveAttribute('capture', 'user');
+    });
+
+    it('renders localized content and accessible labels', () => {
+      testingLibraryRender(
+        <EBComponentsProvider
+          apiBaseUrl="http://test"
+          contentTokens={{ name: 'esUS' }}
+        >
+          <Dropzone value={[imageFile()]} />
+        </EBComponentsProvider>
+      );
+
+      expect(
+        screen.getByText('Arrastra y suelta un archivo o haz clic para buscar')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Vista previa del archivo' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Eliminar archivo' })
+      ).toBeInTheDocument();
     });
 
     it('renders custom children when provided', () => {

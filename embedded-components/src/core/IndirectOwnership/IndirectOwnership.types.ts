@@ -202,6 +202,10 @@ export interface IndirectOwnershipProps extends UserTrackingProps {
    * The host is responsible for creating the party via the API and refreshing
    * client data. If not provided, owners are managed in local component state
    * (standalone/demo mode).
+   *
+   * May return a Promise. The Add Owner dialog awaits it, showing a pending
+   * state and keeping the dialog open with an error (so the user can retry) if
+   * it rejects.
    */
   onAddOwner?: (ownerData: {
     entityType: 'INDIVIDUAL' | 'BUSINESS';
@@ -209,7 +213,7 @@ export interface IndirectOwnershipProps extends UserTrackingProps {
     lastName?: string;
     businessName?: string;
     ownershipType: 'DIRECT' | 'INDIRECT';
-  }) => void;
+  }) => void | Promise<void>;
 
   /**
    * Callback when an owner is removed. The host is responsible for
@@ -227,6 +231,11 @@ export interface IndirectOwnershipProps extends UserTrackingProps {
    * the beneficial owner toward the root business.
    *
    * If not provided, hierarchies are stored in local component state only.
+   *
+   * May return a Promise. The component awaits it before marking the save
+   * complete (closing the dialog and recording completion), so a rejected
+   * host persistence keeps the chain builder open with an error rather than
+   * showing false success.
    */
   onSaveHierarchy?: (
     ownerId: string,
@@ -246,7 +255,7 @@ export interface IndirectOwnershipProps extends UserTrackingProps {
        */
       partyId?: string;
     }>
-  ) => void;
+  ) => void | Promise<void>;
 
   /**
    * Callback when the user clicks "Edit" on an owner card.

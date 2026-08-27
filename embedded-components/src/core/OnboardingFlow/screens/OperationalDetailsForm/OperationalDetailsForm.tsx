@@ -67,7 +67,9 @@ import { useQuestionTree } from './useQuestionTree';
  * Extract question ID from API error message.
  * Matches patterns like "question with ID [30002]" or similar.
  */
-const extractQuestionIdFromMessage = (message: string): string | null => {
+export const extractQuestionIdFromMessage = (
+  message: string
+): string | null => {
   const match = message.match(/\[(\d+)\]/);
   return match ? match[1] : null;
 };
@@ -76,11 +78,26 @@ const extractQuestionIdFromMessage = (message: string): string | null => {
  * Format API error message to be more user-friendly.
  * Extracts the actionable part from verbose server messages.
  */
-const formatErrorMessage = (message: string): string => {
+export const formatErrorMessage = (message: string): string => {
   // Extract the hint in brackets at the end of the message, e.g., "[Please use a 2-letter ISO country code.]"
-  const hintMatch = message.match(/\[([^\]]+)\]\.?$/);
-  if (hintMatch) {
-    return hintMatch[1];
+  const closingBracketIndex = message.endsWith('.')
+    ? message.length - 2
+    : message.length - 1;
+  if (message[closingBracketIndex] === ']') {
+    const previousClosingBracketIndex = message.lastIndexOf(
+      ']',
+      closingBracketIndex - 1
+    );
+    const openingBracketIndex = message.indexOf(
+      '[',
+      previousClosingBracketIndex + 1
+    );
+    if (
+      openingBracketIndex >= 0 &&
+      openingBracketIndex < closingBracketIndex - 1
+    ) {
+      return message.slice(openingBracketIndex + 1, closingBracketIndex);
+    }
   }
 
   // If no hint found, try to simplify the message

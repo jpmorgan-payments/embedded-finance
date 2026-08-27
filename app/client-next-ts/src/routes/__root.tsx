@@ -22,9 +22,10 @@ export const Route = createRootRoute({
 function RootComponent() {
   const location = useLocation();
   const isYearInReview = location.pathname === '/year-in-review';
+  const isFortressGame = location.pathname === '/fortress-game';
   const usesMinimalShell = usesMinimalDemoShell(location.pathname);
 
-  if (usesMinimalShell) {
+  if (usesMinimalShell || isFortressGame) {
     return (
       <>
         <main>

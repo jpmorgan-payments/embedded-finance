@@ -6,6 +6,20 @@
         "US": "Ciudad",
         "CA": "Ciudad",
         "MX": "Ciudad",
+        "AU": "Ciudad / Suburbio",
+        "GB": "Pueblo / Ciudad",
+        "DE": "Ciudad",
+        "FR": "Ciudad",
+        "IT": "Ciudad",
+        "BR": "Ciudad",
+        "IN": "Ciudad / Pueblo",
+        "JP": "Ciudad",
+        "KR": "Ciudad / Distrito",
+        "CN": "Ciudad",
+        "CH": "Ciudad",
+        "ZA": "Ciudad / Pueblo",
+        "NZ": "Ciudad / Pueblo",
+        "BE": "Ciudad / Municipio",
         "ES": "Ciudad",
         "AR": "Ciudad",
         "CL": "Ciudad",
@@ -29,7 +43,9 @@
         "SG": "Ciudad"
       },
       "placeholder": {
-        "default": "Ingrese la ciudad"
+        "default": "Ingrese la ciudad",
+        "AU": "Ingrese la ciudad / suburbio",
+        "GB": "Ingrese el pueblo / la ciudad"
       },
       "description": {
         "default": ""
@@ -43,9 +59,24 @@
         "default": "Estado / Provincia / Región",
         "US": "Estado",
         "CA": "Provincia",
+        "AU": "Estado / Territorio",
+        "GB": "Condado",
+        "DE": "Bundesland",
+        "FR": "Región",
+        "IT": "Región",
+        "BR": "Estado",
         "MX": "Estado",
+        "IN": "Estado",
+        "JP": "Prefectura",
+        "KR": "Provincia / Ciudad",
+        "CN": "Provincia",
+        "CH": "Cantón",
         "ES": "Provincia",
         "AR": "Provincia",
+        "ZA": "Provincia",
+        "PL": "Voivodato",
+        "AT": "Estado",
+        "NZ": "Región",
         "BE": "Provincia",
         "CL": "Región",
         "CO": "Departamento",
@@ -71,6 +102,10 @@
         "default": "Seleccione o ingrese el estado / provincia",
         "US": "Seleccione el estado",
         "CA": "Seleccione la provincia",
+        "AU": "Seleccione el estado / territorio",
+        "GB": "Ingrese el condado",
+        "DE": "Seleccione el Bundesland",
+        "JP": "Seleccione la prefectura",
         "BE": "Seleccione la provincia",
         "CL": "Seleccione la región",
         "CO": "Seleccione el departamento",
@@ -146,13 +181,21 @@
       "placeholder": {
         "default": "Ingrese el código postal",
         "US": "Ingrese el código ZIP",
+        "CA": "Ingrese el código postal",
+        "AU": "Ingrese el código postal",
+        "GB": "Ingrese el código postal",
+        "BR": "Ingrese el CEP",
+        "IN": "Ingrese el código PIN",
+        "NZ": "Ingrese el código postal",
         "IE": "Ingrese el Eircode"
       },
       "description": {
         "default": "",
         "US": "Código ZIP de 5 o 9 dígitos",
         "CA": "Formato: A1A 1A1",
+        "GB": "p. ej., SW1A 1AA",
         "BR": "CEP de 8 dígitos",
+        "JP": "7 dígitos (p. ej., 123-4567)",
         "CL": "7 dígitos",
         "CO": "6 dígitos",
         "DK": "4 dígitos",
@@ -306,6 +349,7 @@
     },
     "owners": {
       "title": "Propietarios y roles clave",
+      "description": "Proporcione información para todos los beneficiarios efectivos que posean el 25% o más de su negocio. Tenga en cuenta que una misma persona puede tener varios roles.",
       "overviewButtonLabel": "Resumen",
       "infoAlert": {
         "header": "Para una $t(onboarding-overview:organizationTypes.{{organizationType}})",
@@ -391,7 +435,7 @@
           "description": "Lo sentimos, pero no podemos proceder con su solicitud en este momento."
         },
         "approved": {
-          "title": "¡Todo listo!",
+          "title": "¡Verificación del negocio completada!",
           "description": "Los datos de su negocio han sido verificados"
         },
         "businessTypeLabel": "Su tipo de negocio seleccionado",
@@ -407,6 +451,7 @@
       },
       "bankAccountSection": {
         "title": "Vincular una cuenta bancaria para pagos",
+        "linkedTitle": "Cuenta bancaria vinculada para pagos",
         "lockedMessage": "Disponible después de que se envíe su solicitud",
         "linkAccountTitle": "Vincular una cuenta",
         "multiAccountOverviewDescriptionSingular": "Tiene 1 cuenta vinculada para pagos. Abra el paso de vinculación bancaria para agregar otra cuenta o administrar los detalles.",
@@ -428,6 +473,18 @@
       "submitButton": "Vincular cuenta",
       "errorTitle": "Error al vincular la cuenta",
       "returnToOverview": "Volver al resumen",
+      "errors": {
+        "400": "Revise la información que ingresó e intente nuevamente.",
+        "401": "Su sesión ha vencido. Inicie sesión e inténtelo nuevamente.",
+        "409": "Es posible que esta cuenta ya exista. Revise sus cuentas vinculadas.",
+        "422": "La información de la cuenta no es válida. Verifíquela e inténtelo nuevamente.",
+        "500": "Ocurrió un error inesperado. Inténtelo de nuevo más tarde.",
+        "default": "Ocurrió un error inesperado. Inténtelo nuevamente."
+      },
+      "existingAccount": {
+        "title": "Su cuenta bancaria vinculada",
+        "description": "Esta cuenta bancaria está vinculada para pagos."
+      },
       "success": {
         "title": "Cuenta vinculada exitosamente",
         "description": "Su cuenta bancaria ha sido vinculada para pagos."
@@ -541,6 +598,10 @@
         "contactInfo": {
           "title": "Información de contacto",
           "description": "Indíquenos cómo comunicarnos con usted."
+        },
+        "publiclyTraded": {
+          "title": "Información de cotización en bolsa",
+          "description": "Si su organización cotiza en bolsa o es subsidiaria de una empresa que cotiza en bolsa, proporcione los datos de cotización."
         },
         "checkAnswers": {
           "title": "Verifique sus respuestas",
@@ -844,6 +905,7 @@
       }
     },
     "countryOfFormation": {
+      "fieldName": "País de registro",
       "label": "País de registro",
       "description": "",
       "placeholder": "Seleccionar país de constitución",
@@ -871,6 +933,28 @@
         "noConsecutiveSpaces": "$t(validation:text.noConsecutiveSpaces)"
       }
     },
+    "ownershipPercentage": {
+      "fieldName": "Porcentaje de propiedad",
+      "label": "Porcentaje de propiedad",
+      "description": "Porcentaje del cliente raíz que es propiedad de este intermediario (1-100)",
+      "placeholder": "Ingrese el porcentaje",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "min": "Debe ser al menos 1",
+        "max": "No puede superar 100"
+      }
+    },
+    "organizationType": {
+      "fieldName": "Tipo de organización",
+      "label": "Tipo de organización",
+      "placeholder": "Seleccione el tipo de organización",
+      "description": "La clasificación legal de la entidad",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)"
+      }
+    },
     "yearOfFormation": {
       "label": "Año de constitución",
       "placeholder": "AAAA",
@@ -883,6 +967,7 @@
       }
     },
     "organizationIdEin": {
+      "fieldName": "EIN",
       "label": "$t(onboarding-overview:idValueLabels.EIN)",
       "description": {
         "default": "$t(onboarding-overview:idValueDescriptions.EIN)",
@@ -1466,7 +1551,7 @@
     },
     "disclosure": {
       "footer": "Servicios bancarios proporcionados por JPMorgan Chase Bank, N.A., Miembro FDIC. {{platformName}} no es un banco.",
-      "fdic": "Las cuentas de depósito están aseguradas por la FDIC hasta $250,000 por depositante para cada categoría de titularidad de cuenta. La disponibilidad del seguro de depósitos de la FDIC protege contra la quiebra de JPMorgan Chase Bank, N.A., Miembro FDIC, y no de {{platformName}}."
+      "fdic": "{{productName}} están asegurados por la FDIC hasta $250,000 por depositante para cada categoría de titularidad de cuenta. La disponibilidad del seguro de depósitos de la FDIC protege contra la quiebra de JPMorgan Chase Bank, N.A., Miembro FDIC, y no de {{platformName}}."
     }
   },
   "industrySelect": {

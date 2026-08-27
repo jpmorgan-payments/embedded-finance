@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import {
   Camera,
   ExternalLink,
@@ -54,6 +55,18 @@ export const sanitizeBlobUrl = (url: string | null): string => {
   } catch {
     return '';
   }
+};
+
+const formatAcceptedFileTypes = (
+  accept: _DropzoneProps['accept']
+): string | undefined => {
+  if (typeof accept !== 'object') return accept;
+
+  return Object.keys(accept)
+    .map((type) =>
+      type.replace('image/', '').replace('application/', '').toUpperCase()
+    )
+    .join(', ');
 };
 
 export type { DropzoneState };
@@ -126,6 +139,8 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
     },
     ref
   ) => {
+    const { t, tString } = useTranslationWithTokens('common');
+
     // State:
     const [filesUploaded, setFilesUploaded] = useState<File[]>(value || []);
     const [errorMessage, setErrorMessage] = useState<string>();
@@ -236,7 +251,9 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           processedFiles.push(compressedFile);
         } else {
           setErrorMessage(
-            `Even after compression, file size exceeds the maximum allowed size of ${getMaxSizeMB()} MB`
+            tString('dropzone.errors.compressedFileTooLarge', {
+              maxSize: getMaxSizeMB(),
+            })
           );
         }
       } catch (compressionError) {
@@ -258,7 +275,9 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           processedFiles.push(file);
         } else {
           setErrorMessage(
-            `File size exceeds the maximum allowed size of ${getMaxSizeMB()} MB`
+            tString('dropzone.errors.fileTooLarge', {
+              maxSize: getMaxSizeMB(),
+            })
           );
         }
       }
@@ -280,7 +299,9 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           collectFileWithinSizeLimit(
             file,
             processedFiles,
-            `File size exceeds the maximum allowed size of ${getMaxSizeMB()} MB`
+            tString('dropzone.errors.fileTooLarge', {
+              maxSize: getMaxSizeMB(),
+            })
           );
         } else {
           await processCompressibleFile(
@@ -319,9 +340,16 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
           }
 
           if (fileRejections.length > 0) {
-            let _errorMessage = `Could not upload ${fileRejections[0].file.name}`;
-            if (fileRejections.length > 1)
-              _errorMessage += `, and ${fileRejections.length - 1} other files.`;
+            const otherFileCount = fileRejections.length - 1;
+            const _errorMessage = tString(
+              otherFileCount > 0
+                ? 'dropzone.errors.uploadFailedWithOthers'
+                : 'dropzone.errors.uploadFailed',
+              {
+                fileName: fileRejections[0].file.name,
+                count: otherFileCount,
+              }
+            );
             setErrorMessage(_errorMessage);
           }
         }
@@ -428,7 +456,7 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
       return (
         <span className="eb-ml-2 eb-inline-flex eb-items-center eb-gap-1 eb-text-blue-600">
           <Sparkles className="eb-h-3 eb-w-3" />
-          <span>compressed</span>
+          <span>{t('dropzone.compressed')}</span>
         </span>
       );
     };
@@ -475,7 +503,7 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                 e.stopPropagation();
                 handleFilePreview(fileUploaded);
               }}
-              aria-label="Preview file"
+              aria-label={tString('dropzone.aria.previewFile')}
             >
               <Eye className="eb-size-4" />
             </Button>
@@ -489,7 +517,7 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               e.stopPropagation();
               deleteUploadedFile(index);
             }}
-            aria-label="Delete file"
+            aria-label={tString('dropzone.aria.deleteFile')}
           >
             <Trash2 className="eb-size-4" />
           </Button>
@@ -517,7 +545,7 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
               children(dropzone)
             ) : dropzone.isDragAccept ? (
               <div className="eb-text-sm eb-font-medium">
-                Drop your files here!
+                {t('dropzone.dropFilesHere')}
               </div>
             ) : (
               <div className="eb-flex eb-flex-col eb-items-center eb-gap-1.5">
@@ -525,38 +553,30 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                   {enableCameraCapture && captureMode ? (
                     <>
                       <Camera className="eb-mr-2 eb-h-4 eb-w-4" />
-                      Take a photo or upload a file
+                      {t('dropzone.cameraPrompt')}
                     </>
                   ) : (
                     <>
                       <Upload className="eb-mr-2 eb-h-4 eb-w-4" />
-                      Drag and drop a file or click to browse
+                      {t('dropzone.uploadPrompt')}
                     </>
                   )}
                 </div>
                 {props.accept && (
                   <div className="eb-text-xs eb-font-medium eb-text-gray-400">
-                    Accepted file types:{' '}
-                    {typeof props.accept === 'object'
-                      ? Object.keys(props.accept)
-                          .map((type) =>
-                            type
-                              .replace('image/', '')
-                              .replace('application/', '')
-                              .toUpperCase()
-                          )
-                          .join(', ')
-                      : props.accept}
+                    {t('dropzone.acceptedFileTypes', {
+                      types: formatAcceptedFileTypes(props.accept),
+                    })}
                   </div>
                 )}
                 {(props.maxSize || fileMaxSize) && (
                   <div className="eb-text-xs eb-font-medium eb-text-gray-400">
-                    Max. file size:{' '}
-                    {(
-                      (props.maxSize || fileMaxSize || 0) /
-                      (1024 * 1024)
-                    ).toFixed(2)}{' '}
-                    MB
+                    {t('dropzone.maxFileSize', {
+                      size: (
+                        (props.maxSize || fileMaxSize || 0) /
+                        (1024 * 1024)
+                      ).toFixed(2),
+                    })}
                   </div>
                 )}
               </div>
@@ -570,7 +590,11 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
             <div className="eb-rounded-md eb-bg-blue-50 eb-p-3 eb-text-sm">
               <div className="eb-flex eb-items-center eb-gap-2 eb-text-blue-700">
                 <Sparkles className="eb-h-4 eb-w-4 eb-animate-spin" />
-                <span>Compressing image to {compressionMaxDimension}px...</span>
+                <span>
+                  {t('dropzone.compressing', {
+                    dimension: compressionMaxDimension,
+                  })}
+                </span>
               </div>
             </div>
           )}
@@ -622,7 +646,7 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                 />
               ) : (
                 <div className="eb-text-center eb-text-gray-500">
-                  Preview not available for this file type
+                  {t('dropzone.previewUnavailable')}
                 </div>
               )}
             </div>
@@ -633,10 +657,10 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
                 variant="outline"
                 size="sm"
                 onClick={openInNewTab}
-                aria-label="Open in new tab"
+                aria-label={tString('dropzone.aria.openInNewTab')}
               >
                 <ExternalLink className="eb-mr-1 eb-h-4 eb-w-4" />
-                Open in New Tab
+                {t('dropzone.openInNewTab')}
               </Button>
             </DialogFooter>
           </DialogContent>

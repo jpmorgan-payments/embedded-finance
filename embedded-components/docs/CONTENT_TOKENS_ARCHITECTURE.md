@@ -80,9 +80,9 @@ recipients.statusLabels.active  // Different path!
 
 ## Implementation Patterns
 
-### Stylized Content in Alerts
+### Stylized Content
 
-Alert content tokens may use a small set of attribute-free presentational tags inside a single string:
+Content tokens rendered through `useTranslationWithTokens().t()` may use a small set of attribute-free presentational tags inside a single string:
 
 ```json
 {
@@ -90,7 +90,9 @@ Alert content tokens may use a small set of attribute-free presentational tags i
 }
 ```
 
-Supported tags are `<p>`, `<br/>`, `<strong>`/`<b>`, `<em>`/`<i>`, `<ul>`, `<ol>`, and `<li>`. `TransWithTokens` maps these tags to React elements while preserving `showTokenIds` annotations and provider token overrides. `AlertDescription` supplies consistent list markers and spacing.
+Supported lowercase tags are `<p>`, `<br/>`, `<strong>`/`<b>`, `<em>`/`<i>`, `<ul>`, `<ol>`, and `<li>`. The translation wrapper detects these tags and maps them to styled React elements while preserving `showTokenIds` annotations, interpolation, plural/context resolution, and provider token overrides. Ordinary tokens continue to resolve as strings.
+
+Use `tString()` whenever a value must remain a string, including labels, placeholders, ARIA attributes, schema messages, comparisons, and data structures. Rich tokens belong in ReactNode-safe prose containers; block content such as lists must not be placed inside a `<p>` element.
 
 Do not put links, attributes, scripts, or other HTML in token strings. Links must be caller-supplied React elements with code-owned, validated URLs. Token strings are never rendered with `dangerouslySetInnerHTML`.
 

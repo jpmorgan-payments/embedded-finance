@@ -226,7 +226,7 @@ export function selectRateFromSheet(
       rate: normalised,
       isIndicative,
       // Only EXECUTABLE rates are lockable ⇒ carry the rateId.
-      ...(isIndicative ? {} : chosen.rateId ? { rateId: chosen.rateId } : {}),
+      ...(!isIndicative && chosen.rateId ? { rateId: chosen.rateId } : {}),
       ...(expiresAt ? { expiresAt } : {}),
       ...(sheet._metadata?.disclaimer
         ? { disclaimer: sheet._metadata.disclaimer }

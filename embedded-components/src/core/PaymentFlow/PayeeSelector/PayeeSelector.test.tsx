@@ -1,8 +1,12 @@
+import { render as testingLibraryRender } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, userEvent } from '@test-utils';
 
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+
 import { FlowContextProvider } from '../FlowContainer/FlowContext';
 import type { Payee, PaymentMethodType } from '../PaymentFlow.types';
+import { PayeeListItem } from './PayeeListItem';
 import { PayeeSelector } from './PayeeSelector';
 
 const mockRecipients: Payee[] = [
@@ -103,8 +107,32 @@ describe('PayeeSelector', () => {
       selectedPayeeId: 'rec-001',
     });
 
-    // The selected item should have visual indication
-    expect(screen.getByText('Alice Johnson')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Selected: Alice Johnson ending in 2333',
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('localizes the selected payee accessible label', () => {
+    testingLibraryRender(
+      <EBComponentsProvider
+        apiBaseUrl="http://test"
+        contentTokens={{ name: 'esUS' }}
+      >
+        <PayeeListItem
+          payee={mockRecipients[0]}
+          isSelected
+          onSelect={vi.fn()}
+        />
+      </EBComponentsProvider>
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Seleccionado: Alice Johnson terminada en 2333',
+      })
+    ).toBeInTheDocument();
   });
 
   it('shows search input when there are 5+ recipients', () => {

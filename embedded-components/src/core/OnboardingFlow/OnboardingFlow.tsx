@@ -220,6 +220,30 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
   });
   // #endregion
 
+  let flowContent: React.ReactNode;
+  if (clientGetError) {
+    flowContent = <ServerErrorAlert error={clientGetError} />;
+  } else if (
+    (clientGetStatus === 'pending' || deltaQuestionsPending) &&
+    clientId &&
+    !props.docUploadOnlyMode
+  ) {
+    flowContent = (
+      <FormLoadingState message={t('onboarding-overview:fetchingClientData')} />
+    );
+  } else {
+    flowContent = (
+      <FlowProvider
+        initialScreenId={flowProviderInitialScreenId}
+        flowConfig={flowConfig}
+        seedInitialStepperStepId={flowProviderSeedStepperStepId}
+        deltaModeActive={deltaModeEligible}
+      >
+        <FlowRenderer />
+      </FlowProvider>
+    );
+  }
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -247,25 +271,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
         style={{ minHeight: height }}
         key={clientId}
       >
-        {/* TODO: replace with actual screens / skeletons */}
-        {clientGetError ? (
-          <ServerErrorAlert error={clientGetError} />
-        ) : (clientGetStatus === 'pending' || deltaQuestionsPending) &&
-          clientId &&
-          !props.docUploadOnlyMode ? (
-          <FormLoadingState
-            message={t('onboarding-overview:fetchingClientData')}
-          />
-        ) : (
-          <FlowProvider
-            initialScreenId={flowProviderInitialScreenId}
-            flowConfig={flowConfig}
-            seedInitialStepperStepId={flowProviderSeedStepperStepId}
-            deltaModeActive={deltaModeEligible}
-          >
-            <FlowRenderer />
-          </FlowProvider>
-        )}
+        {flowContent}
         <DisclosureFooter />
       </main>
     </OnboardingContext.Provider>
@@ -844,11 +850,13 @@ const FlowRenderer: React.FC = React.memo(() => {
 
   const isDeltaTimeline = !!deltaTimelineSections;
   const timelineSections = deltaTimelineSections ?? buildTimelineSections();
-  const effectiveSidebarSectionId = isDeltaTimeline
-    ? currentScreenId === 'review-attest-section'
-      ? 'review-attest-section'
-      : 'complete-your-details'
-    : sidebarSectionId;
+  let effectiveSidebarSectionId = sidebarSectionId;
+  if (isDeltaTimeline) {
+    effectiveSidebarSectionId =
+      currentScreenId === 'review-attest-section'
+        ? 'review-attest-section'
+        : 'complete-your-details';
+  }
 
   const frozenSidebarRef = useRef({
     sectionId: effectiveSidebarSectionId,

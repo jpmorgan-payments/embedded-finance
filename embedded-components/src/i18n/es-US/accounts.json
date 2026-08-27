@@ -1,5 +1,6 @@
 {
   "title": "Cuentas",
+  "titleSingle": "Su cuenta",
   "description": "Vea y administre sus cuentas comerciales",
   "loading": {
     "accounts": "Cargando cuentas..."
@@ -50,5 +51,8 @@
     "ITBD": "Saldo actual",
     "ITAV_description": "Fondos que puede usar ahora, incluyendo créditos pendientes y menos retenciones.",
     "ITBD_description": "Saldo de transacciones liquidadas; puede no reflejar actividad pendiente."
+  },
+  "skeleton": {
+    "loadingAccount": "Cargando cuenta"
   }
 }

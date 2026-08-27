@@ -1,4 +1,5 @@
 {
+  "noTokenFallback": "AUCUN JETON DE CONTENU TROUVÉ : {{key}}",
   "aria": {
     "moreInformation": "Plus d'informations"
   },
@@ -9,10 +10,47 @@
   "loading": "Chargement...",
   "submitting": "Soumission...",
   "noOptionFound": "Aucune option trouvée.",
+  "optional": "optionnel",
   "yes": "Oui",
   "no": "Non",
+  "cancel": "Annuler",
+  "start": "Commencer",
+  "edit": "Modifier",
+  "continue": "Continuer",
+  "empty": "vide",
+  "na": "N/A",
+  "change": "Changer",
+  "add": "Ajouter",
+  "overview": "Aperçu",
+  "dropzone": {
+    "dropFilesHere": "Déposez vos fichiers ici !",
+    "cameraPrompt": "Prenez une photo ou téléversez un fichier",
+    "uploadPrompt": "Glissez-déposez un fichier ou cliquez pour parcourir",
+    "acceptedFileTypes": "Types de fichiers acceptés : {{types}}",
+    "maxFileSize": "Taille maximale du fichier : {{size}} Mo",
+    "compressing": "Compression de l’image à {{dimension}} px...",
+    "compressed": "compressé",
+    "previewUnavailable": "L’aperçu n’est pas disponible pour ce type de fichier",
+    "openInNewTab": "Ouvrir dans un nouvel onglet",
+    "aria": {
+      "previewFile": "Aperçu du fichier",
+      "deleteFile": "Supprimer le fichier",
+      "openInNewTab": "Ouvrir dans un nouvel onglet"
+    },
+    "errors": {
+      "fileTooLarge": "La taille du fichier dépasse la taille maximale autorisée de {{maxSize}} Mo",
+      "compressedFileTooLarge": "Même après la compression, la taille du fichier dépasse la taille maximale autorisée de {{maxSize}} Mo",
+      "uploadFailed": "Impossible de téléverser {{fileName}}",
+      "uploadFailedWithOthers_one": "Impossible de téléverser {{fileName}} et {{count}} autre fichier.",
+      "uploadFailedWithOthers_other": "Impossible de téléverser {{fileName}} et {{count}} autres fichiers."
+    }
+  },
   "validation": {
-    "required": "Ce champ est requis"
+    "required": "Ce champ est requis",
+    "minItems": "Au moins {{count}} éléments requis",
+    "maxItems": "Au maximum {{count}} éléments autorisés",
+    "dateFormat": "Veuillez saisir une date valide au format MM/JJ/AAAA",
+    "dateInvalid": "Date invalide"
   },
   "countries": {
     "AD": "Andorre",
@@ -264,6 +302,17 @@
     "ZA": "Afrique du Sud",
     "ZM": "Zambie",
     "ZW": "Zimbabwe"
+  },
+  "phoneTypes": {
+    "BUSINESS_PHONE": "Professionnel",
+    "MOBILE_PHONE": "Mobile",
+    "ALTERNAE_PHONE": "Autre"
+  },
+  "addressTypes": {
+    "LEGAL_ADDRESS": "Adresse légale",
+    "MAILING_ADDRESS": "Adresse postale",
+    "BUSINESS_ADDRESS": "Adresse d'entreprise",
+    "RESIDENTIAL_ADDRESS": "Adresse résidentielle"
   },
   "errors": {
     "tryAgain": "Réessayer",

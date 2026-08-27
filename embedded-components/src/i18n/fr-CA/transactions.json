@@ -78,6 +78,7 @@
     }
   },
   "pagination": {
+    "showing": "Affichage de {{from}} à {{to}} sur {{total}}",
     "rowsTotal": "{{count}} ligne(s) au total",
     "rowsPerPage": "Lignes par page",
     "pageInfo": "Page {{current}} sur {{total}}",
@@ -94,6 +95,10 @@
     "goToLast": {
       "srOnly": "Aller à la dernière page"
     }
+  },
+  "columnToggle": {
+    "button": "Colonnes",
+    "label": "Basculer les colonnes"
   },
   "viewOptions": {
     "button": "Colonnes",
@@ -141,4 +146,3 @@
     "transactionFallback": "Transaction"
   }
 }
-

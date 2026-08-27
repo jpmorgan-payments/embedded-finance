@@ -26,6 +26,7 @@ import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-host
 import { Route as MswTestRouteImport } from './routes/msw-test'
 import { Route as GithubRouteImport } from './routes/github'
 import { Route as GhTrafficStatsRouteImport } from './routes/gh-traffic-stats'
+import { Route as FortressGameRouteImport } from './routes/fortress-game'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DemosRouteImport } from './routes/demos'
 import { Route as ComponentsRouteImport } from './routes/components'
@@ -122,6 +123,11 @@ const GhTrafficStatsRoute = GhTrafficStatsRouteImport.update({
   path: '/gh-traffic-stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FortressGameRoute = FortressGameRouteImport.update({
+  id: '/fortress-game',
+  path: '/fortress-game',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentationRoute = DocumentationRouteImport.update({
   id: '/documentation',
   path: '/documentation',
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/fortress-game': typeof FortressGameRoute
   '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/fortress-game': typeof FortressGameRoute
   '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
@@ -237,6 +245,7 @@ export interface FileRoutesById {
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
+  '/fortress-game': typeof FortressGameRoute
   '/gh-traffic-stats': typeof GhTrafficStatsRoute
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
@@ -268,6 +277,7 @@ export interface FileRouteTypes {
     | '/components'
     | '/demos'
     | '/documentation'
+    | '/fortress-game'
     | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
@@ -297,6 +307,7 @@ export interface FileRouteTypes {
     | '/components'
     | '/demos'
     | '/documentation'
+    | '/fortress-game'
     | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/components'
     | '/demos'
     | '/documentation'
+    | '/fortress-game'
     | '/gh-traffic-stats'
     | '/github'
     | '/msw-test'
@@ -354,6 +366,7 @@ export interface RootRouteChildren {
   ComponentsRoute: typeof ComponentsRoute
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
+  FortressGameRoute: typeof FortressGameRoute
   GhTrafficStatsRoute: typeof GhTrafficStatsRoute
   GithubRoute: typeof GithubRoute
   MswTestRoute: typeof MswTestRoute
@@ -494,6 +507,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GhTrafficStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fortress-game': {
+      id: '/fortress-game'
+      path: '/fortress-game'
+      fullPath: '/fortress-game'
+      preLoaderRoute: typeof FortressGameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documentation': {
       id: '/documentation'
       path: '/documentation'
@@ -602,6 +622,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComponentsRoute: ComponentsRoute,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,
+  FortressGameRoute: FortressGameRoute,
   GhTrafficStatsRoute: GhTrafficStatsRoute,
   GithubRoute: GithubRoute,
   MswTestRoute: MswTestRoute,

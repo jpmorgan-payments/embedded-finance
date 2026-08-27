@@ -2,6 +2,45 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.9] - 2026-08-27
+
+### Changes
+
+#### Features
+
+- complete es-US and fr-CA translations with parity tests
+- **i18n,dropzone:** add translations for dropzone component
+
+#### Bug Fixes
+
+- **payment-flow:** localize payee accessible labels
+- replace vulnerable regex patterns with linear parsing
+- **onboarding:** update regex for segment matching in _get function to correctly handle array indices
+
+## [0.17.8] - 2026-08-24
+
+### Changes
+
+#### Features
+
+- **i18n:** allow for rich content tokens globally
+
+#### Bug Fixes
+
+- **i18n:** add missing rich content token options
+
+## [0.17.7] - 2026-08-20
+
+### Changes
+
+#### Features
+
+- **onboarding,i18n:** update text on approved state and linked state
+
+#### Bug Fixes
+
+- **onboarding:** prevent incorrect navigation to owners section after submission
+
 ## [0.17.6] - 2026-08-19
 
 ### Changes
@@ -11,19 +50,6 @@ All notable changes to the `embedded-components` package are documented in this 
 - carry selected entity partyId from chain builder to host
 - **i18n:** allow for stylized alert content
 - enhance indirect ownership wizard with intermediary details and address validation
-- **recipients, payment-flow:** FX recipient create + single-page form across payment flows
-- **onboarding:** streamline linked-account form into single-page layout
-- **onboarding:** update delta mode validation to support stricter question display logic
-- **onboarding:** refine animations for onboarding timeline
-- **onboarding:** fix visual glitches and add transitions to timeline sidebar
-- **onboarding:** remove incomplete warning alert for delta mode
-- **onboarding:** update labels for personal section title and legal structure in review form
-- **onboarding:** update look of owners section in review form
-- **onboarding:** move accuracy attestation checkbox outside checkbox group & add disabled hover cursor styling
-- **onboarding:** update review layout and add "expanded" and "requireReview" display configuration for deltaMode
-- **onboarding:** update deltaMode config to have defaultControllerNotAnOwner and remove related top level prop
-- **onboarding:** reorder attestation checkboxes
-- **onboarding:** add delta mode config to treat owners sectionas complete by default
 - **SMBDO-11796:** enable Save and Continue when no-beneficial-owners attested
 - **SMBDO-11796:** add 'no one owns 25%' attestation checkbox in empty state
 - **SMBDO-11796:** consolidate pending chain CTA into inline button
@@ -31,22 +57,14 @@ All notable changes to the `embedded-components` package are documented in this 
 - **SMBDO-11796:** add ADA-compliant pending chain visualization with alert icon
 - **SMBDO-11796:** simplify Add Owner dialog and unify ownership chain language
 - **SMBDO-11796:** add intermediary confirmation prompt and unify ownership chain language
-- **onboarding:** update delta mode to handle more field types, refactor overall pattern
 - **SMBDO-11796:** Add end-to-end tests for Indirect Ownership flows to ensure correct behavior and validation
 - **SMBDO-11796:** Refactor ownership chain logic to utilize allOwners for consistency and improved hierarchy management
 - **SMBDO-11796:** Enhance EntityCombobox with onSelect callback and improve handleAddCompany logic
 - **SMBDO-11796:** Enhance ownership chain management by reusing existing entities and improving validation
 - **SMBDO-11796:** Update ownership roles and field interactions for indirect ownership management
 - **SMBDO-11796:** Enhance Indirect Ownership functionality
-- **onboarding:** prevent layout shifts upon navigating to review screen in delta mode
-- **onboarding:** move business type card into business details accordion
-- **onboarding:** track number of questions in delta mode
 - **SMBDO-11796:** Enhance Indirect Ownership Management
-- **onboarding:** add more attestation checkboxes and fix an issue with operational details on delta mode
-- **onboarding:** update mock outstanding question ids
-- **onboarding:** update delta mode draft
 - **SMBDO-11796:** add controllerPartyId to manage owner removal visibility
-- **onboarding:** delta mode draft
 - **SMBDO-11796:** port OnboardingFlow indirect-ownership integration for parity
 
 #### Bug Fixes
@@ -59,23 +77,13 @@ All notable changes to the `embedded-components` package are documented in this 
 - correct ownership transitions without data loss or graph divergence
 - unify owner completion predicate and add PENDING_DETAILS status
 - cascade-deactivate orphaned intermediaries on owner removal
-- **release:** keep package-lock.json version in sync on release
-- **onboarding:** allow data-accuracy checkbox to be interactable without opening terms docs
-- **recipients:** remove in-card info popover from payment-method rows for clarity/a11y
 - **SMBDO-11796:** hide indirect toggle for chain intermediary entities
 - **SMBDO-11796:** prevent owner from being its own intermediary in chain builder
-- **onboarding:** fix delta mode validation against undefined address
-- **onboarding:** fix issues with delta mode not counting fields properly
-- **onboarding:** hide sub-questions not in outstanding ids
-- **onboarding:** fix incorrect description for EIN field
 - **SMBDO-11796:** remove duplicate Save button, let host control continue
 - **SMBDO-11796:** always show Save and Continue when conditions met
 - **SMBDO-11796:** unify badge labels - use 'Indirect Owner' for both individuals and businesses
 - **SMBDO-11796:** prevent individual parties from appearing as intermediary chain steps
-- **onboarding:** remove red asterisk on operational details questions for consistency
 - **SMBDO-11796:** correctly label direct vs indirect beneficial owners in PartyCard
-- **onboarding:** fix issue where overview screen would show on navigation
-- **onboarding:** fix terms and conditions styling
 - **SMBDO-11796:** type INTERMEDIARY_OWNER_ROLE as Role instead of string
 - **SMBDO-11796:** address PR review feedback
 - **SMBDO-11796:** remove package-lock.json (project uses yarn) and restore yarn.lock
@@ -86,42 +94,11 @@ All notable changes to the `embedded-components` package are documented in this 
 
 ### Changes
 
-#### Features
-
-- **recipients, payment-flow:** FX recipient create + single-page form across payment flows
-- **onboarding:** streamline linked-account form into single-page layout
-- **onboarding:** update delta mode validation to support stricter question display logic
-- **onboarding:** refine animations for onboarding timeline
-- **onboarding:** fix visual glitches and add transitions to timeline sidebar
-- **onboarding:** remove incomplete warning alert for delta mode
-- **onboarding:** update labels for personal section title and legal structure in review form
-- **onboarding:** update look of owners section in review form
-- **onboarding:** move accuracy attestation checkbox outside checkbox group & add disabled hover cursor styling
-- **onboarding:** update review layout and add "expanded" and "requireReview" display configuration for deltaMode
-- **onboarding:** update deltaMode config to have defaultControllerNotAnOwner and remove related top level prop
-- **onboarding:** reorder attestation checkboxes
-- **onboarding:** add delta mode config to treat owners sectionas complete by default
-- **onboarding:** update delta mode to handle more field types, refactor overall pattern
-- **onboarding:** prevent layout shifts upon navigating to review screen in delta mode
-- **onboarding:** move business type card into business details accordion
-- **onboarding:** track number of questions in delta mode
-- **onboarding:** add more attestation checkboxes and fix an issue with operational details on delta mode
-- **onboarding:** update mock outstanding question ids
-- **onboarding:** update delta mode draft
-- **onboarding:** delta mode draft
-
 #### Bug Fixes
 
 - **release:** keep package-lock.json version in sync on release
 - **onboarding:** allow data-accuracy checkbox to be interactable without opening terms docs
 - **recipients:** remove in-card info popover from payment-method rows for clarity/a11y
-- **onboarding:** fix delta mode validation against undefined address
-- **onboarding:** fix issues with delta mode not counting fields properly
-- **onboarding:** hide sub-questions not in outstanding ids
-- **onboarding:** fix incorrect description for EIN field
-- **onboarding:** remove red asterisk on operational details questions for consistency
-- **onboarding:** fix issue where overview screen would show on navigation
-- **onboarding:** fix terms and conditions styling
 
 ## [0.17.4] - 2026-08-05
 
@@ -131,71 +108,15 @@ All notable changes to the `embedded-components` package are documented in this 
 
 - **recipients, payment-flow:** FX recipient create + single-page form across payment flows
 - **onboarding:** streamline linked-account form into single-page layout
-- **onboarding:** update delta mode validation to support stricter question display logic
-- **onboarding:** refine animations for onboarding timeline
-- **onboarding:** fix visual glitches and add transitions to timeline sidebar
-- **onboarding:** remove incomplete warning alert for delta mode
-- **onboarding:** update labels for personal section title and legal structure in review form
-- **onboarding:** update look of owners section in review form
-- **onboarding:** move accuracy attestation checkbox outside checkbox group & add disabled hover cursor styling
-- **onboarding:** update review layout and add "expanded" and "requireReview" display configuration for deltaMode
-- **onboarding:** update deltaMode config to have defaultControllerNotAnOwner and remove related top level prop
-- **onboarding:** reorder attestation checkboxes
-- **onboarding:** add delta mode config to treat owners sectionas complete by default
-- **onboarding:** update delta mode to handle more field types, refactor overall pattern
-- **onboarding:** prevent layout shifts upon navigating to review screen in delta mode
-- **onboarding:** move business type card into business details accordion
-- **onboarding:** track number of questions in delta mode
-- **onboarding:** add more attestation checkboxes and fix an issue with operational details on delta mode
-- **onboarding:** update mock outstanding question ids
-- **onboarding:** update delta mode draft
-- **onboarding:** delta mode draft
-
-#### Bug Fixes
-
-- **onboarding:** fix delta mode validation against undefined address
-- **onboarding:** fix issues with delta mode not counting fields properly
-- **onboarding:** hide sub-questions not in outstanding ids
-- **onboarding:** fix incorrect description for EIN field
-- **onboarding:** remove red asterisk on operational details questions for consistency
-- **onboarding:** fix issue where overview screen would show on navigation
-- **onboarding:** fix terms and conditions styling
 
 ## [0.17.3] - 2026-07-31
 
 ### Changes
 
-#### Features
-
-- **onboarding:** update delta mode validation to support stricter question display logic
-- **onboarding:** refine animations for onboarding timeline
-- **onboarding:** fix visual glitches and add transitions to timeline sidebar
-- **onboarding:** remove incomplete warning alert for delta mode
-- **onboarding:** update labels for personal section title and legal structure in review form
-- **onboarding:** update look of owners section in review form
-- **onboarding:** move accuracy attestation checkbox outside checkbox group & add disabled hover cursor styling
-- **onboarding:** update review layout and add "expanded" and "requireReview" display configuration for deltaMode
-- **onboarding:** update deltaMode config to have defaultControllerNotAnOwner and remove related top level prop
-- **onboarding:** reorder attestation checkboxes
-- **onboarding:** add delta mode config to treat owners sectionas complete by default
-- **onboarding:** update delta mode to handle more field types, refactor overall pattern
-- **onboarding:** prevent layout shifts upon navigating to review screen in delta mode
-- **onboarding:** move business type card into business details accordion
-- **onboarding:** track number of questions in delta mode
-- **onboarding:** add more attestation checkboxes and fix an issue with operational details on delta mode
-- **onboarding:** update mock outstanding question ids
-- **onboarding:** update delta mode draft
-- **onboarding:** delta mode draft
-
 #### Bug Fixes
 
 - **onboarding:** fix delta mode validation against undefined address
 - **onboarding:** fix issues with delta mode not counting fields properly
-- **onboarding:** hide sub-questions not in outstanding ids
-- **onboarding:** fix incorrect description for EIN field
-- **onboarding:** remove red asterisk on operational details questions for consistency
-- **onboarding:** fix issue where overview screen would show on navigation
-- **onboarding:** fix terms and conditions styling
 
 ## [0.17.2] - 2026-07-30
 
@@ -258,8 +179,6 @@ All notable changes to the `embedded-components` package are documented in this 
 ## [0.16.9] - 2026-07-16
 
 ### Changes
-
-#### Bug Fixes
 
 - **onboarding:** fix an issue where ptc gateway navigation was being triggered despite non-NEW status
 
@@ -371,8 +290,6 @@ All notable changes to the `embedded-components` package are documented in this 
 - **i18n:** restore contentTokenOverrideKey support in BusinessContactInfoForm; remove deprecated onboarding-old fallback
 
 #### Features
-
-- **onboarding:** add a content token for server error footnote
 
 #### Bug Fixes
 

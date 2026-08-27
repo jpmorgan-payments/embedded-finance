@@ -1,0 +1,2900 @@
+/* =============================================================================
+   Fintech Fortress — styles scoped to the /fortress-game route.
+   Ported from the standalone game; every selector is namespaced under
+   .fortress-game-root so nothing leaks into the rest of the showcase app.
+   `html.fortress-game-active` carries the 120% booth scale because the
+   game sizes everything in rem, which resolves against <html>, not the wrapper.
+   ============================================================================= */
+
+html.fortress-game-active {
+  font-size: 16.8px;
+  overflow: hidden;
+}
+
+.fortress-game-root {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* =============================================================================
+   Fintech Fortress — Global Styles (Terminal / Hacker Aesthetic)
+   ============================================================================= */
+
+.fortress-game-root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --bg-card: #0f1f0f;
+  --green: #00ff41;
+  --green-dim: #00cc33;
+  --green-dark: #003300;
+  --red: #ff0040;
+  --red-dim: #cc0033;
+  /* --red-dim is for borders and accents only; body copy needs this one. */
+  --red-text: #ff5c7a;
+  --amber: #ffb800;
+  --blue: #00bfff;
+  --white: #e0e0e0;
+  /* Both were too dark for booth lighting: these clear 4.5:1 on --bg-primary. */
+  --gray: #7d7d7d;
+  --text-primary: #c8c8c8;
+  --text-dim: #9b9b9b;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --border: #1a3a1a;
+  --border-bright: #00ff4133;
+}
+
+.fortress-game-root,
+.fortress-game-root *,
+.fortress-game-root *::before,
+.fortress-game-root *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.fortress-game-root {
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 16.8px; /* 14px × 1.2 — demo scale ~120% */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.fortress-game-root {
+  height: 100%;
+}
+
+/* =============================================================================
+   App Container
+   ============================================================================= */
+
+.fortress-game-root .app-container {
+  position: relative;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* CRT Scanline Overlay */
+.fortress-game-root .scanline-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.05) 0px,
+    rgba(0, 0, 0, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* =============================================================================
+   Start Screen
+   ============================================================================= */
+
+.fortress-game-root .start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+}
+
+.fortress-game-root .ascii-title {
+  color: var(--green);
+  font-size: 0.45rem;
+  line-height: 1.1;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  margin-bottom: 1.5rem;
+  white-space: pre;
+}
+
+@media (min-width: 800px) {
+  .fortress-game-root .ascii-title {
+    font-size: 0.6rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .fortress-game-root .ascii-title {
+    font-size: 0.75rem;
+  }
+}
+
+/* On booth monitors the title would otherwise read narrower than the form below it. */
+@media (min-width: 1800px) {
+  .fortress-game-root .ascii-title {
+    font-size: 1.15rem;
+  }
+}
+
+/* Short screens: shrink the banner so the start buttons stay above the fold. */
+@media (max-height: 860px) {
+  .fortress-game-root .start-screen {
+    justify-content: flex-start;
+    padding-top: 1rem;
+  }
+
+  .fortress-game-root .ascii-title {
+    font-size: 0.42rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .fortress-game-root .start-tagline {
+    margin-bottom: 1rem;
+  }
+}
+
+.fortress-game-root .start-tagline {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.fortress-game-root .start-tagline p {
+  color: var(--text-primary);
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+.fortress-game-root .start-tagline .subtitle {
+  color: var(--green-dim);
+  font-size: 0.8rem;
+}
+
+.fortress-game-root .start-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  /* Without this the form shrink-to-fits the persona blurbs' max-content width. */
+  width: 100%;
+  max-width: 46rem;
+}
+
+.fortress-game-root .input-label {
+  color: var(--green);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.fortress-game-root .step-marker {
+  background: var(--green-dark);
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 0.05rem 0.4rem;
+}
+
+.fortress-game-root .required-marker {
+  color: var(--amber);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
+
+.fortress-game-root .field-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  width: 100%;
+}
+
+.fortress-game-root .field-block.invalid {
+  border-color: var(--red);
+}
+
+.fortress-game-root .field-help {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.fortress-game-root .field-help.error {
+  color: var(--red);
+}
+
+.fortress-game-root .terminal-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--gray);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  padding: 0.6rem 1rem;
+  width: 320px;
+  max-width: 100%;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.fortress-game-root .terminal-input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.2);
+}
+
+.fortress-game-root .terminal-input.valid {
+  border-color: var(--green-dim);
+}
+
+.fortress-game-root .terminal-input.invalid {
+  border-color: var(--red);
+  animation: ff-shake 0.3s ease-in-out;
+}
+
+@keyframes ff-shake {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.fortress-game-root .terminal-input::placeholder {
+  color: var(--gray);
+}
+
+.fortress-game-root .start-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.fortress-game-root .start-leaderboard-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 1.5rem;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.fortress-game-root .lb-title {
+  color: var(--amber);
+  margin-bottom: 0.25rem;
+}
+
+.fortress-game-root .lb-entry {
+  color: var(--text-dim);
+}
+
+/* =============================================================================
+   Game Info Overlay
+   ============================================================================= */
+
+.fortress-game-root .info-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.fortress-game-root .info-panel {
+  background: var(--bg-primary);
+  border: 1px solid var(--blue);
+  max-width: 700px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 30px rgba(0, 191, 255, 0.15);
+}
+
+.fortress-game-root .info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--blue);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.fortress-game-root .info-close {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.15s;
+}
+
+.fortress-game-root .info-close:hover {
+  color: var(--white);
+}
+
+.fortress-game-root .info-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
+}
+
+.fortress-game-root .info-section {
+  margin-bottom: 1.5rem;
+}
+
+.fortress-game-root .info-section:last-child {
+  margin-bottom: 0;
+}
+
+.fortress-game-root .info-section-dim {
+  opacity: 0.6;
+}
+
+.fortress-game-root .info-heading {
+  color: var(--green);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.fortress-game-root .info-body p {
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.fortress-game-root .info-body p:last-child {
+  margin-bottom: 0;
+}
+
+.fortress-game-root .info-body strong {
+  color: var(--white);
+}
+
+.fortress-game-root .info-diagram {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  line-height: 1.5;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.fortress-game-root .info-links {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fortress-game-root .info-links li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border-left: 2px solid var(--border);
+  padding-left: 0.6rem;
+}
+
+.fortress-game-root .info-link {
+  color: var(--blue);
+  font-size: 0.8rem;
+  text-decoration: none;
+  border-bottom: 1px dotted var(--blue);
+  align-self: flex-start;
+}
+
+.fortress-game-root .info-link:hover,
+.fortress-game-root .info-link:focus-visible {
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+.fortress-game-root .info-link-note {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+
+.fortress-game-root .info-covered-title {
+  margin-top: 0.75rem;
+}
+
+.fortress-game-root .info-covered {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+}
+
+.fortress-game-root .info-covered-code {
+  display: inline-block;
+  min-width: 6.5ch;
+  margin-right: 0.6rem;
+  color: var(--amber);
+}
+
+.fortress-game-root .info-footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+}
+
+.fortress-game-root .info-footer .btn-primary {
+  font-size: 0.75rem;
+  padding: 0.5rem 1.5rem;
+}
+
+/* =============================================================================
+   Field Guide — the visual one-pager
+   ============================================================================= */
+
+.fortress-game-root .guide-panel {
+  max-width: 1040px;
+}
+
+.fortress-game-root .guide-body {
+  padding: 1.5rem 1.75rem 2rem;
+}
+
+.fortress-game-root .guide-intro-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.7rem 1.75rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.fortress-game-root .guide-intro-bar span {
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.fortress-game-root .guide-intro-bar strong {
+  color: var(--blue);
+}
+
+.fortress-game-root .guide-intro-cta {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  padding: 0.45rem 1rem;
+}
+
+.fortress-game-root .guide-end-cta {
+  display: flex;
+  justify-content: center;
+  padding-top: 1.25rem;
+}
+
+.fortress-game-root .guide-end-cta .btn-primary {
+  font-size: 0.8rem;
+  padding: 0.6rem 2rem;
+}
+
+.fortress-game-root .guide-section {
+  margin-bottom: 2.25rem;
+}
+
+.fortress-game-root .guide-section:last-of-type {
+  margin-bottom: 1.25rem;
+}
+
+.fortress-game-root .guide-kicker {
+  color: var(--blue);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.fortress-game-root .guide-lede {
+  color: var(--white);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.fortress-game-root .guide-note {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  margin-bottom: 1rem;
+}
+
+.fortress-game-root .guide-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.fortress-game-root .guide-card {
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--green);
+  background: var(--bg-secondary);
+  padding: 0.8rem 0.9rem;
+}
+
+.fortress-game-root .guide-card-title {
+  display: block;
+  color: var(--green);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  margin-bottom: 0.5rem;
+}
+
+.fortress-game-root .guide-card p {
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+/* --- Prerequisites --- */
+
+.fortress-game-root .guide-prereqs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.fortress-game-root .guide-check {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fortress-game-root .guide-check li {
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.fortress-game-root .guide-check .tick {
+  color: var(--green);
+  margin-right: 0.6rem;
+}
+
+.fortress-game-root .guide-helps {
+  border-left: 2px solid var(--amber);
+  padding-left: 0.9rem;
+}
+
+.fortress-game-root .guide-helps .guide-card-title {
+  color: var(--amber);
+}
+
+.fortress-game-root .guide-helps p {
+  color: var(--text-primary);
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+/* --- Mission map --- */
+
+.fortress-game-root .guide-missions {
+  display: flex;
+  flex-direction: column;
+}
+
+.fortress-game-root .guide-mission {
+  display: grid;
+  grid-template-columns: 2rem minmax(9rem, 1.1fr) minmax(11rem, auto) 7.5rem minmax(11rem, 1fr);
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.fortress-game-root .guide-mission:last-child {
+  border-bottom: none;
+}
+
+.fortress-game-root .mission-num {
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-size: 0.75rem;
+}
+
+.fortress-game-root .mission-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.fortress-game-root .mission-title {
+  color: var(--white);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.fortress-game-root .mission-sub {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+}
+
+.fortress-game-root .mission-endpoint {
+  color: var(--blue);
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.fortress-game-root .mission-produces {
+  color: var(--green-dim);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.fortress-game-root .mission-attack {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.fortress-game-root .mission-owasp {
+  color: var(--amber);
+  font-size: 0.62rem;
+  border: 1px solid var(--amber);
+  padding: 0.05rem 0.3rem;
+  white-space: nowrap;
+}
+
+.fortress-game-root .mission-attack-name {
+  color: var(--red-text);
+  font-size: 0.68rem;
+}
+
+/* --- Resource model diagram --- */
+
+.fortress-game-root .guide-model {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+}
+
+.fortress-game-root .model-node rect {
+  fill: var(--bg-tertiary);
+  stroke: var(--gray);
+  stroke-width: 1;
+}
+
+.fortress-game-root .model-node text {
+  fill: var(--white);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+}
+
+.fortress-game-root .model-node .model-sub {
+  fill: var(--text-dim);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+}
+
+.fortress-game-root .model-node.is-root rect {
+  stroke: var(--green);
+  stroke-width: 1.5;
+}
+
+.fortress-game-root .model-node.is-root text {
+  fill: var(--green);
+}
+
+.fortress-game-root .model-node.is-core rect {
+  stroke: var(--blue);
+}
+
+.fortress-game-root .model-node.is-core text {
+  fill: var(--blue);
+}
+
+.fortress-game-root .model-node.is-guard rect {
+  stroke: var(--amber);
+}
+
+.fortress-game-root .model-node.is-guard text {
+  fill: var(--amber);
+}
+
+.fortress-game-root .model-node.is-event rect {
+  fill: transparent;
+  stroke: var(--gray);
+  stroke-dasharray: 4 3;
+}
+
+.fortress-game-root .model-link {
+  fill: none;
+  stroke: var(--gray);
+  stroke-width: 1.2;
+}
+
+.fortress-game-root .model-link.is-dashed {
+  stroke-dasharray: 3 4;
+  opacity: 0.6;
+}
+
+.fortress-game-root .model-arrowhead {
+  fill: var(--gray);
+}
+
+.fortress-game-root .model-edge {
+  fill: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-anchor: middle;
+}
+
+/* --- Operations table --- */
+
+.fortress-game-root .guide-ops {
+  border: 1px solid var(--border);
+}
+
+.fortress-game-root .guide-ops-head,
+.fortress-game-root .guide-op {
+  display: grid;
+  grid-template-columns: 7rem minmax(14rem, 1.2fr) minmax(12rem, 1fr) 2.5rem;
+  gap: 0.9rem;
+  padding: 0.45rem 0.8rem;
+  align-items: baseline;
+}
+
+.fortress-game-root .guide-ops-head {
+  background: var(--bg-tertiary);
+  color: var(--text-dim);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+}
+
+.fortress-game-root .guide-op {
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+.fortress-game-root .op-resource {
+  color: var(--white);
+}
+
+.fortress-game-root .op-endpoint {
+  color: var(--blue);
+  white-space: nowrap;
+}
+
+.fortress-game-root .op-does {
+  color: var(--text-primary);
+}
+
+.fortress-game-root .op-round {
+  color: var(--green-dim);
+  text-align: right;
+}
+
+/* --- Cheat sheet --- */
+
+.fortress-game-root .guide-rules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1.25rem;
+}
+
+.fortress-game-root .guide-rule {
+  display: grid;
+  grid-template-columns: auto 1rem auto 1fr;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.fortress-game-root .rule-wrong {
+  color: var(--red-text);
+  text-decoration: line-through;
+  text-decoration-color: var(--red-dim);
+}
+
+.fortress-game-root .rule-arrow {
+  color: var(--text-dim);
+}
+
+.fortress-game-root .rule-right {
+  color: var(--green);
+}
+
+.fortress-game-root .rule-note {
+  color: var(--text-dim);
+  font-size: 0.66rem;
+}
+
+.fortress-game-root .guide-footer {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  line-height: 1.6;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 900px) {
+  .fortress-game-root .guide-cards,
+.fortress-game-root .guide-prereqs,
+.fortress-game-root .guide-rules {
+    grid-template-columns: 1fr;
+  }
+
+  .fortress-game-root .guide-mission {
+    grid-template-columns: 2rem 1fr;
+    row-gap: 0.35rem;
+  }
+
+  .fortress-game-root .mission-endpoint,
+.fortress-game-root .mission-produces,
+.fortress-game-root .mission-attack {
+    grid-column: 2;
+  }
+
+  .fortress-game-root .guide-ops-head {
+    display: none;
+  }
+
+  .fortress-game-root .guide-op {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+
+  .fortress-game-root .op-round {
+    text-align: left;
+  }
+}
+
+/* =============================================================================
+   Buttons
+   ============================================================================= */
+
+.fortress-game-root button {
+  border-radius: 0;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.fortress-game-root .btn-primary {
+  background: transparent;
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 0.6rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fortress-game-root .btn-primary:hover:not(:disabled) {
+  background: rgba(0, 255, 65, 0.1);
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.3);
+}
+
+.fortress-game-root .btn-primary:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Still clickable — clicking explains what is missing instead of doing nothing. */
+.fortress-game-root .btn-primary.locked {
+  border-color: var(--gray);
+  color: var(--text-dim);
+}
+
+.fortress-game-root .btn-primary.locked:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: transparent;
+  box-shadow: none;
+}
+
+.fortress-game-root .btn-secondary {
+  background: transparent;
+  border: 1px solid var(--gray);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fortress-game-root .btn-secondary:hover {
+  border-color: var(--white);
+  color: var(--white);
+}
+
+.fortress-game-root .btn-secondary.locked {
+  color: var(--text-dim);
+}
+
+.fortress-game-root .btn-small {
+  background: transparent;
+  border: 1px solid var(--gray);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fortress-game-root .btn-small:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.fortress-game-root .btn-danger {
+  background: transparent;
+  border: 1px solid var(--red);
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 0.6rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fortress-game-root .btn-danger:hover {
+  background: rgba(255, 0, 64, 0.1);
+  box-shadow: 0 0 12px rgba(255, 0, 64, 0.3);
+}
+
+/* =============================================================================
+   Demo Shortcuts Panel
+   ============================================================================= */
+
+.fortress-game-root .demo-toggle {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  background: var(--bg-primary);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+}
+
+.fortress-game-root .demo-toggle:hover {
+  opacity: 1;
+  background: rgba(255, 184, 0, 0.1);
+  box-shadow: 0 0 8px rgba(255, 184, 0, 0.3);
+}
+
+.fortress-game-root .demo-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  width: 320px;
+  background: var(--bg-primary);
+  border-left: 1px solid var(--amber);
+  font-family: var(--font-mono);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.6);
+}
+
+.fortress-game-root .demo-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--amber);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.fortress-game-root .demo-hint {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.fortress-game-root .demo-nav-row {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.fortress-game-root .demo-nav-btn {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--gray);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.fortress-game-root .demo-nav-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.fortress-game-root .demo-nav-btn.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(0, 255, 65, 0.08);
+}
+
+.fortress-game-root .demo-rounds {
+  flex: 1;
+  padding: 0.5rem 0;
+}
+
+.fortress-game-root .demo-round-row {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.fortress-game-root .demo-round-label {
+  color: var(--white);
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.5px;
+}
+
+.fortress-game-root .demo-phase-btns {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.fortress-game-root .demo-phase-btn {
+  flex: 1;
+  padding: 0.3rem 0;
+  border: 1px solid var(--gray);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.fortress-game-root .demo-phase-btn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: rgba(255, 184, 0, 0.08);
+}
+
+.fortress-game-root .demo-phase-btn.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(0, 255, 65, 0.12);
+}
+
+.fortress-game-root .demo-panel-footer {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fortress-game-root .demo-state {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+}
+
+/* =============================================================================
+   Score HUD
+   ============================================================================= */
+
+.fortress-game-root .score-hud {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.fortress-game-root .hud-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.fortress-game-root .hud-guide {
+  margin-left: auto;
+  color: var(--blue);
+  border: 1px solid var(--border);
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.fortress-game-root .hud-guide:hover {
+  border-color: var(--blue);
+  color: var(--white);
+}
+
+.fortress-game-root .hud-label {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fortress-game-root .hud-value {
+  color: var(--green);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.fortress-game-root .phase-badge {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  padding: 0.1rem 0.4rem;
+  font-size: 0.7rem;
+}
+
+.fortress-game-root .phase-badge.busy {
+  border-color: var(--amber);
+  color: var(--amber);
+  animation: ff-busy-blink 1s steps(2, end) infinite;
+}
+
+.fortress-game-root .health-bar-container {
+  width: 80px;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.fortress-game-root .health-bar-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+/* =============================================================================
+   Game Layout
+   ============================================================================= */
+
+.fortress-game-root .game-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.fortress-game-root .game-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.fortress-game-root .game-main {
+  overflow-y: auto;
+  padding: 1.5rem;
+  border-right: 1px solid var(--border);
+}
+
+.fortress-game-root .game-terminal {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* =============================================================================
+   Flow of Funds
+   ============================================================================= */
+
+.fortress-game-root .flow-of-funds {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: 0.6rem 1rem 0.75rem;
+  flex-shrink: 0;
+}
+
+.fortress-game-root .flow-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.fortress-game-root .flow-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+}
+
+.fortress-game-root .flow-hint {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.fortress-game-root .flow-grid {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.fortress-game-root .flow-column {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.fortress-game-root .flow-caption {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--green-dim);
+}
+
+.fortress-game-root .flow-node {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 7.25rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.fortress-game-root .flow-node.pending {
+  opacity: 0.4;
+  border-style: dashed;
+}
+
+.fortress-game-root .flow-node.active {
+  border-color: var(--green);
+}
+
+.fortress-game-root .flow-node.restricted {
+  border-color: var(--amber);
+}
+
+.fortress-game-root .flow-node.negative .node-balance {
+  color: var(--red);
+}
+
+.fortress-game-root .node-label {
+  font-size: 0.7rem;
+  color: var(--white);
+}
+
+.fortress-game-root .node-type {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.fortress-game-root .node-balance {
+  font-size: 0.8rem;
+  color: var(--green);
+}
+
+.fortress-game-root .node-flag {
+  font-size: 0.62rem;
+  color: var(--amber);
+}
+
+.fortress-game-root .flow-arrow {
+  color: var(--green-dim);
+  font-size: 1.1rem;
+  padding: 0 0.15rem;
+}
+
+.fortress-game-root .flow-entries {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fortress-game-root .flow-entry {
+  display: grid;
+  grid-template-columns: 4rem 1fr 6rem 8rem 5rem;
+  gap: 0.5rem;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  padding: 0.15rem 0;
+  border-bottom: 1px solid rgba(26, 58, 26, 0.4);
+}
+
+.fortress-game-root .flow-entry.head {
+  color: var(--gray);
+  letter-spacing: 0.1em;
+  border-bottom-color: var(--border);
+}
+
+.fortress-game-root .flow-entry.head .entry-amount {
+  color: var(--gray);
+}
+
+.fortress-game-root .flow-entry.empty {
+  display: block;
+  color: var(--text-dim);
+  border-bottom: none;
+}
+
+.fortress-game-root .flow-entry .entry-amount {
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.fortress-game-root .flow-entry.status-completed .entry-status {
+  color: var(--green);
+}
+
+.fortress-game-root .flow-entry.status-pending .entry-status {
+  color: var(--amber);
+}
+
+.fortress-game-root .flow-entry.status-rejected .entry-status,
+.fortress-game-root .flow-entry.status-held .entry-status {
+  color: var(--red);
+}
+
+/* =============================================================================
+   Webhook Inbox
+   ============================================================================= */
+
+.fortress-game-root .webhook-inbox {
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+  max-height: 15rem;
+  min-height: 6rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.fortress-game-root .inbox-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.fortress-game-root .inbox-title {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+}
+
+.fortress-game-root .inbox-badge {
+  display: inline-block;
+  min-width: 1.1rem;
+  padding: 0 0.3rem;
+  text-align: center;
+  font-size: 0.62rem;
+  color: var(--bg-primary);
+  background: var(--amber);
+}
+
+.fortress-game-root .inbox-list {
+  overflow-y: auto;
+  padding: 0.4rem 0.75rem 0.6rem;
+}
+
+.fortress-game-root .inbox-empty {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  padding: 0.4rem 0;
+}
+
+.fortress-game-root .inbox-event {
+  border-left: 2px solid var(--border);
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.3rem;
+  background: var(--bg-tertiary);
+  cursor: pointer;
+}
+
+.fortress-game-root .inbox-event.unread {
+  border-left-color: var(--green);
+}
+
+.fortress-game-root .inbox-event.sev-warning {
+  border-left-color: var(--amber);
+}
+
+.fortress-game-root .inbox-event.sev-critical,
+.fortress-game-root .inbox-event.forged {
+  border-left-color: var(--red);
+}
+
+.fortress-game-root .inbox-event.read {
+  opacity: 0.6;
+}
+
+.fortress-game-root .event-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.fortress-game-root .event-type {
+  font-size: 0.65rem;
+  color: var(--blue);
+}
+
+.fortress-game-root .event-time {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+}
+
+.fortress-game-root .event-summary {
+  font-size: 0.65rem;
+  color: var(--text-primary);
+  margin-top: 0.15rem;
+}
+
+.fortress-game-root .event-signature-fail {
+  font-size: 0.6rem;
+  color: var(--red);
+  margin-top: 0.2rem;
+}
+
+.fortress-game-root .event-payload {
+  margin-top: 0.3rem;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+}
+
+/* =============================================================================
+   Error Catalog Cards
+   ============================================================================= */
+
+.fortress-game-root .error-cards {
+  border: 1px solid var(--red);
+  background: rgba(255, 0, 64, 0.05);
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.fortress-game-root .error-card {
+  margin-bottom: 0.5rem;
+}
+
+.fortress-game-root .error-card-code {
+  display: inline-block;
+  padding: 0 0.35rem;
+  margin-right: 0.5rem;
+  font-size: 0.68rem;
+  color: var(--bg-primary);
+  background: var(--red);
+}
+
+.fortress-game-root .error-card-message {
+  font-size: 0.72rem;
+  color: var(--white);
+}
+
+.fortress-game-root .error-card-teaches {
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.fortress-game-root .error-card-quote {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.66rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* =============================================================================
+   Persona Selection
+   ============================================================================= */
+
+.fortress-game-root .persona-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .fortress-game-root .persona-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fortress-game-root .persona-card {
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  padding: 0.7rem 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fortress-game-root .persona-card:hover {
+  border-color: var(--green-dim);
+}
+
+.fortress-game-root .persona-card.selected {
+  border-color: var(--green);
+  background: rgba(0, 255, 65, 0.05);
+}
+
+.fortress-game-root .persona-name {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--white);
+}
+
+.fortress-game-root .persona-subtitle {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 0.1rem;
+}
+
+.fortress-game-root .persona-difficulty {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0 0.35rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: var(--bg-primary);
+}
+
+.fortress-game-root .persona-difficulty.standard {
+  background: var(--green-dim);
+}
+
+.fortress-game-root .persona-difficulty.hard {
+  background: var(--amber);
+}
+
+.fortress-game-root .persona-blurb {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  margin-top: 0.4rem;
+  color: var(--text-primary);
+}
+
+.fortress-game-root .persona-quirks {
+  margin: 0.35rem 0 0 1rem;
+  padding: 0;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.fortress-game-root .start-mode-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* =============================================================================
+   Terminal Window
+   ============================================================================= */
+
+.fortress-game-root .terminal-window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+}
+
+.fortress-game-root .terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.fortress-game-root .terminal-dots {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.fortress-game-root .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.fortress-game-root .dot.red {
+  background: #ff5f57;
+}
+
+.fortress-game-root .dot.yellow {
+  background: #ffbd2e;
+}
+
+.fortress-game-root .dot.green {
+  background: #28ca41;
+}
+
+.fortress-game-root .terminal-title {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fortress-game-root .terminal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.fortress-game-root .terminal-line {
+  margin-bottom: 0.15rem;
+  word-break: break-all;
+}
+
+.fortress-game-root .prompt {
+  user-select: none;
+}
+
+.fortress-game-root .cursor-blink {
+  animation: ff-blink 1s step-end infinite;
+  color: var(--green);
+  font-size: 0.8rem;
+}
+
+@keyframes ff-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* =============================================================================
+   Round Briefing
+   ============================================================================= */
+
+.fortress-game-root .round-briefing {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.fortress-game-root .briefing-header {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.fortress-game-root .round-number {
+  color: var(--amber);
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+}
+
+.fortress-game-root .round-title {
+  color: var(--green);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+.fortress-game-root .round-subtitle {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.fortress-game-root .briefing-text {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  min-height: 200px;
+}
+
+.fortress-game-root .briefing-text pre {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--green-dim);
+  white-space: pre-wrap;
+}
+
+.fortress-game-root .briefing-meta {
+  display: flex;
+  gap: 2rem;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+/* =============================================================================
+   API Request Builder
+   ============================================================================= */
+
+.fortress-game-root .api-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fortress-game-root .api-builder-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fortress-game-root .method-badge {
+  background: var(--green-dark);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.fortress-game-root .endpoint {
+  color: var(--white);
+  font-size: 0.85rem;
+}
+
+.fortress-game-root .api-docs-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+
+.fortress-game-root .doc-description {
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.fortress-game-root .doc-fields ul {
+  list-style: none;
+  margin-top: 0.25rem;
+}
+
+.fortress-game-root .doc-fields li {
+  color: var(--blue);
+  margin-bottom: 0.15rem;
+}
+
+.fortress-game-root .doc-fields li::before {
+  content: '▸ ';
+  color: var(--green-dim);
+}
+
+.fortress-game-root .doc-example {
+  margin-top: 0.75rem;
+}
+
+.fortress-game-root .doc-example pre {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--green-dim);
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.fortress-game-root .payload-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.fortress-game-root .json-editor {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 0.75rem;
+  resize: vertical;
+  outline: none;
+  min-height: 200px;
+  line-height: 1.4;
+}
+
+.fortress-game-root .json-editor:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 6px rgba(0, 255, 65, 0.15);
+}
+
+.fortress-game-root .json-editor.is-busy {
+  opacity: 0.55;
+  border-color: var(--amber);
+  cursor: progress;
+}
+
+/* =============================================================================
+   Busy / In-Progress Feedback
+   ============================================================================= */
+
+.fortress-game-root .busy-bar {
+  border: 1px solid var(--amber);
+  background: #1a1200;
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  /* The editor is taller than the panel, so pin this to the visible bottom edge. */
+  position: sticky;
+  bottom: 0.5rem;
+  z-index: 5;
+  animation: ff-busy-glow 1.2s ease-in-out infinite;
+}
+
+@keyframes ff-busy-glow {
+  50% {
+    box-shadow: 0 0 14px rgba(255, 184, 0, 0.25);
+  }
+}
+
+.fortress-game-root .busy-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.fortress-game-root .busy-spinner {
+  color: var(--amber);
+  width: 1ch;
+  display: inline-block;
+}
+
+.fortress-game-root .busy-label {
+  color: var(--amber);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  flex: 1;
+}
+
+.fortress-game-root .busy-elapsed {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.fortress-game-root .busy-track {
+  height: 3px;
+  background: var(--bg-tertiary);
+  overflow: hidden;
+}
+
+.fortress-game-root .busy-fill {
+  height: 100%;
+  width: 35%;
+  background: var(--amber);
+  animation: ff-busy-sweep 1.1s ease-in-out infinite;
+}
+
+@keyframes ff-busy-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.fortress-game-root .busy-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--amber);
+  font-size: 0.8rem;
+  padding-top: 0.15rem;
+}
+
+.fortress-game-root .terminal-status {
+  margin-left: auto;
+  color: var(--amber);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  animation: ff-busy-blink 1s steps(2, end) infinite;
+}
+
+@keyframes ff-busy-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.fortress-game-root .builder-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* =============================================================================
+   Hint Panel
+   ============================================================================= */
+
+.fortress-game-root .hint-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fortress-game-root .hint-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fortress-game-root .btn-hint {
+  background: transparent;
+  border: 1px dashed var(--amber);
+  color: var(--amber);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fortress-game-root .btn-hint:hover:not(:disabled) {
+  background: rgba(255, 184, 0, 0.1);
+}
+
+.fortress-game-root .btn-hint.spent,
+.fortress-game-root .btn-hint:disabled {
+  border-color: var(--gray);
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+.fortress-game-root .hint-cost {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.fortress-game-root .hint-card {
+  border-left: 3px solid var(--amber);
+  background: var(--bg-secondary);
+  padding: 0.6rem 0.8rem;
+}
+
+.fortress-game-root .hint-card.tier-3 {
+  border-left-color: var(--green);
+}
+
+.fortress-game-root .hint-card.tier-clear {
+  border-left-color: var(--green);
+}
+
+.fortress-game-root .hint-card.tier-clear .hint-tier {
+  color: var(--green);
+}
+
+.fortress-game-root .hint-tier {
+  display: block;
+  color: var(--amber);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.25rem;
+}
+
+.fortress-game-root .hint-card.tier-3 .hint-tier {
+  color: var(--green);
+}
+
+.fortress-game-root .hint-card p {
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.fortress-game-root .hint-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  list-style: none;
+}
+
+.fortress-game-root .hint-list li {
+  position: relative;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin-bottom: 0.4rem;
+}
+
+.fortress-game-root .hint-list li::before {
+  content: '▸';
+  position: absolute;
+  left: -1.1rem;
+  color: var(--amber);
+}
+
+.fortress-game-root .hint-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* =============================================================================
+   Client File — the KYC dossier behind Round 1
+   ============================================================================= */
+
+.fortress-game-root .client-file {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  background: var(--bg-secondary);
+  padding: 0.9rem 1rem;
+  overflow: hidden;
+}
+
+.fortress-game-root .client-file-intro {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  margin-bottom: 0.8rem;
+}
+
+.fortress-game-root .client-file-grid {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) 1fr;
+  gap: 0.3rem 1rem;
+  margin: 0 0 0.9rem;
+  font-size: 0.78rem;
+}
+
+.fortress-game-root .client-file-grid dt {
+  color: var(--text-dim);
+}
+
+.fortress-game-root .client-file-grid dd {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.fortress-game-root .client-file-grid dt.highlight {
+  color: var(--green);
+}
+
+.fortress-game-root .client-file-grid dd.highlight {
+  color: var(--green);
+}
+
+.fortress-game-root .client-file-label {
+  display: block;
+  color: var(--blue);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.4rem;
+}
+
+.fortress-game-root .client-file-person {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) minmax(8rem, auto) 1fr;
+  gap: 1rem;
+  font-size: 0.78rem;
+  padding: 0.2rem 0;
+}
+
+.fortress-game-root .person-role {
+  color: var(--amber);
+}
+
+.fortress-game-root .person-name {
+  color: var(--white);
+}
+
+.fortress-game-root .person-detail {
+  color: var(--text-dim);
+}
+
+.fortress-game-root .client-file-warning {
+  margin-top: 0.9rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+  color: var(--red-text);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+/* =============================================================================
+   Attack Alert
+   ============================================================================= */
+
+.fortress-game-root .attack-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fortress-game-root .attack-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--red);
+  padding-bottom: 1rem;
+}
+
+.fortress-game-root .alert-icon {
+  font-size: 2rem;
+  color: var(--red);
+  text-shadow: 0 0 20px rgba(255, 0, 64, 0.5);
+  animation: ff-pulse-red 1.5s ease-in-out infinite;
+}
+
+@keyframes ff-pulse-red {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.fortress-game-root .attack-name {
+  color: var(--red);
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.fortress-game-root .owasp-badge {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.fortress-game-root .owasp-code {
+  color: var(--amber);
+  background: rgba(255, 184, 0, 0.1);
+  padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(255, 184, 0, 0.3);
+}
+
+.fortress-game-root .owasp-cat {
+  color: var(--text-dim);
+}
+
+.fortress-game-root .attack-type-badge {
+  display: inline-block;
+  width: fit-content;
+  font-size: 0.65rem;
+  letter-spacing: 1px;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--gray);
+  color: var(--gray);
+}
+
+.fortress-game-root .attack-type-badge[data-type='TECHNICAL'] {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.fortress-game-root .attack-type-badge[data-type='BUSINESS'] {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.fortress-game-root .attack-type-badge[data-type='CYBER'] {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.fortress-game-root .attack-narrative {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 0, 64, 0.2);
+  padding: 1rem;
+  min-height: 150px;
+}
+
+.fortress-game-root .attack-narrative pre {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--red-text);
+  white-space: pre-wrap;
+}
+
+.fortress-game-root .attack-payload {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  padding: 0.75rem;
+}
+
+.fortress-game-root .payload-label {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.fortress-game-root .attack-payload pre {
+  font-size: 0.75rem;
+  color: var(--red-text);
+  white-space: pre-wrap;
+}
+
+/* =============================================================================
+   Defense Panel
+   ============================================================================= */
+
+.fortress-game-root .defense-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fortress-game-root .defense-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+.fortress-game-root .defense-header h3 {
+  color: var(--amber);
+  font-size: 1rem;
+}
+
+.fortress-game-root .defense-timer {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.fortress-game-root .defense-action {
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.fortress-game-root .defense-action-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.6rem;
+}
+
+.fortress-game-root .defense-action-call {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.fortress-game-root .defense-action-label {
+  font-size: 0.78rem;
+  color: var(--white);
+}
+
+.fortress-game-root .defense-escalate {
+  align-self: flex-start;
+  margin-bottom: 1rem;
+}
+
+.fortress-game-root .defense-editor {
+  min-height: 12rem;
+}
+
+.fortress-game-root .defense-hint {
+  border-left: 2px solid var(--amber);
+  padding: 0.4rem 0.6rem;
+  margin: 0.6rem 0;
+  font-size: 0.68rem;
+  line-height: 1.55;
+  color: var(--amber);
+  background: rgba(255, 184, 0, 0.06);
+}
+
+.fortress-game-root .defense-doc {
+  margin-top: 0.75rem;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.fortress-game-root .defense-doc summary {
+  cursor: pointer;
+  color: var(--blue);
+}
+
+.fortress-game-root .doc-quote {
+  margin: 0.4rem 0;
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+
+.fortress-game-root .doc-link {
+  color: var(--blue);
+  font-size: 0.62rem;
+  word-break: break-all;
+}
+
+.fortress-game-root .defense-options-note {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-bottom: 0.25rem;
+}
+
+.fortress-game-root .result-codes {
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.fortress-game-root .result-codes-title {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+}
+
+.fortress-game-root .result-code {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.68rem;
+  padding: 0.12rem 0;
+}
+
+.fortress-game-root .result-code-id {
+  color: var(--amber);
+  min-width: 3.5rem;
+}
+
+.fortress-game-root .result-code-msg {
+  color: var(--text-primary);
+}
+
+.fortress-game-root .defense-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.fortress-game-root .defense-option {
+  text-align: left;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.fortress-game-root .defense-option:hover:not(:disabled) {
+  border-color: var(--green);
+  background: rgba(0, 255, 65, 0.05);
+}
+
+.fortress-game-root .defense-option:disabled {
+  cursor: default;
+}
+
+.fortress-game-root .defense-option.correct {
+  border-color: var(--green) !important;
+  background: rgba(0, 255, 65, 0.08) !important;
+}
+
+.fortress-game-root .defense-option.partial {
+  border-color: var(--amber) !important;
+  background: rgba(255, 184, 0, 0.08) !important;
+}
+
+.fortress-game-root .defense-option.wrong {
+  border-color: var(--red) !important;
+  background: rgba(255, 0, 64, 0.08) !important;
+}
+
+.fortress-game-root .option-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 0.25rem;
+}
+
+.fortress-game-root .option-desc {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.fortress-game-root .option-badge {
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.3rem;
+}
+
+.fortress-game-root .correct-badge {
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.fortress-game-root .partial-badge {
+  color: var(--amber);
+  border: 1px solid var(--amber);
+}
+
+.fortress-game-root .wrong-badge {
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+
+/* =============================================================================
+   Round Result
+   ============================================================================= */
+
+.fortress-game-root .round-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.fortress-game-root .result-header {
+  text-align: center;
+}
+
+.fortress-game-root .result-header h2 {
+  color: var(--green);
+  font-size: 1.3rem;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+.fortress-game-root .result-header h3 {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.fortress-game-root .result-scores {
+  width: 100%;
+  max-width: 400px;
+}
+
+.fortress-game-root .score-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.fortress-game-root .score-note {
+  padding: 0.25rem 0 0.45rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.fortress-game-root .score-label {
+  color: var(--text-dim);
+}
+
+.fortress-game-root .score-value {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.fortress-game-root .score-value.breached {
+  color: var(--red);
+}
+
+.fortress-game-root .score-value.defended {
+  color: var(--green);
+}
+
+.fortress-game-root .score-row.penalty .score-value {
+  color: var(--red);
+}
+
+.fortress-game-root .score-row.total {
+  border-bottom: none;
+  border-top: 2px solid var(--green-dark);
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  font-size: 1rem;
+}
+
+.fortress-game-root .result-status {
+  text-align: center;
+}
+
+.fortress-game-root .defense-result {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.fortress-game-root .defense-result.success {
+  color: var(--green);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+}
+
+.fortress-game-root .defense-result.fail {
+  color: var(--red);
+  text-shadow: 0 0 10px rgba(255, 0, 64, 0.4);
+}
+
+.fortress-game-root .platform-status {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+/* =============================================================================
+   Dashboard
+   ============================================================================= */
+
+.fortress-game-root .dashboard {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.fortress-game-root .dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.fortress-game-root .dashboard-header h1 {
+  color: var(--green);
+  font-size: 1.8rem;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.fortress-game-root .dashboard-header h2 {
+  color: var(--amber);
+  font-size: 1rem;
+  font-weight: 400;
+  margin-top: 0.25rem;
+}
+
+.fortress-game-root .summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.fortress-game-root .summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  text-align: center;
+}
+
+.fortress-game-root .card-label {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
+}
+
+.fortress-game-root .card-value {
+  color: var(--green);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.fortress-game-root .card-value.big {
+  font-size: 2rem;
+  text-shadow: 0 0 12px rgba(0, 255, 65, 0.4);
+}
+
+.fortress-game-root .round-breakdown {
+  margin-bottom: 2rem;
+}
+
+.fortress-game-root .round-breakdown h3 {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  margin-bottom: 0.75rem;
+}
+
+.fortress-game-root .breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.fortress-game-root .breakdown-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fortress-game-root .breakdown-round {
+  color: var(--amber);
+  font-weight: 700;
+  width: 2rem;
+}
+
+.fortress-game-root .breakdown-title {
+  color: var(--white);
+}
+
+.fortress-game-root .breakdown-scores {
+  display: flex;
+  gap: 1rem;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+.fortress-game-root .breakdown-scores .defended {
+  color: var(--green);
+}
+
+.fortress-game-root .breakdown-scores .breached {
+  color: var(--red);
+}
+
+.fortress-game-root .breakdown-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fortress-game-root .defense-badge {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+}
+
+.fortress-game-root .defense-badge.ok {
+  border: 1px solid var(--green);
+  color: var(--green);
+}
+
+.fortress-game-root .defense-badge.fail {
+  border: 1px solid var(--red);
+  color: var(--red);
+}
+
+.fortress-game-root .breakdown-total {
+  color: var(--white);
+  font-weight: 600;
+  width: 3rem;
+  text-align: right;
+}
+
+/* =============================================================================
+   Leaderboard
+   ============================================================================= */
+
+.fortress-game-root .leaderboard {
+  margin-bottom: 2rem;
+}
+
+.fortress-game-root .lb-heading {
+  color: var(--amber);
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.fortress-game-root .lb-table {
+  width: 100%;
+}
+
+.fortress-game-root .lb-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 100px 80px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.fortress-game-root .lb-header-row {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fortress-game-root .lb-rank {
+  color: var(--text-dim);
+}
+
+.fortress-game-root .lb-name {
+  color: var(--white);
+}
+
+.fortress-game-root .lb-score {
+  color: var(--green);
+  text-align: right;
+}
+
+.fortress-game-root .lb-health {
+  text-align: right;
+}
+
+.fortress-game-root .lb-row.top-1 .lb-name {
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(255, 184, 0, 0.3);
+}
+
+.fortress-game-root .lb-row.top-2 .lb-name,
+.fortress-game-root .lb-row.top-3 .lb-name {
+  color: var(--green);
+}
+
+.fortress-game-root .lb-row.empty {
+  grid-template-columns: 1fr;
+  text-align: center;
+  color: var(--text-dim);
+  padding: 1rem;
+}
+
+.fortress-game-root .dashboard-actions {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* =============================================================================
+   Scrollbar Styling
+   ============================================================================= */
+
+.fortress-game-root ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fortress-game-root ::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.fortress-game-root ::-webkit-scrollbar-thumb {
+  background: var(--green-dark);
+  border-radius: 3px;
+}
+
+.fortress-game-root ::-webkit-scrollbar-thumb:hover {
+  background: var(--green-dim);
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 900px) {
+  .fortress-game-root .game-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 300px;
+  }
+
+  .fortress-game-root .game-main {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fortress-game-root .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

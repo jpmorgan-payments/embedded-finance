@@ -6,7 +6,9 @@ import {
   buildRecreatedOwnerPayload,
   createOrReuseIntermediaryChain,
   findActiveOrgByName,
+  runPartyMutationSaga,
   type PostPartyMutate,
+  type SetPartyActive,
 } from './OwnersSectionScreen';
 
 const org = (
@@ -297,5 +299,101 @@ describe('createOrReuseIntermediaryChain', () => {
       post
     );
     expect(outermost).toBeNull();
+  });
+
+  it('reports each created party id via onPartyCreated (not reused ones)', async () => {
+    const post = makePostMock();
+    const existingRoot = org('existing-root', 'Root LLC', {
+      parentPartyId: 'client-1',
+    });
+    const created: string[] = [];
+
+    // Steps outer→root; root "Root LLC" is reused, "Outer LLC" is created.
+    await createOrReuseIntermediaryChain(
+      [{ entityName: 'Outer LLC' }, { entityName: 'Root LLC' }],
+      'client-1',
+      [existingRoot],
+      post,
+      (id) => created.push(id)
+    );
+
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(created).toEqual(['created-1']);
+  });
+});
+
+describe('runPartyMutationSaga', () => {
+  const makeSetActive = () => {
+    const calls: Array<{ partyId: string; active: boolean }> = [];
+    const fn: SetPartyActive = vi.fn(async (partyId, active) => {
+      calls.push({ partyId, active });
+    });
+    return { fn, calls };
+  };
+
+  it('does not compensate when work succeeds', async () => {
+    const { fn, calls } = makeSetActive();
+
+    await runPartyMutationSaga(fn, async ({ trackCreated, deactivate }) => {
+      trackCreated('created-1');
+      await deactivate('orig-1');
+    });
+
+    // Only the one deactivation work asked for; no rollback.
+    expect(calls).toEqual([{ partyId: 'orig-1', active: false }]);
+  });
+
+  it('deactivates created parties (newest first) and re-throws on failure', async () => {
+    const { fn, calls } = makeSetActive();
+
+    await expect(
+      runPartyMutationSaga(fn, async ({ trackCreated }) => {
+        trackCreated('created-1');
+        trackCreated('created-2');
+        throw new Error('boom');
+      })
+    ).rejects.toThrow('boom');
+
+    expect(calls).toEqual([
+      { partyId: 'created-2', active: false },
+      { partyId: 'created-1', active: false },
+    ]);
+  });
+
+  it('reactivates deactivated parties then deactivates created ones on failure', async () => {
+    const { fn, calls } = makeSetActive();
+
+    await expect(
+      runPartyMutationSaga(fn, async ({ trackCreated, deactivate }) => {
+        const recreated = 'recreated-1';
+        trackCreated(recreated);
+        await deactivate('orig-1');
+        throw new Error('later step failed');
+      })
+    ).rejects.toThrow('later step failed');
+
+    expect(calls).toEqual([
+      // work's own deactivation
+      { partyId: 'orig-1', active: false },
+      // compensation: reactivate what we deactivated, then undo the creation
+      { partyId: 'orig-1', active: true },
+      { partyId: 'recreated-1', active: false },
+    ]);
+  });
+
+  it('re-throws the original error even if compensation steps fail', async () => {
+    let n = 0;
+    const fn: SetPartyActive = vi.fn(async () => {
+      n += 1;
+      // Fail the compensation call (only invoked during rollback).
+      if (n >= 1) throw new Error('compensation failed');
+    });
+
+    await expect(
+      runPartyMutationSaga(fn, async ({ trackCreated }) => {
+        trackCreated('created-1');
+        throw new Error('original');
+      })
+    ).rejects.toThrow('original');
   });
 });

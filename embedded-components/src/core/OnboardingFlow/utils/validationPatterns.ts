@@ -1,6 +1,13 @@
 export const NAME_PATTERN = /^[a-zA-Z0-9()_/@&+%#;,.: '-]*$/;
 export const SUFFIX_PATTERN = /^[A-Za-z.IVX]*$/;
 
+export function containsHtmlLikeTag(value: string): boolean {
+  const openingBracketIndex = value.indexOf('<');
+  return (
+    openingBracketIndex >= 0 && value.indexOf('>', openingBracketIndex + 1) >= 0
+  );
+}
+
 /**
  * "Other" job-title / occupation description (non-empty segment).
  * Characters align with {@link NAME_PATTERN} (plus slashes, parens from names, `\s`)
