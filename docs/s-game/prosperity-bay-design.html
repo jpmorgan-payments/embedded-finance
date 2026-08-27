@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prosperity Bay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap">
+<style>
+  :root {
+    --ground: #eef4e6;
+    --surface: #ffffff;
+    --surface-2: #f7faf2;
+    --ink: #22382f;
+    --muted: #5c6f63;
+    --line: #d8e2d2;
+    --accent: #2e7d5b;
+    --accent-soft: #dcefe4;
+    --gold: #d9a03f;
+    --gold-soft: #f7ecd7;
+    --coral: #e8896b;
+    --teal: #4fa3a5;
+    --navy: #2c4770;
+    --chip-bg: #eef4e6;
+    --shadow: 0 2px 10px rgba(34, 56, 47, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #101915;
+      --surface: #18241e;
+      --surface-2: #1e2c25;
+      --ink: #e8f0e8;
+      --muted: #9baa9e;
+      --line: #2c3b32;
+      --accent: #6fcf97;
+      --accent-soft: #1f3a2d;
+      --gold: #e9b44c;
+      --gold-soft: #33301f;
+      --coral: #e8896b;
+      --teal: #5cb8ba;
+      --navy: #7ea3d6;
+      --chip-bg: #22312a;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #101915;
+    --surface: #18241e;
+    --surface-2: #1e2c25;
+    --ink: #e8f0e8;
+    --muted: #9baa9e;
+    --line: #2c3b32;
+    --accent: #6fcf97;
+    --accent-soft: #1f3a2d;
+    --gold: #e9b44c;
+    --gold-soft: #33301f;
+    --coral: #e8896b;
+    --teal: #5cb8ba;
+    --navy: #7ea3d6;
+    --chip-bg: #22312a;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Karla', 'Segoe UI', system-ui, sans-serif;
+    font-size: 16.5px;
+    line-height: 1.62;
+    margin: 0;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px 96px; }
+
+  h1, h2, h3 { font-family: 'Fredoka', 'Karla', sans-serif; line-height: 1.15; text-wrap: balance; }
+  h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); font-weight: 700; margin: 0.2em 0 0.1em; }
+  h2 { font-size: 1.7rem; font-weight: 600; margin: 2.8em 0 0.5em; }
+  h3 { font-size: 1.18rem; font-weight: 600; margin: 1.6em 0 0.4em; }
+  p { max-width: 66ch; }
+  a { color: var(--accent); }
+
+  .eyebrow {
+    font-size: 0.74rem; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .lede { font-size: 1.15rem; color: var(--muted); max-width: 60ch; }
+
+  .hero { padding-top: 56px; text-align: center; }
+  .hero .lede { margin: 0.7em auto 0; }
+  .hero-scene {
+    margin: 28px auto 8px; max-width: 720px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 20px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .hero-scene svg { display: block; width: 100%; height: auto; }
+
+  .pillars { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 18px; }
+  .pillar {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 18px; box-shadow: var(--shadow);
+  }
+  .pillar strong { font-family: 'Fredoka', sans-serif; font-weight: 600; display: block; margin-bottom: 4px; }
+  .pillar span { color: var(--muted); font-size: 0.95rem; }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.97rem; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-weight: 700; }
+
+  .loop { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 18px 0; }
+  .loop .step {
+    background: var(--accent-soft); color: var(--ink); border-radius: 999px;
+    padding: 8px 18px; font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 0.95rem;
+  }
+  .loop .arrow { color: var(--muted); font-weight: 700; }
+
+  .act {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    box-shadow: var(--shadow); padding: 24px 26px; margin: 22px 0;
+  }
+  .act-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .act-num {
+    font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 0.8rem;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold);
+    background: var(--gold-soft); border-radius: 999px; padding: 4px 12px;
+  }
+  .act h3 { margin: 0.4em 0 0.2em; font-size: 1.35rem; }
+  .act .tagline { color: var(--muted); font-style: italic; margin: 0 0 0.8em; }
+  .act dl { margin: 0.9em 0 0; display: grid; grid-template-columns: 130px 1fr; gap: 6px 16px; }
+  .act dt { font-weight: 700; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+  .act dd { margin: 0; }
+  .maps-to { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    background: var(--chip-bg); border: 1px solid var(--line); border-radius: 999px;
+    padding: 3px 12px; font-size: 0.82rem; font-weight: 700; color: var(--accent);
+  }
+
+  ul { padding-left: 1.2em; }
+  li { margin: 0.3em 0; max-width: 64ch; }
+
+  pre {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; overflow-x: auto; font-size: 0.86rem; line-height: 1.55;
+  }
+  code { font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+  .swatch { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--muted); }
+  .swatch i { width: 26px; height: 26px; border-radius: 8px; display: inline-block; border: 1px solid var(--line); }
+
+  .footer-note { margin-top: 56px; color: var(--muted); font-size: 0.92rem; border-top: 1px solid var(--line); padding-top: 18px; }
+
+  @media (max-width: 560px) {
+    .act dl { grid-template-columns: 1fr; gap: 2px; }
+    .act dt { margin-top: 10px; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Game design proposal · /s-game</div>
+    <h1>Prosperity Bay</h1>
+    <p class="lede">A SimCity-style looped cartoon that explains embedded finance to any audience — a town runs itself on screen while every shop becomes a client, and J.P. Morgan is the invisible infrastructure that makes the money move. No controls required: it plays, it loops, it teaches.</p>
+    <div class="hero-scene"><svg id="iso-hero" viewBox="0 0 720 340" role="img" aria-label="Isometric city scene with shops, a bank tower, and roads"></svg></div>
+  </header>
+
+  <section>
+    <h2>The analogy: a marketplace that levels up like a city</h2>
+    <p>Prosperity Bay is an <strong>ambient explainer</strong> built on one analogy: <strong>the town square <em>is</em> your marketplace</strong>. Just as a SimCity village advances to a metropolis when it gets power, water, and roads, the marketplace advances an era every time one embedded-finance capability switches on. Verification turns strangers into trusted merchants; accounts give every stall its own vault; checkout opens the market to the world; payout rails connect it to every merchant's home bank — until the quiet square has become a thriving bazaar, humming on infrastructure the viewer never had to build.</p>
+    <p>The whole lifecycle animates on its own, chapter by chapter, then seamlessly loops — no line of JSON, no required click. It works full-screen on a conference kiosk, embedded in a landing page, or watched on a phone. Interaction is optional and additive: tapping pauses the town and reveals the real product terms behind the scene.</p>
+    <div class="pillars">
+      <div class="pillar"><strong>Runs itself</strong><span>Autoplays and loops forever; zero interaction required to get the full story.</span></div>
+      <div class="pillar"><strong>Plain language</strong><span>Town terms on screen; captions carry benefits; chips reveal real product terms.</span></div>
+      <div class="pillar"><strong>~3-minute loop</strong><span>Six chapters, each 20–35 seconds — short enough to watch twice.</span></div>
+      <div class="pillar"><strong>Mobile-first</strong><span>One responsive SVG scene, captions sized for a phone held in portrait.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The metaphor map</h2>
+    <p>Every object in the town corresponds to a real capability from the Embedded Payments and Checkout documentation. This mapping is the backbone of the game — and it appears verbatim in the finale recap.</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>In Prosperity Bay</th><th>In real life</th></tr>
+        <tr><td>The town square</td><td>Your marketplace / platform ecosystem</td></tr>
+        <tr><td>The mayor (the viewer)</td><td>The platform operator embedding finance for its clients</td></tr>
+        <tr><td>The marketplace's era (village → bazaar)</td><td>How far the platform has advanced through the capability set</td></tr>
+        <tr><td>Shops &amp; stalls</td><td>Your clients — sellers, vendors, service providers</td></tr>
+        <tr><td>City Hall permit review</td><td>Client onboarding with built-in verification (KYC / due diligence)</td></tr>
+        <tr><td>The vault under each shop</td><td>The client's embedded account (Limited DDA) with a live balance</td></tr>
+        <tr><td>The register &amp; storefront counter</td><td>Checkout — Drop-in UI, Hosted Payment Page, Pay by Link</td></tr>
+        <tr><td>The security gate at the register</td><td>3-D Secure, fraud screening, and card tokenization</td></tr>
+        <tr><td>Cargo train / express monorail / armored courier</td><td>Payout rails — ACH, real-time payments (RTP), wire</td></tr>
+        <tr><td>The shop owner's home bank address</td><td>A saved recipient / linked external account</td></tr>
+        <tr><td>The city bell &amp; notice board</td><td>Webhooks — real-time event notifications</td></tr>
+        <tr><td>The prosperity dashboard</td><td>Reporting, balances, and reconciliation</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>The loop</h2>
+    <div class="loop">
+      <span class="step">Caption sets the scene</span><span class="arrow">→</span>
+      <span class="step">The town animates it</span><span class="arrow">→</span>
+      <span class="step">Benefit banner</span><span class="arrow">→</span>
+      <span class="step">Next chapter</span><span class="arrow">↺</span>
+    </div>
+    <p>Every chapter follows the same rhythm: a one-line caption states a business need, the town animates the answer (construction, coins, vehicles), and a short <strong>benefit banner</strong> lands the value in plain words ("Verified in hours, not weeks" · "Every coin tracked to its owner" · "Paid at the speed each moment needs"). After the finale, the town gently resets to dawn and the loop begins again — the reset itself is a scene, not a cut.</p>
+    <p>Advancement is the visible thread. A persistent <strong>era badge</strong> in the corner names the marketplace's current stage, upgrading with each chapter:</p>
+    <div class="loop">
+      <span class="step">Quiet Square</span><span class="arrow">→</span>
+      <span class="step">Trusted Merchants</span><span class="arrow">→</span>
+      <span class="step">Funded Stalls</span><span class="arrow">→</span>
+      <span class="step">Open Market</span><span class="arrow">→</span>
+      <span class="step">Connected Market</span><span class="arrow">→</span>
+      <span class="step">Thriving Bazaar</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>The six chapters</h2>
+
+    <div class="act">
+      <div class="act-head"><span class="act-num">Chapter 1 · Dawn</span></div>
+      <h3>Welcome to Prosperity Bay</h3>
+      <p class="tagline">"You run the town. You don't have to build the bank."</p>
+      <dl>
+        <dt>Scene</dt><dd>Sunrise over an almost-empty map: a road, the bay, and the bank tower on the hill already glowing. The caption introduces the premise — this town is <em>your platform</em>, and the tower is the single provider whose machinery everything else will quietly run on.</dd>
+        <dt>Banner</dt><dd>"Grow your ecosystem — everything your businesses need, without leaving the platform."</dd>
+        <dt>Length</dt><dd>~20 seconds.</dd>
+      </dl>
+    </div>
+
+    <div class="act">
+      <div class="act-head"><span class="act-num">Chapter 2 · Onboarding</span></div>
+      <h3>Open the Doors</h3>
+      <p class="tagline">"Rosie's Bakery wants to set up shop."</p>
+      <dl>
+        <dt>Scene</dt><dd>A little cart rolls in and hands City Hall an application folder. Papers flutter in — <em>business details, owner ID, tax number</em>. A status ribbon over City Hall animates through <em>Received → Under review → One more paper → Approved!</em>, mirroring the real client lifecycle (NEW → REVIEW_IN_PROGRESS → INFORMATION_REQUESTED → APPROVED); the missing-paper beat resolves itself in seconds to show it's a normal, recoverable step, not a rejection.</dd>
+        <dt>On screen</dt><dd>On approval the bakery constructs itself on its lot with a confetti pop, and the town's trust meter fills a notch.</dd>
+        <dt>Banner</dt><dd>"Digital-first onboarding with verification built in — trusted from day one."</dd>
+      </dl>
+      <div class="maps-to"><span class="chip">Onboarding</span><span class="chip">KYC / due diligence</span><span class="chip">Client status lifecycle</span></div>
+    </div>
+
+    <div class="act">
+      <div class="act-head"><span class="act-num">Chapter 3 · Manage Funds</span></div>
+      <h3>Every Shop Gets a Vault</h3>
+      <p class="tagline">"Rosie needs somewhere for her money to live."</p>
+      <dl>
+        <dt>Scene</dt><dd>A glowing vault slides in beneath the freshly built bakery and a golden pipe connects it to the town's money grid. A small ledger pops up reading $0.00, ready to count. A cutaway shows the vault is <em>hers alone</em> — money is never pooled in a shoebox.</dd>
+        <dt>Banner</dt><dd>"Every business gets its own account — every coin tracked to its owner, up to the minute."</dd>
+      </dl>
+      <div class="maps-to"><span class="chip">Manage Funds</span><span class="chip">Embedded accounts</span><span class="chip">Limited DDA</span><span class="chip">Real-time balances</span></div>
+    </div>
+
+    <div class="act">
+      <div class="act-head"><span class="act-num">Chapter 4 · Accept Payments</span></div>
+      <h3>Ring the Register</h3>
+      <p class="tagline">"Rosie is ready to sell — online and everywhere."</p>
+      <dl>
+        <dt>Scene</dt><dd>Three customers arrive in sequence, one per checkout style, each labeled with a floating tag: one pays at <strong>the built-in counter</strong> (a form on the shop's own site — Drop-in UI), one at <strong>the market stall</strong> (a ready-made page — Hosted Payment Page), and one redeems <strong>a delivery coupon</strong> from their phone (Pay by Link).</dd>
+        <dt>On screen</dt><dd>Each card briefly turns into a lockbox (tokenization — the shop never holds the real card). One customer taps their phone to confirm identity (3-D Secure); one shady visitor is politely turned away at the security gate (fraud screening). Coins arc into Rosie's vault and the ledger ticks up.</dd>
+        <dt>Banner</dt><dd>"Accept payments your customers' way — frictionless in front, fraud-screened and secure behind."</dd>
+      </dl>
+      <div class="maps-to"><span class="chip">Accept Payments</span><span class="chip">Checkout</span><span class="chip">Drop-in UI</span><span class="chip">Hosted Payment Page</span><span class="chip">Pay by Link</span><span class="chip">3-D Secure</span><span class="chip">Fraud screening</span><span class="chip">Tokenization</span></div>
+    </div>
+
+    <div class="act">
+      <div class="act-head"><span class="act-num">Chapter 5 · Transfer Funds</span></div>
+      <h3>Money in Motion</h3>
+      <p class="tagline">"Rosie wants her earnings in her own bank."</p>
+      <dl>
+        <dt>Scene</dt><dd>A little "home bank" cottage appears at the town edge and the town pins its address to the map (saving a recipient). Then three payouts depart at once, each labeled with its need and vehicle: <strong>Friday payday, needed now</strong> rides the express monorail (instant, small fee — real-time payments); <strong>the weekly settlement</strong> rides the cargo train (low cost, arrives next day — ACH); <strong>a big payment to the oven supplier</strong> goes by armored courier (same-day, high value — wire).</dd>
+        <dt>On screen</dt><dd>Coins board each vehicle and travel their routes at speeds matching the rail — the monorail arrives while the train is still rolling.</dd>
+        <dt>Banner</dt><dd>"Transfer funds at the speed each moment needs — instant, overnight, or high-value."</dd>
+      </dl>
+      <div class="maps-to"><span class="chip">Transfer Funds</span><span class="chip">Payouts</span><span class="chip">Recipients</span><span class="chip">ACH</span><span class="chip">Real-time payments</span><span class="chip">Wire</span></div>
+    </div>
+
+    <div class="act">
+      <div class="act-head"><span class="act-num">Chapter 6 · The Thriving Bazaar</span></div>
+      <h3>The Marketplace Runs Itself</h3>
+      <p class="tagline">"Word has spread — and the town barely lifts a finger."</p>
+      <dl>
+        <dt>Scene</dt><dd>A florist, a gym, a bookshop, and a coffee cart all arrive at once. Everything from Chapters 2–5 now replays as a fast, joyful montage: permits approve, vaults slide in, registers ring, vehicles roll — the same lifecycle, automatic and at scale. Each event rings the <strong>city bell</strong> and pins a note to the notice board ("Florist approved!" · "Payment received" · "Payout delivered") — the webhook metaphor: the town tells you the moment something happens, so nobody has to keep checking.</dd>
+        <dt>Finale</dt><dd>The camera pulls back on the full bazaar at golden hour while a <strong>prosperity dashboard</strong> rises: money in, money out, businesses served. A closing card shows the metaphor map beside the real capabilities with a "Build this for real" pointer to the docs — then dusk falls, the map clears, and the loop returns to dawn.</dd>
+        <dt>Banner</dt><dd>"Accept, manage, and transfer funds — end to end, from a single provider, at any scale."</dd>
+      </dl>
+      <div class="maps-to"><span class="chip">Scale &amp; automation</span><span class="chip">Webhooks</span><span class="chip">Reporting</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Interaction model — all optional</h2>
+    <ul>
+      <li><strong>Nothing is required.</strong> The cartoon plays and loops unattended — kiosk-safe by default.</li>
+      <li><strong>Tap/click anywhere</strong> pauses the town and opens the current chapter's detail card with its <strong>glossary chips</strong>, which flip between town language ("permit review") and product language ("client onboarding / KYC"). Resume is automatic after a few idle seconds.</li>
+      <li><strong>Chapter dots</strong> along the bottom show loop progress and allow jumping straight to a chapter — handy when a presenter wants to talk over one scene.</li>
+      <li><strong>Reduced motion</strong> swaps travel animations for crossfades; captions and banners carry the full story on their own, so the piece also works with animations effectively off.</li>
+      <li>All copy — captions, banners, chips — lives in one content file for easy editing and future localization.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Visual &amp; theme system</h2>
+    <p>Flat-isometric SVG on a 2:1 diamond grid — the clean, sunny SimCity look. Buildings are simple extruded blocks with flat faces and soft shadows; framer-motion springs handle construction pops, coin arcs, and vehicle travel. Reduced-motion users get crossfades instead of travel animations.</p>
+    <div class="swatches">
+      <span class="swatch"><i style="background:#8cc77b"></i>Meadow</span>
+      <span class="swatch"><i style="background:#4fa3a5"></i>Bay water</span>
+      <span class="swatch"><i style="background:#e8896b"></i>Shop coral</span>
+      <span class="swatch"><i style="background:#f2e4c9"></i>Plaster</span>
+      <span class="swatch"><i style="background:#2c4770"></i>Bank navy</span>
+      <span class="swatch"><i style="background:#d9a03f"></i>Coin gold</span>
+    </div>
+    <p>Every color runs through CSS custom properties (<code>--sg-*</code>) scoped under the game's root class, so a future theme — a night-neon town, a blueprint sketch — is just an alternate token set plus swapped SVG palettes. The theme switcher is scaffolded from day one but ships with the single "Sunny Bay" theme.</p>
+  </section>
+
+  <section>
+    <h2>Mobile-first layout</h2>
+    <ul>
+      <li><strong>Portrait phones</strong>: the scene fills the screen; the caption and benefit banner sit in a slim strip along the bottom, sized for reading at arm's length. The camera does the work — it drifts and zooms to whatever the chapter is about, so nothing ever needs pinching.</li>
+      <li><strong>Landscape / desktop / kiosk</strong>: the scene breathes wide; captions move to a lower-third band, era badge top-left, chapter dots bottom-center.</li>
+      <li>The iso scene is one SVG with a responsive <code>viewBox</code> — crisp at any size, no raster assets, safe to leave running for hours.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Architecture — fully isolated at <code>/s-game</code></h2>
+    <p>A self-contained route and component tree. No imports from the showcase, portal themes, or the fortress game; the only shared things are libraries already in the app (React, zustand, framer-motion). Styling is the game's own CSS file with <code>sg-</code> prefixed classes and tokens.</p>
+    <pre><code>src/routes/s-game.tsx              → mounts &lt;SGameApp /&gt;
+src/components/s-game/
+  SGameApp.tsx                     shell: scene + caption strip + chapter dots
+  s-game.css                       scoped tokens &amp; styles (.sg-root)
+  content/script.ts                every caption, banner, and chip in one place
+  engine/timeline.ts               chapter/beat scheduler: play, pause, loop, jump
+  engine/store.ts                  zustand store: current chapter, era, pause state
+  chapters/ch1-dawn.ts … ch6-bazaar.ts   declarative beat lists per chapter
+  scene/IsoScene.tsx               SVG isometric renderer (tiles, roads, camera)
+  scene/buildings.tsx              bakery, florist, gym, bank tower, city hall…
+  scene/actors.tsx                 customers, cart, train, monorail, courier, coins
+  ui/CaptionStrip.tsx              caption + benefit banner band
+  ui/EraBadge.tsx                  marketplace advancement badge
+  ui/GlossaryChip.tsx              town-term ⇄ product-term flip chip
+  ui/ChapterDots.tsx               loop progress / jump-to-chapter</code></pre>
+    <p>The heart is the <strong>timeline engine</strong>: each chapter is a declarative list of timed beats (<em>show caption → move actor → play effect → show banner</em>) that the scheduler runs, pauses, and loops. Framer-motion animates the beats; the same data drives the reduced-motion crossfade variant. No video files — the whole cartoon is code, so it stays sharp, lightweight, theme-able, and easy to edit line by line.</p>
+    <h3>Build plan</h3>
+    <ul>
+      <li><strong>Milestone 1 — first loop</strong>: route, iso scene, timeline engine, Chapters 1–2 playing and looping end to end.</li>
+      <li><strong>Milestone 2</strong>: Chapters 3–5 (vault, checkout, payout rails) with all actors and effects.</li>
+      <li><strong>Milestone 3</strong>: Chapter 6 montage, dashboard finale, dusk-to-dawn loop seam, reduced-motion pass, mobile QA.</li>
+      <li><strong>Milestone 4</strong>: pause-to-explore details, glossary chips, theme-switcher scaffold, polish.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Open questions</h2>
+    <ul>
+      <li><strong>Naming</strong> — is "Prosperity Bay" a keeper, or should the town carry a name closer to your brand/demo family?</li>
+      <li><strong>Branding rules</strong> — how explicitly can the bank tower say "J.P. Morgan" in a public demo, and should the finale point to the public docs?</li>
+      <li><strong>Narration</strong> — captions only, or also subtle ambient sound (register ding, city bell), off by default for kiosk use?</li>
+      <li><strong>Loop pacing</strong> — is ~3 minutes right for the venues you have in mind (booth screens favor shorter, landing pages tolerate longer)?</li>
+      <li><strong>Analytics</strong> — should chapters emit simple telemetry (viewed, paused, chip-flipped) for demo insight?</li>
+      <li><strong>Languages</strong> — copy is centralized either way; is localization on the roadmap?</li>
+    </ul>
+  </section>
+
+  <p class="footer-note">Prosperity Bay · looped-cartoon design proposal for the embedded-finance showcase · grounded in the Embedded Payments &amp; Checkout developer documentation, the J.P. Morgan Embedded Finance solutions page (capability pillars: Onboarding, Accept Payments, Manage Funds, Transfer Funds, Reporting), and the repository's OAS specs (client lifecycle, Limited DDA accounts, recipients, payment rails).</p>
+</div>
+
+<script>
+(function () {
+  var svg = document.getElementById('iso-hero');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+  var OX = 360, OY = 96, TW = 46, TH = 23;
+
+  function px(x, y) { return [OX + (x - y) * TW, OY + (x + y) * TH]; }
+  function poly(points, fill, opacity) {
+    var p = document.createElementNS(NS, 'polygon');
+    p.setAttribute('points', points.map(function (pt) { return pt[0] + ',' + pt[1]; }).join(' '));
+    p.setAttribute('fill', fill);
+    if (opacity) p.setAttribute('opacity', opacity);
+    svg.appendChild(p);
+    return p;
+  }
+  function diamond(cx, cy, fill, opacity) {
+    return poly([[cx, cy - TH], [cx + TW, cy], [cx, cy + TH], [cx - TW, cy]], fill, opacity);
+  }
+  function tile(x, y, fill) { var c = px(x, y); return diamond(c[0], c[1], fill); }
+  function cube(x, y, h, top, left, right) {
+    var c = px(x, y), cx = c[0], cy = c[1];
+    poly([[cx - TW, cy - h], [cx, cy + TH - h], [cx, cy + TH], [cx - TW, cy]], left);
+    poly([[cx, cy + TH - h], [cx + TW, cy - h], [cx + TW, cy], [cx, cy + TH]], right);
+    diamond(cx, cy - h, top);
+    return c;
+  }
+  function shade(hex, f) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    function s(v) { return Math.max(0, Math.min(255, Math.round(v * f))); }
+    return 'rgb(' + s(r) + ',' + s(g) + ',' + s(b) + ')';
+  }
+  function building(x, y, h, color) {
+    return cube(x, y, h, shade(color, 1.12), shade(color, 0.82), shade(color, 0.95));
+  }
+
+  var grass = '#8cc77b', road = '#cdd3c6', water = '#4fa3a5';
+  var order = [];
+  for (var gx = 0; gx < 6; gx++) for (var gy = 0; gy < 4; gy++) order.push([gx, gy]);
+  order.sort(function (a, b) { return (a[0] + a[1]) - (b[0] + b[1]); });
+  order.forEach(function (t) {
+    var x = t[0], y = t[1];
+    var fill = grass;
+    if (y === 3) fill = water;
+    else if (x === 2) fill = road;
+    tile(x, y, fill);
+  });
+
+  building(0, 0, 30, '#e8896b');   // bakery
+  building(1, 0, 24, '#f2e4c9');   // shop
+  building(3, 0, 68, '#2c4770');   // bank tower
+  building(4, 0, 26, '#4fa3a5');   // teal shop
+  building(0, 1, 22, '#f2e4c9');
+  building(1, 2, 20, '#e8896b');
+  building(3, 1, 30, '#f2e4c9');   // city hall
+  building(4, 2, 18, '#8cc77b');   // park pavilion
+  building(5, 1, 26, '#e8896b');
+
+  // gold beacon on the bank tower
+  var top = px(3, 0);
+  var beacon = document.createElementNS(NS, 'circle');
+  beacon.setAttribute('cx', top[0]); beacon.setAttribute('cy', top[1] - 78);
+  beacon.setAttribute('r', 5); beacon.setAttribute('fill', '#d9a03f');
+  svg.appendChild(beacon);
+
+  // coins drifting along the road
+  for (var i = 0; i < 3; i++) {
+    var c = px(2, 0.4 + i * 0.9);
+    var coin = document.createElementNS(NS, 'circle');
+    coin.setAttribute('cx', c[0]); coin.setAttribute('cy', c[1] - 8);
+    coin.setAttribute('r', 6); coin.setAttribute('fill', '#d9a03f');
+    coin.setAttribute('stroke', shade('#d9a03f', 0.75));
+    svg.appendChild(coin);
+  }
+})();
+</script>
+
+</html>
