@@ -21,9 +21,10 @@ function RootComponent() {
   const location = useLocation();
   const isSellsenseDemo = location.pathname === '/sellsense-demo';
   const isYearInReview = location.pathname === '/year-in-review';
+  const isFortressGame = location.pathname === '/fortress-game';
   const isTestScenario = isTestScenarioPath(location.pathname);
 
-  if (isSellsenseDemo || isTestScenario) {
+  if (isSellsenseDemo || isTestScenario || isFortressGame) {
     return (
       <>
         <main>

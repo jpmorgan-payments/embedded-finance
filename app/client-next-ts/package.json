@@ -43,6 +43,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "framer-motion": "^12.34.3",
     "lodash": "^4.18.0",
     "lucide-react": "^0.476.0",
     "mermaid": "^10.9.8",
@@ -58,7 +59,8 @@
     "tailwindcss": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "yaml": "^2.8.3",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
