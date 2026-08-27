@@ -35,6 +35,10 @@ function getQuestionLabel(question: QuestionResponse): string {
   );
 }
 
+function getQuestionContext(question: QuestionResponse): string {
+  return question.description ?? 'Additional client information';
+}
+
 function getPartyName(
   documentRequest: DocumentRequestResponse,
   parties: PartyResponse[]
@@ -157,16 +161,16 @@ export function InformationRequiredPanel({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-semibold text-gray-950">
-                    Client-level question for new-party review
+                    {getQuestionContext(question)} question
                   </h3>
-                  <Badge variant="outline">No party ID in response</Badge>
+                  <Badge variant="outline">Client level</Badge>
                   <Badge variant="outline">Display only</Badge>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-gray-800">
                   {getQuestionLabel(question)}
                 </p>
                 <p className="mt-1 font-mono text-xs text-gray-500">
-                  Question {question.id}
+                  Question {question.id} · No party ID in response
                 </p>
               </div>
               <LockKeyhole className="h-4 w-4 text-gray-500" />

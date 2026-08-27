@@ -28,6 +28,16 @@ type VerificationAccepted = {
   acceptedAt: string;
 };
 
+class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number
+  ) {
+    super(message);
+    this.name = 'ApiRequestError';
+  }
+}
+
 async function requestJson<Response>(
   input: string,
   init?: RequestInit
@@ -45,10 +55,11 @@ async function requestJson<Response>(
       context?: Array<{ message?: string }>;
       title?: string;
     } | null;
-    throw new Error(
+    throw new ApiRequestError(
       error?.context?.[0]?.message ??
         error?.title ??
-        `Request failed with status ${response.status}`
+        `Request failed with status ${response.status}`,
+      response.status
     );
   }
   return (await response.json()) as Response;
@@ -89,12 +100,22 @@ export const clientMaintenanceApi = {
     });
   },
 
-  getMaintenanceRequests(
+  async getMaintenanceRequests(
     clientId: string
   ): Promise<ListKycPartyUpdateRequests> {
-    return requestJson(
-      `${BASE_URL}/maintenance-requests?clientId=${encodeURIComponent(clientId)}`
-    );
+    try {
+      return await requestJson(
+        `${BASE_URL}/maintenance-requests?clientId=${encodeURIComponent(clientId)}`
+      );
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 404) {
+        return {
+          parties: [],
+          metadata: { page: 0, limit: 25, total: 0 },
+        };
+      }
+      throw error;
+    }
   },
 
   getMaintenanceRequest(

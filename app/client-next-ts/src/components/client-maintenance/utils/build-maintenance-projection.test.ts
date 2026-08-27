@@ -120,8 +120,7 @@ describe('buildMaintenanceProjection', () => {
     });
     expect(jane?.email).toBe('jane@marketplacevendor.example');
     expect(result.historicalProposals).toHaveLength(2);
-    expect(result.conflicts).toHaveLength(1);
-    expect(result.conflicts[0]).toMatchObject({
+    expect(result.partyChanges[0].fieldChanges[0]).toMatchObject({
       path: 'individualDetails.lastName',
       source: { requestId: '4000001049' },
       supersededSources: [{ requestId: '4000001049' }],

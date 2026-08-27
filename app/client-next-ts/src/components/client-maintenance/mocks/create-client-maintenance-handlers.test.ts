@@ -54,7 +54,7 @@ async function createFourOperationDraft() {
 }
 
 describe('client maintenance mock API', () => {
-  it('groups four operations while returning persisted client and party values', async () => {
+  it('keeps product and party requests separate while grouping party operations', async () => {
     const approvedBefore = await clientMaintenanceApi.getClient(
       MAINTENANCE_DEMO_CLIENT_ID
     );
@@ -82,7 +82,7 @@ describe('client maintenance mock API', () => {
           onboardingStatus: 'NEW',
         },
       ],
-      updateRequest: { requestId: '4000001049', status: 'NEW' },
+      updateRequest: { requestId: '5000001049', status: 'NEW' },
     });
     expect(added).toMatchObject({
       parentPartyId: '2000000555',
@@ -128,6 +128,9 @@ describe('client maintenance mock API', () => {
           .map((party) => party.updateRequest?.requestId)
       )
     ).toEqual(new Set(['4000001049']));
+    expect(product.updateRequest?.requestId).not.toBe(
+      added.updateRequest?.requestId
+    );
   });
 
   it('returns request-scoped proposal details', async () => {
@@ -297,7 +300,7 @@ describe('client maintenance mock API', () => {
       status: 'INFORMATION_REQUESTED',
       outstanding: {
         documentRequestIds: ['3000011675'],
-        questionIds: ['300001'],
+        questionIds: ['300001', '300002', '300003', '300004'],
       },
       updateRequest: { status: 'INFORMATION_REQUESTED' },
     });
@@ -318,18 +321,38 @@ describe('client maintenance mock API', () => {
     const questions = await clientMaintenanceApi.getQuestions(
       returned.outstanding.questionIds
     );
-    expect(questions.questions).toEqual([
-      expect.objectContaining({
-        id: '300001',
-        content: [
-          expect.objectContaining({
-            label:
-              'Will the newly added party initiate account activity on behalf of the client?',
-          }),
-        ],
-      }),
-    ]);
-    expect(questions.questions?.[0]).not.toHaveProperty('partyId');
+    expect(questions.questions).toHaveLength(4);
+    expect(questions.questions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: '300001',
+          description: 'New-party due diligence',
+          content: [
+            expect.objectContaining({
+              label:
+                'Will the newly added party initiate account activity on behalf of the client?',
+            }),
+          ],
+        }),
+        expect.objectContaining({
+          id: '300002',
+          description: 'New-party due diligence',
+        }),
+        expect.objectContaining({
+          id: '300003',
+          description: 'Legal-name change review',
+        }),
+        expect.objectContaining({
+          id: '300004',
+          description: 'Legal-name change review',
+        }),
+      ])
+    );
+    expect(
+      questions.questions?.every(
+        (question) => !Object.hasOwn(question, 'partyId')
+      )
+    ).toBe(true);
 
     const documentRequest = await clientMaintenanceApi.getDocumentRequest(
       returned.outstanding.documentRequestIds[0]

@@ -18,8 +18,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 import { ApiSequence } from './components/ApiSequence';
-import { AttestationPanel } from './components/AttestationPanel';
+import {
+  AttestationPanel,
+  createDefaultAttestation,
+} from './components/AttestationPanel';
 import { DemoLifecyclePanel } from './components/DemoLifecyclePanel';
+import { GuidedDemoNavigation } from './components/GuidedDemoNavigation';
 import { InformationRequiredPanel } from './components/InformationRequiredPanel';
 import {
   MaintenanceProgress,
@@ -69,6 +73,9 @@ export function ClientMaintenanceWorkspace() {
     projection?.partyChanges.length === 0 &&
     projection.productChanges.length === 0 &&
     projection.historicalProposals.length > 0;
+  const progressStep: MaintenanceStep = isInformationRequested
+    ? 'information'
+    : step;
 
   if (workspace.clientQuery.isLoading || workspace.maintenanceQuery.isLoading) {
     return <LoadingState />;
@@ -138,6 +145,43 @@ export function ClientMaintenanceWorkspace() {
         party.partyType === 'ORGANIZATION' && party.roles?.includes('CLIENT')
     )?.organizationDetails?.organizationName ?? 'Approved client';
 
+  const runGuidedAction = async () => {
+    if (isComplete) {
+      setStep('profile');
+      return;
+    }
+    if (isInformationRequested) {
+      document
+        .getElementById('information-required-heading')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (step === 'submitted') {
+      await workspace.requestInformation.mutateAsync();
+      return;
+    }
+    if (step === 'attest') {
+      const documentId =
+        projection.approvedClient.outstanding.attestationDocumentIds[0] ??
+        MAINTENANCE_ATTESTATION_DOCUMENT_ID;
+      await workspace.submitForVerification.mutateAsync(
+        createDefaultAttestation(documentId)
+      );
+      setStep('submitted');
+      return;
+    }
+    if (step === 'review') {
+      setStep('attest');
+      return;
+    }
+    if (changeCount > 0) {
+      setStep('review');
+      return;
+    }
+    setDisclosureAnswer('yes');
+    await workspace.loadCompleteStory.mutateAsync();
+  };
+
   return (
     <div className="min-h-screen bg-sp-bg text-gray-950">
       <header className="border-b border-gray-200 bg-white">
@@ -160,7 +204,8 @@ export function ClientMaintenanceWorkspace() {
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-gray-600">
                 Add the Limited DDA sub-product, disclose anything that changed
-                since the previous approval, and submit one grouped request.
+                since the previous approval, and coordinate the separate product
+                and party requests.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -180,12 +225,24 @@ export function ClientMaintenanceWorkspace() {
             </div>
           </div>
           <div className="mt-7">
-            <MaintenanceProgress currentStep={step} />
+            <MaintenanceProgress currentStep={progressStep} />
           </div>
+          <GuidedDemoNavigation
+            step={step}
+            hasChanges={changeCount > 0}
+            isInformationRequested={isInformationRequested}
+            isComplete={isComplete}
+            isPending={
+              workspace.loadCompleteStory.isPending ||
+              workspace.requestInformation.isPending ||
+              workspace.submitForVerification.isPending
+            }
+            onAction={() => void runGuidedAction()}
+          />
         </div>
       </header>
 
-      <ApiSequence currentStep={step} />
+      <ApiSequence currentStep={progressStep} />
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_17rem] lg:px-8">
         <main className="min-w-0">
@@ -227,18 +284,6 @@ export function ClientMaintenanceWorkspace() {
 
           {step === 'review' ? (
             <div className="space-y-6">
-              {projection.conflicts.length > 0 ? (
-                <Alert className="border-amber-300 bg-amber-50 text-amber-950">
-                  <AlertTriangle />
-                  <AlertTitle>Duplicate field proposals returned</AlertTitle>
-                  <AlertDescription>
-                    {projection.conflicts.length} field has multiple values in
-                    the open request. This illustration shows the latest item; a
-                    production flow should block submission and reconcile the
-                    unexpected response.
-                  </AlertDescription>
-                </Alert>
-              ) : null}
               <MaintenanceReviewOptions
                 projection={projection}
                 onEditParty={setEditingParty}
@@ -330,6 +375,33 @@ export function ClientMaintenanceWorkspace() {
                     202 Accepted · {new Date(acceptedAt).toLocaleString()}
                   </p>
                 ) : null}
+                {!isComplete && !isInformationRequested && acceptedAt ? (
+                  <div className="mt-5 flex flex-col gap-3 border-t border-cyan-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-950">
+                        Next in the default scenario
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-gray-700">
+                        Simulate the later review response that requests
+                        additional questions and a document for the new party.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      className="w-full shrink-0 sm:w-auto"
+                      disabled={workspace.requestInformation.isPending}
+                      onClick={() => workspace.requestInformation.mutate()}
+                    >
+                      {workspace.requestInformation.isPending ? (
+                        <Loader2 className="animate-spin" />
+                      ) : null}
+                      Continue to questions and documents
+                      {!workspace.requestInformation.isPending ? (
+                        <ArrowRight />
+                      ) : null}
+                    </Button>
+                  </div>
+                ) : null}
                 {isComplete ? (
                   <Button
                     type="button"
@@ -377,9 +449,9 @@ export function ClientMaintenanceWorkspace() {
           />
           <div className="rounded-md border border-gray-200 bg-white p-4 text-xs leading-5 text-gray-600">
             <strong className="block text-gray-900">Preview policy</strong>
-            One open request is expected per client. Draft edits share its
-            request ID; approved, declined, and terminated requests are excluded
-            from the proposed profile.
+            Product and party maintenance use separate request lifecycles. Party
+            draft edits share one party request ID; approved, declined, and
+            terminated requests are excluded from the proposed profile.
           </div>
         </div>
       </div>

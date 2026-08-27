@@ -7,7 +7,7 @@ import {
   MAINTENANCE_ATTESTATION_DOCUMENT_ID,
   MAINTENANCE_DEMO_CLIENT_ID,
   MAINTENANCE_DOCUMENT_REQUEST_ID,
-  MAINTENANCE_QUESTION_ID,
+  MAINTENANCE_QUESTION_IDS,
 } from '@/components/client-maintenance/mocks/client-maintenance-mock-data';
 import type {
   ClientProductUpdate,
@@ -46,7 +46,8 @@ type DemoState = {
   };
   proposals: PartyResponse[];
   nextPartyId: number;
-  nextRequestId: number;
+  nextPartyRequestId: number;
+  nextProductRequestId: number;
 };
 
 function createState(): DemoState {
@@ -54,7 +55,8 @@ function createState(): DemoState {
     client: createMaintenanceDemoClient(),
     proposals: createMaintenanceDemoProposals(),
     nextPartyId: 2000000558,
-    nextRequestId: 4000001049,
+    nextPartyRequestId: 4000001049,
+    nextProductRequestId: 5000001049,
   };
 }
 
@@ -127,22 +129,16 @@ function hasRequestStatus(
   );
 }
 
-function resolveDraftRequest(
+function resolvePartyDraftRequest(
   state: DemoState
 ):
   | { requestId: string; response?: never }
   | { requestId?: never; response: ReturnType<typeof conflict> } {
-  const openRequests = [
-    ...state.proposals.flatMap((party) =>
-      isOpenStatus(party.updateRequest?.status) && party.updateRequest
-        ? [party.updateRequest]
-        : []
-    ),
-    ...(isOpenStatus(state.clientProductProposal?.updateRequest.status) &&
-    state.clientProductProposal?.updateRequest
-      ? [state.clientProductProposal.updateRequest]
-      : []),
-  ];
+  const openRequests = state.proposals.flatMap((party) =>
+    isOpenStatus(party.updateRequest?.status) && party.updateRequest
+      ? [party.updateRequest]
+      : []
+  );
   const requestIds = new Set(
     openRequests.flatMap((request) =>
       request.requestId ? [request.requestId] : []
@@ -162,7 +158,26 @@ function resolveDraftRequest(
   }
   return {
     requestId:
-      requestIds.values().next().value ?? String(state.nextRequestId++),
+      requestIds.values().next().value ?? String(state.nextPartyRequestId++),
+  };
+}
+
+function resolveProductDraftRequest(
+  state: DemoState
+):
+  | { requestId: string; response?: never }
+  | { requestId?: never; response: ReturnType<typeof conflict> } {
+  const updateRequest = state.clientProductProposal?.updateRequest;
+  if (isOpenStatus(updateRequest?.status) && updateRequest?.status !== 'NEW') {
+    return {
+      response: conflict(
+        'No further product edits are allowed after the product request is submitted.'
+      ),
+    };
+  }
+  return {
+    requestId:
+      updateRequest?.requestId ?? String(state.nextProductRequestId++),
   };
 }
 
@@ -200,7 +215,7 @@ export function createClientMaintenanceHandlers(
       );
       if (!parentExists) return new HttpResponse(null, { status: 404 });
 
-      const draft = resolveDraftRequest(state);
+      const draft = resolvePartyDraftRequest(state);
       if ('response' in draft) return draft.response;
 
       const created: PartyResponse = {
@@ -227,7 +242,7 @@ export function createClientMaintenanceHandlers(
       );
       if (!approvedParty) return new HttpResponse(null, { status: 404 });
 
-      const draft = resolveDraftRequest(state);
+      const draft = resolvePartyDraftRequest(state);
       if ('response' in draft) return draft.response;
 
       const update = (await request.json()) as MaintenancePartyUpdate;
@@ -301,7 +316,7 @@ export function createClientMaintenanceHandlers(
       }
       const update = (await request.json()) as UpdateClientRequest;
       if (update.productDetails?.length) {
-        const draft = resolveDraftRequest(state);
+        const draft = resolveProductDraftRequest(state);
         if ('response' in draft) return draft.response;
         state.clientProductProposal = {
           productDetails: update.productDetails.map((detail) => ({
@@ -394,27 +409,63 @@ export function createClientMaintenanceHandlers(
     }),
 
     http.get(`${baseUrl}/questions`, ({ request }) => {
-      const questionIds = new URL(request.url).searchParams
-        .get('questionIds')
-        ?.split(',');
+      const questionIds = new Set(
+        new URL(request.url).searchParams.get('questionIds')?.split(',') ?? []
+      );
+      const availableQuestions: NonNullable<
+        QuestionListResponse['questions']
+      > = [
+        {
+          id: MAINTENANCE_QUESTION_IDS[0],
+          defaultLocale: 'en-US',
+          description: 'New-party due diligence',
+          content: [
+            {
+              locale: 'en-US',
+              label:
+                'Will the newly added party initiate account activity on behalf of the client?',
+            },
+          ],
+        },
+        {
+          id: MAINTENANCE_QUESTION_IDS[1],
+          defaultLocale: 'en-US',
+          description: 'New-party due diligence',
+          content: [
+            {
+              locale: 'en-US',
+              label:
+                'What responsibilities will the newly added party have for the client?',
+            },
+          ],
+        },
+        {
+          id: MAINTENANCE_QUESTION_IDS[2],
+          defaultLocale: 'en-US',
+          description: 'Legal-name change review',
+          content: [
+            {
+              locale: 'en-US',
+              label: 'What prompted the requested legal-name change?',
+            },
+          ],
+        },
+        {
+          id: MAINTENANCE_QUESTION_IDS[3],
+          defaultLocale: 'en-US',
+          description: 'Legal-name change review',
+          content: [
+            {
+              locale: 'en-US',
+              label: 'When did the requested legal name take effect?',
+            },
+          ],
+        },
+      ];
       const questions: QuestionListResponse = {
-        questions: questionIds?.includes(MAINTENANCE_QUESTION_ID)
-          ? [
-              {
-                id: MAINTENANCE_QUESTION_ID,
-                defaultLocale: 'en-US',
-                description:
-                  'Additional information requested during maintenance review.',
-                content: [
-                  {
-                    locale: 'en-US',
-                    label:
-                      'Will the newly added party initiate account activity on behalf of the client?',
-                  },
-                ],
-              },
-            ]
-          : [],
+        questions: availableQuestions.filter(
+          (question) => question.id && questionIds.has(question.id)
+        ),
         metadata: { page: 0, limit: 25, total: 0 },
       };
       questions.metadata!.total = questions.questions!.length;
@@ -484,7 +535,7 @@ export function createClientMaintenanceHandlers(
           documentRequestIds: hasAddedParty
             ? [MAINTENANCE_DOCUMENT_REQUEST_ID]
             : [],
-          questionIds: [MAINTENANCE_QUESTION_ID],
+          questionIds: [...MAINTENANCE_QUESTION_IDS],
         },
       };
       state.proposals = setActiveStatuses(

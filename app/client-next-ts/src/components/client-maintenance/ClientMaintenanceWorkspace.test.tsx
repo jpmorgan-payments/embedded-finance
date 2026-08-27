@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
@@ -41,6 +42,121 @@ afterEach(async () => {
 afterAll(() => server.close());
 
 describe('ClientMaintenanceWorkspace', () => {
+  it('treats a maintenance-list 404 as an empty workspace', async () => {
+    server.use(
+      http.get(
+        `${API_URL}/onboarding/v1/maintenance-requests`,
+        () => new HttpResponse(null, { status: 404 })
+      )
+    );
+
+    renderWorkspace();
+
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'Marketplace Vendor LLC',
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Could not load the maintenance workspace')
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('0 proposed changes')).toBeInTheDocument();
+  });
+
+  it('keeps a client 404 as a retryable workspace error', async () => {
+    server.use(
+      http.get(
+        `${API_URL}/onboarding/v1/clients/:clientId`,
+        () => new HttpResponse(null, { status: 404 })
+      )
+    );
+
+    renderWorkspace();
+
+    expect(
+      await screen.findByText('Could not load the maintenance workspace')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Request failed with status 404')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled();
+  });
+
+  it('offers a guided path through the default showcase scenario', async () => {
+    const user = userEvent.setup();
+    renderWorkspace();
+
+    await screen.findByRole('heading', {
+      level: 1,
+      name: 'Marketplace Vendor LLC',
+    });
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Guided: load default scenario',
+      })
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', {
+          name: 'Guided: review default scenario',
+        })
+      ).toBeEnabled()
+    );
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Guided: review default scenario',
+      })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Approved and proposed details' })
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Guided: continue to attestation',
+      })
+    );
+    const agreement = screen.getByRole('checkbox', {
+      name: /I have read the certification/,
+    });
+    expect(agreement).not.toBeChecked();
+    expect(
+      screen.getByRole('button', { name: 'Guided: attest and submit' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Attest and submit for verification',
+      })
+    ).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Guided: attest and submit',
+      })
+    );
+    expect(agreement).not.toBeChecked();
+    expect(
+      await screen.findByRole('heading', { name: 'Submitted for review' })
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Continue to questions and documents',
+      })
+    );
+
+    expect(
+      await screen.findByRole('button', {
+        name: 'Guided: review requested information',
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Questions & documents').closest('li')
+    ).toHaveAttribute('aria-current', 'step');
+    expect(
+      screen.getByRole('heading', { name: 'Document request for Sam Lee' })
+    ).toBeInTheDocument();
+  });
+
   it('reviews one draft request and completes the asynchronous lifecycle', async () => {
     const user = userEvent.setup();
     renderWorkspace();
@@ -349,20 +465,38 @@ describe('ClientMaintenanceWorkspace', () => {
       screen.getByText(/Existing parties remain approved/)
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Client-level question for new-party review')
-    ).toBeInTheDocument();
-    expect(screen.getByText('No party ID in response')).toBeInTheDocument();
+      screen.getAllByRole('heading', {
+        name: 'New-party due diligence question',
+      })
+    ).toHaveLength(2);
+    expect(
+      screen.getAllByRole('heading', {
+        name: 'Legal-name change review question',
+      })
+    ).toHaveLength(2);
+    expect(screen.getAllByText('Client level')).toHaveLength(4);
     expect(
       screen.getByText(
         'Will the newly added party initiate account activity on behalf of the client?'
       )
     ).toBeInTheDocument();
     expect(
+      screen.getByText(
+        'What responsibilities will the newly added party have for the client?'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('What prompted the requested legal-name change?')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('When did the requested legal name take effect?')
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole('heading', { name: 'Document request for Sam Lee' })
     ).toBeInTheDocument();
     expect(screen.getByText('Party linked')).toBeInTheDocument();
     expect(screen.getByText('Drivers License')).toBeInTheDocument();
-    expect(screen.getAllByText('Display only')).toHaveLength(2);
+    expect(screen.getAllByText('Display only')).toHaveLength(5);
     expect(
       within(demoControls).getByRole('button', {
         name: 'Approve maintenance',

@@ -1,12 +1,18 @@
 import { Check, Circle } from 'lucide-react';
 
-export type MaintenanceStep = 'profile' | 'review' | 'attest' | 'submitted';
+export type MaintenanceStep =
+  | 'profile'
+  | 'review'
+  | 'attest'
+  | 'submitted'
+  | 'information';
 
 const steps: Array<{ id: MaintenanceStep; label: string }> = [
   { id: 'profile', label: 'Disclose changes' },
   { id: 'review', label: 'Review changes' },
   { id: 'attest', label: 'Attest' },
   { id: 'submitted', label: 'Submitted' },
+  { id: 'information', label: 'Questions & documents' },
 ];
 
 export function MaintenanceProgress({
@@ -18,7 +24,7 @@ export function MaintenanceProgress({
 
   return (
     <nav aria-label="Maintenance progress" className="overflow-x-auto">
-      <ol className="grid min-w-[36rem] grid-cols-4">
+      <ol className="grid min-w-[46rem] grid-cols-5">
         {steps.map((step, index) => {
           const isComplete = index < currentIndex;
           const isCurrent = index === currentIndex;

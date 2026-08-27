@@ -6,6 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+export const defaultAttester = {
+  firstName: 'Jordan',
+  lastName: 'Lee',
+  designation: 'Chief executive officer',
+};
+
+export function createDefaultAttestation(documentId: string): AttestationInput {
+  return {
+    attester: defaultAttester,
+    attestationTime: new Date().toISOString(),
+    documentId,
+    ipAddress: '192.0.2.10',
+  };
+}
+
 export function AttestationPanel({
   organizationName,
   documentId,
@@ -19,9 +34,9 @@ export function AttestationPanel({
   error?: string;
   onSubmit: (attestation: AttestationInput) => Promise<void>;
 }) {
-  const [firstName, setFirstName] = useState('Jordan');
-  const [lastName, setLastName] = useState('Lee');
-  const [designation, setDesignation] = useState('Chief executive officer');
+  const [firstName, setFirstName] = useState(defaultAttester.firstName);
+  const [lastName, setLastName] = useState(defaultAttester.lastName);
+  const [designation, setDesignation] = useState(defaultAttester.designation);
   const [agreed, setAgreed] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

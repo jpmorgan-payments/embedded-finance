@@ -81,7 +81,6 @@ export type MaintenanceProjection = {
   proposedClient: ClientResponse;
   productChanges: ProductChange[];
   partyChanges: PartyChange[];
-  conflicts: FieldChange[];
   activeProposals: PartyResponse[];
   historicalProposals: PartyResponse[];
   unresolvedProposals: PartyResponse[];
@@ -381,7 +380,6 @@ export function buildMaintenanceProjection(
 
   const partyIds = new Set([...approvedById.keys(), ...proposedById.keys()]);
   const partyChanges: PartyChange[] = [];
-  const conflicts: FieldChange[] = [];
 
   for (const partyId of partyIds) {
     const approvedParty = approvedById.get(partyId);
@@ -413,13 +411,6 @@ export function buildMaintenanceProjection(
         supersededSources: entries.slice(0, -1).map((entry) => entry.source),
       };
       fieldChanges.push(fieldChange);
-      if (
-        entries
-          .slice(0, -1)
-          .some((entry) => !isEqual(entry.value, latestEntry.value))
-      ) {
-        conflicts.push(fieldChange);
-      }
     }
 
     partyChanges.push({
@@ -438,7 +429,6 @@ export function buildMaintenanceProjection(
     proposedClient,
     productChanges,
     partyChanges,
-    conflicts,
     activeProposals,
     historicalProposals,
     unresolvedProposals,

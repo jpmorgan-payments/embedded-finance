@@ -7,7 +7,12 @@ export const MAINTENANCE_DEMO_CLIENT_ID = '1000010400';
 export const MAINTENANCE_ATTESTATION_DOCUMENT_ID =
   'c4e4739f-33ed-47f6-82fa-0b1c5c992d0b';
 export const MAINTENANCE_DOCUMENT_REQUEST_ID = '3000011675';
-export const MAINTENANCE_QUESTION_ID = '300001';
+export const MAINTENANCE_QUESTION_IDS = [
+  '300001',
+  '300002',
+  '300003',
+  '300004',
+] as const;
 export const MAINTENANCE_ADDED_PARTY_ID = '2000000558';
 
 export function createMaintenanceDemoClient(): ClientResponse {

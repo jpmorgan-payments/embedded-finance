@@ -343,7 +343,8 @@ export function ProfileOverview({
           </legend>
           <p className="mt-1 text-sm text-gray-600">
             Include changes to the organization and its related parties. All
-            disclosed changes join the same request as the new sub-product.
+            disclosed party changes use a separate maintenance request from the
+            new sub-product.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label

@@ -1,6 +1,6 @@
 # Approved Client Maintenance UI/UX Recipe
 
-> **Draft - under review.** Information in this document may be incomplete or subject to change.
+> **Draft - under review.** Open items are tracked in [Remaining End-to-End Questions](#remaining-end-to-end-questions).
 
 ## Introduction
 
@@ -33,12 +33,12 @@ The runnable showcase applies the generic lifecycle to a specific Limited DDA pr
 4. Ask whether anything changed since the previous approval.
 5. If the answer is no, continue with only the sub-product addition. If the answer is yes, collect every applicable supported organization and related-party disclosure.
 6. Refetch the approved client and every maintenance page.
-7. Reconcile client-level product proposals and sparse party proposals without changing the approved baseline.
-8. Resolve every returned outstanding question, document request, party requirement, role requirement, and attestation.
+7. Reconcile the separate client-level product proposal and sparse party proposals without changing the approved baseline.
+8. Present and submit the pre-verification attestation.
 9. Refetch, rebuild, and review the complete change set with request provenance.
-10. Request verification and represent `202 Accepted` as asynchronous processing.
-11. Handle `INFORMATION_REQUESTED` by refetching, showing every returned item, enabling configured completion actions, and blocking unsupported actions.
-12. Observe status through webhooks and refetches, then refetch the client throughout the 24-48 hour publication window.
+10. Request verification and represent `202 Accepted` as asynchronous processing for the product and party lifecycles.
+11. After verification, handle `INFORMATION_REQUESTED` by refetching and showing the returned questions and document requests. In this illustration, show new-party and legal-name-change questions plus a document request linked to the added party.
+12. Observe each lifecycle through the usual onboarding event model and refetches, then refetch the client throughout the 24-48 hour publication window.
 
 ## Relationship to the Digital Onboarding Flow
 
@@ -74,9 +74,13 @@ Enforce these preconditions:
 
 - The client must already have `APPROVED` status.
 - Require an explicit country and legal-entity eligibility matrix. Deny maintenance when the client has no exact configured match.
+- Every in-scope approved `EMBEDDED_PAYMENTS / LIMITED_DDA_PAYMENTS` client can request `EMBEDDED_PAYMENTS / LIMITED_DDA`.
 - Only one open party-maintenance `requestId` is supported per client.
 - Multiple party PATCH calls made while that request is `NEW` are bundled under the same `requestId`.
+- Product and party maintenance have separate submission, cancellation, status, and `requestId` lifecycles. The host may coordinate their presentation but has no required cross-lifecycle orchestration contract.
 - Send only fields whose values changed; do not replay a complete party object.
+- Treat each maintenance party as a presence-based delta: an absent field is unchanged. A present nested object or array replaces that complete logical field.
+- Repeated PATCHes for one party are coalesced into one proposal record. When the same field is updated repeatedly, the latest update wins.
 - After verification changes the request to `REVIEW_IN_PROGRESS`, further edits are not allowed.
 - Enforce a five-minute processing lead time after the first product verification is accepted. Do not submit a product enhancement, product update, or second verification until the lead time has elapsed and a fresh client response reports the original product as `APPROVED`.
 
@@ -125,6 +129,7 @@ sequenceDiagram
       end
     end
     Note over UX,API: Party draft operations share one NEW party-maintenance requestId
+    Note over UX,API: Product and party requests retain separate lifecycle and requestId envelopes
     par Refresh approved baseline
         UX->>API: GET /clients/{clientId}
         API-->>UX: Approved ClientResponse
@@ -134,18 +139,6 @@ sequenceDiagram
     end
     UX->>UX: Track product and party envelopes separately, then derive a ChangeSet
     U->>UX: Review approved versus proposed values
-    UX->>API: GET /clients/{clientId}
-    API-->>UX: outstanding IDs and party requirements
-    loop Every outstanding question
-      UX->>API: GET /questions?questionIds={ids}
-      U->>UX: Answer question
-      UX->>API: PATCH /clients/{clientId} with questionResponses
-    end
-    loop Every outstanding document request
-      UX->>API: GET /document-requests/{documentRequestId}
-      UX->>API: POST /documents
-      UX->>API: POST /document-requests/{documentRequestId}/submit
-    end
     loop Every outstanding attestation
       UX->>U: Present attestation document
       UX->>API: PATCH /clients/{clientId} with addAttestations
@@ -160,8 +153,13 @@ sequenceDiagram
       UX->>API: GET /clients/{clientId}
       API-->>UX: New outstanding questionIds and documentRequestIds
       UX->>API: GET /questions?questionIds={ids}
+      UX->>U: Show and collect returned answers
+      UX->>API: PATCH /clients/{clientId} with questionResponses
       UX->>API: GET /document-requests/{documentRequestId}
-      UX->>U: Show returned items and supported completion actions
+      UX->>U: Show party-linked document request
+      UX->>API: POST /documents
+      UX->>API: POST /document-requests/{documentRequestId}/submit
+      Note over UX,API: Questions and document requests occur only after verification submission
     end
     Note over UX,API: Approved values may take 24-48 hours to appear in GET /clients/{id}
 ```
@@ -237,13 +235,15 @@ type ProductChange = {
 Apply these response rules:
 
 - A response item is a sparse party proposal, not a `MaintenanceRequest` aggregate.
-- Retain the raw maintenance response. Overlay only allowlisted scalar properties explicitly present in the proposal, and block fields whose presence or clear intent cannot be determined.
+- Treat a maintenance party as a presence-based delta. An absent property leaves the approved value unchanged; a present property supplies the proposed value.
+- Replace a present nested object or array as one complete logical field. Do not recursively merge nested members or append array entries during projection.
+- Retain the raw maintenance response and overlay only allowlisted properties explicitly present in the proposal.
 - Request metadata is nested under `party.updateRequest`.
 - Multiple party items in the one open request share a `requestId`.
-- Repeated PATCH calls while the request is `NEW` continue to use that ID.
+- Repeated PATCH calls for one party are coalesced into one proposal record while the request is `NEW` and continue to use that ID.
+- When a field is updated more than once, apply the latest update and retain earlier update sources as superseded provenance.
 - A client response and a maintenance-list response have different meanings: persisted state versus pending state.
-- Treat every `KycUpdateRequest` property as optional when parsing. Mark a proposal unresolved when required correlation data is absent and block submission.
-- Mark maintenance items without `PartyResponse.id` as unresolved and block submission.
+- Validate `requestId`, `submittedAt`, `action`, and party ID before projection. Reject payloads missing required correlation data and block submission.
 - The API does not return field-level `before` and `after` values.
 - Product proposals come from `ClientResponse.productDetails` and the client-level `updateRequest`; party proposals come from maintenance-request responses.
 - Preserve the submitted product command so the host can label the requested `ADD` or `REMOVE`; `ProductDetailsStatusItem` returns status, not action.
@@ -254,34 +254,34 @@ Apply these response rules:
 
 Enforce these state-machine guards:
 
-| `updateRequest.status`  | Host may mutate draft | Host may cancel | Host action                                                                                                  |
-| ----------------------- | --------------------- | --------------- | ------------------------------------------------------------------------------------------------------------ |
-| No open request         | Yes                   | No              | First supported change creates a draft                                                                       |
-| `NEW`                   | Yes                   | Yes             | Continue editing under the same `requestId`; attest and verify when ready                                    |
-| `REVIEW_IN_PROGRESS`    | No                    | No              | Show read-only submitted changes and await an outcome                                                        |
-| `INFORMATION_REQUESTED` | Returned tasks only   | No              | Keep ordinary draft writes disabled; show returned tasks and only actions explicitly supported for that task |
-| `APPROVED`              | No                    | No              | Exclude from proposed state and refetch until approved values are published                                  |
-| `DECLINED`/`TERMINATED` | No                    | No              | Exclude from proposed state and retain request history                                                       |
+| `updateRequest.status`  | Host may mutate draft | Host may cancel | Host action                                                                 |
+| ----------------------- | --------------------- | --------------- | --------------------------------------------------------------------------- |
+| No open request         | Yes                   | No              | First supported change creates a draft                                      |
+| `NEW`                   | Yes                   | Yes             | Continue editing under the same `requestId`; attest and verify when ready   |
+| `REVIEW_IN_PROGRESS`    | No                    | No              | Show read-only submitted changes and await an outcome                       |
+| `INFORMATION_REQUESTED` | Returned tasks only   | No              | Keep ordinary draft writes disabled and show the returned tasks             |
+| `APPROVED`              | No                    | No              | Exclude from proposed state and refetch until approved values are published |
+| `DECLINED`/`TERMINATED` | No                    | No              | Exclude from proposed state and retain request history                      |
 
-Fail closed if more than one open party-maintenance `requestId` is returned for one client. Preserve the payload for support diagnostics, but do not invent cross-request precedence or allow attestation against an ambiguous projection. Track each product detail's `onboardingStatus` independently.
+Fail closed if more than one open party-maintenance `requestId` is returned for one client. Preserve the payload for support diagnostics, reject the projection, and block attestation. Track each product detail's `onboardingStatus` independently.
 
 ### Resolve outstanding requirements
 
-Resolve every outstanding item before the initial verification request. When a party-maintenance `updateRequest.status` or product `onboardingStatus` enters `INFORMATION_REQUESTED`, refetch the client and show the returned tasks. Enable only completion operations documented for the current resource status; otherwise keep the action disabled and block resubmission. Complete permitted information requests within 30 days to prevent automatic termination.
+Resolve requirements at the lifecycle stage in which the API returns them. Submit required attestations before verification. Questions and document requests are post-verification requirements: retrieve them only after a product or party lifecycle enters `INFORMATION_REQUESTED`. Complete information requests within 30 days to prevent automatic termination.
 
 Use `ClientResponse.outstanding` as the task-discovery surface:
 
 1. Refetch `GET /clients/{id}` after every task write and lifecycle event.
-2. Before initial verification, resolve `questionIds` with `GET /questions?questionIds={ids}` and submit answers through `PATCH /clients/{id}` using `questionResponses`.
-3. Before initial verification, resolve each `documentRequestId` with `GET /document-requests/{id}`. For platform-uploaded requests, upload every required file with `POST /documents`, then submit the fulfilled request with `POST /document-requests/{id}/submit`.
-4. Use `DocumentRequestResponse.partyId` to associate a document request with its party. Keep questions client-level because `QuestionResponse` has no `partyId`.
-5. Display every `partyId` and `partyRole` requirement. Invoke a party-completion operation only when that operation is explicitly supported for maintenance; otherwise block verification and surface the requirement.
-6. Present every document in `attestationDocumentIds`, capture the structured attester, and submit the attestation through `PATCH /clients/{id}`.
-7. Keep verification disabled until all outstanding work supported by the integration is complete. Block and surface any outstanding item whose maintenance completion contract is unavailable.
+2. Before verification, present every document in `attestationDocumentIds`, capture the structured attester, and submit the attestation through `PATCH /clients/{id}`.
+3. Submit verification and treat `202 Accepted` as the start of asynchronous review, not approval.
+4. After an `INFORMATION_REQUESTED` status, resolve `questionIds` with `GET /questions?questionIds={ids}` and submit answers through `PATCH /clients/{id}` using `questionResponses`.
+5. After an `INFORMATION_REQUESTED` status, resolve each `documentRequestId` with `GET /document-requests/{id}`. For platform-uploaded requests, upload every required file with `POST /documents`, then submit the fulfilled request with `POST /document-requests/{id}/submit`.
+6. Use `DocumentRequestResponse.partyId` to associate a document request with its party. Keep questions client-level because `QuestionResponse` has no `partyId`.
+7. Keep the request read-only while the additional information is outstanding.
 
 Keep every party from the approved client snapshot in its approved profile state while maintenance is open. Represent an `ADD` proposal as a new party pending approval; do not assign it an approved profile state until the maintenance proposal is approved and published in `GET /clients/{id}`.
 
-Render only tasks returned by the client response. The showcase groups new-party due diligence for Sam Lee in one panel: the document request is linked through `DocumentRequestResponse.partyId`, while the question is labeled client-level because `QuestionResponse` has no `partyId`. Both tasks are display-only; this route does not submit answers or documents.
+Render only tasks returned after verification. The showcase groups two new-party due-diligence questions, two legal-name-change questions, and a document request for Sam Lee in one panel. The document request is linked through `DocumentRequestResponse.partyId`; the questions are labeled client-level because `QuestionResponse` has no `partyId`. These post-verification tasks are display-only in this route.
 
 ## Product and disclosure operation contracts
 
@@ -520,7 +520,7 @@ const descriptors: PartyFieldDescriptor[] = [
 ];
 ```
 
-Keep editable request descriptors separate from broader response descriptors. Treat `addresses` as one logical field and block the field when replacement or clear intent is ambiguous.
+Keep editable request descriptors separate from broader response descriptors. Treat `addresses` and every other array as one logical field. A present array replaces the complete approved array; omission leaves it unchanged. Do not model append or item-level PATCH semantics.
 
 ### 3. Apply action-specific behavior
 
@@ -556,7 +556,7 @@ diff approvedClient and proposedClient across the same descriptors
 emit PartyChange[] and FieldChange[] with winning and superseded sources
 ```
 
-### 4. Preserve provenance and conflict evidence
+### 4. Preserve precedence and provenance
 
 ```ts
 type ChangeSource = {
@@ -579,12 +579,11 @@ type ChangeSet = {
   proposedClient: ClientResponse; // display only
   productChanges: ProductChange[];
   partyChanges: PartyChange[];
-  conflicts: FieldChange[];
-  unresolvedProposals: PartyResponse[];
+  invalidProposals: PartyResponse[];
 };
 ```
 
-Compose party proposals that share one request ID. If multiple records propose different values for the same field, retain every source, mark the field ambiguous, and block submission. Do not select a winner.
+Compose party proposals that share one request ID in `submittedAt` order. Repeated PATCHes for one party are coalesced by the service; if multiple returned records contain the same field, apply the latest value and retain earlier sources in `supersededSources`.
 
 ## Review UI
 
@@ -665,7 +664,7 @@ Open each task into the same field comparison used by the profile review hub.
 | No open request                            | Approved profile                              | Edit a supported field, add a related party, or remove a related party                          |
 | Party `updateRequest.status: NEW`          | Draft changes are not yet submitted           | Continue supported party edits, review, attest, verify, or cancel the party-maintenance request |
 | Product or party `REVIEW_IN_PROGRESS`      | Submitted for review; not approved            | View read-only changes and status; prevent ordinary edit controls                               |
-| Product or party `INFORMATION_REQUESTED`   | More information is required                  | Show returned tasks; expose only completion actions supported for maintenance                   |
+| Product or party `INFORMATION_REQUESTED`   | More information is required                  | Show the returned tasks and keep ordinary draft edits disabled                                  |
 | Product or party `APPROVED`, not published | Approved; profile update may take 24-48 hours | Remove that proposal overlay and refetch the client until its approved values are published     |
 | Published                                  | Approved profile is current                   | Return to profile and retain request history                                                    |
 | Product or party `DECLINED`                | Changes were not approved                     | Remove that proposal overlay and retain its request history                                     |
@@ -686,7 +685,7 @@ Keep product enhancement controls and every subsequent verification action disab
 
 Do not unlock on elapsed time alone. If the original product remains `NEW`, `REVIEW_IN_PROGRESS`, or `INFORMATION_REQUESTED` after five minutes, continue polling and keep the controls disabled. Do not submit or automatically retry a product update or second verification during this guard window because the request can fail while the first product verification is still processing.
 
-Isolate deprecated `addAttestations` inside a v1.4.1 compatibility module and gate its production use with provider configuration. Send structured `attester` details and do not send deprecated `attesterFullName`. Retrieve each attestation document with `GET /documents/{id}` and its content with `GET /documents/{id}/file` before collecting acceptance:
+For the v1.4.1 payload shown here, send `addAttestations` with structured `attester` details. Retrieve each attestation document with `GET /documents/{id}` and its content with `GET /documents/{id}/file` before collecting acceptance:
 
 ```json
 {
@@ -705,7 +704,7 @@ Isolate deprecated `addAttestations` inside a v1.4.1 compatibility module and ga
 }
 ```
 
-After outstanding requirements are submitted, enable verification only when the published contract supports the current combination of product and party states. Otherwise present their independent statuses and block coordinated submission:
+After required pre-verification attestations are submitted, invoke verification for each lifecycle according to its own state. Product and party maintenance have separate submission contracts; a host may coordinate their UX but is not required to orchestrate them as one transaction:
 
 ```http
 POST /onboarding/v1/clients/1000010400/verifications
@@ -727,7 +726,7 @@ Handle the `202` response:
 
 The UI must say “submitted” or “accepted for review,” never “approved.” After verification returns `202`, disable ordinary party editing and draft cancellation. Obtain subsequent status from webhooks and refetches. Treat `acceptedAt` as optional when parsing the response.
 
-Handle product `onboardingStatus` and party `updateRequest.status` independently during review. Remove each proposal overlay only when that proposal reaches a terminal state. Continue rendering and refetching `GET /clients/{id}` as the persisted baseline throughout the 24-48 hour publication window.
+Handle product `onboardingStatus` and party `updateRequest.status` independently during review. Remove each proposal overlay only when that proposal reaches a terminal state. Use the regular onboarding event model and refetch `GET /clients/{id}` as the persisted baseline throughout the 24-48 hour publication window.
 
 ## Client state and cache boundaries
 
@@ -761,16 +760,16 @@ async function patchParty(partyId: string, changedFields: UpdatePartyRequest) {
 - Do not optimistically patch `approvedClient` with submitted values.
 - Retain form values until the maintenance refetch succeeds and label them local and unsynchronized.
 - Fetch page zero, validate `metadata.page`, `metadata.limit`, and `metadata.total`, fetch every remaining page, and verify the combined item count against a final page-zero refetch before enabling review or attestation.
-- Treat `404`, malformed metadata, a missing page, or a changing total as an incomplete read and block review. Do not interpret `404` as an empty list unless the published contract defines that behavior.
+- Treat malformed metadata, a missing page, or a changing total as an incomplete read and block review.
 - Rebuild the projection from query data; do not store a second mutable copy.
 - Key request-specific caches by both client and `requestId` to avoid cross-client collisions.
 - Redact birth dates and identifiers from analytics, errors, and mutation logs.
 
 ## Staleness and consistency
 
-Use the review fingerprint for best-effort local drift detection; it is not an atomic API snapshot. Immediately before attestation and verification, refetch the client and every maintenance page, rebuild the `ChangeSet`, and compare it with the reviewed fingerprint. Require two consecutive identical complete reads before submission. Invalidate the attestation and return to review when values change.
+Use the review fingerprint for local drift detection. Immediately before attestation and verification, refetch the client and every maintenance page, rebuild the `ChangeSet`, and compare it with the reviewed fingerprint. Require two consecutive identical complete reads before submission. Invalidate the attestation and return to review when values change.
 
-Use a review fingerprint even when the API does not expose a version:
+Build the review fingerprint from the proposed product and party changes:
 
 ```ts
 const reviewedFingerprint = stableHash({
@@ -793,7 +792,7 @@ const reviewedFingerprint = stableHash({
 
 Compare the fingerprint after every pre-submit refetch. Block submission while either resource is stale, incomplete, or unavailable.
 
-Subscribe only to a documented maintenance event with sufficient correlation fields. Otherwise poll client product `onboardingStatus` and party `updateRequest.status` independently. Back off while both are unchanged, refetch immediately after a correlated event, stop polling each proposal when that proposal becomes terminal, and continue lower-frequency client refetches during the 24-48 hour publication window. Do not keep an approved proposal overlay visible while waiting for publication.
+Use the same event model as the regular onboarding flow. Refetch client and maintenance resources after a relevant event, track client product `onboardingStatus` and party `updateRequest.status` independently, and stop tracking each proposal when it becomes terminal. Continue lower-frequency client refetches during the 24-48 hour publication window. Do not keep an approved proposal overlay visible while waiting for publication.
 
 ## Sensitive data
 
@@ -809,9 +808,9 @@ Apply masking in the host before rendering or logging values.
 
 ## Projection safety rules
 
-- Overlay only allowlisted scalar fields explicitly present in a maintenance proposal.
-- Keep the approved value when an allowlisted property is absent; block the field when presence is indeterminate.
-- Block an address or collection change when replacement or clear intent cannot be determined.
+- Overlay only allowlisted fields explicitly present in a maintenance proposal.
+- Keep the approved value when an allowlisted property is absent.
+- Replace an address, nested object, or collection as one complete logical field when it is present; do not append or merge its members during projection.
 - Read pending additions from maintenance responses and retain their assigned party IDs.
 - Build the proposed party set from the union of approved parties and pending additions.
 - Treat `TERMINATED` as a terminal request state, not as deletion of the committed party.
@@ -829,7 +828,7 @@ Apply masking in the host before rendering or logging values.
 | PATCH succeeds but maintenance refetch fails                                                  | Show the request as synchronizing; do not invent the proposed value from the PATCH response                                      |
 | More than one open party-maintenance request ID is returned                                   | Block attestation/verification and surface an integration error                                                                  |
 | Maintenance list is incomplete/unpageable                                                     | Do not claim the proposed snapshot is complete                                                                                   |
-| Proposal lacks correlation fields                                                             | Exclude it from projection, show an unresolved warning, and block submission                                                     |
+| Proposal lacks correlation fields                                                             | Exclude it from projection, show a validation warning, and block submission                                                      |
 | Reviewed data changes before attestation                                                      | Invalidate attestation and return to review                                                                                      |
 | Product enhancement or second verification is attempted before the initial product gate opens | Do not send the request; show that initial product verification is processing, then refetch at or after the five-minute boundary |
 | Mutation returns `409`                                                                        | Treat it as a concurrent-request conflict, preserve local input, refetch client and maintenance state, and require review again  |
@@ -853,6 +852,7 @@ Cover:
 - guide-supported request DTOs that omit unchanged fields and reject unsupported form fields;
 - repeated party PATCH calls sharing one `NEW` party-maintenance request ID;
 - client-level product proposal provenance kept separate from party-maintenance request provenance;
+- independent product and party submission, cancellation, status, and request-ID lifecycles without required cross-lifecycle orchestration;
 - `POST /parties`, sparse party modification, and `active: false` removal grouped under one party-maintenance request ID;
 - immediate-parent `partyId` placement in `parentPartyId` for new parties;
 - PATCH responses retaining persisted values while maintenance GET returns pending values;
@@ -862,8 +862,8 @@ Cover:
 - `ADD`, `MODIFY`, and `DELETE` projection behavior;
 - product proposal projection from the client response without manufacturing a party record;
 - `MODIFY` plus `active: false` deriving `removesParty: true` without action rewriting;
-- duplicate-field ambiguity detection within one request;
-- unresolved proposal handling;
+- repeated party updates coalescing into one proposal and latest-field-value precedence with superseded provenance;
+- missing-correlation response handling;
 - identity, birth-date, and phone masking;
 - approved baseline immutability after `PATCH /parties/{id}`;
 - approved baseline immutability after product, party-create, update, and removal writes;
@@ -873,7 +873,7 @@ Cover:
 - full-request and party-scoped cancellation while `NEW`, plus lock behavior after submission;
 - attestation required before verification in the demo;
 - contract tests for question responses, platform-uploaded document requests, attestations, and every targeted write enabled during `INFORMATION_REQUESTED`;
-- display-only showcase tests that group the returned client-level question and Sam Lee's party-linked document request without manufacturing question-to-party correlation;
+- display-only showcase tests that show post-verification new-party and legal-name-change questions plus Sam Lee's party-linked document request without manufacturing question-to-party correlation;
 - verification transitioning `NEW` to `REVIEW_IN_PROGRESS` and preventing further edits;
 - `INFORMATION_REQUESTED` refetching all outstanding work and keeping ordinary draft edits disabled;
 - `202 Accepted` separated from later approval and approved-data publication;
@@ -909,18 +909,14 @@ http://localhost:3000/approved-client-maintenance
 
 Move each resolved answer into the owning API description, model, example, error contract, or implementation section above, then remove its row from this table.
 
-| Flow area                                          | Remaining question                                                                                                                                                                                                                                                                                                                                              |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Product eligibility and lifecycle                  | Is adding `EMBEDDED_PAYMENTS / LIMITED_DDA` supported for every approved `LIMITED_DDA_PAYMENTS` client in scope? Does the product proposal share submission, cancellation, status, and `requestId` lifecycle with party maintenance, or must the host manage two coordinated lifecycles?                                                                        |
-| Maintenance field semantics                        | Does each maintenance party represent a presence-based delta where absence means unchanged? Are nested objects and arrays whole replacements, and how does the API represent intentional clears?                                                                                                                                                                |
-| Repeated updates and precedence                    | Are repeated PATCHes for one party coalesced into one proposal record? If multiple records contain the same field, what ordering or precedence rule applies?                                                                                                                                                                                                    |
-| Correlation and pending additions                  | Must every maintenance proposal include stable `id`, `requestId`, `status`, `action`, and `submittedAt` values? Does a pending `ADD` always include `parentPartyId`, and can its assigned party ID be patched again while the request is `NEW`?                                                                                                                 |
-| Writable field and entity scope                    | What is the complete approved-client maintenance allowlist by country, legal entity type, party type, and role? Is `AUTHORIZED_USER` supported for a newly added party in this flow, and what response identifies an unsupported field or role?                                                                                                                 |
-| Outstanding party requirements                     | How must `outstanding.partyIds`, `outstanding.partyRoles`, and party `validationResponse` be completed during maintenance? Which endpoint starts or resumes validation for a newly added party?                                                                                                                                                                 |
-| `INFORMATION_REQUESTED` writes and resume behavior | Which targeted writes are allowed for each product or party status of `INFORMATION_REQUESTED`? Are document requests uploaded through the platform or collected directly by J.P. Morgan? After all returned questions, documents, attestations, and party requirements are complete, does review resume automatically or must the host call verification again? |
-| Attestation migration                              | What non-deprecated request property replaces `addAttestations`, and what is the migration timeline? Until then, is `addAttestations` with structured `attester` the supported production payload?                                                                                                                                                              |
-| List, pagination, and empty results                | What are the guaranteed pagination, empty-result, and `404` semantics for maintenance requests queried by client ID, party ID, and request ID?                                                                                                                                                                                                                  |
-| Concurrency and review integrity                   | Will the API expose a version, ETag, shared as-of timestamp, snapshot token, optimistic-concurrency precondition, or server-computed proposed snapshot for review and verification?                                                                                                                                                                             |
-| Notifications and correlation                      | Which notification type and subtype represent maintenance status changes? Does every event include client ID, party ID, and maintenance `requestId`, and what delivery/retry behavior must the host support?                                                                                                                                                    |
-| Errors, retries, and request correlation           | What error codes distinguish concurrency, lifecycle locks, invalid fields, unsupported roles, duplicate submissions, and retryable failures? How must `ApiError.context`, `traceId`, maintenance `requestId`, and `Idempotency-Key` be correlated in support and retry flows?                                                                                   |
-| Approval publication                               | What signal confirms that every approved product and party value has finished publishing to `GET /clients/{id}` within the 24-48 hour window?                                                                                                                                                                                                                   |
+| Flow area                                          | Remaining question                                                                                                                                                                                                                                                            |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Intentional field clearing                         | Which explicit values clear optional scalar, nested-object, and collection fields, and which fields cannot be cleared?                                                                                                                                                        |
+| Correlation and pending additions                  | Must every maintenance proposal include stable `id`, `requestId`, `status`, `action`, and `submittedAt` values? Does a pending `ADD` always include `parentPartyId`, and can its assigned party ID be patched again while the request is `NEW`?                               |
+| Writable field and entity scope                    | What is the complete approved-client maintenance allowlist by country, legal entity type, party type, and role? Is `AUTHORIZED_USER` supported for a newly added party in this flow, and what response identifies an unsupported field or role?                               |
+| Outstanding party requirements                     | How must `outstanding.partyIds`, `outstanding.partyRoles`, and party `validationResponse` be completed during maintenance? Which endpoint starts or resumes validation for a newly added party?                                                                               |
+| `INFORMATION_REQUESTED` writes and resume behavior | Which targeted completion writes are allowed for each product or party status of `INFORMATION_REQUESTED`? After all returned questions, documents, and party requirements are complete, does review resume automatically or must the host call verification again?            |
+| Attestation migration                              | What non-deprecated request property replaces `addAttestations`, and what is the migration timeline? Until then, is `addAttestations` with structured `attester` the supported production payload?                                                                            |
+| List, pagination, and empty results                | What are the guaranteed pagination, empty-result, and `404` semantics for maintenance requests queried by client ID, party ID, and request ID?                                                                                                                                |
+| Concurrency and review integrity                   | Will the API expose a version, ETag, shared as-of timestamp, snapshot token, optimistic-concurrency precondition, or server-computed proposed snapshot for review and verification?                                                                                           |
+| Errors, retries, and request correlation           | What error codes distinguish concurrency, lifecycle locks, invalid fields, unsupported roles, duplicate submissions, and retryable failures? How must `ApiError.context`, `traceId`, maintenance `requestId`, and `Idempotency-Key` be correlated in support and retry flows? |

@@ -10,8 +10,8 @@ const calls = [
   { method: 'GET', path: '/maintenance-requests?clientId={id}', step: 1 },
   { method: 'PATCH', path: '/clients/{id}', step: 2 },
   { method: 'POST', path: '/clients/{id}/verifications', step: 3 },
-  { method: 'GET', path: '/questions?questionIds={ids}', step: 3 },
-  { method: 'GET', path: '/document-requests/{id}', step: 3 },
+  { method: 'GET', path: '/questions?questionIds={ids}', step: 4 },
+  { method: 'GET', path: '/document-requests/{id}', step: 4 },
 ];
 
 const stepIndexes: Record<MaintenanceStep, number> = {
@@ -19,6 +19,7 @@ const stepIndexes: Record<MaintenanceStep, number> = {
   review: 1,
   attest: 2,
   submitted: 3,
+  information: 4,
 };
 
 export function ApiSequence({ currentStep }: { currentStep: MaintenanceStep }) {
@@ -64,9 +65,7 @@ export function ApiSequence({ currentStep }: { currentStep: MaintenanceStep }) {
               >
                 {complete ? <Check className="h-3 w-3 shrink-0" /> : null}
                 <strong className="shrink-0">{call.method}</strong>
-                <span className="min-w-0 [overflow-wrap:anywhere]">
-                  {call.path}
-                </span>
+                <span className="min-w-0 break-normal">{call.path}</span>
               </li>
             );
           })}
