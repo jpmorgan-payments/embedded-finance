@@ -9,6 +9,7 @@ import {
   vi,
 } from 'vitest';
 
+import { TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID } from '../mocks/testScenarioDeltaModeClient.mock';
 import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '../mocks/testScenarioFasterFulfilmentClient.mock';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '../mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '../mocks/testScenarioMultiLinkedIllustrationClient.mock';
@@ -364,11 +365,31 @@ describe('MSW handlers (integration)', () => {
 
   it.each([
     {
+      bundle: 'test-scenario-3' as const,
+      clientId: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
       mode: 'happy-path' as const,
       orgType: 'LIMITED_LIABILITY_COMPANY',
       hasPtc: false,
     },
     {
+      bundle: 'test-scenario-3' as const,
+      clientId: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+      mode: 'happy-path-ptc' as const,
+      orgType: 'C_CORPORATION',
+      hasPtc: true,
+      ticker: 'HBNS',
+      exchange: 'XNAS',
+    },
+    {
+      bundle: 'test-scenario-4' as const,
+      clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
+      mode: 'happy-path' as const,
+      orgType: 'LIMITED_LIABILITY_COMPANY',
+      hasPtc: false,
+    },
+    {
+      bundle: 'test-scenario-4' as const,
+      clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
       mode: 'happy-path-ptc' as const,
       orgType: 'C_CORPORATION',
       hasPtc: true,
@@ -376,8 +397,8 @@ describe('MSW handlers (integration)', () => {
       exchange: 'XNAS',
     },
   ] as const)(
-    'test-scenario-4: $mode seeds Faster Fulfilment org without/with PTC',
-    async ({ mode, orgType, hasPtc, ...ptc }) => {
+    '$bundle: $mode seeds org without/with PTC',
+    async ({ bundle, clientId, mode, orgType, hasPtc, ...ptc }) => {
       await fetch(`${API}/ef/do/v1/_reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -385,13 +406,11 @@ describe('MSW handlers (integration)', () => {
           scenario: DB_SCENARIOS.EMPTY,
           overrides: {},
           testDemoScenario: mode,
-          testScenarioBundle: 'test-scenario-4',
+          testScenarioBundle: bundle,
         }),
       });
 
-      const clientRes = await fetch(
-        `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID}`
-      );
+      const clientRes = await fetch(`${API}/ef/do/v1/clients/${clientId}`);
       expect(clientRes.ok).toBe(true);
       const client = (await clientRes.json()) as {
         parties?: Array<{
@@ -924,6 +943,112 @@ describe('MSW handlers (integration)', () => {
     expect(updateRes.ok).toBe(true);
     const body = (await updateRes.json()) as { status?: string };
     expect(body.status).toBe('APPROVED');
+  });
+
+  it('test-scenario-6: delta-sole-owner seeds Bright Fork Kitchen restaurant client', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'delta-sole-owner',
+        testScenarioBundle: 'test-scenario-6',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID}`
+    );
+    expect(clientRes.ok).toBe(true);
+    const client = (await clientRes.json()) as {
+      status?: string;
+      attestations?: Array<{ attesterFullName?: string }>;
+      outstanding?: {
+        questionIds?: string[];
+        documentRequestIds?: string[];
+        attestationDocumentIds?: string[];
+      };
+      parties?: Array<{
+        roles?: string[];
+        organizationDetails?: {
+          organizationName?: string;
+          jurisdiction?: string;
+          industry?: { code?: string };
+          organizationIds?: Array<{ idType?: string }>;
+          addresses?: unknown[];
+          phone?: unknown;
+        };
+        individualDetails?: {
+          firstName?: string;
+          lastName?: string;
+          soleOwner?: boolean;
+          birthDate?: string;
+          individualIds?: Array<{ idType?: string }>;
+          addresses?: unknown[];
+          phone?: unknown;
+        };
+      }>;
+    };
+    expect(client.status).toBe('NEW');
+    expect(client.outstanding?.questionIds).toEqual(['30158', '30162']);
+    expect(client.outstanding?.documentRequestIds).toEqual(['68803']);
+    expect(client.outstanding?.attestationDocumentIds).toEqual([
+      'abcd1c1d-6635-43ff-a8e5-b252926bddef',
+    ]);
+    expect(client.attestations?.[0]?.attesterFullName).toBe('Jordan Hale');
+
+    const orgParty = (client.parties ?? []).find((p) =>
+      (p.roles ?? []).includes('CLIENT')
+    );
+    expect(orgParty?.organizationDetails?.organizationName).toBe(
+      'Bright Fork Kitchen, LLC'
+    );
+    expect(orgParty?.organizationDetails?.jurisdiction).toBe('US');
+    expect(orgParty?.organizationDetails?.industry).toEqual({
+      code: '722511',
+      codeType: 'NAICS',
+    });
+    expect(orgParty?.organizationDetails?.organizationIds).toEqual([
+      { idType: 'EIN', issuer: 'US', value: '300030003' },
+    ]);
+    expect(orgParty?.organizationDetails?.addresses).toEqual([]);
+    expect(orgParty?.organizationDetails?.phone).toBeUndefined();
+
+    const individuals = (client.parties ?? []).filter((p) =>
+      (p.roles ?? []).some((role) =>
+        ['CONTROLLER', 'BENEFICIAL_OWNER'].includes(role)
+      )
+    );
+    expect(individuals).toHaveLength(1);
+    const operator = individuals[0];
+    expect(operator?.roles).toEqual([
+      'CONTROLLER',
+      'BENEFICIAL_OWNER',
+      'AUTHORIZED_USER',
+    ]);
+    expect(operator?.individualDetails?.firstName).toBe('Jordan');
+    expect(operator?.individualDetails?.lastName).toBe('Hale');
+    expect(operator?.individualDetails?.soleOwner).toBe(true);
+    expect(operator?.individualDetails?.birthDate).toBeUndefined();
+    expect(operator?.individualDetails?.individualIds).toEqual([]);
+    expect(operator?.individualDetails?.addresses).toEqual([]);
+    expect(operator?.individualDetails?.phone).toBeUndefined();
+  });
+
+  it('GET /questions serves Storybook delta follow-up 30162', async () => {
+    const res = await fetch(
+      `${API}/ef/do/v1/questions?questionIds=30158,30162`
+    );
+    expect(res.ok).toBe(true);
+    const data = (await res.json()) as {
+      questions?: Array<{ id?: string; parentQuestionId?: string }>;
+    };
+    const ids = (data.questions ?? []).map((q) => q.id);
+    expect(ids).toEqual(expect.arrayContaining(['30158', '30162']));
+    expect(
+      data.questions?.find((q) => q.id === '30162')?.parentQuestionId
+    ).toBe('30158');
   });
 
   it('SellSense link account in review: client is REVIEW_IN_PROGRESS and linked account POST uses MICRODEPOSITS_INITIATED', async () => {

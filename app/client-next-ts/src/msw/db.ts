@@ -48,6 +48,10 @@ import {
 } from '../mocks/testScenario5Dashboard.mock';
 import { testScenario5FundDocumentRequests } from '../mocks/testScenario5FundDocumentRequests.mock';
 import {
+  TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID,
+  testScenarioDeltaModeClient,
+} from '../mocks/testScenarioDeltaModeClient.mock';
+import {
   TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
   testScenarioFasterFulfilmentClient,
 } from '../mocks/testScenarioFasterFulfilmentClient.mock';
@@ -56,6 +60,7 @@ import {
   TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
   testScenarioHealthBenefitClient,
 } from '../mocks/testScenarioHealthBenefitClient.mock';
+import { testScenarioHealthBenefitClientPtc } from '../mocks/testScenarioHealthBenefitClientPtc.mock';
 import {
   TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID,
   testScenarioMultiLinkedIllustrationClient,
@@ -699,8 +704,8 @@ const predefinedClients: Record<string, PredefinedClientShape> = {
 export type TestDemoScenarioMode =
   | 'happy-path'
   /**
-   * `/test-scenario-4` only: same MSW behavior as `happy-path`, but seeds C-corp + Nasdaq PTC
-   * party data (`testScenarioFasterFulfilmentClient`).
+   * `/test-scenario-3` and `/test-scenario-4`: same MSW behavior as `happy-path`, but seeds
+   * C-corp + Nasdaq PTC party data (health-benefit or faster-fulfilment client).
    */
   | 'happy-path-ptc'
   /**
@@ -728,7 +733,12 @@ export type TestDemoScenarioMode =
   /**
    * `/test-scenario-5`: INFORMATION_REQUESTED client with fund-specific document requests.
    */
-  | 'naics-codes-doc-request';
+  | 'naics-codes-doc-request'
+  /**
+   * `/test-scenario-6`: restaurant-chain sole owner-operator (Bright Fork Kitchen)
+   * using the Storybook Delta mode factory (combined controller / owner).
+   */
+  | 'delta-sole-owner';
 
 /**
  * `/test-scenario*` demo **bundle**: maps a route to client seed + optional recipient seeding in MSW.
@@ -739,7 +749,8 @@ export type TestScenarioBundleId =
   | 'test-scenario-2'
   | 'test-scenario-3'
   | 'test-scenario-4'
-  | 'test-scenario-5';
+  | 'test-scenario-5'
+  | 'test-scenario-6';
 
 export const DEFAULT_TEST_SCENARIO_BUNDLE_ID: TestScenarioBundleId =
   'test-scenario';
@@ -750,6 +761,7 @@ const TEST_SCENARIO_BUNDLE_IDS = [
   'test-scenario-3',
   'test-scenario-4',
   'test-scenario-5',
+  'test-scenario-6',
 ] as const satisfies readonly TestScenarioBundleId[];
 
 /** Bundles that expose `3-linked@demo.test` / `multi-linked-start-3` recipient pre-seeding. */
@@ -778,6 +790,7 @@ export function getTestScenarioClientIds(): string[] {
     TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID,
   ];
 }
 
@@ -1043,6 +1056,7 @@ function removeAllTestScenarioSeedClients(): void {
   removePredefinedClient(TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID);
 }
 
 function removeTestScenario5DashboardRows(): void {
@@ -1523,21 +1537,29 @@ export function applyTestDemoScenario(
           ? TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID
           : bundleId === 'test-scenario-5'
             ? TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID
-            : TEST_DEMO_SCENARIO_CLIENT_ID;
+            : bundleId === 'test-scenario-6'
+              ? TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID
+              : TEST_DEMO_SCENARIO_CLIENT_ID;
   const fasterFulfilmentBase =
     mode === 'happy-path-ptc'
       ? testScenarioFasterFulfilmentClient
       : testScenarioFasterFulfilmentClientNoPtc;
+  const healthBenefitBase =
+    mode === 'happy-path-ptc'
+      ? testScenarioHealthBenefitClientPtc
+      : testScenarioHealthBenefitClient;
   const base = (
     bundleId === 'test-scenario-2'
       ? testScenarioMultiLinkedIllustrationClient
       : bundleId === 'test-scenario-3'
-        ? testScenarioHealthBenefitClient
+        ? healthBenefitBase
         : bundleId === 'test-scenario-4'
           ? fasterFulfilmentBase
           : bundleId === 'test-scenario-5'
             ? testScenarioNaicsCodesClient
-            : testScenarioOperator80Client
+            : bundleId === 'test-scenario-6'
+              ? testScenarioDeltaModeClient
+              : testScenarioOperator80Client
   ) as PredefinedClientShape;
   const useMultiLinked = (
     TEST_SCENARIO_BUNDLES_WITH_MULTI_LINK as readonly string[]

@@ -65,6 +65,7 @@ export function TestScenarioPage({ bundleId, config }: TestScenarioPageProps) {
         'test-scenario-3': 'health',
         'test-scenario-4': 'logistics',
         'test-scenario-5': 'fundManagement',
+        'test-scenario-6': 'deltaOnboarding',
       };
       return resolveTestScenarioConfig(
         createDefaultTestScenarioConfig(presetMap[bundleId])

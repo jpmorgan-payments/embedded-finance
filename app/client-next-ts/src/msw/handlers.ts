@@ -988,7 +988,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         body?.testDemoScenario === 'multi-linked-start-3' ||
         body?.testDemoScenario === 'naics-codes-onboarding' ||
         body?.testDemoScenario === 'naics-codes-dashboard' ||
-        body?.testDemoScenario === 'naics-codes-doc-request'
+        body?.testDemoScenario === 'naics-codes-doc-request' ||
+        body?.testDemoScenario === 'delta-sole-owner'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
         const bundleId = parseTestScenarioBundleId(body.testScenarioBundle);
@@ -1095,7 +1096,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       // Delayed APPROVED only for `/test-scenario` happy path (header not sent by SellSense).
       if (
         (testDemoScenario === 'happy-path' ||
-          testDemoScenario === 'happy-path-ptc') &&
+          testDemoScenario === 'happy-path-ptc' ||
+          testDemoScenario === 'delta-sole-owner') &&
         getTestScenarioClientIds().includes(clientId)
       ) {
         const delayMs = 3000;
