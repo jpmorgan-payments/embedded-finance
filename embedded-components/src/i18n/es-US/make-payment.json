@@ -55,6 +55,8 @@
     "noLinkedAccounts": "No linked accounts",
     "addRecipientHint": "Add a recipient to send money to people or businesses.",
     "linkAccountHint": "Link your bank accounts for transfer of funds.",
+    "selectedPrefix": "Seleccionado: ",
+    "accountEndingIn": " terminada en {{lastFour}}",
     "searchingStatus": "Searching...",
     "loadingMoreStatus": "Loading more..."
   },

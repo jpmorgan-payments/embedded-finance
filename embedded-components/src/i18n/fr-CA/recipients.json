@@ -1,5 +1,11 @@
 {
   "title": "Bénéficiaires",
+  "description": "Gérez vos bénéficiaires de paiement",
+  "link": "Ajouter",
+  "linkNewAccount": "Ajouter un bénéficiaire",
+  "showMoreWithCount": "Afficher {{count}} bénéficiaire de plus",
+  "showMoreWithCount_other": "Afficher {{count}} bénéficiaires de plus",
+  "loadingMore": "Chargement...",
   "loading": {
     "recipients": "Chargement des bénéficiaires..."
   },
@@ -8,6 +14,11 @@
     "retry": "Réessayer"
   },
   "errors": {
+    "loading": {
+      "title": "Erreur lors du chargement des bénéficiaires",
+      "default": "Une erreur inattendue s'est produite lors du chargement de vos bénéficiaires. Veuillez réessayer.",
+      "400": "Votre plateforme n'a pas l'autorisation d'accéder aux bénéficiaires. Veuillez contacter le support."
+    },
     "known": {
       "RTP_UNAVAILABLE": {
         "title": "Paiements en Temps Réel Non Disponibles",
@@ -17,16 +28,32 @@
     }
   },
   "emptyState": {
+    "title": "Aucun bénéficiaire pour le moment",
+    "description": "Ajoutez un bénéficiaire pour commencer à effectuer des paiements vers des comptes externes.",
     "noRecipients": "Aucun bénéficiaire trouvé"
   },
   "actions": {
+    "verifyAccount": "Vérifier",
+    "makePayment": "Payer",
+    "addWireRtp": "Ajouter Wire/RTP",
+    "addWire": "Ajouter WIRE",
+    "addRtp": "Ajouter RTP",
+    "manage": "Gérer",
     "addRecipient": "Ajouter un bénéficiaire",
     "createNewRecipient": "Créer un nouveau bénéficiaire",
     "editRecipient": "Modifier le bénéficiaire",
     "deactivateRecipient": "Désactiver le bénéficiaire",
     "deactivating": "Désactivation...",
     "viewDetails": "Voir les détails",
+    "viewDetailsShort": "Détails",
     "edit": "Modifier",
+    "editDisabledTooltip": "Les méthodes de paiement ne peuvent être modifiées que pour les bénéficiaires actifs",
+    "remove": "Supprimer le bénéficiaire",
+    "moreActions": "Plus d'actions pour {{name}}",
+    "expand": "Développer pour afficher tous les bénéficiaires",
+    "collapse": "Réduire pour afficher moins de bénéficiaires",
+    "showAll": "Afficher tout ({{count}})",
+    "showLess": "Afficher moins",
     "deactivate": "Désactiver",
     "viewRecipientDetails": "Voir les détails du bénéficiaire",
     "editRecipientTitle": "Modifier le bénéficiaire",
@@ -182,7 +209,48 @@
       }
     }
   },
+  "accountDetails": {
+    "title": "Détails du bénéficiaire",
+    "accountName": "Nom du bénéficiaire",
+    "accountType": "Type de compte",
+    "accountCurrency": "Devise du compte",
+    "accountCountry": "Pays du compte",
+    "status": "Statut",
+    "accountNumber": "Numéro de compte",
+    "paymentMethods": "Méthodes de paiement",
+    "bankName": "Nom de la banque",
+    "showAccountNumber": "Afficher le numéro de compte complet",
+    "hideAccountNumber": "Masquer le numéro de compte",
+    "noRoutingNumber": "Non configuré",
+    "recipientType": {
+      "individualLinkedAccount": "Compte lié individuel",
+      "businessLinkedAccount": "Compte lié d'entreprise",
+      "individualRecipient": "Bénéficiaire individuel",
+      "businessRecipient": "Bénéficiaire d'entreprise"
+    }
+  },
   "status": {
+    "labels": {
+      "ACTIVE": "Actif",
+      "INACTIVE": "Inactif",
+      "PENDING": "En traitement",
+      "READY_FOR_VALIDATION": "Action requise",
+      "REJECTED": "Rejeté"
+    },
+    "messages": {
+      "ACTIVE": "Ce bénéficiaire est vérifié et prêt pour les transactions.",
+      "INACTIVE": "Ce bénéficiaire a été désactivé et ne peut pas être utilisé pour les transactions.",
+      "PENDING": "Les informations de votre bénéficiaire sont en cours de traitement. Vous serez notifié une fois terminé.",
+      "READY_FOR_VALIDATION": "Ce bénéficiaire doit être validé. Veuillez vérifier les détails du compte.",
+      "REJECTED": "Un problème est survenu avec ce bénéficiaire. Veuillez vérifier les détails du compte ou contacter le support."
+    },
+    "paymentDisabledTooltip": {
+      "unavailable": "Paiement non disponible",
+      "ACTIVE": "Paiement non disponible",
+      "INACTIVE": "Le bénéficiaire est inactif. Veuillez l'activer pour effectuer des paiements",
+      "REJECTED": "La vérification du bénéficiaire a été rejetée. Veuillez contacter le support",
+      "PENDING": "Le bénéficiaire est en cours de traitement. Veuillez patienter pour effectuer des paiements"
+    },
     "active": "Actif",
     "inactive": "Inactif",
     "pending": "En attente",

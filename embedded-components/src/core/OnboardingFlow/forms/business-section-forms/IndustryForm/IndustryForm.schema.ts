@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { sanitizeInput } from '@/lib/utils';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
+import { containsHtmlLikeTag } from '@/core/OnboardingFlow/utils/validationPatterns';
 
 export const useIndustryFormSchema = () => {
   const v = useGetValidationMessage();
@@ -12,7 +13,7 @@ export const useIndustryFormSchema = () => {
       .min(10, v('organizationDescription', 'minLength', 10))
       .max(1000, v('organizationDescription', 'maxLength', 1000))
       .refine(
-        (val) => !/<[^>]*>/g.test(val),
+        (val) => !containsHtmlLikeTag(val),
         v('organizationDescription', 'noHtml')
       )
       .refine(

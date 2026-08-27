@@ -475,10 +475,8 @@ export function BankAccountFormWrapper({
     let submitButtonText = isLinkedAccount
       ? tString('bankAccountForm.linkAccountButton', 'Link Account')
       : tString('bankAccountForm.addRecipientButton', 'Add Recipient');
-    if (isEditing) {
-      submitButtonText = tString('bankAccountForm.continueButton', 'Continue');
-    } else if (!isLinkedAccount && effectiveOnSubmitWithoutSave) {
-      // When one-time option is available, use "Continue" to go to confirmation
+    if (isEditing || (!isLinkedAccount && effectiveOnSubmitWithoutSave)) {
+      // Editing and one-time flows continue to confirmation before saving.
       submitButtonText = tString('bankAccountForm.continueButton', 'Continue');
     }
 

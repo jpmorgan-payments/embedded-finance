@@ -1,5 +1,11 @@
 {
   "title": "Beneficiarios",
+  "description": "Administre sus beneficiarios de pago",
+  "link": "Agregar",
+  "linkNewAccount": "Agregar beneficiario",
+  "showMoreWithCount": "Mostrar {{count}} beneficiario más",
+  "showMoreWithCount_other": "Mostrar {{count}} beneficiarios más",
+  "loadingMore": "Cargando...",
   "loading": {
     "recipients": "Cargando beneficiarios..."
   },
@@ -8,6 +14,11 @@
     "retry": "Reintentar"
   },
   "errors": {
+    "loading": {
+      "title": "Error al cargar beneficiarios",
+      "default": "Ocurrió un error inesperado al cargar sus beneficiarios. Inténtelo nuevamente.",
+      "400": "Su plataforma no tiene permisos para acceder a los beneficiarios. Comuníquese con soporte."
+    },
     "known": {
       "RTP_UNAVAILABLE": {
         "title": "Pagos en Tiempo Real No Disponibles",
@@ -17,20 +28,109 @@
     }
   },
   "emptyState": {
+    "title": "Aún no hay beneficiarios",
+    "description": "Agregue un beneficiario para comenzar a realizar pagos a cuentas externas.",
     "noRecipients": "No se encontraron beneficiarios"
   },
   "actions": {
+    "verifyAccount": "Verificar",
+    "makePayment": "Pagar",
+    "addWireRtp": "Agregar transferencia/RTP",
+    "addWire": "Agregar WIRE",
+    "addRtp": "Agregar RTP",
+    "manage": "Administrar",
     "addRecipient": "Agregar Beneficiario",
     "createNewRecipient": "Crear Nuevo Beneficiario",
     "editRecipient": "Editar Beneficiario",
     "deactivateRecipient": "Desactivar Beneficiario",
     "deactivating": "Desactivando...",
     "viewDetails": "Ver detalles",
+    "viewDetailsShort": "Detalles",
     "edit": "Editar",
+    "editDisabledTooltip": "Los métodos de pago solo se pueden editar para beneficiarios activos",
     "deactivate": "Desactivar",
+    "remove": "Eliminar beneficiario",
+    "moreActions": "Más acciones para {{name}}",
+    "expand": "Expandir para mostrar todos los beneficiarios",
+    "collapse": "Contraer para mostrar menos beneficiarios",
+    "showAll": "Mostrar todos ({{count}})",
+    "showLess": "Mostrar menos",
     "viewRecipientDetails": "Ver detalles del beneficiario",
     "editRecipientTitle": "Editar beneficiario",
     "deactivateRecipientTitle": "Desactivar beneficiario"
+  },
+  "forms": {
+    "linkAccount": {
+      "title": "Agregar beneficiario",
+      "titleSuccessByStatus": {
+        "ACTIVE": "Beneficiario agregado con éxito",
+        "PENDING": "Creación del beneficiario en proceso",
+        "MICRODEPOSITS_INITIATED": "Beneficiario agregado - Verificación pendiente",
+        "READY_FOR_VALIDATION": "Beneficiario agregado - Listo para validar",
+        "REJECTED": "Error en la creación del beneficiario",
+        "INACTIVE": "Beneficiario desactivado"
+      },
+      "description": "Ingrese los datos de la cuenta bancaria del beneficiario.",
+      "descriptionSuccess": "Su beneficiario se agregó y está listo para usarse.",
+      "error": {
+        "title": "No se pudo agregar el beneficiario"
+      },
+      "certify": {
+        "label": "Autorizo la verificación de la información de la cuenta bancaria",
+        "validation": {
+          "required": "Debe autorizar la verificación para continuar"
+        }
+      }
+    },
+    "editAccount": {
+      "title": "Editar beneficiario",
+      "titleSuccessByStatus": {
+        "ACTIVE": "Beneficiario actualizado con éxito",
+        "PENDING": "Actualización del beneficiario en proceso",
+        "MICRODEPOSITS_INITIATED": "Beneficiario actualizado - Verificación pendiente",
+        "READY_FOR_VALIDATION": "Beneficiario actualizado - Listo para validar",
+        "REJECTED": "Error en la actualización del beneficiario",
+        "INACTIVE": "Beneficiario desactivado"
+      },
+      "description": "Actualice la información de la cuenta bancaria y los métodos de pago del beneficiario.",
+      "descriptionSuccess": "Su beneficiario se actualizó correctamente.",
+      "error": {
+        "title": "No se pudo actualizar el beneficiario"
+      }
+    },
+    "removeAccount": {
+      "title": "Eliminar beneficiario",
+      "titleSuccess": "Beneficiario eliminado",
+      "description": "¿Está seguro de que desea eliminar a <strong>{{name}}</strong> de sus beneficiarios?",
+      "descriptionSuccess": "<strong>{{name}}</strong> se eliminó correctamente de sus beneficiarios.",
+      "cancel": "Cancelar",
+      "confirm": "Eliminar beneficiario",
+      "removing": "Eliminando...",
+      "close": "Cerrar",
+      "error": {
+        "title": "No se pudo eliminar el beneficiario"
+      }
+    }
+  },
+  "accountDetails": {
+    "title": "Detalles del beneficiario",
+    "accountName": "Nombre del beneficiario",
+    "accountType": "Tipo de cuenta",
+    "accountCurrency": "Moneda de la cuenta",
+    "accountCountry": "País de la cuenta",
+    "status": "Estado",
+    "accountNumber": "Número de cuenta",
+    "paymentMethods": "Métodos de pago",
+    "bankName": "Nombre del banco",
+    "showAccountNumber": "Mostrar número de cuenta completo",
+    "hideAccountNumber": "Ocultar número de cuenta",
+    "noRoutingNumber": "No configurado",
+    "recipientType": {
+      "individualLinkedAccount": "Cuenta vinculada individual",
+      "businessLinkedAccount": "Cuenta vinculada comercial",
+      "individualRecipient": "Beneficiario individual",
+      "businessRecipient": "Beneficiario comercial"
+    }
   },
   "filters": {
     "searchPlaceholder": "Buscar beneficiarios...",
@@ -130,6 +230,27 @@
     "confirm": "Desactivar"
   },
   "status": {
+    "labels": {
+      "ACTIVE": "Activo",
+      "INACTIVE": "Inactivo",
+      "PENDING": "En proceso",
+      "READY_FOR_VALIDATION": "Acción requerida",
+      "REJECTED": "Rechazado"
+    },
+    "messages": {
+      "ACTIVE": "Este beneficiario está verificado y listo para transacciones.",
+      "INACTIVE": "Este beneficiario fue desactivado y no puede utilizarse para transacciones.",
+      "PENDING": "La información de su beneficiario se está procesando. Se le notificará cuando se complete.",
+      "READY_FOR_VALIDATION": "Este beneficiario requiere validación. Revise los datos de la cuenta.",
+      "REJECTED": "Hubo un problema con este beneficiario. Revise los datos de la cuenta o comuníquese con soporte."
+    },
+    "paymentDisabledTooltip": {
+      "unavailable": "Pago no disponible",
+      "ACTIVE": "Pago no disponible",
+      "INACTIVE": "El beneficiario está inactivo. Actívelo para realizar pagos",
+      "REJECTED": "Se rechazó la verificación del beneficiario. Comuníquese con soporte",
+      "PENDING": "El beneficiario se está procesando. Espere para realizar pagos"
+    },
     "active": "Activo",
     "inactive": "Inactivo",
     "pending": "Pendiente",

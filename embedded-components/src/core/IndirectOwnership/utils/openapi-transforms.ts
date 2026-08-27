@@ -8,6 +8,15 @@ import {
   BeneficialOwnerStatus,
 } from '../IndirectOwnership.types';
 
+function determineOwnershipType(
+  natureOfOwnership: string | undefined,
+  hasIndirectParent: boolean
+): BeneficialOwner['ownershipType'] {
+  if (natureOfOwnership === 'Indirect') return 'INDIRECT';
+  if (natureOfOwnership === 'Direct') return 'DIRECT';
+  return hasIndirectParent ? 'INDIRECT' : 'DIRECT';
+}
+
 /**
  * Transform a PartyResponse to BeneficialOwner format
  */
@@ -35,14 +44,10 @@ export function transformPartyToBeneficialOwner(
   // intermediary (created with natureOfOwnership "Direct" and a parentPartyId
   // pointing at the owner it sits under) was wrongly classified INDIRECT, which
   // made the transform rebuild a backwards chain back through that owner.
-  const ownershipType =
-    natureOfOwnership === 'Indirect'
-      ? 'INDIRECT'
-      : natureOfOwnership === 'Direct'
-        ? 'DIRECT'
-        : party.parentPartyId && !parentIsClient
-          ? 'INDIRECT'
-          : 'DIRECT';
+  const ownershipType = determineOwnershipType(
+    natureOfOwnership,
+    Boolean(party.parentPartyId && !parentIsClient)
+  );
 
   // Use existing hierarchy if provided, otherwise build for indirect owners
   const ownershipHierarchy =

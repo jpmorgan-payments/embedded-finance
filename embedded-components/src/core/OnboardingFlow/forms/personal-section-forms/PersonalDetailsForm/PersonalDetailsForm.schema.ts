@@ -6,6 +6,7 @@ import {
 } from '@/core/OnboardingFlow/consts';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 import {
+  containsHtmlLikeTag,
   JOB_TITLE_DESCRIPTION_PATTERN,
   NAME_PATTERN,
   SUFFIX_PATTERN,
@@ -85,7 +86,7 @@ export const usePersonalDetailsFormSchema = () => {
         v('controllerJobTitleDescription', 'pattern')
       )
       .refine(
-        (val) => !/(<[^>]*>)/.test(val),
+        (val) => !containsHtmlLikeTag(val),
         v('controllerJobTitleDescription', 'noHtml')
       )
       .refine(

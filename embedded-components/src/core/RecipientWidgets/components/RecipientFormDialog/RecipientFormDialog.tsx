@@ -147,6 +147,84 @@ function tagRecipientCurrency(
   } as unknown as Recipient;
 }
 
+interface RecipientFormAlertOptions {
+  fxCreateEnabled: boolean;
+  accountCurrency: string;
+  onAccountCurrencyChange: (currency: string) => void;
+  supportedCurrencies?: string[];
+  currencyLabels?: Record<string, string>;
+  formError: unknown;
+  customErrorTitle: TranslationResult;
+  i18nNamespace: RecipientI18nNamespace;
+}
+
+function renderRecipientFormAlert({
+  fxCreateEnabled,
+  accountCurrency,
+  onAccountCurrencyChange,
+  supportedCurrencies,
+  currencyLabels,
+  formError,
+  customErrorTitle,
+  i18nNamespace,
+}: RecipientFormAlertOptions): ReactNode {
+  if (!fxCreateEnabled && !formError) return undefined;
+
+  return (
+    <>
+      {fxCreateEnabled && (
+        <RecipientAccountCurrencySelect
+          value={accountCurrency}
+          onValueChange={onAccountCurrencyChange}
+          supportedCurrencies={supportedCurrencies}
+          currencyLabels={currencyLabels}
+        />
+      )}
+      {formError ? (
+        <FriendlyErrorAlert
+          error={formError as ErrorType<ApiError>}
+          showDetails
+          customTitle={customErrorTitle}
+          i18nNamespace={i18nNamespace}
+        />
+      ) : null}
+    </>
+  );
+}
+
+interface LinkAccountAcknowledgementOptions {
+  isCreatingLinkedAccount: boolean;
+  hasAcknowledgements: boolean;
+  showIntro: boolean;
+  acknowledgements?: readonly LinkAccountReviewAcknowledgement[];
+  intro: TranslationResult;
+  groupAriaLabel: string;
+}
+
+function getLinkAccountAcknowledgementProps({
+  isCreatingLinkedAccount,
+  hasAcknowledgements,
+  showIntro,
+  acknowledgements,
+  intro,
+  groupAriaLabel,
+}: LinkAccountAcknowledgementOptions) {
+  return {
+    reviewAcknowledgements:
+      isCreatingLinkedAccount && acknowledgements
+        ? acknowledgements
+        : undefined,
+    acknowledgementsIntro:
+      isCreatingLinkedAccount && hasAcknowledgements && showIntro
+        ? intro
+        : undefined,
+    reviewAcknowledgementsGroupAriaLabel:
+      isCreatingLinkedAccount && hasAcknowledgements
+        ? groupAriaLabel
+        : undefined,
+  };
+}
+
 /**
  * RecipientFormDialog - Dialog component for creating and editing recipients
  *
@@ -335,6 +413,30 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   const hasLinkAccountAcknowledgements = Boolean(
     linkAccountReviewAcknowledgements?.length
   );
+  const formAlert = renderRecipientFormAlert({
+    fxCreateEnabled,
+    accountCurrency,
+    onAccountCurrencyChange: setAccountCurrency,
+    supportedCurrencies,
+    currencyLabels,
+    formError,
+    customErrorTitle: t(`forms.${translationKey}.error.title`),
+    i18nNamespace,
+  });
+  const acknowledgementProps = getLinkAccountAcknowledgementProps({
+    isCreatingLinkedAccount,
+    hasAcknowledgements: hasLinkAccountAcknowledgements,
+    showIntro: showLinkAccountAcknowledgementsIntro,
+    acknowledgements: linkAccountReviewAcknowledgements,
+    intro: tOnboardingOverview(
+      'screens.linkAccount.prefillSummary.acknowledgementsIntro',
+      'By electronically linking this account, you agree that:'
+    ),
+    groupAriaLabel: tOnboardingOverviewString(
+      'screens.linkAccount.review.acknowledgementsGroupLabel',
+      'Agreements required to link this account'
+    ),
+  });
 
   // Get title based on status
   const getTitle = (): TranslationResult => {
@@ -394,51 +496,8 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
             onCancel={handleCancel}
             isLoading={status === 'pending'}
             layout="singlePage"
-            alert={
-              fxCreateEnabled || formError ? (
-                <>
-                  {fxCreateEnabled && (
-                    <RecipientAccountCurrencySelect
-                      value={accountCurrency}
-                      onValueChange={setAccountCurrency}
-                      supportedCurrencies={supportedCurrencies}
-                      currencyLabels={currencyLabels}
-                    />
-                  )}
-                  {formError ? (
-                    <FriendlyErrorAlert
-                      error={formError as ErrorType<ApiError>}
-                      showDetails
-                      customTitle={t(`forms.${translationKey}.error.title`)}
-                      i18nNamespace={i18nNamespace}
-                    />
-                  ) : null}
-                </>
-              ) : undefined
-            }
-            reviewAcknowledgements={
-              isCreatingLinkedAccount && linkAccountReviewAcknowledgements
-                ? linkAccountReviewAcknowledgements
-                : undefined
-            }
-            acknowledgementsIntro={
-              isCreatingLinkedAccount &&
-              hasLinkAccountAcknowledgements &&
-              showLinkAccountAcknowledgementsIntro
-                ? tOnboardingOverview(
-                    'screens.linkAccount.prefillSummary.acknowledgementsIntro',
-                    'By electronically linking this account, you agree that:'
-                  )
-                : undefined
-            }
-            reviewAcknowledgementsGroupAriaLabel={
-              isCreatingLinkedAccount && hasLinkAccountAcknowledgements
-                ? tOnboardingOverviewString(
-                    'screens.linkAccount.review.acknowledgementsGroupLabel',
-                    'Agreements required to link this account'
-                  )
-                : undefined
-            }
+            alert={formAlert}
+            {...acknowledgementProps}
           />
         )}
       </DialogContent>

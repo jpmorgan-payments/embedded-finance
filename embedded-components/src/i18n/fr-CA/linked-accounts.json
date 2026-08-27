@@ -28,6 +28,13 @@
       "title": "Erreur lors du chargement des comptes liés",
       "default": "Une erreur inattendue s'est produite lors du chargement de vos comptes liés. Veuillez réessayer.",
       "400": "Votre plateforme n'a pas l'autorisation d'accéder aux comptes liés. Veuillez contacter le support."
+    },
+    "known": {
+      "RTP_UNAVAILABLE": {
+        "title": "Paiements en temps réel non disponibles",
+        "description": "La banque associée à ce compte ne prend pas en charge les paiements en temps réel (RTP). Ce mode de paiement ne peut pas être utilisé pour ce compte.",
+        "suggestion": "Vous pouvez tout de même lier ce compte au moyen d'ACH ou d'un virement bancaire."
+      }
     }
   },
   "status": {
@@ -54,6 +61,15 @@
       "INACTIVE": "Le compte est inactif. Veuillez activer pour effectuer des paiements",
       "REJECTED": "La vérification du compte a été rejetée. Veuillez contacter le support",
       "PENDING": "Le compte est en cours de traitement. Veuillez patienter pour effectuer des paiements"
+    },
+    "paymentDisabledTooltip": {
+      "unavailable": "Paiement non disponible",
+      "ACTIVE": "Paiement non disponible",
+      "READY_FOR_VALIDATION": "Complétez la vérification du compte pour activer les paiements",
+      "MICRODEPOSITS_INITIATED": "En attente de la vérification des microdépôts pour activer les paiements",
+      "INACTIVE": "Le compte est inactif. Veuillez activer pour effectuer des paiements",
+      "REJECTED": "La vérification du compte a été rejetée. Veuillez contacter le support",
+      "PENDING": "Le compte est en cours de traitement. Veuillez patienter pour effectuer des paiements"
     }
   },
   "actions": {
@@ -64,10 +80,15 @@
     "addRtp": "Ajouter RTP",
     "manage": "Gérer",
     "viewDetails": "Voir les détails",
+    "viewDetailsShort": "Détails",
     "edit": "Modifier les méthodes de paiement",
     "editDisabledTooltip": "Les méthodes de paiement ne peuvent être modifiées que pour les comptes actifs",
     "remove": "Supprimer le compte",
-    "moreActions": "Plus d'actions pour {{name}}"
+    "moreActions": "Plus d'actions pour {{name}}",
+    "expand": "Développer pour afficher tous les comptes",
+    "collapse": "Réduire pour afficher moins de comptes",
+    "showAll": "Afficher tout ({{count}})",
+    "showLess": "Afficher moins"
   },
   "paymentTypes": {
     "ACH": {
@@ -298,6 +319,8 @@
     "title": "Détails du compte",
     "accountName": "Nom du compte",
     "accountType": "Type de compte",
+    "accountCurrency": "Devise du compte",
+    "accountCountry": "Pays du compte",
     "status": "Statut",
     "accountNumber": "Numéro de compte",
     "paymentMethods": "Méthodes de paiement",
@@ -310,6 +333,57 @@
       "businessLinkedAccount": "Compte lié d'entreprise",
       "individualRecipient": "Bénéficiaire individuel",
       "businessRecipient": "Bénéficiaire d'entreprise"
+    }
+  },
+  "filters": {
+    "searchPlaceholder": "Rechercher des comptes...",
+    "type": {
+      "label": "Type",
+      "all": "Tous les types",
+      "linkedAccount": "Compte lié"
+    },
+    "status": {
+      "label": "Statut",
+      "all": "Tous les statuts",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "microdepositsInitiated": "Microdépôts initiés",
+      "readyForValidation": "Prêt pour vérification",
+      "rejected": "Rejeté"
+    },
+    "clearFilters": "Effacer les filtres"
+  },
+  "columns": {
+    "name": "Nom",
+    "type": "Type",
+    "status": "Statut",
+    "accountNumber": "Numéro de compte",
+    "accountType": "Type de compte",
+    "routingNumber": "Numéro de routage",
+    "createdAt": "Créé",
+    "updatedAt": "Mis à jour",
+    "actions": "Actions"
+  },
+  "columnToggle": {
+    "button": "Colonnes",
+    "label": "Afficher/masquer les colonnes"
+  },
+  "pagination": {
+    "rowsTotal": "{{count}} ligne(s) au total",
+    "rowsPerPage": "Lignes par page",
+    "pageInfo": "Page {{current}} sur {{total}}",
+    "pageInfoMobile": "{{current}} / {{total}}",
+    "goToFirst": {
+      "srOnly": "Aller à la première page"
+    },
+    "goToPrevious": {
+      "srOnly": "Aller à la page précédente"
+    },
+    "goToNext": {
+      "srOnly": "Aller à la page suivante"
+    },
+    "goToLast": {
+      "srOnly": "Aller à la dernière page"
     }
   }
 }

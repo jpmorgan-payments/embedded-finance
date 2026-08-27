@@ -7,6 +7,29 @@ import {
   resources,
 } from './config';
 
+type TranslationLeaves = Record<string, string>;
+
+function getTranslationLeaves(value: unknown, prefix = ''): TranslationLeaves {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return { [prefix]: String(value) };
+  }
+
+  return Object.entries(value).reduce<TranslationLeaves>(
+    (leaves, [key, child]) => {
+      const childPrefix = prefix ? `${prefix}.${key}` : key;
+      return {
+        ...leaves,
+        ...getTranslationLeaves(child, childPrefix),
+      };
+    },
+    {}
+  );
+}
+
+function getInterpolationTokens(value: string): string[] {
+  return value.match(/\{\{[^}]+\}\}/g)?.sort() ?? [];
+}
+
 describe('i18n/config', () => {
   describe('defaultResources', () => {
     it('has enUS, frCA, and esUS locales', () => {
@@ -40,6 +63,36 @@ describe('i18n/config', () => {
       expect(defaultResources.frCA.locale).toBe('fr-CA');
       expect(defaultResources.esUS.locale).toBe('es-US');
     });
+
+    it.each(['esUS', 'frCA'] as const)(
+      '%s contains every English translation key with matching placeholders',
+      (locale) => {
+        const englishNamespaces = defaultResources.enUS;
+        const translatedNamespaces = defaultResources[locale];
+
+        for (const namespace of Object.keys(englishNamespaces)) {
+          if (namespace === 'locale' || namespace === 'zod') continue;
+
+          const englishLeaves = getTranslationLeaves(
+            englishNamespaces[namespace as keyof typeof englishNamespaces]
+          );
+          const translatedLeaves = getTranslationLeaves(
+            translatedNamespaces[namespace as keyof typeof translatedNamespaces]
+          );
+
+          for (const [key, englishValue] of Object.entries(englishLeaves)) {
+            expect(
+              translatedLeaves,
+              `${locale}.${namespace} is missing ${key}`
+            ).toHaveProperty(key);
+            expect(
+              getInterpolationTokens(translatedLeaves[key]),
+              `${locale}.${namespace}.${key} has mismatched placeholders`
+            ).toEqual(getInterpolationTokens(englishValue));
+          }
+        }
+      }
+    );
   });
 
   describe('resources (mutable clone)', () => {

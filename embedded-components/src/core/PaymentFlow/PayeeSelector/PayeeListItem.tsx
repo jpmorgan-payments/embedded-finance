@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { Building2, Plus, User } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -44,14 +45,21 @@ export function PayeeListItem({
   renderBadge,
   disabledReason,
 }: PayeeListItemProps) {
+  const { tString } = useTranslationWithTokens('make-payment');
   const isBusiness = payee.recipientType === 'BUSINESS';
 
   // Use Building2 for business, User for individuals (regardless of linked account status)
   const Icon = isBusiness ? Building2 : User;
 
   const accountSuffix = payee.accountNumber
-    ? ` ending in ${payee.accountNumber.slice(-4)}`
+    ? tString('payeeSelector.accountEndingIn', {
+        lastFour: payee.accountNumber.slice(-4),
+      })
     : '';
+  const selectedPrefix = isSelected
+    ? tString('payeeSelector.selectedPrefix')
+    : '';
+  const disabledReasonSuffix = disabledReason ? ` — ${disabledReason}` : '';
 
   const isDisabled = !!disabledReason;
   const badge = renderBadge?.(payee);
@@ -67,7 +75,7 @@ export function PayeeListItem({
         !isDisabled && isSelected && 'eb-bg-primary/5',
         !isDisabled && !isSelected && 'hover:eb-bg-muted/50'
       )}
-      aria-label={`${isSelected ? 'Selected: ' : ''}${payee.name}${accountSuffix}${disabledReason ? ` — ${disabledReason}` : ''}`}
+      aria-label={`${selectedPrefix}${payee.name}${accountSuffix}${disabledReasonSuffix}`}
       aria-pressed={isSelected}
     >
       <RadioIndicator isSelected={isSelected} size="sm" disabled={isDisabled} />

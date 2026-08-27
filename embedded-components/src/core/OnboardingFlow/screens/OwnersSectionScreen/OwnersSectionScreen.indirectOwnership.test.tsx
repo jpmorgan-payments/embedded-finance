@@ -30,6 +30,7 @@ const api = vi.hoisted(() => ({
   updatePartyMutate: vi.fn(),
   updatePartyActiveAsync: vi.fn(),
   updateClientMutate: vi.fn(),
+  updateClientAsync: vi.fn(),
 }));
 vi.mock('@/api/generated/smbdo', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/generated/smbdo')>();
@@ -47,6 +48,7 @@ vi.mock('@/api/generated/smbdo', async (importOriginal) => {
     }),
     useSmbdoUpdateClientLegacy: () => ({
       mutate: api.updateClientMutate,
+      mutateAsync: api.updateClientAsync,
       error: undefined,
       status: 'idle',
     }),
@@ -132,13 +134,14 @@ describe('OwnersSectionScreen — IndirectOwnership mutation boundary', () => {
       id: partyId,
       active: false,
     }));
+    api.updateClientAsync.mockResolvedValue({ id: CLIENT_ID });
   });
 
-  test('onAddOwner creates a Direct individual beneficial owner', () => {
+  test('onAddOwner creates a Direct individual beneficial owner', async () => {
     renderOwners(makeClient([]));
 
-    act(() => {
-      harness.props?.onAddOwner({
+    await act(async () => {
+      await harness.props?.onAddOwner({
         entityType: 'INDIVIDUAL',
         firstName: 'Grace',
         lastName: 'Hopper',
@@ -146,8 +149,8 @@ describe('OwnersSectionScreen — IndirectOwnership mutation boundary', () => {
       });
     });
 
-    expect(api.updateClientMutate).toHaveBeenCalledTimes(1);
-    const [payload] = api.updateClientMutate.mock.calls[0];
+    expect(api.updateClientAsync).toHaveBeenCalledTimes(1);
+    const [payload] = api.updateClientAsync.mock.calls[0];
     const newParty = payload.data.addParties[0];
     expect(newParty).toMatchObject({
       partyType: 'INDIVIDUAL',
@@ -161,18 +164,18 @@ describe('OwnersSectionScreen — IndirectOwnership mutation boundary', () => {
     });
   });
 
-  test('onAddOwner creates an intermediary organization for a BUSINESS entity', () => {
+  test('onAddOwner creates an intermediary organization for a BUSINESS entity', async () => {
     renderOwners(makeClient([]));
 
-    act(() => {
-      harness.props?.onAddOwner({
+    await act(async () => {
+      await harness.props?.onAddOwner({
         entityType: 'BUSINESS',
         businessName: 'Beta Holdings LLC',
         ownershipType: 'INDIRECT',
       });
     });
 
-    const [payload] = api.updateClientMutate.mock.calls[0];
+    const [payload] = api.updateClientAsync.mock.calls[0];
     const newParty = payload.data.addParties[0];
     expect(newParty).toMatchObject({
       partyType: 'ORGANIZATION',
@@ -410,10 +413,14 @@ describe('OwnersSectionScreen — IndirectOwnership mutation boundary', () => {
       ])
     );
 
+    // The handler rejects on failure so the awaiting chain builder does not
+    // mark the save complete; it still reports the error via onPostClientSettled.
     await act(async () => {
-      await harness.props?.onSaveHierarchy('own-1', [
-        { entityName: 'Mid LLC', ownsRootBusinessDirectly: true },
-      ]);
+      await expect(
+        harness.props?.onSaveHierarchy('own-1', [
+          { entityName: 'Mid LLC', ownsRootBusinessDirectly: true },
+        ])
+      ).rejects.toBeTruthy();
     });
 
     await waitFor(() =>
@@ -421,6 +428,94 @@ describe('OwnersSectionScreen — IndirectOwnership mutation boundary', () => {
         title: 'boom',
       })
     );
+  });
+
+  test('compensates created intermediaries when recreating the owner fails', async () => {
+    api.postPartyAsync
+      .mockResolvedValueOnce({ id: 'int-1' })
+      .mockRejectedValueOnce({ response: { data: { title: 'boom' } } });
+    renderOwners(
+      makeClient([
+        {
+          id: 'own-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          active: true,
+          parentPartyId: CLIENT_PARTY_ID,
+          individualDetails: { firstName: 'Ada', lastName: 'Byron' },
+        },
+      ])
+    );
+
+    await act(async () => {
+      await expect(
+        harness.props?.onSaveHierarchy('own-1', [
+          { entityName: 'Mid LLC', ownsRootBusinessDirectly: true },
+        ])
+      ).rejects.toBeTruthy();
+    });
+
+    // The intermediary created before the failure is rolled back (deactivated),
+    // and the original owner is left untouched (no orphaned/half-applied graph).
+    await waitFor(() =>
+      expect(api.updatePartyActiveAsync).toHaveBeenCalledWith({
+        partyId: 'int-1',
+        data: { active: false },
+      })
+    );
+    expect(api.updatePartyActiveAsync).not.toHaveBeenCalledWith({
+      partyId: 'own-1',
+      data: { active: false },
+    });
+    expect(onPostClientSettled).toHaveBeenCalledWith(undefined, {
+      title: 'boom',
+    });
+  });
+
+  test('compensates the recreated owner when deactivating the original fails', async () => {
+    api.postPartyAsync
+      .mockResolvedValueOnce({ id: 'int-1' })
+      .mockResolvedValueOnce({ id: 'own-1-indirect' });
+    // The deactivate of the original owner (the last step) fails.
+    api.updatePartyActiveAsync.mockRejectedValueOnce({
+      response: { data: { title: 'deactivate boom' } },
+    });
+    renderOwners(
+      makeClient([
+        {
+          id: 'own-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          active: true,
+          parentPartyId: CLIENT_PARTY_ID,
+          individualDetails: { firstName: 'Ada', lastName: 'Byron' },
+        },
+      ])
+    );
+
+    await act(async () => {
+      await expect(
+        harness.props?.onSaveHierarchy('own-1', [
+          { entityName: 'Mid LLC', ownsRootBusinessDirectly: true },
+        ])
+      ).rejects.toBeTruthy();
+    });
+
+    // Rollback deactivates the newly-created parties (recreated owner + chain)
+    // so no duplicate owner is left active alongside the still-active original.
+    await waitFor(() =>
+      expect(api.updatePartyActiveAsync).toHaveBeenCalledWith({
+        partyId: 'own-1-indirect',
+        data: { active: false },
+      })
+    );
+    expect(api.updatePartyActiveAsync).toHaveBeenCalledWith({
+      partyId: 'int-1',
+      data: { active: false },
+    });
+    expect(onPostClientSettled).toHaveBeenCalledWith(undefined, {
+      title: 'deactivate boom',
+    });
   });
 
   test('routes edit callbacks and records gating / validation answers', () => {

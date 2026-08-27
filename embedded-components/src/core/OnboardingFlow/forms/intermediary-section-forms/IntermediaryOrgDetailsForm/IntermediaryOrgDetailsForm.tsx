@@ -80,7 +80,11 @@ export const IntermediaryOrgDetailsForm: FormStepComponent = () => {
         description="Country where this entity was legally formed"
         options={COUNTRIES_OF_FORMATION.map((code) => ({
           value: code,
-          searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
+          searchValue:
+            `[${code}] ` +
+            tString([
+              `common:countries.${code}`,
+            ] as unknown as TemplateStringsArray),
           label: (
             <span>
               <span className="eb-font-medium">[{code}]</span>{' '}

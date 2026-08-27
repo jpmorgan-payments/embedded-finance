@@ -1,27 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-/**
- * Tests for the pure helper functions in OperationalDetailsForm.
- * These are file-scoped (not exported), so we test them via the schema
- * and re-implement the logic for unit verification.
- */
-
-// Re-implemented from OperationalDetailsForm.tsx (file-scoped functions)
-const extractQuestionIdFromMessage = (message: string): string | null => {
-  const match = message.match(/\[(\d+)\]/);
-  return match ? match[1] : null;
-};
-
-const formatErrorMessage = (message: string): string => {
-  const hintMatch = message.match(/\[([^\]]+)\]\.?$/);
-  if (hintMatch) {
-    return hintMatch[1];
-  }
-  if (message.includes('is not supported')) {
-    return 'The value entered is not supported. Please select a valid option.';
-  }
-  return message;
-};
+import {
+  extractQuestionIdFromMessage,
+  formatErrorMessage,
+} from './OperationalDetailsForm';
 
 describe('OperationalDetailsForm helpers', () => {
   describe('extractQuestionIdFromMessage', () => {
@@ -69,6 +51,12 @@ describe('OperationalDetailsForm helpers', () => {
 
     it('handles message with only bracket hint', () => {
       expect(formatErrorMessage('[Enter valid value]')).toBe(
+        'Enter valid value'
+      );
+    });
+
+    it('extracts a trailing hint followed by a period', () => {
+      expect(formatErrorMessage('Invalid value [Enter valid value].')).toBe(
         'Enter valid value'
       );
     });

@@ -271,6 +271,48 @@ export function getValidationStatusMessage(
   return `${n} owner${n !== 1 ? 's' : ''} pending — edit to complete details`;
 }
 
+function getValidationStatusClasses(hasErrors: boolean, isComplete: boolean) {
+  if (hasErrors) {
+    return {
+      alertClass: 'eb-border-destructive eb-bg-destructive-accent',
+      textClass: 'eb-text-destructive',
+    };
+  }
+  if (isComplete) {
+    return {
+      alertClass: 'eb-border-success eb-bg-success-accent',
+      textClass: 'eb-text-success',
+    };
+  }
+  return {
+    alertClass: 'eb-border-warning eb-bg-warning-accent',
+    textClass: 'eb-text-warning',
+  };
+}
+
+const ValidationStatusIcon: React.FC<{
+  hasErrors: boolean;
+  isComplete: boolean;
+}> = ({ hasErrors, isComplete }) => {
+  if (hasErrors) {
+    return (
+      <AlertTriangle
+        className="eb-h-4 eb-w-4 eb-text-destructive"
+        aria-hidden="true"
+      />
+    );
+  }
+  if (isComplete) {
+    return (
+      <CheckCircle2
+        className="eb-h-4 eb-w-4 eb-text-success"
+        aria-hidden="true"
+      />
+    );
+  }
+  return <Clock className="eb-h-4 eb-w-4 eb-text-warning" aria-hidden="true" />;
+};
+
 /** Footer alert summarizing completion state of the ownership structure. */
 const ValidationStatusSection: React.FC<{
   validationSummary: ValidationSummary;
@@ -278,16 +320,10 @@ const ValidationStatusSection: React.FC<{
 }> = ({ validationSummary, noBeneficialOwnersAttested }) => {
   const isComplete =
     validationSummary.canComplete || noBeneficialOwnersAttested;
-  const alertClass = validationSummary.hasErrors
-    ? 'eb-border-destructive eb-bg-destructive-accent'
-    : isComplete
-      ? 'eb-border-success eb-bg-success-accent'
-      : 'eb-border-warning eb-bg-warning-accent';
-  const textClass = validationSummary.hasErrors
-    ? 'eb-text-destructive'
-    : isComplete
-      ? 'eb-text-success'
-      : 'eb-text-warning';
+  const { alertClass, textClass } = getValidationStatusClasses(
+    validationSummary.hasErrors,
+    isComplete
+  );
 
   return (
     <section
@@ -308,22 +344,10 @@ const ValidationStatusSection: React.FC<{
         aria-describedby="validation-summary"
       >
         <div className="eb-flex eb-items-center eb-gap-2">
-          {validationSummary.hasErrors ? (
-            <AlertTriangle
-              className="eb-h-4 eb-w-4 eb-text-destructive"
-              aria-hidden="true"
-            />
-          ) : isComplete ? (
-            <CheckCircle2
-              className="eb-h-4 eb-w-4 eb-text-success"
-              aria-hidden="true"
-            />
-          ) : (
-            <Clock
-              className="eb-h-4 eb-w-4 eb-text-warning"
-              aria-hidden="true"
-            />
-          )}
+          <ValidationStatusIcon
+            hasErrors={validationSummary.hasErrors}
+            isComplete={isComplete}
+          />
           <span className={`eb-text-sm eb-font-semibold ${textClass}`}>
             {getValidationStatusMessage(
               validationSummary,
@@ -859,7 +883,7 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   };
 
   const handleOwnerSubmit = useCallback(
-    (ownerData: {
+    async (ownerData: {
       entityType: 'INDIVIDUAL' | 'BUSINESS';
       firstName?: string;
       lastName?: string;
@@ -875,7 +899,15 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
         if (ownerData.ownershipType === 'INDIRECT') {
           awaitingIndirectAddRef.current = true;
         }
-        onAddOwner(ownerData);
+        // Await host persistence so the dialog can show a pending state and, on
+        // failure, keep itself open for retry. A rejection propagates to the
+        // dialog and rolls back the pending-indirect intent.
+        try {
+          await onAddOwner(ownerData);
+        } catch (error) {
+          awaitingIndirectAddRef.current = false;
+          throw error;
+        }
         trackUserEvent({
           actionName: INDIRECT_OWNERSHIP_USER_JOURNEYS.ADD_OWNER_COMPLETED,
           metadata: {
@@ -1071,10 +1103,13 @@ const IndirectOwnershipCore: React.FC<IndirectOwnershipProps> = ({
   );
 
   const handleHierarchySaved = useCallback(
-    (ownerId: string, hierarchy: any) => {
-      // Delegate to host if callback provided (integrated mode)
+    async (ownerId: string, hierarchy: any) => {
+      // Delegate to host if callback provided (integrated mode). Await it so
+      // local completion cannot precede — or mask a failure of — host
+      // persistence. A rejection propagates to the caller (the chain builder),
+      // which keeps the dialog open and surfaces an error.
       if (onSaveHierarchy && hierarchy?.steps) {
-        onSaveHierarchy(
+        await onSaveHierarchy(
           ownerId,
           hierarchy.steps.map(
             (step: {
@@ -1581,18 +1616,19 @@ const OwnershipTypeBadgeContent: React.FC<{
   isIndirect: boolean;
   isIntermediaryEntity: boolean;
 }> = ({ isIndirect, isIntermediaryEntity }) => {
-  const icon = isIntermediaryEntity ? (
-    <Building className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
-  ) : isIndirect ? (
-    <Users className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
-  ) : (
-    <UserCheck className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />
-  );
-  const label = isIndirect
-    ? 'Indirect Owner'
-    : isIntermediaryEntity
-      ? 'Business Owner'
-      : 'Direct Owner';
+  let icon = <UserCheck className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />;
+  if (isIntermediaryEntity) {
+    icon = <Building className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />;
+  } else if (isIndirect) {
+    icon = <Users className="eb-h-3.5 eb-w-3.5" aria-hidden="true" />;
+  }
+
+  let label = 'Direct Owner';
+  if (isIndirect) {
+    label = 'Indirect Owner';
+  } else if (isIntermediaryEntity) {
+    label = 'Business Owner';
+  }
   return (
     <>
       {icon}
@@ -1950,7 +1986,7 @@ interface AddOwnerDialogProps {
     ownershipType: 'DIRECT' | 'INDIRECT';
     isExistingEntity?: boolean;
     intermediaryCompany?: string;
-  }) => void;
+  }) => void | Promise<void>;
   existingOwners: BeneficialOwner[];
   allExistingBusinessNames: Set<string>;
   /** All known entity names for the combobox dropdown */
@@ -1975,23 +2011,47 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
     'DIRECT'
   );
   const [intermediaryCompany, setIntermediaryCompany] = useState('');
-  const [errors, setErrors] = useState<string[]>([]);
+  // Field-level errors keep messages next to their input (a11y); formError is
+  // the summary alert for cross-field issues (duplicates) and submit failures.
+  const [fieldErrors, setFieldErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+    businessName?: string;
+  }>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const firstNameRef = React.useRef<HTMLInputElement>(null);
+  const lastNameRef = React.useRef<HTMLInputElement>(null);
+  const businessNameRef = React.useRef<HTMLInputElement>(null);
+  const formErrorRef = React.useRef<HTMLDivElement>(null);
+
+  // Move focus to the summary alert when a cross-field / submit error appears
+  // so screen-reader and keyboard users are taken to it.
+  React.useEffect(() => {
+    if (formError) formErrorRef.current?.focus();
+  }, [formError]);
 
   // Track whether selected business is an existing entity (to skip duplicate error)
   const isExistingEntitySelected = existingEntityNames.some(
     (name) => name.toLowerCase() === businessName.trim().toLowerCase()
   );
 
+  const clearErrors = () => {
+    setFieldErrors({});
+    setFormError(null);
+  };
+
   // Clear errors when switching entity type
   const handleEntityTypeChange = (value: 'INDIVIDUAL' | 'BUSINESS') => {
     setEntityType(value);
-    setErrors([]);
+    clearErrors();
   };
 
   // Clear errors when switching ownership type
   const handleOwnershipTypeChange = (value: 'DIRECT' | 'INDIRECT') => {
     setOwnershipType(value);
-    setErrors([]);
+    clearErrors();
     if (value === 'DIRECT') {
       setIntermediaryCompany('');
     }
@@ -2004,19 +2064,34 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
     setBusinessName('');
     setOwnershipType('DIRECT');
     setIntermediaryCompany('');
-    setErrors([]);
+    clearErrors();
   };
 
-  // Collects the field/duplicate validation errors for the current form state.
-  const collectValidationErrors = (): string[] => {
-    const newErrors: string[] = [];
+  // Collects field-level and cross-field validation errors for the current
+  // form state.
+  const collectValidationErrors = (): {
+    fieldErrors: {
+      firstName?: string;
+      lastName?: string;
+      businessName?: string;
+    };
+    formError: string | null;
+  } => {
+    const fe: {
+      firstName?: string;
+      lastName?: string;
+      businessName?: string;
+    } = {};
 
     if (entityType === 'INDIVIDUAL') {
       if (!firstName.trim()) {
-        newErrors.push('First name is required');
+        fe.firstName = 'First name is required';
       }
       if (!lastName.trim()) {
-        newErrors.push('Last name is required');
+        fe.lastName = 'Last name is required';
+      }
+      if (fe.firstName || fe.lastName) {
+        return { fieldErrors: fe, formError: null };
       }
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
       const isDuplicate = existingOwners.some(
@@ -2025,15 +2100,15 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
           getBeneficialOwnerFullName(owner).toLowerCase() ===
             fullName.toLowerCase()
       );
-      if (isDuplicate) {
-        newErrors.push('Owner with this name already exists');
-      }
-      return newErrors;
+      return {
+        fieldErrors: fe,
+        formError: isDuplicate ? 'Owner with this name already exists' : null,
+      };
     }
 
     if (!businessName.trim()) {
-      newErrors.push('Business name is required');
-      return newErrors;
+      fe.businessName = 'Business name is required';
+      return { fieldErrors: fe, formError: null };
     }
 
     // Only check for duplicates if the user typed a new name (not one selected
@@ -2042,36 +2117,61 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
       !isExistingEntitySelected &&
       allExistingBusinessNames.has(businessName.trim().toLowerCase())
     ) {
-      newErrors.push(
-        'Business entity with this name already exists in the ownership structure'
-      );
+      return {
+        fieldErrors: fe,
+        formError:
+          'Business entity with this name already exists in the ownership structure',
+      };
     }
-    return newErrors;
+    return { fieldErrors: fe, formError: null };
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const focusFirstError = (fe: {
+    firstName?: string;
+    lastName?: string;
+    businessName?: string;
+  }) => {
+    if (fe.firstName) firstNameRef.current?.focus();
+    else if (fe.lastName) lastNameRef.current?.focus();
+    else if (fe.businessName) businessNameRef.current?.focus();
+  };
 
-    const newErrors = collectValidationErrors();
-    if (newErrors.length > 0) {
-      setErrors(newErrors);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    const { fieldErrors: fe, formError: formErr } = collectValidationErrors();
+    setFieldErrors(fe);
+    setFormError(formErr);
+    if (Object.keys(fe).length > 0 || formErr) {
+      // A cross-field error focuses the alert via effect; otherwise focus the
+      // first invalid field so the user lands on what to fix.
+      if (!formErr) focusFirstError(fe);
       return;
     }
 
-    onSubmit({
-      entityType,
-      firstName: entityType === 'INDIVIDUAL' ? firstName.trim() : undefined,
-      lastName: entityType === 'INDIVIDUAL' ? lastName.trim() : undefined,
-      businessName: entityType === 'BUSINESS' ? businessName.trim() : undefined,
-      ownershipType,
-      isExistingEntity: entityType === 'BUSINESS' && isExistingEntitySelected,
-      intermediaryCompany:
-        entityType === 'INDIVIDUAL' && ownershipType === 'INDIRECT'
-          ? intermediaryCompany.trim()
-          : undefined,
-    });
-
-    resetForm();
+    // Persist; keep the dialog open with a retryable error if it fails.
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        entityType,
+        firstName: entityType === 'INDIVIDUAL' ? firstName.trim() : undefined,
+        lastName: entityType === 'INDIVIDUAL' ? lastName.trim() : undefined,
+        businessName:
+          entityType === 'BUSINESS' ? businessName.trim() : undefined,
+        ownershipType,
+        isExistingEntity: entityType === 'BUSINESS' && isExistingEntitySelected,
+        intermediaryCompany:
+          entityType === 'INDIVIDUAL' && ownershipType === 'INDIRECT'
+            ? intermediaryCompany.trim()
+            : undefined,
+      });
+      resetForm();
+    } catch {
+      setFormError('We could not add this owner. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -2090,17 +2190,16 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
 
         <div className="eb-flex-1 eb-overflow-y-auto eb-px-6 eb-py-4">
           <div className="eb-space-y-5">
-            {errors.length > 0 && (
-              <Alert className="eb-border-destructive eb-bg-destructive-accent">
+            {formError && (
+              <Alert
+                ref={formErrorRef}
+                tabIndex={-1}
+                aria-live="assertive"
+                className="eb-border-destructive eb-bg-destructive-accent"
+              >
                 <AlertTriangle className="eb-h-4 eb-w-4 eb-text-destructive" />
                 <AlertDescription>
-                  <div className="eb-space-y-1">
-                    {errors.map((error, index) => (
-                      <div key={index} className="eb-text-destructive">
-                        {error}
-                      </div>
-                    ))}
-                  </div>
+                  <span className="eb-text-destructive">{formError}</span>
                 </AlertDescription>
               </Alert>
             )}
@@ -2126,22 +2225,48 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
                     <Label htmlFor="firstName">First Name</Label>
                     <Input
                       id="firstName"
+                      ref={firstNameRef}
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="John"
                       className="eb-h-10"
+                      aria-invalid={!!fieldErrors.firstName}
+                      aria-describedby={
+                        fieldErrors.firstName ? 'firstName-error' : undefined
+                      }
                     />
+                    {fieldErrors.firstName && (
+                      <p
+                        id="firstName-error"
+                        className="eb-text-sm eb-text-destructive"
+                      >
+                        {fieldErrors.firstName}
+                      </p>
+                    )}
                   </div>
 
                   <div className="eb-space-y-2">
                     <Label htmlFor="lastName">Last Name</Label>
                     <Input
                       id="lastName"
+                      ref={lastNameRef}
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Smith"
                       className="eb-h-10"
+                      aria-invalid={!!fieldErrors.lastName}
+                      aria-describedby={
+                        fieldErrors.lastName ? 'lastName-error' : undefined
+                      }
                     />
+                    {fieldErrors.lastName && (
+                      <p
+                        id="lastName-error"
+                        className="eb-text-sm eb-text-destructive"
+                      >
+                        {fieldErrors.lastName}
+                      </p>
+                    )}
                   </div>
                 </>
               ) : (
@@ -2149,11 +2274,26 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
                   <Label htmlFor="businessName">Business Name</Label>
                   <Input
                     id="businessName"
+                    ref={businessNameRef}
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
                     placeholder="ABC Corporation"
                     className="eb-h-10"
+                    aria-invalid={!!fieldErrors.businessName}
+                    aria-describedby={
+                      fieldErrors.businessName
+                        ? 'businessName-error'
+                        : undefined
+                    }
                   />
+                  {fieldErrors.businessName && (
+                    <p
+                      id="businessName-error"
+                      className="eb-text-sm eb-text-destructive"
+                    >
+                      {fieldErrors.businessName}
+                    </p>
+                  )}
                   <p className="eb-text-xs eb-text-muted-foreground">
                     Enter the name exactly as it appears on registration
                     documents
@@ -2184,11 +2324,16 @@ const AddOwnerDialog: React.FC<AddOwnerDialogProps> = ({
         </div>
 
         <DialogFooter className="eb-border-t eb-px-6 eb-py-4">
-          <Button type="button" variant="outline" onClick={handleClose}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="submit" onClick={handleSubmit}>
-            Add Owner
+          <Button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Adding...' : 'Add Owner'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -2203,7 +2348,7 @@ interface HierarchyBuildingDialogProps {
   ownerId: string;
   ownerName: string;
   rootCompanyName: string;
-  onSave: (ownerId: string, hierarchy: any) => void;
+  onSave: (ownerId: string, hierarchy: any) => void | Promise<void>;
   existingHierarchy?: any;
   isEditMode?: boolean;
   beneficialOwners: BeneficialOwner[];
@@ -2262,6 +2407,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   }, [allExistingEntities, hierarchySteps, rootCompanyName, ownerName]);
   const [currentCompanyName, setCurrentCompanyName] = useState('');
   const [errors, setErrors] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const knownRelationships = React.useMemo(
     () => extractOwnershipRelationships(beneficialOwners),
     [beneficialOwners]
@@ -2378,7 +2524,7 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
   // Save the whole chain. Includes a company that was typed but not yet added
   // via "Add to chain", so nothing the user entered is lost. The last entity in
   // the chain is the one that owns the business being onboarded directly.
-  const handleSaveChain = () => {
+  const handleSaveChain = async () => {
     const pending = currentCompanyName.trim();
     const pendingIsNew =
       !!pending &&
@@ -2414,14 +2560,24 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
       ownsRootBusinessDirectly: index === combinedSteps.length - 1,
     }));
 
-    onSave(ownerId, {
-      id: `hierarchy-${ownerId}`,
-      steps,
-      isValid: true,
-      meets25PercentThreshold: true,
-      validationErrors: [],
-    });
-    handleClose();
+    // Await host persistence before closing. If it rejects, keep the dialog
+    // open and surface the error instead of showing false success.
+    setErrors([]);
+    setIsSaving(true);
+    try {
+      await onSave(ownerId, {
+        id: `hierarchy-${ownerId}`,
+        steps,
+        isValid: true,
+        meets25PercentThreshold: true,
+        validationErrors: [],
+      });
+      handleClose();
+    } catch {
+      setErrors(['We could not save the ownership chain. Please try again.']);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleRemoveCompany = (indexToRemove: number) => {
@@ -2653,8 +2809,9 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
                   variant="default"
                   className="eb-flex-1"
                   onClick={handleSaveChain}
+                  disabled={isSaving}
                 >
-                  Yes, save and complete
+                  {isSaving ? 'Saving...' : 'Yes, save and complete'}
                 </Button>
               </div>
             </div>
@@ -2690,11 +2847,12 @@ const HierarchyBuildingDialog: React.FC<HierarchyBuildingDialogProps> = ({
             <Button
               onClick={handleSaveChain}
               disabled={
-                hierarchySteps.length === 0 && !currentCompanyName.trim()
+                isSaving ||
+                (hierarchySteps.length === 0 && !currentCompanyName.trim())
               }
               className="eb-font-medium"
             >
-              Save changes
+              {isSaving ? 'Saving...' : 'Save changes'}
             </Button>
           </DialogFooter>
         )}

@@ -73,6 +73,67 @@ export type PostPartyMutate = (args: {
   data: unknown;
 }) => Promise<PartyResponse | undefined>;
 
+/** Sets a party's `active` flag. Used by the compensation saga to both undo
+ * creations (deactivate) and undo deactivations (reactivate) on rollback. */
+export type SetPartyActive = (
+  partyId: string,
+  active: boolean
+) => Promise<unknown>;
+
+/**
+ * Run a multi-request party mutation as a single compensable unit so a partial
+ * failure cannot leave orphaned or half-applied parties.
+ *
+ * `work` performs the sequence, reporting each party it creates via
+ * `trackCreated` and deactivating parties via the provided `deactivate` (which
+ * records them for rollback). If any step throws, the saga compensates
+ * best-effort in reverse order — reactivating everything it deactivated, then
+ * deactivating everything it created — so the graph returns to its pre-operation
+ * state, and re-throws so the caller surfaces the failure. Because created
+ * intermediaries are reused on retry and compensation clears residue, a
+ * subsequent retry starts from a clean state.
+ */
+export async function runPartyMutationSaga(
+  setPartyActive: SetPartyActive,
+  work: (ops: {
+    trackCreated: (partyId: string | undefined) => void;
+    deactivate: (partyId: string) => Promise<void>;
+  }) => Promise<void>
+): Promise<void> {
+  const created: string[] = [];
+  const deactivated: string[] = [];
+
+  try {
+    await work({
+      trackCreated: (partyId) => {
+        if (partyId) created.push(partyId);
+      },
+      deactivate: async (partyId) => {
+        await setPartyActive(partyId, false);
+        deactivated.push(partyId);
+      },
+    });
+  } catch (error) {
+    // Compensation is best-effort: a failed compensation step must not mask the
+    // original error, so each is swallowed and we always re-throw.
+    for (const partyId of [...deactivated].reverse()) {
+      try {
+        await setPartyActive(partyId, true);
+      } catch {
+        /* best-effort reactivation */
+      }
+    }
+    for (const partyId of [...created].reverse()) {
+      try {
+        await setPartyActive(partyId, false);
+      } catch {
+        /* best-effort deactivation */
+      }
+    }
+    throw error;
+  }
+}
+
 /** Find an active organization party by (case-insensitive) name. */
 export function findActiveOrgByName(
   parties: PartyResponse[],
@@ -195,7 +256,8 @@ export async function createOrReuseIntermediaryChain(
   steps: Array<{ entityName: string; partyId?: string }>,
   clientPartyId: string,
   parties: PartyResponse[],
-  postPartyAsync: PostPartyMutate
+  postPartyAsync: PostPartyMutate,
+  onPartyCreated?: (partyId: string) => void
 ): Promise<string | null> {
   const rootToOuter = [...steps].reverse();
   let parentIdForNext = clientPartyId;
@@ -230,6 +292,7 @@ export async function createOrReuseIntermediaryChain(
       },
     });
     if (!created?.id) return null;
+    onPartyCreated?.(created.id);
     parentIdForNext = created.id;
   }
 
@@ -302,6 +365,17 @@ function isControllerQuestionDisabled(
   return (
     isFormDisabled || !hasController || (ownerCount >= 4 && answer === 'no')
   );
+}
+
+function getControllerIsAnOwnerDefault(
+  controllerParty: PartyResponse | undefined,
+  isQuestionAnswered: boolean | undefined,
+  defaultControllerNotAnOwner: boolean
+): 'yes' | 'no' | undefined {
+  if (!controllerParty) return undefined;
+  if (controllerParty.roles?.includes('BENEFICIAL_OWNER')) return 'yes';
+  if (isQuestionAnswered || defaultControllerNotAnOwner) return 'no';
+  return undefined;
 }
 
 export const OwnersSectionScreen = () => {
@@ -401,17 +475,12 @@ export const OwnersSectionScreen = () => {
 
   const form = useForm({
     defaultValues: {
-      controllerIsAnOwner: controllerParty
-        ? controllerParty.roles?.includes('BENEFICIAL_OWNER')
-          ? 'yes'
-          : sessionData.isControllerOwnerQuestionAnswered
-            ? 'no'
-            : // When the host opts in, pre-answer "No" so the question is not
-              // required to advance (the user can still switch it to "Yes").
-              defaultControllerNotAnOwner
-              ? 'no'
-              : undefined
-        : undefined,
+      // The host may pre-answer "No" so the question is not required to advance.
+      controllerIsAnOwner: getControllerIsAnOwnerDefault(
+        controllerParty,
+        sessionData.isControllerOwnerQuestionAnswered,
+        defaultControllerNotAnOwner
+      ),
     },
   });
 
@@ -522,7 +591,7 @@ export const OwnersSectionScreen = () => {
 
   // For adding new parties (indirect ownership integration)
   const {
-    mutate: updateClient,
+    mutateAsync: updateClientAsync,
     error: clientUpdateError,
     status: clientUpdateStatus,
   } = useSmbdoUpdateClientLegacy();
@@ -532,7 +601,7 @@ export const OwnersSectionScreen = () => {
   const { mutateAsync: postPartyAsync, error: postPartyError } = usePostParty();
 
   // Handler for IndirectOwnership → add a beneficial owner via API
-  const handleAddIndirectOwner = (ownerData: {
+  const handleAddIndirectOwner = async (ownerData: {
     entityType: 'INDIVIDUAL' | 'BUSINESS';
     firstName?: string;
     lastName?: string;
@@ -576,25 +645,33 @@ export const OwnersSectionScreen = () => {
             },
           };
 
-    updateClient(
-      {
+    // Await the create so the Add Owner dialog can show a pending state and, on
+    // failure, keep itself open with an error for retry. Re-throw so the dialog
+    // does not report false success.
+    try {
+      const response = await updateClientAsync({
         id: clientData.id,
         data: {
           addParties: [newParty] as unknown as ClientResponse['parties'],
         },
-      },
-      {
-        onSettled: (data, error) => {
-          onPostClientSettled?.(data, error?.response?.data);
-        },
-        onSuccess: (response) => {
-          const queryKey = getSmbdoGetClientQueryKey(clientData.id);
-          queryClient.setQueryData(queryKey, response);
-          queryClient.invalidateQueries({ queryKey });
-        },
-      }
-    );
+      });
+      const queryKey = getSmbdoGetClientQueryKey(clientData.id);
+      queryClient.setQueryData(queryKey, response);
+      queryClient.invalidateQueries({ queryKey });
+      onPostClientSettled?.(response, undefined);
+    } catch (error) {
+      onPostClientSettled?.(
+        undefined,
+        (error as { response?: { data?: unknown } })?.response
+          ?.data as Parameters<NonNullable<typeof onPostClientSettled>>[1]
+      );
+      throw error;
+    }
   };
+
+  // Adapter for the compensation saga: flips a party's active flag.
+  const setPartyActive: SetPartyActive = (partyId, active) =>
+    updatePartyActiveAsync({ partyId, data: { active } });
 
   // Handler for IndirectOwnership → remove (deactivate) a beneficial owner
   const handleRemoveIndirectOwner = (ownerId: string) => {
@@ -622,22 +699,29 @@ export const OwnersSectionScreen = () => {
         );
         void (async () => {
           try {
-            await postPartyAsync({
-              data: {
-                ...buildRecreatedOwnerPayload(
-                  controllerParty,
-                  clientPartyId,
-                  'Direct'
-                ),
-                roles: rolesWithoutOwner,
-              } as unknown as Parameters<typeof postPartyAsync>[0]['data'],
-            });
-            for (const partyId of [ownerId, ...orphanedIntermediaryIds]) {
-              await updatePartyActiveAsync({
-                partyId,
-                data: { active: false },
-              });
-            }
+            // One compensable unit: recreating the direct controller and
+            // deactivating the indirect replacement + orphans must not leave a
+            // duplicate controller or dangling intermediaries on partial failure.
+            await runPartyMutationSaga(
+              setPartyActive,
+              async ({ trackCreated, deactivate }) => {
+                const recreated = await postPartyAsync({
+                  data: {
+                    ...buildRecreatedOwnerPayload(
+                      controllerParty,
+                      clientPartyId,
+                      'Direct'
+                    ),
+                    roles: rolesWithoutOwner,
+                  } as unknown as Parameters<typeof postPartyAsync>[0]['data'],
+                });
+                trackCreated(recreated?.id);
+
+                for (const partyId of [ownerId, ...orphanedIntermediaryIds]) {
+                  await deactivate(partyId);
+                }
+              }
+            );
           } catch (error) {
             onPostClientSettled?.(
               undefined,
@@ -768,36 +852,48 @@ export const OwnersSectionScreen = () => {
     // A non-sole-proprietor controller may also be an indirect beneficial
     // owner. Persist the linear path like any other owner and preserve the
     // CONTROLLER role on the recreated party.
+    const allParties = clientData.parties ?? [];
     try {
-      const outermostIntermediaryId = await createOrReuseIntermediaryChain(
-        steps,
-        clientPartyId,
-        clientData.parties ?? [],
-        postPartyAsync as unknown as PostPartyMutate
+      // Run the create-recreate-deactivate sequence as one compensable unit so
+      // a partial failure cannot leave orphaned intermediaries or a duplicate
+      // owner (recreated + original both active).
+      await runPartyMutationSaga(
+        setPartyActive,
+        async ({ trackCreated, deactivate }) => {
+          const outermostIntermediaryId = await createOrReuseIntermediaryChain(
+            steps,
+            clientPartyId,
+            allParties,
+            postPartyAsync as unknown as PostPartyMutate,
+            trackCreated
+          );
+          if (!outermostIntermediaryId) return;
+
+          // Recreate the owner under the outermost intermediary as an indirect
+          // beneficial owner (parentPartyId can only be set at creation).
+          const recreated = await postPartyAsync({
+            data: buildRecreatedOwnerPayload(
+              ownerParty,
+              outermostIntermediaryId,
+              'Indirect'
+            ) as unknown as Parameters<typeof postPartyAsync>[0]['data'],
+          });
+          trackCreated(recreated?.id);
+
+          // Deactivate the original CLIENT-child owner (replaced by the one
+          // above). Tracked so a later failure would reactivate it.
+          await deactivate(ownerId);
+        }
       );
-      if (!outermostIntermediaryId) return;
-
-      // Recreate the owner under the outermost intermediary as an indirect
-      // beneficial owner (parentPartyId can only be set at creation).
-      await postPartyAsync({
-        data: buildRecreatedOwnerPayload(
-          ownerParty,
-          outermostIntermediaryId,
-          'Indirect'
-        ) as unknown as Parameters<typeof postPartyAsync>[0]['data'],
-      });
-
-      // Deactivate the original CLIENT-child owner (replaced by the one above).
-      await updatePartyActiveAsync({
-        partyId: ownerId,
-        data: { active: false },
-      });
     } catch (error) {
       onPostClientSettled?.(
         undefined,
         (error as { response?: { data?: unknown } })?.response
           ?.data as Parameters<NonNullable<typeof onPostClientSettled>>[1]
       );
+      // Re-throw so the awaiting chain builder does not mark the save
+      // complete (close the dialog / record completion) on a failed persist.
+      throw error;
     } finally {
       const queryKey = getSmbdoGetClientQueryKey(clientData.id);
       queryClient.invalidateQueries({ queryKey });
@@ -846,18 +942,27 @@ export const OwnersSectionScreen = () => {
 
     void (async () => {
       try {
-        // Recreate as a CLIENT-parented direct owner, preserving all data.
-        await postPartyAsync({
-          data: buildRecreatedOwnerPayload(
-            ownerParty,
-            clientPartyId,
-            'Direct'
-          ) as unknown as Parameters<typeof postPartyAsync>[0]['data'],
-        });
+        // Recreate-then-deactivate as one compensable unit: a failure partway
+        // through must not leave a duplicate owner (recreated Direct + original
+        // Indirect both active) or half-cleaned intermediaries.
+        await runPartyMutationSaga(
+          setPartyActive,
+          async ({ trackCreated, deactivate }) => {
+            // Recreate as a CLIENT-parented direct owner, preserving all data.
+            const recreated = await postPartyAsync({
+              data: buildRecreatedOwnerPayload(
+                ownerParty,
+                clientPartyId,
+                'Direct'
+              ) as unknown as Parameters<typeof postPartyAsync>[0]['data'],
+            });
+            trackCreated(recreated?.id);
 
-        for (const partyId of [ownerId, ...orphanedIntermediaryIds]) {
-          await updatePartyActiveAsync({ partyId, data: { active: false } });
-        }
+            for (const partyId of [ownerId, ...orphanedIntermediaryIds]) {
+              await deactivate(partyId);
+            }
+          }
+        );
       } catch (error) {
         onPostPartyResponse?.(
           undefined,

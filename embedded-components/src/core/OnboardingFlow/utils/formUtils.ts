@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defaultResources, i18n } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
@@ -278,6 +278,28 @@ export function mapPartyApiErrorsToFormErrors(
  * // "Field /individualDetails/addresses[0]/postalCode/ value must have the expected value. The postal code [00000] is invalid for the country [US]."
  * // → "The postal code 00000 is invalid for the country US."
  */
+function removeBracketDelimiters(message: string): string {
+  let sanitized = '';
+
+  for (let index = 0; index < message.length; index += 1) {
+    if (message[index] !== '[') {
+      sanitized += message[index];
+      continue;
+    }
+
+    const closingBracketIndex = message.indexOf(']', index + 1);
+    if (closingBracketIndex <= index + 1) {
+      sanitized += message[index];
+      continue;
+    }
+
+    sanitized += message.slice(index + 1, closingBracketIndex);
+    index = closingBracketIndex;
+  }
+
+  return sanitized;
+}
+
 export function sanitizeServerErrorMessage(message: string): string {
   let sanitized = message;
 
@@ -291,7 +313,7 @@ export function sanitizeServerErrorMessage(message: string): string {
   sanitized = sanitized.replace(/Field\s+\/[^/]*(?:\/[^/]*)*\/\s*/g, '');
 
   // Clean up bracket notation: [00000] → 00000, [US] → US
-  sanitized = sanitized.replace(/\[([^\]]+)\]/g, '$1');
+  sanitized = removeBracketDelimiters(sanitized);
 
   // Capitalize first letter if we stripped a prefix
   if (sanitized && sanitized !== message) {
@@ -354,20 +376,22 @@ function setValueByPath(
   value: any
 ) {
   const keys = path.replace(/\[(\w+)\]/g, '.$1').split('.');
-  keys.reduce((acc, key, index) => {
+  let current = obj;
+
+  keys.forEach((key, index) => {
     if (index === keys.length - 1) {
       // If the target is an array and the new value is also an array, join them
-      if (Array.isArray(acc[key]) && Array.isArray(value)) {
-        acc[key] = [...acc[key], ...value];
+      if (Array.isArray(current[key]) && Array.isArray(value)) {
+        current[key] = [...current[key], ...value];
       } else {
-        acc[key] = value;
+        current[key] = value;
       }
     } else {
       // Create the path if it doesn't exist
-      acc[key] = acc[key] || (keys[index + 1].match(/^\d+$/) ? [] : {});
+      current[key] = current[key] || (keys[index + 1].match(/^\d+$/) ? [] : {});
+      current = current[key];
     }
-    return acc[key];
-  }, obj);
+  });
 }
 
 /**
@@ -597,6 +621,110 @@ export function useFormUtils() {
   const { clientData } = useOnboardingContext();
   const { currentScreenId } = useFlowContext();
   return useFormUtilsWithClientContext(clientData, currentScreenId);
+}
+
+/**
+ * Returns true when a form value counts as "populated" — i.e. it carries real
+ * data. Empty strings, `undefined`/`null`, and objects/arrays whose leaves are
+ * all empty are treated as not populated.
+ */
+export function isValuePopulated(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'string') return value.trim() !== '';
+  if (typeof value === 'number' || typeof value === 'boolean') return true;
+  if (Array.isArray(value)) return value.some(isValuePopulated);
+  if (typeof value === 'object') {
+    return Object.values(value).some(isValuePopulated);
+  }
+  return false;
+}
+
+/**
+ * Collects the set of root field-map keys that already have a value from the
+ * GET client response, across every party. Because
+ * {@link convertPartyResponseToFormValues} only emits keys the API actually
+ * returned, default values (e.g. country `'US'`) never leak in as "populated".
+ */
+export function getPopulatedFormFieldKeys(
+  clientData: ClientResponse | undefined
+): Set<string> {
+  const keys = new Set<string>();
+  clientData?.parties?.forEach((party) => {
+    if (!party) return;
+    const mapped = convertPartyResponseToFormValues(party);
+    Object.entries(mapped).forEach(([key, value]) => {
+      if (isValuePopulated(value)) keys.add(key);
+    });
+  });
+  return keys;
+}
+
+/**
+ * Shared empty result for {@link useReadonlyLockedFields} when the
+ * `readonlyFields` prop is not supplied — keeps the default path allocation-free
+ * and referentially stable.
+ */
+const EMPTY_LOCKED_FIELDS: Set<string> = new Set<string>();
+
+/**
+ * Resolves which fields the host asked to lock via the OnboardingFlow
+ * `readonlyFields` prop. Returns the set of root field-map keys that
+ * `OnboardingFormField` should render read-only.
+ *
+ * When `readonlyFields` is not supplied the hook short-circuits to a shared
+ * empty set — no client data is walked and behavior is unchanged.
+ *
+ * - `mode: 'always'` locks every listed field.
+ * - `mode: 'whenPopulated'` (default) locks a field when it already has a value
+ *   from the GET client response, or when it is optional. A required-but-empty
+ *   field stays editable so onboarding can still be completed.
+ */
+export function useReadonlyLockedFields(): Set<string> {
+  const { clientData, readonlyFields } = useOnboardingContext();
+  const { getFieldRule } = useFormUtils();
+
+  const hasConfig = !!readonlyFields?.fields?.length;
+
+  const populatedKeys = useMemo(
+    () =>
+      hasConfig ? getPopulatedFormFieldKeys(clientData) : EMPTY_LOCKED_FIELDS,
+    [hasConfig, clientData]
+  );
+
+  return useMemo(() => {
+    // Feature off — return the shared empty set so the default path is a no-op.
+    if (!hasConfig || !readonlyFields) return EMPTY_LOCKED_FIELDS;
+    const locked = new Set<string>();
+    const mode = readonlyFields.mode ?? 'whenPopulated';
+
+    readonlyFields.fields.forEach((field) => {
+      if (mode === 'always') {
+        locked.add(field);
+        return;
+      }
+      if (populatedKeys.has(field)) {
+        locked.add(field);
+        return;
+      }
+      // Not populated: lock only when the field is optional; a required field
+      // that is still empty must stay editable so onboarding can be completed.
+      try {
+        const { fieldRule } = getFieldRule(
+          field as FieldPath<OnboardingFormValuesSubmit>
+        );
+        const required =
+          ('required' in fieldRule ? fieldRule.required : false) ?? false;
+        if (!required) locked.add(field);
+      } catch {
+        // Unknown field key — leave editable (it won't render anyway).
+      }
+    });
+    return locked;
+    // `getFieldRule` is recreated each render; the resolution is cheap and
+    // stable for a given client/screen, so it is intentionally excluded to
+    // avoid needless recomputation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasConfig, populatedKeys, readonlyFields]);
 }
 
 /**

@@ -269,6 +269,51 @@ export type OnboardingDeltaModeConfig = {
 /** Host prop: boolean shorthand or full config. */
 export type OnboardingDeltaModeProp = boolean | OnboardingDeltaModeConfig;
 
+/**
+ * Locks selected onboarding fields to read-only so hosts can protect data that
+ * is authoritative in their own systems (e.g. business identity supplied by the
+ * platform) while still letting users complete anything genuinely missing.
+ *
+ * `fields` are root field-map keys (see `src/core/OnboardingFlow/config/fieldMap.ts`),
+ * e.g. `organizationTypeHierarchy`, `organizationName`, `dbaName`,
+ * `organizationIdEin`, `organizationDescription`, `industry`, `organizationAddress`.
+ * Composite fields lock as a unit — listing `organizationAddress` locks every
+ * address sub-input (address lines, city, state, postal code, country).
+ *
+ * `mode` controls when each listed field locks:
+ * - `'whenPopulated'` (**default**) — lock when the field already has a value
+ *   from the GET client response, **or** when the field is optional. A required
+ *   field that is still empty stays editable so onboarding can be completed.
+ * - `'always'` — the field is always read-only, regardless of value or whether
+ *   it is required.
+ *
+ * @example
+ * ```tsx
+ * <OnboardingFlow
+ *   readonlyFields={{
+ *     fields: [
+ *       'organizationTypeHierarchy',
+ *       'organizationName',
+ *       'dbaName',
+ *       'organizationIdEin',
+ *       'organizationDescription',
+ *       'industry',
+ *       'organizationAddress',
+ *     ],
+ *   }}
+ * />
+ * ```
+ */
+export type OnboardingReadonlyFieldsConfig = {
+  /** Root field-map keys to lock. */
+  fields: readonly string[];
+  /**
+   * When to lock each listed field.
+   * @default 'whenPopulated'
+   */
+  mode?: 'whenPopulated' | 'always';
+};
+
 export type OnboardingConfigUsedInContext = {
   /**
    * Enable distilled “delta” completion: review-first, owners treated complete,
@@ -421,6 +466,21 @@ export type OnboardingConfigUsedInContext = {
    * ```
    */
   priorityIndustryCodes?: readonly string[];
+  /**
+   * Render selected onboarding fields as read-only. Lets hosts protect data
+   * that is authoritative in their own systems while still allowing users to
+   * complete anything genuinely missing. See {@link OnboardingReadonlyFieldsConfig}.
+   *
+   * @example
+   * ```tsx
+   * <OnboardingFlow
+   *   readonlyFields={{
+   *     fields: ['organizationName', 'organizationIdEin', 'organizationAddress'],
+   *   }}
+   * />
+   * ```
+   */
+  readonlyFields?: OnboardingReadonlyFieldsConfig;
 };
 
 export type OnboardingFlowProps = OnboardingConfigDefault &
