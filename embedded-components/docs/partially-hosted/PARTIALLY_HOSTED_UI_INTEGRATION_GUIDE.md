@@ -25,6 +25,7 @@
   - [6.2. postMessage Security](#62-postmessage-security)
   - [6.3. API Security (Your Backend & Calls to Onboarding Service)](#63-api-security-your-backend--calls-to-onboarding-service)
   - [6.4. Testing](#64-testing)
+    - [Linked account sandbox magic values](#linked-account-sandbox-magic-values)
 
 This guide outlines the process for integrating the hosted Onboarding UI into
 your platform.
@@ -398,6 +399,9 @@ const componentProperties = {
 > `showLinkAccountStep` belongs to `HOSTED_ONBOARDING_UI`.
 > `HOSTED_LINKED_ACCOUNTS_UI` is the separate widget experience and does not use
 > that visibility property.
+>
+> For sandbox testing of microdeposit vs immediate-approval (STP) outcomes, see
+> [Linked account sandbox magic values](#linked-account-sandbox-magic-values).
 
 **Example — Customizing with disclosure and theme props:**
 
@@ -1141,6 +1145,8 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
   - Various failure scenarios (e.g., invalid documents, technical errors, user
     cancellation).
   - 'REVIEW_IN_PROGRESS' and loading statuses.
+  - Linked bank account linking in `HOSTED_LINKED_ACCOUNTS_UI` and in
+    onboarding when `showLinkAccountStep` is `true` (see magic values below).
 - Use test environments and test data/scenario triggers provided by the
   Onboarding Service.
 - Optional: Test `postMessage` communication: ensure messages from incorrect
@@ -1151,3 +1157,44 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 - Conduct security testing (e.g., penetration testing), focusing on the iframe
   boundary, session management, and API interactions. Check for OWASP Top 10
   vulnerabilities.
+
+#### Linked account sandbox magic values
+
+When testing `HOSTED_LINKED_ACCOUNTS_UI` or onboarding with
+`showLinkAccountStep: true` against **sandbox**, use these account numbers to
+force a specific Account Validation Service (AVS) outcome.
+
+Use **Checking** and **ACH** for both cases. The linked-account owner name must
+match the onboarded client / controller name, or AVS can fail even with a
+magic account number.
+
+These values are sandbox-only. Do not use them in production.
+
+##### 1. Microdeposit verification
+
+AVS does not auto-approve. The linked account moves to a microdeposit
+verification state (`MICRODEPOSITS_INITIATED` / `READY_FOR_VALIDATION`). Enter
+the two deposit amounts in the hosted UI to activate the account. Amount order
+does not matter.
+
+| Field | Value |
+|-------|--------|
+| Account number | `111291262181` |
+| Routing number | `021000021` |
+| Account type | Checking |
+| Payment method | ACH |
+| Microdeposit amounts | `$0.09` and `$0.03` |
+| Typical sandbox owner | Individual — Monica Gellar |
+
+##### 2. STP / approved immediately
+
+AVS succeeds immediately. The linked account becomes `ACTIVE` without
+microdeposit verification.
+
+| Field | Value |
+|-------|--------|
+| Account number | `3990388854` |
+| Routing number | `122199983` |
+| Account type | Checking |
+| Payment method | ACH |
+| Typical sandbox owner | Individual — Jamie Cooper |
