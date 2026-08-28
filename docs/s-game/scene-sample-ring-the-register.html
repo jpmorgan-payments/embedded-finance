@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ring the Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Karla:wght@400;500;700&display=swap">
+<style>
+  /* ── Prosperity Bay token set (single committed "Sunny Bay" theme) ─────── */
+  .sg-root {
+    --sg-sky-hi: #bfe5ef;
+    --sg-sky-lo: #e9f4e4;
+    --sg-grass: #8cc77b;
+    --sg-grass-2: #7dbb6d;
+    --sg-sand: #ecdcb8;
+    --sg-road: #cdd3c6;
+    --sg-road-line: #f6f8f2;
+    --sg-water: #4fa3a5;
+    --sg-water-2: #61b3b4;
+    --sg-earth: #a9825f;
+    --sg-earth-deep: #8a6749;
+    --sg-coral: #e8896b;
+    --sg-plaster: #f2e4c9;
+    --sg-teal: #4fa3a5;
+    --sg-navy: #2c4770;
+    --sg-gold: #d9a03f;
+    --sg-ink: #22382f;
+    --sg-paper: #ffffff;
+    --sg-muted: #5c6f63;
+    --sg-shield: #3d7bd9;
+    --sg-ok: #3f9e63;
+    font-family: 'Karla', 'Segoe UI', system-ui, sans-serif;
+    color: var(--sg-ink);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e9f0e6; }
+
+  .sg-page { max-width: 1020px; margin: 0 auto; padding: 28px 18px 72px; }
+  .sg-page h1 { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1.7rem; margin: 0 0 2px; }
+  .sg-page .sub { color: var(--sg-muted); margin: 0 0 18px; font-size: 0.98rem; }
+
+  /* ── Stage ──────────────────────────────────────────────────────────────── */
+  .sg-stage {
+    position: relative; border-radius: 20px; overflow: hidden; cursor: pointer;
+    background: linear-gradient(180deg, var(--sg-sky-hi) 0%, var(--sg-sky-lo) 78%);
+    box-shadow: 0 6px 28px rgba(34, 56, 47, 0.18);
+    user-select: none; -webkit-user-select: none;
+  }
+  .sg-stage svg { display: block; width: 100%; height: auto; }
+
+  .sg-badge {
+    position: absolute; top: 14px; left: 14px;
+    font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 11px;
+    letter-spacing: 0.13em; text-transform: uppercase;
+    background: rgba(255,255,255,0.88); color: var(--sg-ink);
+    border-radius: 999px; padding: 6px 14px;
+    box-shadow: 0 2px 8px rgba(34,56,47,0.12);
+  }
+  .sg-badge b { color: var(--sg-gold); }
+
+  .sg-pause {
+    position: absolute; top: 12px; right: 14px;
+    font-size: 12px; font-weight: 700; color: var(--sg-muted);
+    background: rgba(255,255,255,0.82); border-radius: 999px; padding: 5px 12px;
+    opacity: 0.85;
+  }
+
+  .sg-caption {
+    position: absolute; left: 0; right: 0; bottom: 34px;
+    display: flex; justify-content: center; pointer-events: none; padding: 0 16px;
+  }
+  .sg-caption span {
+    background: rgba(255,255,255,0.93); border-radius: 14px;
+    padding: 9px 18px; font-size: clamp(13px, 2.6vw, 15.5px); font-weight: 500;
+    max-width: 560px; text-align: center; line-height: 1.4;
+    box-shadow: 0 3px 12px rgba(34,56,47,0.14);
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+  .sg-caption span.on { opacity: 1; transform: translateY(0); }
+
+  .sg-banner {
+    position: absolute; left: 0; right: 0; bottom: 34px;
+    display: flex; justify-content: center; pointer-events: none; padding: 0 16px;
+  }
+  .sg-banner span {
+    background: var(--sg-ink); color: #fdf8ee; border-radius: 14px;
+    padding: 11px 22px; font-family: 'Fredoka', sans-serif; font-weight: 500;
+    font-size: clamp(13.5px, 2.8vw, 16.5px); max-width: 600px; text-align: center;
+    box-shadow: 0 4px 16px rgba(34,56,47,0.25);
+    opacity: 0; transform: translateY(12px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .sg-banner span b { color: var(--sg-gold); font-weight: 600; }
+  .sg-banner span.on { opacity: 1; transform: translateY(0); }
+
+  .sg-dots {
+    position: absolute; left: 0; right: 0; bottom: 12px;
+    display: flex; justify-content: center; gap: 7px; pointer-events: none;
+  }
+  .sg-dots i {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: rgba(34,56,47,0.22);
+  }
+  .sg-dots i.on { background: var(--sg-gold); transform: scale(1.25); }
+
+  /* ── Ambient CSS motion (decorative only) ──────────────────────────────── */
+  .sg-cloud-a { animation: sg-drift 70s linear infinite; }
+  .sg-cloud-b { animation: sg-drift 100s linear infinite; animation-delay: -40s; }
+  @keyframes sg-drift { from { transform: translateX(-180px); } to { transform: translateX(1100px); } }
+  .sg-beacon { animation: sg-pulse 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+  @keyframes sg-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+  .sg-ripple { animation: sg-shimmer 3.6s ease-in-out infinite; }
+  .sg-ripple.r2 { animation-delay: -1.2s; } .sg-ripple.r3 { animation-delay: -2.4s; }
+  @keyframes sg-shimmer { 0%,100% { opacity: 0.25; } 50% { opacity: 0.7; } }
+  .sg-boat { animation: sg-bob 4s ease-in-out infinite; }
+  @keyframes sg-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+  .sg-sign { animation: sg-sway 5s ease-in-out infinite; transform-origin: top center; transform-box: fill-box; }
+  @keyframes sg-sway { 0%,100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .sg-cloud-a, .sg-cloud-b, .sg-beacon, .sg-ripple, .sg-boat, .sg-sign { animation: none; }
+  }
+
+  /* ── Reusability notes ─────────────────────────────────────────────────── */
+  .sg-notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; }
+  .sg-note { background: var(--sg-paper); border: 1px solid #d8e2d2; border-radius: 14px; padding: 14px 16px; }
+  .sg-note strong { font-family: 'Fredoka', sans-serif; font-weight: 600; display: block; margin-bottom: 4px; font-size: 0.95rem; }
+  .sg-note span { color: var(--sg-muted); font-size: 0.86rem; line-height: 1.5; display: block; }
+  .sg-note code { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; background: #eef4e6; border-radius: 5px; padding: 1px 5px; }
+  .sg-foot { color: var(--sg-muted); font-size: 0.85rem; margin-top: 16px; max-width: 72ch; line-height: 1.55; }
+</style>
+
+<div class="sg-root">
+  <div class="sg-page">
+    <h1>Ring the Register</h1>
+    <p class="sub">High-fidelity sample of one loop scene — Chapter 4 · Accept Payments. Tap the stage to pause.</p>
+
+    <div class="sg-stage" id="stage" role="img" aria-label="Animated isometric town scene: a customer pays at Rosie's Bakery, the card becomes a secure token, identity is confirmed, and coins land in the shop's vault.">
+      <svg id="scene" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="sg-badge">Open Market · <b>Chapter 4 / 6</b></div>
+      <div class="sg-pause" id="pauseChip" hidden>⏸ paused</div>
+      <div class="sg-caption"><span id="caption"></span></div>
+      <div class="sg-banner"><span id="banner">Accept payments your customers' way — <b>frictionless in front, secure behind.</b></span></div>
+      <div class="sg-dots" id="dots"></div>
+    </div>
+
+    <div class="sg-notes">
+      <div class="sg-note"><strong>Design tokens</strong><span>Every color is a <code>--sg-*</code> custom property on <code>.sg-root</code> — the future theme switcher swaps this one block.</span></div>
+      <div class="sg-note"><strong>Iso library</strong><span><code>tileToScreen / prism / faceRect</code> are the whole projection. They port 1:1 into <code>scene/IsoScene.tsx</code>.</span></div>
+      <div class="sg-note"><strong>Scene as data</strong><span>Buildings, trees, lamps are declarative entries in <code>SCENE</code>, drawn in painter order — the future <code>buildings.tsx / actors.tsx</code>.</span></div>
+      <div class="sg-note"><strong>Timeline engine</strong><span>Every frame is a pure function of loop time <code>t</code> — pause, scrub, and the chapter beat lists in <code>engine/timeline.ts</code> come free.</span></div>
+    </div>
+    <p class="sg-foot">The full loop runs six chapters through this same renderer; only the beat list and the actors change per chapter. Reduced-motion users get stepped positions instead of travel, with captions carrying the story. No raster assets, no video — the entire cartoon is this code.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('scene');
+  var RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ── palette read from tokens so future themes restyle the SVG too ───────
+  var root = document.querySelector('.sg-root');
+  var css = getComputedStyle(root);
+  function tok(n) { return css.getPropertyValue(n).trim(); }
+  var C = {
+    grass: tok('--sg-grass'), grass2: tok('--sg-grass-2'), sand: tok('--sg-sand'),
+    road: tok('--sg-road'), roadLine: tok('--sg-road-line'),
+    water: tok('--sg-water'), water2: tok('--sg-water-2'),
+    earth: tok('--sg-earth'), earthDeep: tok('--sg-earth-deep'),
+    coral: tok('--sg-coral'), plaster: tok('--sg-plaster'), teal: tok('--sg-teal'),
+    navy: tok('--sg-navy'), gold: tok('--sg-gold'), ink: tok('--sg-ink'),
+    paper: tok('--sg-paper'), shield: tok('--sg-shield'), ok: tok('--sg-ok')
+  };
+
+  // ── iso projection ──────────────────────────────────────────────────────
+  var TW = 48, TH = 24, OX = 432, OY = 170;
+  function P(x, y) { return [OX + (x - y) * TW, OY + (x + y) * TH]; }
+
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    (parent || svg).appendChild(e);
+    return e;
+  }
+  function poly(pts, fill, parent, opacity) {
+    var a = { points: pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '), fill: fill };
+    if (opacity != null) a.opacity = opacity;
+    return el('polygon', a, parent);
+  }
+  function shade(hex, f) {
+    var n = parseInt(hex.slice(1), 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    function s(v) { return Math.max(0, Math.min(255, Math.round(v * f))); }
+    return 'rgb(' + s(r) + ',' + s(g) + ',' + s(b) + ')';
+  }
+  function diamond(cx, cy, fill, parent) {
+    return poly([[cx, cy - TH], [cx + TW, cy], [cx, cy + TH], [cx - TW, cy]], fill, parent);
+  }
+  // point on the LEFT face of a prism at tile (x,y): u across [0..1], v px up from base
+  function faceL(cx, cy, u, v) { return [cx - TW + u * TW, cy + u * TH - v]; }
+  // point on the RIGHT face
+  function faceR(cx, cy, u, v) { return [cx + u * TW, cy + TH - u * TH - v]; }
+  function faceRect(cx, cy, side, u0, u1, v0, v1, fill, parent) {
+    var f = side === 'L' ? faceL : faceR;
+    return poly([f(cx, cy, u0, v0), f(cx, cy, u1, v0), f(cx, cy, u1, v1), f(cx, cy, u0, v1)], fill, parent);
+  }
+  // extruded block: left face, right face, top diamond
+  function prism(g, cx, cy, h, color) {
+    poly([[cx - TW, cy - h], [cx, cy + TH - h], [cx, cy + TH], [cx - TW, cy]], shade(color, 0.78), g);
+    poly([[cx, cy + TH - h], [cx + TW, cy - h], [cx + TW, cy], [cx, cy + TH]], shade(color, 0.94), g);
+    diamond(cx, cy - h, shade(color, 1.14), g);
+  }
+
+  // ── sky: sun + clouds (behind terrain) ──────────────────────────────────
+  el('circle', { cx: 848, cy: 74, r: 30, fill: '#fbe8b8', opacity: 0.9 });
+  el('circle', { cx: 848, cy: 74, r: 46, fill: '#fbe8b8', opacity: 0.25 });
+  function cloud(x, y, s, cls) {
+    var g = el('g', { 'class': cls, opacity: 0.85 });
+    [[0, 0, 22], [24, 4, 16], [-22, 5, 15], [8, -9, 15]].forEach(function (c) {
+      el('circle', { cx: x + c[0] * s, cy: y + c[1] * s, r: c[2] * s, fill: '#ffffff' }, g);
+    });
+    return g;
+  }
+  cloud(120, 84, 1, 'sg-cloud-a');
+  cloud(430, 52, 0.72, 'sg-cloud-b');
+
+  // ── terrain: 7 x 5 tile grid, painter order ─────────────────────────────
+  var GX = 7, GY = 5;
+  function ground(x, y) {
+    if (y === 4) return C.water;
+    if (y === 2) return C.road;
+    if (y === 3 && x >= 3 && x <= 5) return C.sand;
+    return ((x + y) % 2) ? C.grass : C.grass2;
+  }
+  var terra = el('g', {});
+  var tiles = [];
+  for (var gx = 0; gx < GX; gx++) for (var gy = 0; gy < GY; gy++) tiles.push([gx, gy]);
+  tiles.sort(function (a, b) { return (a[0] + a[1]) - (b[0] + b[1]); });
+  tiles.forEach(function (t) {
+    var c = P(t[0], t[1]);
+    diamond(c[0], c[1], ground(t[0], t[1]), terra);
+    // island skirt on the two viewer-facing map edges
+    var skirt = t[1] === 4 ? shade(C.water, 0.62) : C.earth;
+    if (t[1] === GY - 1) poly([[c[0] - TW, c[1]], [c[0], c[1] + TH], [c[0], c[1] + TH + 26], [c[0] - TW, c[1] + 26]], skirt, terra);
+    if (t[0] === GX - 1) poly([[c[0], c[1] + TH], [c[0] + TW, c[1]], [c[0] + TW, c[1] + 26], [c[0], c[1] + TH + 26]], t[1] === 4 ? shade(C.water, 0.55) : C.earthDeep, terra);
+  });
+  // road center line
+  var rl = [];
+  for (var rx = 0; rx <= 6; rx++) { var rc = P(rx, 2); rl.push(rc[0] + ',' + rc[1]); }
+  el('polyline', { points: rl.join(' '), fill: 'none', stroke: C.roadLine, 'stroke-width': 3, 'stroke-dasharray': '10 9', 'stroke-linecap': 'round', opacity: 0.85 });
+  // water ripples
+  [[240, 412], [430, 448], [590, 430]].forEach(function (r, i) {
+    el('path', { d: 'M' + r[0] + ' ' + r[1] + ' q 10 -4 20 0 q 10 4 20 0', stroke: '#ffffff', fill: 'none', 'stroke-width': 2, 'stroke-linecap': 'round', 'class': 'sg-ripple r' + (i + 1) });
+  });
+
+  // ── scene objects (declarative, painter-sorted) ─────────────────────────
+  var objects = el('g', {});
+  var SCENE = [
+    { kind: 'tower', x: 1, y: 0 },
+    { kind: 'cityhall', x: 2, y: 0 },
+    { kind: 'kiosk', x: 5, y: 0 },
+    { kind: 'shop', x: 6, y: 0, color: C.plaster, h: 44, sign: 'BOOKS' },
+    { kind: 'shop', x: 0, y: 1, color: C.teal, h: 40, sign: 'MARKET' },
+    { kind: 'tree', x: 2, y: 1 },
+    { kind: 'bakery', x: 4, y: 1 },
+    { kind: 'tree', x: 0, y: 3 },
+    { kind: 'lamp', x: 1, y: 3 },
+    { kind: 'tree', x: 2, y: 3 },
+    { kind: 'actor', x: 3.62, y: 2.1 },       // the customer walks this row
+    { kind: 'lamp', x: 5, y: 3 },
+    { kind: 'boat', x: 5.5, y: 4.3 }
+  ];
+  SCENE.sort(function (a, b) { return (a.x + a.y) - (b.x + b.y); });
+
+  var A = {}; // animated handles collected while drawing
+
+  function windows(g, cx, cy, side, cols, rows, h, lit) {
+    for (var r = 0; r < rows; r++) for (var col = 0; col < cols; col++) {
+      var u0 = 0.16 + col * (0.72 / cols), u1 = u0 + 0.72 / cols - 0.1;
+      var v0 = 12 + r * ((h - 22) / rows), v1 = v0 + (h - 22) / rows - 7;
+      var on = lit && ((r * 31 + col * 17 + (side === 'L' ? 1 : 0)) % 3 === 0);
+      faceRect(cx, cy, side, u0, u1, v0, v1, on ? C.gold : 'rgba(255,255,255,' + (side === 'L' ? 0.28 : 0.42) + ')', g);
+    }
+  }
+
+  var draw = {
+    tower: function (o, g) {
+      var c = P(o.x, o.y), h = 150;
+      prism(g, c[0], c[1], h, C.navy);
+      windows(g, c[0], c[1], 'L', 2, 6, h, true);
+      windows(g, c[0], c[1], 'R', 2, 6, h, true);
+      // rooftop crown + beacon
+      diamond(c[0], c[1] - h - 6, shade(C.navy, 1.3), g);
+      el('line', { x1: c[0], y1: c[1] - h - TH - 4, x2: c[0], y2: c[1] - h - TH - 22, stroke: shade(C.navy, 1.4), 'stroke-width': 3 }, g);
+      el('circle', { cx: c[0], cy: c[1] - h - TH - 26, r: 6, fill: C.gold, 'class': 'sg-beacon' }, g);
+    },
+    cityhall: function (o, g) {
+      var c = P(o.x, o.y), h = 56;
+      prism(g, c[0], c[1], h, C.plaster);
+      // columns + pediment on the left (road-facing) face
+      [0.2, 0.45, 0.7].forEach(function (u) { faceRect(c[0], c[1], 'L', u, u + 0.12, 2, h - 12, '#ffffff', g); });
+      poly([faceL(c[0], c[1], 0, h), faceL(c[0], c[1], 1, h), faceL(c[0], c[1], 0.5, h + 15)], shade(C.plaster, 0.9), g);
+      el('line', { x1: c[0], y1: c[1] - h - TH, x2: c[0], y2: c[1] - h - TH - 16, stroke: C.earthDeep, 'stroke-width': 2 }, g);
+      poly([[c[0], c[1] - h - TH - 16], [c[0] + 14, c[1] - h - TH - 12], [c[0], c[1] - h - TH - 8]], C.gold, g);
+    },
+    kiosk: function (o, g) {
+      var c = P(o.x, o.y), h = 26;
+      prism(g, c[0], c[1], h, C.gold);
+      faceRect(c[0], c[1], 'L', 0.2, 0.8, 4, h - 6, 'rgba(255,255,255,0.5)', g);
+    },
+    shop: function (o, g) {
+      var c = P(o.x, o.y);
+      prism(g, c[0], c[1], o.h, o.color);
+      faceRect(c[0], c[1], 'L', 0.18, 0.5, 2, o.h - 14, 'rgba(255,255,255,0.35)', g);
+      faceRect(c[0], c[1], 'L', 0.6, 0.88, 0, o.h - 20, shade(o.color, 0.6), g);
+      var s = P(o.x, o.y); var sy = s[1] - o.h - TH - 10;
+      el('rect', { x: s[0] - 30, y: sy - 12, width: 60, height: 16, rx: 5, fill: C.ink }, g);
+      el('text', { x: s[0], y: sy, 'text-anchor': 'middle', fill: '#fdf8ee', 'font-size': 9, 'font-family': 'Fredoka, sans-serif', 'font-weight': 600, 'letter-spacing': '0.08em' }, g).textContent = o.sign;
+    },
+    bakery: function (o, g) {
+      var c = P(o.x, o.y), cx = c[0], cy = c[1], h = 48;
+      prism(g, cx, cy, h, C.coral);
+      // roof trim
+      diamond(cx, cy - h - 4, '#ffffff', g);
+      diamond(cx, cy - h - 4, shade(C.coral, 1.05), g).setAttribute('transform', 'translate(0,1) scale(0.9)');
+      // window with mullions
+      faceRect(cx, cy, 'L', 0.12, 0.42, 14, h - 12, 'rgba(255,255,255,0.55)', g);
+      // door (customer-facing)
+      faceRect(cx, cy, 'L', 0.56, 0.9, 0, 30, shade(C.coral, 0.55), g);
+      faceRect(cx, cy, 'L', 0.6, 0.86, 2, 27, '#fdf3e3', g);
+      // striped awning protruding over the door
+      var out = [-10.7, 5.4];
+      for (var i = 0; i < 5; i++) {
+        var u0 = 0.5 + i * 0.09, u1 = u0 + 0.09;
+        var p1 = faceL(cx, cy, u0, 33), p2 = faceL(cx, cy, u1, 33);
+        poly([p1, p2, [p2[0] + out[0], p2[1] + out[1]], [p1[0] + out[0], p1[1] + out[1]]], i % 2 ? '#ffffff' : C.coral, g);
+      }
+      // vault set into the base
+      faceRect(cx, cy, 'L', 0.14, 0.44, 3, 26, shade(C.gold, 0.68), g);
+      A.vaultDoor = faceRect(cx, cy, 'L', 0.17, 0.41, 5, 24, C.gold, g);
+      var vc = faceL(cx, cy, 0.29, 14.5);
+      el('circle', { cx: vc[0], cy: vc[1], r: 4.2, fill: 'none', stroke: shade(C.gold, 0.6), 'stroke-width': 1.6 }, g);
+      el('circle', { cx: vc[0], cy: vc[1], r: 1.4, fill: shade(C.gold, 0.6) }, g);
+      A.vaultAt = vc;
+      // hanging sign
+      var sg = el('g', { 'class': 'sg-sign' }, g);
+      el('line', { x1: cx - 14, y1: cy - h - TH - 26, x2: cx - 14, y2: cy - h - TH - 18, stroke: C.earthDeep, 'stroke-width': 2 }, sg);
+      el('rect', { x: cx - 58, y: cy - h - TH - 18, width: 88, height: 18, rx: 6, fill: '#ffffff', stroke: C.coral, 'stroke-width': 1.5 }, sg);
+      el('text', { x: cx - 14, y: cy - h - TH - 5, 'text-anchor': 'middle', fill: C.ink, 'font-size': 10, 'font-family': 'Fredoka, sans-serif', 'font-weight': 600 }, sg).textContent = "ROSIE'S BAKERY";
+    },
+    tree: function (o, g) {
+      var c = P(o.x, o.y);
+      el('rect', { x: c[0] - 3, y: c[1] - 14, width: 6, height: 14, rx: 2, fill: C.earth }, g);
+      el('circle', { cx: c[0] - 7, cy: c[1] - 22, r: 12, fill: shade(C.grass2, 0.85) }, g);
+      el('circle', { cx: c[0] + 6, cy: c[1] - 26, r: 14, fill: C.grass2 }, g);
+      el('circle', { cx: c[0], cy: c[1] - 34, r: 10, fill: shade(C.grass2, 1.12) }, g);
+    },
+    lamp: function (o, g) {
+      var c = P(o.x, o.y);
+      el('line', { x1: c[0], y1: c[1], x2: c[0], y2: c[1] - 30, stroke: C.ink, 'stroke-width': 2.5, 'stroke-linecap': 'round' }, g);
+      el('circle', { cx: c[0], cy: c[1] - 33, r: 4.5, fill: '#fbe8b8', stroke: C.ink, 'stroke-width': 1.5 }, g);
+    },
+    boat: function (o, g) {
+      var c = P(o.x, o.y);
+      var bg = el('g', { 'class': 'sg-boat' }, g);
+      el('path', { d: 'M' + (c[0] - 16) + ' ' + c[1] + ' h32 l-7 9 h-18 z', fill: C.coral }, bg);
+      el('line', { x1: c[0], y1: c[1], x2: c[0], y2: c[1] - 22, stroke: C.ink, 'stroke-width': 2 }, bg);
+      poly([[c[0] + 2, c[1] - 22], [c[0] + 16, c[1] - 8], [c[0] + 2, c[1] - 6]], '#ffffff', bg);
+    },
+    actor: function (o, g) {
+      // the customer: shadow, body, head, cap — moved every frame
+      var a = el('g', {}, g);
+      el('ellipse', { cx: 0, cy: 1, rx: 9, ry: 4, fill: 'rgba(34,56,47,0.18)' }, a);
+      el('rect', { x: -6, y: -20, width: 12, height: 18, rx: 6, fill: C.teal }, a);
+      el('rect', { x: -6, y: -11, width: 12, height: 5, fill: shade(C.teal, 0.8) }, a);
+      el('circle', { cx: 0, cy: -25, r: 6.5, fill: '#f0c9a0' }, a);
+      el('path', { d: 'M-6.5 -27 a6.5 6.5 0 0 1 13 0 z', fill: C.gold }, a);
+      A.customer = a;
+    }
+  };
+  SCENE.forEach(function (o) { draw[o.kind](o, objects); });
+
+  // ── effects layer (drawn above everything) ──────────────────────────────
+  var fx = el('g', {});
+  // ledger chip near the vault
+  var ledger = el('g', { opacity: 0.96 }, fx);
+  el('path', { d: 'M510 336 l24 -18 l-8 22 z', fill: '#ffffff', stroke: '#d8e2d2', 'stroke-width': 1 }, ledger); // pointer toward vault
+  el('rect', { x: 414, y: 332, width: 112, height: 30, rx: 9, fill: '#ffffff', stroke: '#d8e2d2' }, ledger);
+  el('text', { x: 426, y: 345, fill: C.ink, 'font-size': 8.5, 'font-family': 'Karla, sans-serif', 'font-weight': 700, 'letter-spacing': '0.08em' }, ledger).textContent = "ROSIE'S VAULT";
+  A.ledgerVal = el('text', { x: 426, y: 357, fill: C.ok, 'font-size': 11, 'font-family': 'Fredoka, sans-serif', 'font-weight': 600 }, ledger);
+
+  // payment glyphs above the customer (positioned every frame)
+  var glyph = el('g', {}, fx);
+  A.card = el('g', { opacity: 0 }, glyph);
+  el('rect', { x: -14, y: -9, width: 28, height: 18, rx: 3.5, fill: '#ffffff', stroke: C.ink, 'stroke-width': 1.4 }, A.card);
+  el('rect', { x: -14, y: -5, width: 28, height: 4.5, fill: C.navy }, A.card);
+  el('rect', { x: -10, y: 2.5, width: 9, height: 3, rx: 1.5, fill: C.gold }, A.card);
+  A.lock = el('g', { opacity: 0 }, glyph);
+  el('path', { d: 'M-6 -8 a6 6 0 0 1 12 0', fill: 'none', stroke: shade(C.gold, 0.62), 'stroke-width': 3 }, A.lock);
+  el('rect', { x: -10, y: -8, width: 20, height: 16, rx: 4, fill: C.gold, stroke: shade(C.gold, 0.62), 'stroke-width': 1.5 }, A.lock);
+  el('circle', { cx: 0, cy: 0, r: 2.4, fill: shade(C.gold, 0.55) }, A.lock);
+  A.shield = el('g', { opacity: 0 }, glyph);
+  el('path', { d: 'M0 -12 l11 4 v7 c0 7 -5 11 -11 13 c-6 -2 -11 -6 -11 -13 v-7 z', fill: C.shield, stroke: '#ffffff', 'stroke-width': 1.6 }, A.shield);
+  A.check = el('path', { d: 'M-5 0 l4 4 l7 -8', fill: 'none', stroke: '#ffffff', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0 }, A.shield);
+  A.ring = el('circle', { cx: 0, cy: 0, r: 14, fill: 'none', stroke: C.shield, 'stroke-width': 2, opacity: 0 }, glyph);
+
+  // coins
+  A.coins = [];
+  for (var ci = 0; ci < 3; ci++) {
+    var cg = el('g', { opacity: 0 }, fx);
+    el('circle', { cx: 0, cy: 0, r: 6, fill: C.gold, stroke: shade(C.gold, 0.68), 'stroke-width': 1.6 }, cg);
+    el('text', { x: 0, y: 3, 'text-anchor': 'middle', fill: shade(C.gold, 0.55), 'font-size': 8, 'font-family': 'Fredoka, sans-serif', 'font-weight': 700 }, cg).textContent = '$';
+    A.coins.push(cg);
+  }
+
+  // ── timeline: everything below is a pure function of loop time t ────────
+  var D = 15000;
+  var CAPTIONS = [
+    [200, 3600, "A customer arrives at Rosie's Bakery — and pays right at the counter."],
+    [3800, 6100, 'Her card instantly becomes a secure token — the shop never holds the real number.'],
+    [6300, 8100, "One quick tap confirms it's really her. That's 3-D Secure."],
+    [8300, 10800, "The payment lands in Rosie's own vault — tracked to the coin."]
+  ];
+  var BANNER = [11000, 14500];
+
+  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function seg(t, a, b) { return clamp01((t - a) / (b - a)); }
+  function ease(p) { return p * p * (3 - 2 * p); }
+  function fade(t, a, b, rin, rout) { return Math.min(seg(t, a, a + rin), 1 - seg(t, b - rout, b)); }
+  function lerp(a, b, p) { return a + (b - a) * p; }
+
+  function customerTile(t) {
+    var x;
+    if (t < 3800) x = lerp(-0.9, 3.62, RM ? Math.round(ease(seg(t, 200, 3800))) : ease(seg(t, 200, 3800)));
+    else if (t < 11400) x = 3.62;
+    else x = lerp(3.62, 7.6, RM ? Math.round(ease(seg(t, 11400, 13400))) : ease(seg(t, 11400, 13400)));
+    return x;
+  }
+
+  var captionEl = document.getElementById('caption');
+  var bannerEl = document.getElementById('banner');
+  var dotsEl = document.getElementById('dots');
+  for (var d = 0; d < 6; d++) { var dot = document.createElement('i'); if (d === 3) dot.className = 'on'; dotsEl.appendChild(dot); }
+  var capIdx = -1;
+
+  var START = 62.5;  // $ before the sale, and the sale amount:
+  var SALE = 66.25;
+
+  function update(t) {
+    // customer
+    var x = customerTile(t);
+    var walking = (t < 3800 || (t > 11400 && t < 13400)) && !RM;
+    var c = P(x, 2.1);
+    var bob = walking ? Math.sin(t / 70) * 1.6 : 0;
+    A.customer.setAttribute('transform', 'translate(' + c[0].toFixed(1) + ',' + (c[1] - 4 + bob).toFixed(1) + ')');
+    A.customer.setAttribute('opacity', x > 7.2 || x < -0.6 ? 0 : 1);
+
+    // glyph anchor above the customer's head
+    var gx = c[0], gy = c[1] - 44;
+    var rise = ease(fade(t, 3800, 6250, 350, 250));
+    A.card.setAttribute('opacity', Math.min(rise, 1 - ease(seg(t, 4900, 5400))));
+    A.card.setAttribute('transform', 'translate(' + gx + ',' + (gy - rise * 6) + ') scale(' + (0.6 + 0.4 * rise) + ')');
+    var lockOn = ease(seg(t, 5000, 5450)) * (1 - ease(seg(t, 6000, 6300)));
+    A.lock.setAttribute('opacity', lockOn);
+    A.lock.setAttribute('transform', 'translate(' + gx + ',' + (gy - 6) + ') scale(' + (0.7 + 0.3 * lockOn) + ')');
+    var sh = ease(fade(t, 6300, 8300, 350, 300));
+    A.shield.setAttribute('opacity', sh);
+    A.shield.setAttribute('transform', 'translate(' + gx + ',' + (gy - 4) + ') scale(' + (0.7 + 0.3 * sh) + ')');
+    A.check.setAttribute('opacity', ease(seg(t, 7100, 7500)));
+    var ringP = seg(t, 6500, 7100);
+    A.ring.setAttribute('opacity', ringP > 0 && ringP < 1 ? 0.6 * (1 - ringP) : 0);
+    A.ring.setAttribute('transform', 'translate(' + gx + ',' + (gy - 4) + ') scale(' + (0.5 + ringP) + ')');
+
+    // coins: hand → vault
+    var from = [c[0] + 4, c[1] - 30], to = A.vaultAt;
+    A.coins.forEach(function (coin, i) {
+      var t0 = 8300 + i * 480, p = seg(t, t0, t0 + 950);
+      if (p <= 0 || p >= 1) { coin.setAttribute('opacity', 0); return; }
+      var pe = ease(p);
+      var px2 = lerp(from[0], to[0], pe), py2 = lerp(from[1], to[1], pe) - (RM ? 0 : Math.sin(p * Math.PI) * 34);
+      coin.setAttribute('opacity', Math.min(p * 6, 1));
+      coin.setAttribute('transform', 'translate(' + px2.toFixed(1) + ',' + py2.toFixed(1) + ')');
+    });
+    // vault glow while coins land
+    var glow = fade(t, 8500, 10900, 300, 600);
+    A.vaultDoor.setAttribute('fill', glow > 0.4 ? shade(C.gold, 1.22) : C.gold);
+
+    // ledger ticks up
+    var val = START + SALE * ease(seg(t, 8600, 10600));
+    A.ledgerVal.textContent = '$ ' + val.toFixed(2);
+
+    // caption + banner
+    var idx = -1;
+    for (var i = 0; i < CAPTIONS.length; i++) if (t >= CAPTIONS[i][0] && t <= CAPTIONS[i][1]) idx = i;
+    if (idx !== capIdx) {
+      capIdx = idx;
+      if (idx >= 0) { captionEl.textContent = CAPTIONS[idx][2]; captionEl.classList.add('on'); }
+      else captionEl.classList.remove('on');
+    }
+    bannerEl.classList.toggle('on', t >= BANNER[0] && t <= BANNER[1]);
+  }
+
+  // ── master clock with pause (also scrubbable: ?t=8500&pause=1) ──────────
+  var q = new URLSearchParams(location.search);
+  var paused = q.get('pause') === '1';
+  var tLoop = q.has('t') ? (parseInt(q.get('t'), 10) || 0) % D : 0;
+  var last = null;
+  var pauseChip = document.getElementById('pauseChip');
+  pauseChip.hidden = !paused;
+  document.getElementById('stage').addEventListener('click', function () {
+    paused = !paused;
+    pauseChip.hidden = !paused;
+  });
+  function frame(now) {
+    if (last == null) last = now;
+    if (!paused) tLoop = (tLoop + Math.min(now - last, 100)) % D;
+    last = now;
+    update(tLoop);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</html>
