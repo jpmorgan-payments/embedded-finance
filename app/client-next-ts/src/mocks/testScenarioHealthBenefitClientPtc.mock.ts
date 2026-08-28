@@ -1,12 +1,11 @@
 /**
- * MSW seed for `/test-scenario-3` happy path without PTC — "Health & Benefit Solutions, LLC".
- * Minimum data required to create a client + authorized user.
- * Seeded when `testScenarioBundle` is `test-scenario-3` and mode is not `happy-path-ptc`.
+ * MSW seed for `/test-scenario-3` PTC happy path — same Health & Benefit parties,
+ * C-corp + Nasdaq (`HBNS`) in the organization payload.
  */
-export const TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID = '3100007001';
+export { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from './testScenarioHealthBenefitClient.mock';
 
-export const testScenarioHealthBenefitClient = {
-  id: TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID,
+export const testScenarioHealthBenefitClientPtc = {
+  id: '3100007001',
   attestations: [],
   createdAt: '2026-05-20T09:15:00.000Z',
   parties: [
@@ -35,7 +34,11 @@ export const testScenarioHealthBenefitClient = {
         countryOfFormation: 'US',
         dbaName: 'Health & Benefit Solutions',
         organizationName: 'Health & Benefit Solutions, LLC',
-        organizationType: 'LIMITED_LIABILITY_COMPANY',
+        organizationType: 'C_CORPORATION',
+        publiclyTraded: {
+          stockExchange: 'XNAS',
+          tickerSymbol: 'HBNS',
+        },
       },
       individualDetails: {},
       status: 'ACTIVE',
