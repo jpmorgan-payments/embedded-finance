@@ -15,9 +15,11 @@ A typical journey allows a client representative to:
 3. Refetch the approved client, including client-level product proposal state, and sparse party maintenance proposals.
 4. Derive approved and proposed presentation models without changing the approved baseline.
 5. Review changed fields with request provenance.
-6. Present and submit required attestations.
-7. Request verification and represent `202 Accepted` as asynchronous processing.
-8. Observe later status changes through refetches or webhooks, then account for the documented 24-48 hour delay before approved values may appear in client responses.
+6. Resolve questions returned before attestation.
+7. Present and submit required attestations.
+8. Request verification and represent `202 Accepted` as asynchronous processing.
+9. Resolve later questions and post-attestation document requests.
+10. Observe later status changes through refetches or webhooks, then account for the documented 24-48 hour delay before approved values may appear in client responses.
 
 The suggested workflow can be adapted to a host platform's navigation, state management, and design system. The runnable showcase demonstrates one option, not a required page structure.
 
@@ -34,11 +36,12 @@ The runnable showcase applies the generic lifecycle to a specific Limited DDA pr
 5. If the answer is no, continue with only the sub-product addition. If the answer is yes, collect every applicable supported organization and related-party disclosure.
 6. Refetch the approved client and every maintenance page.
 7. Reconcile the separate client-level product proposal and sparse party proposals without changing the approved baseline.
-8. Present and submit the pre-verification attestation.
-9. Refetch, rebuild, and review the complete change set with request provenance.
-10. Request verification and represent `202 Accepted` as asynchronous processing for the product and party lifecycles.
-11. After verification, handle `INFORMATION_REQUESTED` by refetching and showing the returned questions and document requests. In this illustration, show new-party and legal-name-change questions plus a document request linked to the added party.
-12. Observe each lifecycle through the usual onboarding event model and refetches, then refetch the client throughout the 24-48 hour publication window.
+8. Resolve two new-party due-diligence questions returned before attestation.
+9. Present and submit the pre-verification attestation.
+10. Refetch, rebuild, and review the complete change set with request provenance.
+11. Request verification and represent `202 Accepted` as asynchronous processing for the product and party lifecycles.
+12. Handle later `INFORMATION_REQUESTED` requirements by showing two legal-name-change questions and a post-attestation document request linked to the added party.
+13. Observe each lifecycle through the usual onboarding event model and refetches, then refetch the client throughout the 24-48 hour publication window.
 
 ## Relationship to the Digital Onboarding Flow
 
@@ -139,6 +142,11 @@ sequenceDiagram
     end
     UX->>UX: Track product and party envelopes separately, then derive a ChangeSet
     U->>UX: Review approved versus proposed values
+    opt Questions returned before attestation
+      UX->>API: GET /questions?questionIds={ids}
+      UX->>U: Show and collect returned answers
+      UX->>API: PATCH /clients/{clientId} with questionResponses
+    end
     loop Every outstanding attestation
       UX->>U: Present attestation document
       UX->>API: PATCH /clients/{clientId} with addAttestations
@@ -151,7 +159,7 @@ sequenceDiagram
     JPMC-->>UX: Later product and party-maintenance status updates
     opt INFORMATION_REQUESTED
       UX->>API: GET /clients/{clientId}
-      API-->>UX: New outstanding questionIds and documentRequestIds
+      API-->>UX: New outstanding questionIds and post-attestation documentRequestIds
       UX->>API: GET /questions?questionIds={ids}
       UX->>U: Show and collect returned answers
       UX->>API: PATCH /clients/{clientId} with questionResponses
@@ -159,7 +167,7 @@ sequenceDiagram
       UX->>U: Show party-linked document request
       UX->>API: POST /documents
       UX->>API: POST /document-requests/{documentRequestId}/submit
-      Note over UX,API: Questions and document requests occur only after verification submission
+      Note over UX,API: Questions may occur before or after attestation; document requests occur only after attestation
     end
     Note over UX,API: Approved values may take 24-48 hours to appear in GET /clients/{id}
 ```
@@ -267,21 +275,21 @@ Fail closed if more than one open party-maintenance `requestId` is returned for 
 
 ### Resolve outstanding requirements
 
-Resolve requirements at the lifecycle stage in which the API returns them. Submit required attestations before verification. Questions and document requests are post-verification requirements: retrieve them only after a product or party lifecycle enters `INFORMATION_REQUESTED`. Complete information requests within 30 days to prevent automatic termination.
+Resolve requirements at the lifecycle stage in which the API returns them. Resolve questions whenever `questionIds` are returned, before or after attestation. Submit required attestations before verification. Retrieve and display document requests only after attestation. Complete information requests within 30 days to prevent automatic termination.
 
 Use `ClientResponse.outstanding` as the task-discovery surface:
 
 1. Refetch `GET /clients/{id}` after every task write and lifecycle event.
-2. Before verification, present every document in `attestationDocumentIds`, capture the structured attester, and submit the attestation through `PATCH /clients/{id}`.
-3. Submit verification and treat `202 Accepted` as the start of asynchronous review, not approval.
-4. After an `INFORMATION_REQUESTED` status, resolve `questionIds` with `GET /questions?questionIds={ids}` and submit answers through `PATCH /clients/{id}` using `questionResponses`.
-5. After an `INFORMATION_REQUESTED` status, resolve each `documentRequestId` with `GET /document-requests/{id}`. For platform-uploaded requests, upload every required file with `POST /documents`, then submit the fulfilled request with `POST /document-requests/{id}/submit`.
+2. Whenever `questionIds` are returned, resolve them with `GET /questions?questionIds={ids}` and submit answers through `PATCH /clients/{id}` using `questionResponses`.
+3. Before verification, present every document in `attestationDocumentIds`, capture the structured attester, and submit the attestation through `PATCH /clients/{id}`.
+4. Submit verification and treat `202 Accepted` as the start of asynchronous review, not approval.
+5. After attestation, resolve each returned `documentRequestId` with `GET /document-requests/{id}`. For platform-uploaded requests, upload every required file with `POST /documents`, then submit the fulfilled request with `POST /document-requests/{id}/submit`.
 6. Use `DocumentRequestResponse.partyId` to associate a document request with its party. Keep questions client-level because `QuestionResponse` has no `partyId`.
 7. Keep the request read-only while the additional information is outstanding.
 
 Keep every party from the approved client snapshot in its approved profile state while maintenance is open. Represent an `ADD` proposal as a new party pending approval; do not assign it an approved profile state until the maintenance proposal is approved and published in `GET /clients/{id}`.
 
-Render only tasks returned after verification. The showcase groups two new-party due-diligence questions, two legal-name-change questions, and a document request for Sam Lee in one panel. The document request is linked through `DocumentRequestResponse.partyId`; the questions are labeled client-level because `QuestionResponse` has no `partyId`. These post-verification tasks are display-only in this route.
+Render each task at the stage in which it is returned. The showcase displays two new-party due-diligence questions before attestation, then two legal-name-change questions and a document request for Sam Lee afterward. The document request is linked through `DocumentRequestResponse.partyId`; the questions are labeled client-level because `QuestionResponse` has no `partyId`. These tasks are display-only in this route.
 
 ## Product and disclosure operation contracts
 
@@ -873,7 +881,7 @@ Cover:
 - full-request and party-scoped cancellation while `NEW`, plus lock behavior after submission;
 - attestation required before verification in the demo;
 - contract tests for question responses, platform-uploaded document requests, attestations, and every targeted write enabled during `INFORMATION_REQUESTED`;
-- display-only showcase tests that show post-verification new-party and legal-name-change questions plus Sam Lee's party-linked document request without manufacturing question-to-party correlation;
+- display-only showcase tests that show new-party questions before attestation, legal-name-change questions afterward, and Sam Lee's party-linked document request only after attestation without manufacturing question-to-party correlation;
 - verification transitioning `NEW` to `REVIEW_IN_PROGRESS` and preventing further edits;
 - `INFORMATION_REQUESTED` refetching all outstanding work and keeping ordinary draft edits disabled;
 - `202 Accepted` separated from later approval and approved-data publication;

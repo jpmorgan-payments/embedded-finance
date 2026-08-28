@@ -307,6 +307,19 @@ export function ClientMaintenanceWorkspace() {
 
           {step === 'attest' ? (
             <div className="space-y-6">
+              {projection.approvedClient.outstanding.questionIds.length > 0 ? (
+                <InformationRequiredPanel
+                  phase="before-attestation"
+                  questions={workspace.questionsQuery.data.questions}
+                  documentRequests={[]}
+                  parties={projection.proposedClient.parties}
+                  newPartyIds={projection.partyChanges.flatMap((change) =>
+                    change.action === 'ADD' ? [change.partyId] : []
+                  )}
+                  isLoading={workspace.questionsQuery.isLoading}
+                  error={workspace.questionsQuery.error?.message}
+                />
+              ) : null}
               <AttestationPanel
                 organizationName={organizationName}
                 documentId={
@@ -382,8 +395,9 @@ export function ClientMaintenanceWorkspace() {
                         Next in the default scenario
                       </p>
                       <p className="mt-1 text-sm leading-6 text-gray-700">
-                        Simulate the later review response that requests
-                        additional questions and a document for the new party.
+                        Simulate the later review response with more questions
+                        and a post-attestation document request for the new
+                        party.
                       </p>
                     </div>
                     <Button
@@ -395,7 +409,7 @@ export function ClientMaintenanceWorkspace() {
                       {workspace.requestInformation.isPending ? (
                         <Loader2 className="animate-spin" />
                       ) : null}
-                      Continue to questions and documents
+                      Continue to later requirements
                       {!workspace.requestInformation.isPending ? (
                         <ArrowRight />
                       ) : null}
@@ -416,6 +430,7 @@ export function ClientMaintenanceWorkspace() {
 
               {isInformationRequested ? (
                 <InformationRequiredPanel
+                  phase="after-attestation"
                   questions={workspace.questionsQuery.data?.questions ?? []}
                   documentRequests={workspace.documentRequestsQuery.data ?? []}
                   parties={projection.proposedClient.parties}

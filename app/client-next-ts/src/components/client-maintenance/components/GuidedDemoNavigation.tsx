@@ -29,14 +29,14 @@ function getGuidedAction({
     return {
       label: 'Guided: review requested information',
       description:
-        'Review the post-verification questions and party-linked document request below.',
+        'Review the later questions and party-linked document request below.',
     };
   }
   if (step === 'submitted') {
     return {
       label: 'Guided: show information request',
       description:
-        'Continue the default illustration with a post-verification information request.',
+        'Continue with later questions and a post-attestation document request.',
     };
   }
   if (step === 'attest') {

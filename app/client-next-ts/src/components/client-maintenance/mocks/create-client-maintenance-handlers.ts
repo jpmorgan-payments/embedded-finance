@@ -176,8 +176,7 @@ function resolveProductDraftRequest(
     };
   }
   return {
-    requestId:
-      updateRequest?.requestId ?? String(state.nextProductRequestId++),
+    requestId: updateRequest?.requestId ?? String(state.nextProductRequestId++),
   };
 }
 
@@ -191,6 +190,9 @@ function requireAttestation(state: DemoState): void {
       MAINTENANCE_ATTESTATION_DOCUMENT_ID
     );
   }
+  state.client.outstanding.questionIds = [
+    ...MAINTENANCE_QUESTION_IDS.slice(0, 2),
+  ];
 }
 
 export function createClientMaintenanceHandlers(
@@ -341,6 +343,13 @@ export function createClientMaintenanceHandlers(
         state.client.outstanding.attestationDocumentIds.filter(
           (documentId) => !documentIds.has(documentId)
         );
+      if (
+        !state.client.outstanding.attestationDocumentIds.includes(
+          MAINTENANCE_ATTESTATION_DOCUMENT_ID
+        )
+      ) {
+        state.client.outstanding.questionIds = [];
+      }
       return HttpResponse.json(getClientResponse(state));
     }),
 
@@ -412,56 +421,55 @@ export function createClientMaintenanceHandlers(
       const questionIds = new Set(
         new URL(request.url).searchParams.get('questionIds')?.split(',') ?? []
       );
-      const availableQuestions: NonNullable<
-        QuestionListResponse['questions']
-      > = [
-        {
-          id: MAINTENANCE_QUESTION_IDS[0],
-          defaultLocale: 'en-US',
-          description: 'New-party due diligence',
-          content: [
-            {
-              locale: 'en-US',
-              label:
-                'Will the newly added party initiate account activity on behalf of the client?',
-            },
-          ],
-        },
-        {
-          id: MAINTENANCE_QUESTION_IDS[1],
-          defaultLocale: 'en-US',
-          description: 'New-party due diligence',
-          content: [
-            {
-              locale: 'en-US',
-              label:
-                'What responsibilities will the newly added party have for the client?',
-            },
-          ],
-        },
-        {
-          id: MAINTENANCE_QUESTION_IDS[2],
-          defaultLocale: 'en-US',
-          description: 'Legal-name change review',
-          content: [
-            {
-              locale: 'en-US',
-              label: 'What prompted the requested legal-name change?',
-            },
-          ],
-        },
-        {
-          id: MAINTENANCE_QUESTION_IDS[3],
-          defaultLocale: 'en-US',
-          description: 'Legal-name change review',
-          content: [
-            {
-              locale: 'en-US',
-              label: 'When did the requested legal name take effect?',
-            },
-          ],
-        },
-      ];
+      const availableQuestions: NonNullable<QuestionListResponse['questions']> =
+        [
+          {
+            id: MAINTENANCE_QUESTION_IDS[0],
+            defaultLocale: 'en-US',
+            description: 'New-party due diligence',
+            content: [
+              {
+                locale: 'en-US',
+                label:
+                  'Will the newly added party initiate account activity on behalf of the client?',
+              },
+            ],
+          },
+          {
+            id: MAINTENANCE_QUESTION_IDS[1],
+            defaultLocale: 'en-US',
+            description: 'New-party due diligence',
+            content: [
+              {
+                locale: 'en-US',
+                label:
+                  'What responsibilities will the newly added party have for the client?',
+              },
+            ],
+          },
+          {
+            id: MAINTENANCE_QUESTION_IDS[2],
+            defaultLocale: 'en-US',
+            description: 'Legal-name change review',
+            content: [
+              {
+                locale: 'en-US',
+                label: 'What prompted the requested legal-name change?',
+              },
+            ],
+          },
+          {
+            id: MAINTENANCE_QUESTION_IDS[3],
+            defaultLocale: 'en-US',
+            description: 'Legal-name change review',
+            content: [
+              {
+                locale: 'en-US',
+                label: 'When did the requested legal name take effect?',
+              },
+            ],
+          },
+        ];
       const questions: QuestionListResponse = {
         questions: availableQuestions.filter(
           (question) => question.id && questionIds.has(question.id)
@@ -535,7 +543,7 @@ export function createClientMaintenanceHandlers(
           documentRequestIds: hasAddedParty
             ? [MAINTENANCE_DOCUMENT_REQUEST_ID]
             : [],
-          questionIds: [...MAINTENANCE_QUESTION_IDS],
+          questionIds: [...MAINTENANCE_QUESTION_IDS.slice(2)],
         },
       };
       state.proposals = setActiveStatuses(

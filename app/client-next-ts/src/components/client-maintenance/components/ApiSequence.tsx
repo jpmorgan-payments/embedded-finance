@@ -8,6 +8,7 @@ const calls = [
   { method: 'POST', path: '/parties', step: 0 },
   { method: 'PATCH', path: '/parties/{partyId}', step: 0 },
   { method: 'GET', path: '/maintenance-requests?clientId={id}', step: 1 },
+  { method: 'GET', path: '/questions?questionIds={ids}', step: 2 },
   { method: 'PATCH', path: '/clients/{id}', step: 2 },
   { method: 'POST', path: '/clients/{id}/verifications', step: 3 },
   { method: 'GET', path: '/questions?questionIds={ids}', step: 4 },
@@ -54,7 +55,7 @@ export function ApiSequence({ currentStep }: { currentStep: MaintenanceStep }) {
             const active = call.step === currentIndex;
             return (
               <li
-                key={`${call.method}-${call.path}`}
+                key={`${call.method}-${call.path}-${call.step}`}
                 className={`flex min-w-0 items-center gap-2 rounded border px-2.5 py-1.5 font-mono text-[11px] ${
                   active
                     ? 'border-cyan-300 bg-cyan-950 text-cyan-100'

@@ -1,18 +1,14 @@
 import { Check, Circle } from 'lucide-react';
 
 export type MaintenanceStep =
-  | 'profile'
-  | 'review'
-  | 'attest'
-  | 'submitted'
-  | 'information';
+  'profile' | 'review' | 'attest' | 'submitted' | 'information';
 
 const steps: Array<{ id: MaintenanceStep; label: string }> = [
   { id: 'profile', label: 'Disclose changes' },
   { id: 'review', label: 'Review changes' },
   { id: 'attest', label: 'Attest' },
   { id: 'submitted', label: 'Submitted' },
-  { id: 'information', label: 'Questions & documents' },
+  { id: 'information', label: 'Later requirements' },
 ];
 
 export function MaintenanceProgress({

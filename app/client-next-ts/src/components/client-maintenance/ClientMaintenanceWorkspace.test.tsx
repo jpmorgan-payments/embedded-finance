@@ -140,7 +140,7 @@ describe('ClientMaintenanceWorkspace', () => {
     ).toBeInTheDocument();
     await user.click(
       screen.getByRole('button', {
-        name: 'Continue to questions and documents',
+        name: 'Continue to later requirements',
       })
     );
 
@@ -150,7 +150,7 @@ describe('ClientMaintenanceWorkspace', () => {
       })
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Questions & documents').closest('li')
+      screen.getByText('Later requirements').closest('li')
     ).toHaveAttribute('aria-current', 'step');
     expect(
       screen.getByRole('heading', { name: 'Document request for Sam Lee' })
@@ -204,6 +204,19 @@ describe('ClientMaintenanceWorkspace', () => {
     await user.click(
       screen.getByRole('button', { name: 'Continue to attestation' })
     );
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Questions before attestation',
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('heading', {
+        name: 'New-party due diligence question',
+      })
+    ).toHaveLength(2);
+    expect(
+      screen.queryByRole('heading', { name: 'Document request for Sam Lee' })
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole('checkbox', {
         name: /I have read the certification/,
@@ -457,7 +470,6 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       screen.getByRole('heading', { name: 'More information required' })
     ).toBeInTheDocument();
-    expect(screen.getByText('New-party due diligence')).toBeInTheDocument();
     expect(
       screen.getByText('New party · information requested')
     ).toBeInTheDocument();
@@ -466,25 +478,10 @@ describe('ClientMaintenanceWorkspace', () => {
     ).toBeInTheDocument();
     expect(
       screen.getAllByRole('heading', {
-        name: 'New-party due diligence question',
-      })
-    ).toHaveLength(2);
-    expect(
-      screen.getAllByRole('heading', {
         name: 'Legal-name change review question',
       })
     ).toHaveLength(2);
-    expect(screen.getAllByText('Client level')).toHaveLength(4);
-    expect(
-      screen.getByText(
-        'Will the newly added party initiate account activity on behalf of the client?'
-      )
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'What responsibilities will the newly added party have for the client?'
-      )
-    ).toBeInTheDocument();
+    expect(screen.getAllByText('Client level')).toHaveLength(2);
     expect(
       screen.getByText('What prompted the requested legal-name change?')
     ).toBeInTheDocument();
@@ -496,7 +493,7 @@ describe('ClientMaintenanceWorkspace', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Party linked')).toBeInTheDocument();
     expect(screen.getByText('Drivers License')).toBeInTheDocument();
-    expect(screen.getAllByText('Display only')).toHaveLength(5);
+    expect(screen.getAllByText('Display only')).toHaveLength(3);
     expect(
       within(demoControls).getByRole('button', {
         name: 'Approve maintenance',

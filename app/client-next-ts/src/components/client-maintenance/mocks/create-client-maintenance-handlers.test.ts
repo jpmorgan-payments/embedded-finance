@@ -262,11 +262,26 @@ describe('client maintenance mock API', () => {
     );
   });
 
-  it('returns client-level questions and a party-linked document request during information requested', async () => {
+  it('returns questions before and after attestation but delays documents until afterward', async () => {
     await createFourOperationDraft();
     const client = await clientMaintenanceApi.getClient(
       MAINTENANCE_DEMO_CLIENT_ID
     );
+    expect(client.outstanding).toMatchObject({
+      documentRequestIds: [],
+      questionIds: ['300001', '300002'],
+    });
+    const preAttestationQuestions = await clientMaintenanceApi.getQuestions(
+      client.outstanding.questionIds
+    );
+    expect(preAttestationQuestions.questions).toHaveLength(2);
+    expect(preAttestationQuestions.questions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: '300001' }),
+        expect.objectContaining({ id: '300002' }),
+      ])
+    );
+
     await clientMaintenanceApi.addAttestation(MAINTENANCE_DEMO_CLIENT_ID, {
       attester: {
         firstName: 'Jordan',
@@ -300,7 +315,7 @@ describe('client maintenance mock API', () => {
       status: 'INFORMATION_REQUESTED',
       outstanding: {
         documentRequestIds: ['3000011675'],
-        questionIds: ['300001', '300002', '300003', '300004'],
+        questionIds: ['300003', '300004'],
       },
       updateRequest: { status: 'INFORMATION_REQUESTED' },
     });
@@ -321,23 +336,9 @@ describe('client maintenance mock API', () => {
     const questions = await clientMaintenanceApi.getQuestions(
       returned.outstanding.questionIds
     );
-    expect(questions.questions).toHaveLength(4);
+    expect(questions.questions).toHaveLength(2);
     expect(questions.questions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          id: '300001',
-          description: 'New-party due diligence',
-          content: [
-            expect.objectContaining({
-              label:
-                'Will the newly added party initiate account activity on behalf of the client?',
-            }),
-          ],
-        }),
-        expect.objectContaining({
-          id: '300002',
-          description: 'New-party due diligence',
-        }),
         expect.objectContaining({
           id: '300003',
           description: 'Legal-name change review',
