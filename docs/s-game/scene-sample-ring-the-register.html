@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ring the Register</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Karla:wght@400;500;700&display=swap">
 <style>
@@ -26,6 +26,8 @@
     --sg-gold: #d9a03f;
     --sg-ink: #22382f;
     --sg-paper: #ffffff;
+    --sg-panel: #fbfdf8;
+    --sg-line: #dde7d6;
     --sg-muted: #5c6f63;
     --sg-shield: #3d7bd9;
     --sg-ok: #3f9e63;
@@ -34,75 +36,140 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: #e9f0e6; }
+  .sg-page { max-width: 1060px; margin: 0 auto; padding: 22px 14px 64px; }
 
-  .sg-page { max-width: 1020px; margin: 0 auto; padding: 28px 18px 72px; }
-  .sg-page h1 { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1.7rem; margin: 0 0 2px; }
-  .sg-page .sub { color: var(--sg-muted); margin: 0 0 18px; font-size: 0.98rem; }
+  /* ── Shell: the final in-game chapter screen ───────────────────────────── */
+  .sg-shell {
+    background: var(--sg-paper); border-radius: 22px; overflow: hidden;
+    box-shadow: 0 6px 30px rgba(34, 56, 47, 0.16);
+  }
+  .sg-titlebar {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 13px 18px; border-bottom: 1px solid var(--sg-line);
+    background: var(--sg-panel);
+  }
+  .sg-wordmark {
+    font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 15px;
+    letter-spacing: 0.02em; display: flex; align-items: center; gap: 8px;
+  }
+  .sg-wordmark i {
+    width: 26px; height: 26px; border-radius: 8px; background: var(--sg-gold);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-style: normal; font-size: 15px;
+  }
+  .sg-chapter {
+    font-family: 'Fredoka', sans-serif; font-weight: 500; font-size: 14px;
+    color: var(--sg-muted); border-left: 1px solid var(--sg-line); padding-left: 14px;
+  }
+  .sg-chapter b { color: var(--sg-ink); font-weight: 600; }
+  .sg-titlebar .spacer { flex: 1; }
+  .sg-era {
+    font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 10.5px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    background: #fff6e3; color: #9a6f22; border: 1px solid #eeddb7;
+    border-radius: 999px; padding: 5px 12px;
+  }
 
-  /* ── Stage ──────────────────────────────────────────────────────────────── */
+  .sg-frame { display: grid; grid-template-columns: 252px 1fr; position: relative; }
+
+  /* ── Step panel ────────────────────────────────────────────────────────── */
+  .sg-steps { border-right: 1px solid var(--sg-line); background: var(--sg-panel); padding: 14px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .sg-steps-h { font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sg-muted); padding: 2px 6px 4px; }
+  .sg-step {
+    display: flex; align-items: flex-start; gap: 10px; text-align: left;
+    border: 1px solid transparent; background: transparent; border-radius: 12px;
+    padding: 9px 10px; cursor: pointer; font: inherit; color: inherit; width: 100%;
+  }
+  .sg-step:hover { background: #f1f6ec; }
+  .sg-step:focus-visible { outline: 2px solid var(--sg-gold); outline-offset: 1px; }
+  .sg-step .n {
+    flex: none; width: 22px; height: 22px; border-radius: 50%; margin-top: 1px;
+    border: 2px solid var(--sg-line); color: var(--sg-muted);
+    font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 11.5px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #ffffff; transition: all 0.25s ease;
+  }
+  .sg-step .l { font-weight: 700; font-size: 13.5px; line-height: 1.25; }
+  .sg-step .s { display: block; font-weight: 400; font-size: 11.5px; color: var(--sg-muted); margin-top: 2px; line-height: 1.35; }
+  .sg-step.done .n { background: var(--sg-ok); border-color: var(--sg-ok); color: #fff; }
+  .sg-step.active { background: #fff6e3; border-color: #eeddb7; }
+  .sg-step.active .n { border-color: var(--sg-gold); color: #9a6f22; box-shadow: 0 0 0 4px rgba(217,160,63,0.18); }
+  .sg-steps-foot { margin-top: auto; font-size: 11px; color: var(--sg-muted); padding: 8px 6px 2px; line-height: 1.4; }
+
+  /* ── Stage ─────────────────────────────────────────────────────────────── */
   .sg-stage {
-    position: relative; border-radius: 20px; overflow: hidden; cursor: pointer;
+    position: relative; overflow: hidden; cursor: pointer;
     background: linear-gradient(180deg, var(--sg-sky-hi) 0%, var(--sg-sky-lo) 78%);
-    box-shadow: 0 6px 28px rgba(34, 56, 47, 0.18);
     user-select: none; -webkit-user-select: none;
   }
   .sg-stage svg { display: block; width: 100%; height: auto; }
-
-  .sg-badge {
-    position: absolute; top: 14px; left: 14px;
-    font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 11px;
-    letter-spacing: 0.13em; text-transform: uppercase;
-    background: rgba(255,255,255,0.88); color: var(--sg-ink);
-    border-radius: 999px; padding: 6px 14px;
-    box-shadow: 0 2px 8px rgba(34,56,47,0.12);
-  }
-  .sg-badge b { color: var(--sg-gold); }
-
   .sg-pause {
     position: absolute; top: 12px; right: 14px;
     font-size: 12px; font-weight: 700; color: var(--sg-muted);
-    background: rgba(255,255,255,0.82); border-radius: 999px; padding: 5px 12px;
-    opacity: 0.85;
+    background: rgba(255,255,255,0.85); border-radius: 999px; padding: 5px 12px;
   }
-
-  .sg-caption {
-    position: absolute; left: 0; right: 0; bottom: 34px;
-    display: flex; justify-content: center; pointer-events: none; padding: 0 16px;
+  .sg-hint {
+    position: absolute; top: 12px; left: 14px;
+    font-size: 11px; font-weight: 700; color: var(--sg-muted);
+    background: rgba(255,255,255,0.75); border-radius: 999px; padding: 4px 11px;
   }
+  .sg-caption { position: absolute; left: 0; right: 0; bottom: 32px; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
   .sg-caption span {
-    background: rgba(255,255,255,0.93); border-radius: 14px;
-    padding: 9px 18px; font-size: clamp(13px, 2.6vw, 15.5px); font-weight: 500;
-    max-width: 560px; text-align: center; line-height: 1.4;
-    box-shadow: 0 3px 12px rgba(34,56,47,0.14);
-    opacity: 0; transform: translateY(8px);
-    transition: opacity 0.45s ease, transform 0.45s ease;
+    background: rgba(255,255,255,0.93); border-radius: 13px; padding: 8px 16px;
+    font-size: clamp(12.5px, 2.4vw, 15px); font-weight: 500; max-width: 540px;
+    text-align: center; line-height: 1.4; box-shadow: 0 3px 12px rgba(34,56,47,0.14);
+    opacity: 0; transform: translateY(8px); transition: opacity 0.45s ease, transform 0.45s ease;
   }
   .sg-caption span.on { opacity: 1; transform: translateY(0); }
-
-  .sg-banner {
-    position: absolute; left: 0; right: 0; bottom: 34px;
-    display: flex; justify-content: center; pointer-events: none; padding: 0 16px;
-  }
+  .sg-banner { position: absolute; left: 0; right: 0; bottom: 32px; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
   .sg-banner span {
-    background: var(--sg-ink); color: #fdf8ee; border-radius: 14px;
-    padding: 11px 22px; font-family: 'Fredoka', sans-serif; font-weight: 500;
-    font-size: clamp(13.5px, 2.8vw, 16.5px); max-width: 600px; text-align: center;
+    background: var(--sg-ink); color: #fdf8ee; border-radius: 13px; padding: 10px 20px;
+    font-family: 'Fredoka', sans-serif; font-weight: 500;
+    font-size: clamp(13px, 2.6vw, 16px); max-width: 580px; text-align: center;
     box-shadow: 0 4px 16px rgba(34,56,47,0.25);
-    opacity: 0; transform: translateY(12px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    opacity: 0; transform: translateY(12px); transition: opacity 0.5s ease, transform 0.5s ease;
   }
   .sg-banner span b { color: var(--sg-gold); font-weight: 600; }
   .sg-banner span.on { opacity: 1; transform: translateY(0); }
-
-  .sg-dots {
-    position: absolute; left: 0; right: 0; bottom: 12px;
-    display: flex; justify-content: center; gap: 7px; pointer-events: none;
-  }
-  .sg-dots i {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: rgba(34,56,47,0.22);
-  }
+  .sg-dots { position: absolute; left: 0; right: 0; bottom: 11px; display: flex; justify-content: center; gap: 7px; pointer-events: none; }
+  .sg-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(34,56,47,0.22); }
   .sg-dots i.on { background: var(--sg-gold); transform: scale(1.25); }
+
+  /* ── Detail card (opens on step click / pause) ─────────────────────────── */
+  .sg-detail {
+    position: absolute; left: 14px; bottom: 14px; width: min(390px, calc(100% - 28px));
+    background: #ffffff; border-radius: 16px; border: 1px solid var(--sg-line);
+    box-shadow: 0 10px 32px rgba(34,56,47,0.28); padding: 16px 18px 14px;
+    opacity: 0; transform: translateY(14px); pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease; z-index: 5; cursor: default;
+  }
+  .sg-detail.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .sg-detail h3 { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 15.5px; margin: 0 26px 6px 0; }
+  .sg-detail p { margin: 0 0 10px; font-size: 13px; line-height: 1.55; color: #37483e; }
+  .sg-detail .powered { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sg-muted); margin-bottom: 8px; }
+  .sg-detail .powered b { color: #9a6f22; }
+  .sg-detail .docs { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .sg-detail .docs a {
+    font-size: 12.5px; font-weight: 700; color: var(--sg-shield); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .sg-detail .docs a:hover { text-decoration: underline; }
+  .sg-detail .fu-h { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sg-muted); margin-bottom: 6px; }
+  .sg-detail .fu { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+  .sg-detail .fu span {
+    font-size: 11px; font-weight: 700; color: var(--sg-muted);
+    background: #f1f6ec; border: 1px solid var(--sg-line); border-radius: 999px; padding: 3px 10px;
+  }
+  .sg-detail .x {
+    position: absolute; top: 10px; right: 10px; border: 0; background: #f1f6ec;
+    width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+    font-size: 13px; line-height: 1; color: var(--sg-muted);
+  }
+  .sg-detail .resume {
+    border: 0; background: var(--sg-ink); color: #fdf8ee; border-radius: 999px;
+    font: 700 12.5px 'Karla', sans-serif; padding: 7px 16px; cursor: pointer; margin-top: 4px;
+  }
+  .sg-detail .resume:hover { background: #33503f; }
 
   /* ── Ambient CSS motion (decorative only) ──────────────────────────────── */
   .sg-cloud-a { animation: sg-drift 70s linear infinite; }
@@ -121,36 +188,74 @@
     .sg-cloud-a, .sg-cloud-b, .sg-beacon, .sg-ripple, .sg-boat, .sg-sign { animation: none; }
   }
 
+  /* ── Mobile: step panel becomes a horizontal strip; detail is a sheet ──── */
+  @media (max-width: 760px) {
+    .sg-frame { grid-template-columns: 1fr; }
+    .sg-steps { border-right: 0; border-bottom: 1px solid var(--sg-line); flex-direction: row; overflow-x: auto; gap: 6px; padding: 10px; -webkit-overflow-scrolling: touch; }
+    .sg-steps-h, .sg-steps-foot, .sg-step .s { display: none; }
+    .sg-step { flex: none; width: auto; align-items: center; padding: 7px 12px 7px 8px; border: 1px solid var(--sg-line); background: #ffffff; border-radius: 999px; }
+    .sg-step .n { width: 19px; height: 19px; font-size: 10px; margin-top: 0; }
+    .sg-step .l { font-size: 12px; white-space: nowrap; }
+    .sg-step.active { border-color: #eeddb7; }
+    .sg-detail { position: fixed; left: 10px; right: 10px; bottom: 10px; width: auto; }
+    .sg-chapter { border-left: 0; padding-left: 0; width: 100%; order: 3; }
+  }
+
   /* ── Reusability notes ─────────────────────────────────────────────────── */
-  .sg-notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; }
+  .sg-notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 18px; }
   .sg-note { background: var(--sg-paper); border: 1px solid #d8e2d2; border-radius: 14px; padding: 14px 16px; }
   .sg-note strong { font-family: 'Fredoka', sans-serif; font-weight: 600; display: block; margin-bottom: 4px; font-size: 0.95rem; }
   .sg-note span { color: var(--sg-muted); font-size: 0.86rem; line-height: 1.5; display: block; }
   .sg-note code { font-family: ui-monospace, Consolas, monospace; font-size: 0.8rem; background: #eef4e6; border-radius: 5px; padding: 1px 5px; }
-  .sg-foot { color: var(--sg-muted); font-size: 0.85rem; margin-top: 16px; max-width: 72ch; line-height: 1.55; }
+  .sg-foot { color: var(--sg-muted); font-size: 0.85rem; margin-top: 14px; max-width: 76ch; line-height: 1.55; }
 </style>
 
 <div class="sg-root">
   <div class="sg-page">
-    <h1>Ring the Register</h1>
-    <p class="sub">High-fidelity sample of one loop scene — Chapter 4 · Accept Payments. Tap the stage to pause.</p>
+    <div class="sg-shell">
+      <header class="sg-titlebar">
+        <span class="sg-wordmark"><i>🏙</i>PROSPERITY BAY</span>
+        <span class="sg-chapter"><b>Chapter 4 · Ring the Register</b> — Rosie's Bakery starts accepting payments</span>
+        <span class="spacer"></span>
+        <span class="sg-era">Open Market · 4 / 6</span>
+      </header>
 
-    <div class="sg-stage" id="stage" role="img" aria-label="Animated isometric town scene: a customer pays at Rosie's Bakery, the card becomes a secure token, identity is confirmed, and coins land in the shop's vault.">
-      <svg id="scene" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg"></svg>
-      <div class="sg-badge">Open Market · <b>Chapter 4 / 6</b></div>
-      <div class="sg-pause" id="pauseChip" hidden>⏸ paused</div>
-      <div class="sg-caption"><span id="caption"></span></div>
-      <div class="sg-banner"><span id="banner">Accept payments your customers' way — <b>frictionless in front, secure behind.</b></span></div>
-      <div class="sg-dots" id="dots"></div>
+      <div class="sg-frame">
+        <aside class="sg-steps" id="steps" aria-label="Steps in this chapter">
+          <div class="sg-steps-h">This chapter's steps</div>
+          <!-- step buttons injected -->
+          <div class="sg-steps-foot">Tap a step to pause the town and explore it — including the API behind it.</div>
+        </aside>
+
+        <div class="sg-stage" id="stage">
+          <svg id="scene" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated isometric town: a customer pays at Rosie's Bakery, the card becomes a secure token, identity is confirmed, and coins land in the shop's vault."></svg>
+          <div class="sg-hint">▶ playing — tap to pause &amp; explore</div>
+          <div class="sg-pause" id="pauseChip" hidden>⏸ paused</div>
+          <div class="sg-caption"><span id="caption"></span></div>
+          <div class="sg-banner"><span id="banner">Accept payments your customers' way — <b>frictionless in front, secure behind.</b></span></div>
+          <div class="sg-dots" id="dots"></div>
+
+          <div class="sg-detail" id="detail" role="dialog" aria-modal="false">
+            <button class="x" id="detailClose" aria-label="Close details">✕</button>
+            <h3 id="dTitle"></h3>
+            <div class="powered" id="dPowered"></div>
+            <p id="dBody"></p>
+            <div class="docs" id="dDocs"></div>
+            <div class="fu-h">Where this can go next</div>
+            <div class="fu" id="dFollow"></div>
+            <button class="resume" id="dResume">▶ Resume the town</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="sg-notes">
       <div class="sg-note"><strong>Design tokens</strong><span>Every color is a <code>--sg-*</code> custom property on <code>.sg-root</code> — the future theme switcher swaps this one block.</span></div>
       <div class="sg-note"><strong>Iso library</strong><span><code>tileToScreen / prism / faceRect</code> are the whole projection. They port 1:1 into <code>scene/IsoScene.tsx</code>.</span></div>
-      <div class="sg-note"><strong>Scene as data</strong><span>Buildings, trees, lamps are declarative entries in <code>SCENE</code>, drawn in painter order — the future <code>buildings.tsx / actors.tsx</code>.</span></div>
-      <div class="sg-note"><strong>Timeline engine</strong><span>Every frame is a pure function of loop time <code>t</code> — pause, scrub, and the chapter beat lists in <code>engine/timeline.ts</code> come free.</span></div>
+      <div class="sg-note"><strong>Scene &amp; steps as data</strong><span>Buildings, actors, and the step panel are declarative entries — the future <code>buildings.tsx / chapters/ch4.ts</code>.</span></div>
+      <div class="sg-note"><strong>Timeline engine</strong><span>Every frame is a pure function of loop time <code>t</code> — so pause, step-jumping, and scrubbing (<code>?t=8500&amp;pause=1</code>) come free.</span></div>
     </div>
-    <p class="sg-foot">The full loop runs six chapters through this same renderer; only the beat list and the actors change per chapter. Reduced-motion users get stepped positions instead of travel, with captions carrying the story. No raster assets, no video — the entire cartoon is this code.</p>
+    <p class="sg-foot">This is one chapter of the six-chapter loop, framed exactly as the final game screen: title bar, live step panel, and pause-to-explore details with links to the real J.P. Morgan API documentation. The other chapters reuse this shell — only the beat list, actors, and steps change.</p>
   </div>
 </div>
 
@@ -198,22 +303,19 @@
   function diamond(cx, cy, fill, parent) {
     return poly([[cx, cy - TH], [cx + TW, cy], [cx, cy + TH], [cx - TW, cy]], fill, parent);
   }
-  // point on the LEFT face of a prism at tile (x,y): u across [0..1], v px up from base
   function faceL(cx, cy, u, v) { return [cx - TW + u * TW, cy + u * TH - v]; }
-  // point on the RIGHT face
   function faceR(cx, cy, u, v) { return [cx + u * TW, cy + TH - u * TH - v]; }
   function faceRect(cx, cy, side, u0, u1, v0, v1, fill, parent) {
     var f = side === 'L' ? faceL : faceR;
     return poly([f(cx, cy, u0, v0), f(cx, cy, u1, v0), f(cx, cy, u1, v1), f(cx, cy, u0, v1)], fill, parent);
   }
-  // extruded block: left face, right face, top diamond
   function prism(g, cx, cy, h, color) {
     poly([[cx - TW, cy - h], [cx, cy + TH - h], [cx, cy + TH], [cx - TW, cy]], shade(color, 0.78), g);
     poly([[cx, cy + TH - h], [cx + TW, cy - h], [cx + TW, cy], [cx, cy + TH]], shade(color, 0.94), g);
     diamond(cx, cy - h, shade(color, 1.14), g);
   }
 
-  // ── sky: sun + clouds (behind terrain) ──────────────────────────────────
+  // ── sky ─────────────────────────────────────────────────────────────────
   el('circle', { cx: 848, cy: 74, r: 30, fill: '#fbe8b8', opacity: 0.9 });
   el('circle', { cx: 848, cy: 74, r: 46, fill: '#fbe8b8', opacity: 0.25 });
   function cloud(x, y, s, cls) {
@@ -226,7 +328,7 @@
   cloud(120, 84, 1, 'sg-cloud-a');
   cloud(430, 52, 0.72, 'sg-cloud-b');
 
-  // ── terrain: 7 x 5 tile grid, painter order ─────────────────────────────
+  // ── terrain ─────────────────────────────────────────────────────────────
   var GX = 7, GY = 5;
   function ground(x, y) {
     if (y === 4) return C.water;
@@ -241,16 +343,13 @@
   tiles.forEach(function (t) {
     var c = P(t[0], t[1]);
     diamond(c[0], c[1], ground(t[0], t[1]), terra);
-    // island skirt on the two viewer-facing map edges
     var skirt = t[1] === 4 ? shade(C.water, 0.62) : C.earth;
     if (t[1] === GY - 1) poly([[c[0] - TW, c[1]], [c[0], c[1] + TH], [c[0], c[1] + TH + 26], [c[0] - TW, c[1] + 26]], skirt, terra);
     if (t[0] === GX - 1) poly([[c[0], c[1] + TH], [c[0] + TW, c[1]], [c[0] + TW, c[1] + 26], [c[0], c[1] + TH + 26]], t[1] === 4 ? shade(C.water, 0.55) : C.earthDeep, terra);
   });
-  // road center line
   var rl = [];
   for (var rx = 0; rx <= 6; rx++) { var rc = P(rx, 2); rl.push(rc[0] + ',' + rc[1]); }
   el('polyline', { points: rl.join(' '), fill: 'none', stroke: C.roadLine, 'stroke-width': 3, 'stroke-dasharray': '10 9', 'stroke-linecap': 'round', opacity: 0.85 });
-  // water ripples
   [[240, 412], [430, 448], [590, 430]].forEach(function (r, i) {
     el('path', { d: 'M' + r[0] + ' ' + r[1] + ' q 10 -4 20 0 q 10 4 20 0', stroke: '#ffffff', fill: 'none', 'stroke-width': 2, 'stroke-linecap': 'round', 'class': 'sg-ripple r' + (i + 1) });
   });
@@ -268,13 +367,13 @@
     { kind: 'tree', x: 0, y: 3 },
     { kind: 'lamp', x: 1, y: 3 },
     { kind: 'tree', x: 2, y: 3 },
-    { kind: 'actor', x: 3.62, y: 2.1 },       // the customer walks this row
+    { kind: 'actor', x: 3.62, y: 2.1 },
     { kind: 'lamp', x: 5, y: 3 },
     { kind: 'boat', x: 5.5, y: 4.3 }
   ];
   SCENE.sort(function (a, b) { return (a.x + a.y) - (b.x + b.y); });
 
-  var A = {}; // animated handles collected while drawing
+  var A = {};
 
   function windows(g, cx, cy, side, cols, rows, h, lit) {
     for (var r = 0; r < rows; r++) for (var col = 0; col < cols; col++) {
@@ -291,7 +390,6 @@
       prism(g, c[0], c[1], h, C.navy);
       windows(g, c[0], c[1], 'L', 2, 6, h, true);
       windows(g, c[0], c[1], 'R', 2, 6, h, true);
-      // rooftop crown + beacon
       diamond(c[0], c[1] - h - 6, shade(C.navy, 1.3), g);
       el('line', { x1: c[0], y1: c[1] - h - TH - 4, x2: c[0], y2: c[1] - h - TH - 22, stroke: shade(C.navy, 1.4), 'stroke-width': 3 }, g);
       el('circle', { cx: c[0], cy: c[1] - h - TH - 26, r: 6, fill: C.gold, 'class': 'sg-beacon' }, g);
@@ -299,7 +397,6 @@
     cityhall: function (o, g) {
       var c = P(o.x, o.y), h = 56;
       prism(g, c[0], c[1], h, C.plaster);
-      // columns + pediment on the left (road-facing) face
       [0.2, 0.45, 0.7].forEach(function (u) { faceRect(c[0], c[1], 'L', u, u + 0.12, 2, h - 12, '#ffffff', g); });
       poly([faceL(c[0], c[1], 0, h), faceL(c[0], c[1], 1, h), faceL(c[0], c[1], 0.5, h + 15)], shade(C.plaster, 0.9), g);
       el('line', { x1: c[0], y1: c[1] - h - TH, x2: c[0], y2: c[1] - h - TH - 16, stroke: C.earthDeep, 'stroke-width': 2 }, g);
@@ -322,29 +419,23 @@
     bakery: function (o, g) {
       var c = P(o.x, o.y), cx = c[0], cy = c[1], h = 48;
       prism(g, cx, cy, h, C.coral);
-      // roof trim
       diamond(cx, cy - h - 4, '#ffffff', g);
       diamond(cx, cy - h - 4, shade(C.coral, 1.05), g).setAttribute('transform', 'translate(0,1) scale(0.9)');
-      // window with mullions
       faceRect(cx, cy, 'L', 0.12, 0.42, 14, h - 12, 'rgba(255,255,255,0.55)', g);
-      // door (customer-facing)
       faceRect(cx, cy, 'L', 0.56, 0.9, 0, 30, shade(C.coral, 0.55), g);
       faceRect(cx, cy, 'L', 0.6, 0.86, 2, 27, '#fdf3e3', g);
-      // striped awning protruding over the door
       var out = [-10.7, 5.4];
       for (var i = 0; i < 5; i++) {
         var u0 = 0.5 + i * 0.09, u1 = u0 + 0.09;
         var p1 = faceL(cx, cy, u0, 33), p2 = faceL(cx, cy, u1, 33);
         poly([p1, p2, [p2[0] + out[0], p2[1] + out[1]], [p1[0] + out[0], p1[1] + out[1]]], i % 2 ? '#ffffff' : C.coral, g);
       }
-      // vault set into the base
       faceRect(cx, cy, 'L', 0.14, 0.44, 3, 26, shade(C.gold, 0.68), g);
       A.vaultDoor = faceRect(cx, cy, 'L', 0.17, 0.41, 5, 24, C.gold, g);
       var vc = faceL(cx, cy, 0.29, 14.5);
       el('circle', { cx: vc[0], cy: vc[1], r: 4.2, fill: 'none', stroke: shade(C.gold, 0.6), 'stroke-width': 1.6 }, g);
       el('circle', { cx: vc[0], cy: vc[1], r: 1.4, fill: shade(C.gold, 0.6) }, g);
       A.vaultAt = vc;
-      // hanging sign
       var sg = el('g', { 'class': 'sg-sign' }, g);
       el('line', { x1: cx - 14, y1: cy - h - TH - 26, x2: cx - 14, y2: cy - h - TH - 18, stroke: C.earthDeep, 'stroke-width': 2 }, sg);
       el('rect', { x: cx - 58, y: cy - h - TH - 18, width: 88, height: 18, rx: 6, fill: '#ffffff', stroke: C.coral, 'stroke-width': 1.5 }, sg);
@@ -370,7 +461,6 @@
       poly([[c[0] + 2, c[1] - 22], [c[0] + 16, c[1] - 8], [c[0] + 2, c[1] - 6]], '#ffffff', bg);
     },
     actor: function (o, g) {
-      // the customer: shadow, body, head, cap — moved every frame
       var a = el('g', {}, g);
       el('ellipse', { cx: 0, cy: 1, rx: 9, ry: 4, fill: 'rgba(34,56,47,0.18)' }, a);
       el('rect', { x: -6, y: -20, width: 12, height: 18, rx: 6, fill: C.teal }, a);
@@ -382,16 +472,14 @@
   };
   SCENE.forEach(function (o) { draw[o.kind](o, objects); });
 
-  // ── effects layer (drawn above everything) ──────────────────────────────
+  // ── effects layer ───────────────────────────────────────────────────────
   var fx = el('g', {});
-  // ledger chip near the vault
   var ledger = el('g', { opacity: 0.96 }, fx);
-  el('path', { d: 'M510 336 l24 -18 l-8 22 z', fill: '#ffffff', stroke: '#d8e2d2', 'stroke-width': 1 }, ledger); // pointer toward vault
+  el('path', { d: 'M510 336 l24 -18 l-8 22 z', fill: '#ffffff', stroke: '#d8e2d2', 'stroke-width': 1 }, ledger);
   el('rect', { x: 414, y: 332, width: 112, height: 30, rx: 9, fill: '#ffffff', stroke: '#d8e2d2' }, ledger);
   el('text', { x: 426, y: 345, fill: C.ink, 'font-size': 8.5, 'font-family': 'Karla, sans-serif', 'font-weight': 700, 'letter-spacing': '0.08em' }, ledger).textContent = "ROSIE'S VAULT";
   A.ledgerVal = el('text', { x: 426, y: 357, fill: C.ok, 'font-size': 11, 'font-family': 'Fredoka, sans-serif', 'font-weight': 600 }, ledger);
 
-  // payment glyphs above the customer (positioned every frame)
   var glyph = el('g', {}, fx);
   A.card = el('g', { opacity: 0 }, glyph);
   el('rect', { x: -14, y: -9, width: 28, height: 18, rx: 3.5, fill: '#ffffff', stroke: C.ink, 'stroke-width': 1.4 }, A.card);
@@ -406,7 +494,6 @@
   A.check = el('path', { d: 'M-5 0 l4 4 l7 -8', fill: 'none', stroke: '#ffffff', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0 }, A.shield);
   A.ring = el('circle', { cx: 0, cy: 0, r: 14, fill: 'none', stroke: C.shield, 'stroke-width': 2, opacity: 0 }, glyph);
 
-  // coins
   A.coins = [];
   for (var ci = 0; ci < 3; ci++) {
     var cg = el('g', { opacity: 0 }, fx);
@@ -415,13 +502,115 @@
     A.coins.push(cg);
   }
 
-  // ── timeline: everything below is a pure function of loop time t ────────
+  // ── chapter data: steps drive the panel, the details, and the jumps ─────
+  var DOCS = 'https://developer.payments.jpmorgan.com';
+  var STEPS = [
+    {
+      t0: 200, t1: 4900, jump: 1600,
+      label: 'A customer checks out',
+      sub: 'Paying on the shop’s own page',
+      d: {
+        title: 'A customer checks out',
+        powered: 'Powered by <b>Checkout · Drop-in UI</b>',
+        body: 'Rosie’s storefront uses the built-in counter: a secure payment form embedded right on her page. Behind it, the platform creates a checkout session carrying the order, amount, and currency — one API call.',
+        docs: [
+          ['Create a checkout session →', DOCS + '/docs/commerce/online-payments/capabilities/checkout/how-to/create-checkout-session'],
+          ['Drop-in UI integration →', DOCS + '/docs/commerce/online-payments/capabilities/checkout/drop-in-ui']
+        ],
+        follow: ['Hosted Payment Page instead', 'Send a Pay by Link', '150+ currencies']
+      }
+    },
+    {
+      t0: 4900, t1: 6300, jump: 5450,
+      label: 'Card becomes a token',
+      sub: 'The shop never holds the number',
+      d: {
+        title: 'The card becomes a secure token',
+        powered: 'Powered by <b>Tokenization</b>',
+        body: 'The real card number never touches the shop. It’s swapped for a token the moment it’s entered — safe to store for repeat purchases, useless to anyone who steals it, and a much smaller PCI burden for the platform.',
+        docs: [
+          ['Tokenization →', DOCS + '/docs/commerce/optimization-protection/capabilities/tokenization/index']
+        ],
+        follow: ['Store cards for repeat customers', 'Bank account tokens']
+      }
+    },
+    {
+      t0: 6300, t1: 8300, jump: 7350,
+      label: 'Identity confirmed',
+      sub: '3-D Secure + fraud screening',
+      d: {
+        title: 'A quick tap says it’s really her',
+        powered: 'Powered by <b>3-D Secure · Fraud Prevention</b>',
+        body: '3-D Secure asks the customer’s own bank to vouch for them — usually one tap in their banking app. Meanwhile automated fraud screening quietly turns away suspicious visitors before any money moves.',
+        docs: [
+          ['3-D Secure authentication →', DOCS + '/docs/commerce/online-payments/capabilities/checkout/3ds-authentication'],
+          ['Fraud prevention →', DOCS + '/docs/commerce/online-payments/capabilities/checkout/fraud-prevention']
+        ],
+        follow: ['Tune screening rules', 'Soft merchant descriptors']
+      }
+    },
+    {
+      t0: 8300, t1: 11000, jump: 9300,
+      label: 'Paid — into her vault',
+      sub: 'Balance updated to the minute',
+      d: {
+        title: 'The payment lands in Rosie’s vault',
+        powered: 'Powered by <b>Embedded Payments · Accounts</b>',
+        body: 'The money settles into Rosie’s own account on the platform — hers alone, tracked to the coin, balance up to the minute. A notification fires the moment it lands, so nothing needs polling. From here it can pay out to her bank — that’s Chapter 5.',
+        docs: [
+          ['Embedded Payments →', DOCS + '/docs/embedded-finance-solutions/embedded-payments'],
+          ['Checkout notifications →', DOCS + '/docs/commerce/online-payments/capabilities/checkout/notifications']
+        ],
+        follow: ['Chapter 5 · Transfer funds', 'Webhooks', 'Reporting & reconciliation']
+      }
+    }
+  ];
+
+  // build step buttons
+  var stepsEl = document.getElementById('steps');
+  var stepBtns = STEPS.map(function (s, i) {
+    var b = document.createElement('button');
+    b.className = 'sg-step';
+    b.innerHTML = '<span class="n">' + (i + 1) + '</span><span><span class="l">' + s.label + '</span><span class="s">' + s.sub + '</span></span>';
+    b.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      tLoop = s.jump; paused = true; pauseChip.hidden = false;
+      openDetail(i);
+    });
+    stepsEl.insertBefore(b, stepsEl.lastElementChild);
+    return b;
+  });
+
+  // detail card
+  var detail = document.getElementById('detail');
+  var dOpenFor = -1;
+  function openDetail(i) {
+    var d = STEPS[i].d;
+    document.getElementById('dTitle').textContent = d.title;
+    document.getElementById('dPowered').innerHTML = d.powered;
+    document.getElementById('dBody').textContent = d.body;
+    document.getElementById('dDocs').innerHTML = d.docs.map(function (x) {
+      return '<a href="' + x[1] + '" target="_blank" rel="noopener">📘 ' + x[0] + '</a>';
+    }).join('');
+    document.getElementById('dFollow').innerHTML = d.follow.map(function (f) { return '<span>' + f + '</span>'; }).join('');
+    detail.classList.add('on');
+    dOpenFor = i;
+  }
+  function closeDetail() { detail.classList.remove('on'); dOpenFor = -1; }
+  detail.addEventListener('click', function (ev) { ev.stopPropagation(); });
+  document.getElementById('detailClose').addEventListener('click', function (ev) { ev.stopPropagation(); closeDetail(); });
+  document.getElementById('dResume').addEventListener('click', function (ev) {
+    ev.stopPropagation(); closeDetail(); paused = false; pauseChip.hidden = true;
+  });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') closeDetail(); });
+
+  // ── timeline: every frame is a pure function of loop time t ─────────────
   var D = 15000;
   var CAPTIONS = [
-    [200, 3600, "A customer arrives at Rosie's Bakery — and pays right at the counter."],
+    [200, 3600, 'A customer arrives at Rosie’s Bakery — and pays right at the counter.'],
     [3800, 6100, 'Her card instantly becomes a secure token — the shop never holds the real number.'],
-    [6300, 8100, "One quick tap confirms it's really her. That's 3-D Secure."],
-    [8300, 10800, "The payment lands in Rosie's own vault — tracked to the coin."]
+    [6300, 8100, 'One quick tap confirms it’s really her. That’s 3-D Secure.'],
+    [8300, 10800, 'The payment lands in Rosie’s own vault — tracked to the coin.']
   ];
   var BANNER = [11000, 14500];
 
@@ -445,11 +634,10 @@
   for (var d = 0; d < 6; d++) { var dot = document.createElement('i'); if (d === 3) dot.className = 'on'; dotsEl.appendChild(dot); }
   var capIdx = -1;
 
-  var START = 62.5;  // $ before the sale, and the sale amount:
+  var START = 62.5;
   var SALE = 66.25;
 
   function update(t) {
-    // customer
     var x = customerTile(t);
     var walking = (t < 3800 || (t > 11400 && t < 13400)) && !RM;
     var c = P(x, 2.1);
@@ -457,23 +645,21 @@
     A.customer.setAttribute('transform', 'translate(' + c[0].toFixed(1) + ',' + (c[1] - 4 + bob).toFixed(1) + ')');
     A.customer.setAttribute('opacity', x > 7.2 || x < -0.6 ? 0 : 1);
 
-    // glyph anchor above the customer's head
-    var gx = c[0], gy = c[1] - 44;
+    var gx2 = c[0], gy2 = c[1] - 44;
     var rise = ease(fade(t, 3800, 6250, 350, 250));
     A.card.setAttribute('opacity', Math.min(rise, 1 - ease(seg(t, 4900, 5400))));
-    A.card.setAttribute('transform', 'translate(' + gx + ',' + (gy - rise * 6) + ') scale(' + (0.6 + 0.4 * rise) + ')');
+    A.card.setAttribute('transform', 'translate(' + gx2 + ',' + (gy2 - rise * 6) + ') scale(' + (0.6 + 0.4 * rise) + ')');
     var lockOn = ease(seg(t, 5000, 5450)) * (1 - ease(seg(t, 6000, 6300)));
     A.lock.setAttribute('opacity', lockOn);
-    A.lock.setAttribute('transform', 'translate(' + gx + ',' + (gy - 6) + ') scale(' + (0.7 + 0.3 * lockOn) + ')');
+    A.lock.setAttribute('transform', 'translate(' + gx2 + ',' + (gy2 - 6) + ') scale(' + (0.7 + 0.3 * lockOn) + ')');
     var sh = ease(fade(t, 6300, 8300, 350, 300));
     A.shield.setAttribute('opacity', sh);
-    A.shield.setAttribute('transform', 'translate(' + gx + ',' + (gy - 4) + ') scale(' + (0.7 + 0.3 * sh) + ')');
+    A.shield.setAttribute('transform', 'translate(' + gx2 + ',' + (gy2 - 4) + ') scale(' + (0.7 + 0.3 * sh) + ')');
     A.check.setAttribute('opacity', ease(seg(t, 7100, 7500)));
     var ringP = seg(t, 6500, 7100);
     A.ring.setAttribute('opacity', ringP > 0 && ringP < 1 ? 0.6 * (1 - ringP) : 0);
-    A.ring.setAttribute('transform', 'translate(' + gx + ',' + (gy - 4) + ') scale(' + (0.5 + ringP) + ')');
+    A.ring.setAttribute('transform', 'translate(' + gx2 + ',' + (gy2 - 4) + ') scale(' + (0.5 + ringP) + ')');
 
-    // coins: hand → vault
     var from = [c[0] + 4, c[1] - 30], to = A.vaultAt;
     A.coins.forEach(function (coin, i) {
       var t0 = 8300 + i * 480, p = seg(t, t0, t0 + 950);
@@ -483,15 +669,12 @@
       coin.setAttribute('opacity', Math.min(p * 6, 1));
       coin.setAttribute('transform', 'translate(' + px2.toFixed(1) + ',' + py2.toFixed(1) + ')');
     });
-    // vault glow while coins land
     var glow = fade(t, 8500, 10900, 300, 600);
     A.vaultDoor.setAttribute('fill', glow > 0.4 ? shade(C.gold, 1.22) : C.gold);
 
-    // ledger ticks up
     var val = START + SALE * ease(seg(t, 8600, 10600));
     A.ledgerVal.textContent = '$ ' + val.toFixed(2);
 
-    // caption + banner
     var idx = -1;
     for (var i = 0; i < CAPTIONS.length; i++) if (t >= CAPTIONS[i][0] && t <= CAPTIONS[i][1]) idx = i;
     if (idx !== capIdx) {
@@ -499,24 +682,44 @@
       if (idx >= 0) { captionEl.textContent = CAPTIONS[idx][2]; captionEl.classList.add('on'); }
       else captionEl.classList.remove('on');
     }
-    bannerEl.classList.toggle('on', t >= BANNER[0] && t <= BANNER[1]);
+    bannerEl.classList.toggle('on', t >= BANNER[0] && t <= BANNER[1] && dOpenFor < 0);
+
+    // step panel state
+    STEPS.forEach(function (s, i) {
+      var cls = 'sg-step';
+      if (t > s.t1) cls += ' done';
+      else if (t >= s.t0) cls += ' active';
+      if (stepBtns[i].className !== cls) stepBtns[i].className = cls;
+      if (t > s.t1) stepBtns[i].querySelector('.n').textContent = '✓';
+      else stepBtns[i].querySelector('.n').textContent = String(i + 1);
+    });
   }
 
-  // ── master clock with pause (also scrubbable: ?t=8500&pause=1) ──────────
+  // ── master clock with pause (scrubbable: ?t=8500&pause=1) ───────────────
   var q = new URLSearchParams(location.search);
   var paused = q.get('pause') === '1';
   var tLoop = q.has('t') ? (parseInt(q.get('t'), 10) || 0) % D : 0;
   var last = null;
   var pauseChip = document.getElementById('pauseChip');
   pauseChip.hidden = !paused;
+  var hintEl = document.querySelector('.sg-hint');
   document.getElementById('stage').addEventListener('click', function () {
     paused = !paused;
     pauseChip.hidden = !paused;
+    if (paused) {
+      // pausing invites exploring: open the current step's details
+      var cur = -1;
+      STEPS.forEach(function (s, i) { if (tLoop >= s.t0 && tLoop <= s.t1) cur = i; });
+      openDetail(cur >= 0 ? cur : (tLoop > STEPS[STEPS.length - 1].t1 ? STEPS.length - 1 : 0));
+    } else {
+      closeDetail();
+    }
   });
   function frame(now) {
     if (last == null) last = now;
     if (!paused) tLoop = (tLoop + Math.min(now - last, 100)) % D;
     last = now;
+    if (hintEl) hintEl.hidden = paused;
     update(tLoop);
     requestAnimationFrame(frame);
   }
