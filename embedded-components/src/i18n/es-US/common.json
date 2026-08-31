@@ -22,6 +22,23 @@
   "change": "Change",
   "add": "Add",
   "overview": "Overview",
+  "products": {
+    "EMBEDDED_PAYMENTS": "Pagos Integrados",
+    "MERCHANT_SERVICES": "Servicios Comerciales"
+  },
+  "subProducts": {
+    "LIMITED_DDA_PAYMENTS": "Limited DDA Payments",
+    "LIMITED_DDA": "Limited DDA"
+  },
+  "partyRoles": {
+    "AUTHORIZED_USER": "Usuario autorizado",
+    "BENEFICIAL_OWNER": "Beneficiario final",
+    "CLIENT": "Cliente",
+    "CONTROLLER": "Controlador",
+    "DECISION_MAKER": "Responsable de decisiones",
+    "PRIMARY_CONTACT": "Contacto principal",
+    "DIRECTOR": "Director"
+  },
   "dropzone": {
     "dropFilesHere": "¡Suelta tus archivos aquí!",
     "cameraPrompt": "Toma una foto o carga un archivo",

@@ -2,6 +2,14 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.10] - 2026-08-31
+
+### Changes
+
+#### Features
+
+- **client-maint:** add draft feature of approvded client maintenance
+
 ## [0.17.9] - 2026-08-27
 
 ### Changes

@@ -433,9 +433,12 @@ export function BusinessDetailsContent({
                 ? client.products.map((p, i) => (
                     <Fragment key={p}>
                       {i > 0 && ', '}
-                      {t(`client-details:products.${p}`, {
-                        defaultValue: p,
-                      })}
+                      {t(
+                        [
+                          `common:products.${p}`,
+                        ] as unknown as TemplateStringsArray,
+                        { defaultValue: p }
+                      )}
                     </Fragment>
                   ))
                 : t('client-details:emptyValue')

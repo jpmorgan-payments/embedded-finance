@@ -77,7 +77,7 @@ describe('DocumentRequestCard', () => {
         status: 'ACTIVE',
         requirements: [],
         createdAt: '2024-01-01T00:00:00Z',
-      } as DocumentRequestResponse,
+      } as unknown as DocumentRequestResponse,
     });
     expect(
       screen.queryByRole('button', { name: /reset form/i })
@@ -91,5 +91,28 @@ describe('DocumentRequestCard', () => {
     await user.click(screen.getByRole('button', { name: /reset form/i }));
 
     expect(onReset).toHaveBeenCalledTimes(1);
+  });
+
+  test('presents requirement descriptions as requirement headings', () => {
+    renderCard({
+      documentRequest: {
+        id: 'dr-heading',
+        status: 'ACTIVE',
+        requirements: [
+          {
+            documentTypes: [DocumentTypeSmbdo.BUSINESS_LICENSE],
+            minRequired: 1,
+            description: 'Government-issued business document',
+          },
+        ],
+      } as unknown as DocumentRequestResponse,
+    });
+
+    expect(
+      screen.getByRole('heading', {
+        level: 4,
+        name: 'Government-issued business document',
+      })
+    ).toHaveClass('eb-border-b', 'eb-pb-3', 'eb-font-semibold');
   });
 });
