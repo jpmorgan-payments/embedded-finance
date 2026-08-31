@@ -34,6 +34,12 @@
  */
 const DEFAULT_BASE_URL = 'https://onboarding.jpmorgan.com';
 const DEFAULT_EXPERIENCE_TYPE = 'HOSTED_DOC_UPLOAD_ONBOARDING_UI';
+
+/**
+ * Maximum `path + "?" + query` the gateway accepts. Requests above this are
+ * rejected with a 403 "Request Denied" page before reaching the application.
+ */
+const MAX_REQUEST_URI_LENGTH = 2047;
 const MOUNT_DELAY_MS = 100;
 const REFRESH_DELAY_MS = 100;
 
@@ -71,11 +77,15 @@ export const EventLevel = {
 };
 
 /**
- * Safely encode a JavaScript object as a URL parameter
- * Uses JSON.stringify + encodeURIComponent for URL-safe encoding
- * 
+ * Serialize a JavaScript object for use as a URL parameter value.
+ *
+ * Returns raw JSON — percent-encoding is applied once, by URLSearchParams.
+ * Encoding here as well would double-encode (`{` -> `%257B` instead of `%7B`)
+ * and inflate the query string by roughly 24%, which matters because the
+ * gateway rejects any request URI over MAX_REQUEST_URI_LENGTH characters.
+ *
  * @param {object} obj - Object to encode
- * @returns {string} URL-safe encoded string, or empty string on error
+ * @returns {string} JSON string, or empty string on error
  * @private
  */
 function encodeJsonParam(obj) {
@@ -84,7 +94,7 @@ function encodeJsonParam(obj) {
   }
   
   try {
-    return encodeURIComponent(JSON.stringify(obj));
+    return JSON.stringify(obj);
   } catch (error) {
     console.error('[PartiallyHostedUIComponent] Failed to encode JSON parameter:', error);
     return '';
@@ -147,7 +157,36 @@ function buildIframeUrl(config) {
     }
   }
 
-  return `${baseUrl}/onboarding?${params.toString()}`;
+  const url = `${baseUrl}/onboarding?${params.toString()}`;
+  assertUrlWithinGatewayLimit(url);
+  return url;
+}
+
+/**
+ * Throw if the generated URL exceeds what the gateway accepts.
+ *
+ * The edge rejects any request whose `path + "?" + query` exceeds
+ * MAX_REQUEST_URI_LENGTH with a 403 "Request Denied" page, before the request
+ * reaches the application — so without this check the failure surfaces as an
+ * opaque 403 with no clue as to the cause.
+ *
+ * @param {string} url - The URL to check
+ * @throws {Error} when the request URI is too long
+ * @private
+ */
+function assertUrlWithinGatewayLimit(url) {
+  const parsed = new URL(url);
+  const length = parsed.pathname.length + parsed.search.length;
+
+  if (length > MAX_REQUEST_URI_LENGTH) {
+    throw new Error(
+      `[PartiallyHostedUIComponent] Generated URL is ${length} characters; ` +
+        `the gateway limit is ${MAX_REQUEST_URI_LENGTH} and will reject it with a 403. ` +
+        'Reduce the configuration passed in theme/contentTokens/componentProperties, ' +
+        'or use the compact `cfg` parameter. ' +
+        'See docs/partially-hosted/URL_SIZE_AND_COMPACT_CONFIG.md',
+    );
+  }
 }
 
 /**
@@ -373,12 +412,14 @@ export class PartiallyHostedUIComponent {
       );
     }
 
+    // Built synchronously so configuration errors — notably exceeding the
+    // gateway URL limit — reach the caller's try/catch. The timer callback below
+    // rethrows, which would otherwise surface as an uncatchable exception.
+    const iframeUrl = buildIframeUrl(this.config);
+
     // Use setTimeout to ensure DOM is ready and prevent blocking
     setTimeout(() => {
       try {
-        // Build the iframe URL with all parameters
-        const iframeUrl = buildIframeUrl(this.config);
-        
         this._log('debug', 'Built iframe URL', {
           url: iframeUrl.replace(/token=[^&]*/, 'token=REDACTED'), // Don't log token
         });

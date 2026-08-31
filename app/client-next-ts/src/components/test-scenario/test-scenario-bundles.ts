@@ -42,6 +42,11 @@ export type TestScenarioLoginProfile = {
   >;
 };
 
+type TestScenarioReadonlyFieldsConfig = {
+  fields: readonly string[];
+  mode?: 'whenPopulated' | 'always';
+};
+
 export type TestScenarioBundleConfig = {
   id: TestScenarioBundleId;
   headerOrgDisplayName: string;
@@ -62,18 +67,22 @@ export type TestScenarioBundleConfig = {
   /**
    * Static `<OnboardingFlow />` props for this bundle. When omitted, `TestScenarioPage` uses built-in defaults.
    */
-  onboardingFlow?: Pick<
-    OnboardingFlowProps,
-    | 'availableProducts'
-    | 'availableJurisdictions'
-    | 'availableOrganizationTypes'
-    | 'disclosureConfig'
-    | 'enablePubliclyTradedCompanies'
-    | 'hideLinkedAccountRemoval'
-    | 'priorityIndustryCodes'
-    | 'deltaMode'
-    | 'skipTermsDocumentAcknowledgment'
-  >;
+  onboardingFlow?: Partial<
+    Pick<
+      OnboardingFlowProps,
+      | 'availableProducts'
+      | 'availableJurisdictions'
+      | 'availableOrganizationTypes'
+      | 'disclosureConfig'
+      | 'enablePubliclyTradedCompanies'
+      | 'hideLinkedAccountRemoval'
+      | 'priorityIndustryCodes'
+      | 'deltaMode'
+      | 'skipTermsDocumentAcknowledgment'
+    >
+  > & {
+    readonlyFields?: TestScenarioReadonlyFieldsConfig;
+  };
   loginProfiles: TestScenarioLoginProfile[];
 };
 
@@ -284,6 +293,21 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     showLinkAccountStep: true,
     clientId: TEST_DEMO_SCENARIO_CLIENT_ID,
     linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS,
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      readonlyFields: {
+        fields: [
+          'organizationTypeHierarchy',
+          'organizationName',
+          'dbaName',
+          'organizationIdEin',
+          'organizationDescription',
+          'industry',
+        ],
+        mode: 'whenPopulated',
+      },
+    },
     loginProfiles: OPERATOR_PROFILES,
   },
   'test-scenario-2': {

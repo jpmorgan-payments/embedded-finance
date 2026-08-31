@@ -689,6 +689,7 @@ Apache License 2.0
 ## Related Documentation
 
 - [Integration Guide](./PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md)
+- [URL Size Limits & the Compact `cfg` Parameter](./URL_SIZE_AND_COMPACT_CONFIG.md) — **read this if you get a 403**, or pass more than a small amount of configuration
 - [Embedded Components README](../../../embedded-components/README.md)
 - [Theme Documentation](../../../embedded-components/README.md#theming)
 - [Content Tokens](../../../embedded-components/README.md#content-tokens)
