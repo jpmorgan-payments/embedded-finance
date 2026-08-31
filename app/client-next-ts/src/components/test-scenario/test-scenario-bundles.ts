@@ -286,6 +286,8 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     clientId: TEST_DEMO_SCENARIO_CLIENT_ID,
     linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS,
     onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
       readonlyFields: {
         fields: [
           'organizationTypeHierarchy',
