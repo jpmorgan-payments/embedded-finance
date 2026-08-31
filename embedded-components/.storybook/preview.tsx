@@ -301,6 +301,7 @@ const withEBComponentsProvider: Decorator<BaseStoryArgs> = (Story, context) => {
           'document-requests': (baseUrl) => baseUrl.replace('/v1', '/do/v1'),
           documents: (baseUrl) => baseUrl.replace('/v1', '/do/v1'),
           transactions: (baseUrl) => baseUrl.replace('/v1', '/v2'),
+          'maintenance-requests': (baseUrl) => baseUrl.replace('/v1', '/do/v1'),
         }}
         headers={args.headers}
         theme={theme}

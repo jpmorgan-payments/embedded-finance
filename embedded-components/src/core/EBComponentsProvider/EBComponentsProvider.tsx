@@ -178,6 +178,7 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
           },
           data:
             !isGetRequest &&
+            !config.skipClientIdBodyInjection &&
             cId &&
             config.data &&
             !(config.data instanceof FormData)

@@ -364,11 +364,31 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
             ) : null}
 
             {fieldInteraction === 'readonly' ? (
-              <p className="eb-font-bold">
-                {(options
-                  ? matchedOption?.label
-                  : (valueOverride ?? field.value)) || 'N/A'}
-              </p>
+              lockedByConfig ? (
+                // Host-locked field: greyed, bordered box matching a disabled
+                // input. Wrapped in FormControl (label/description association +
+                // stable id) and exposed as an `aria-readonly` textbox so screen
+                // readers announce the field name, value and read-only state, and
+                // keyboard users can focus it.
+                <FormControl>
+                  <div
+                    role="textbox"
+                    aria-readonly
+                    tabIndex={0}
+                    className="eb-flex eb-min-h-10 eb-w-full eb-cursor-not-allowed eb-items-center eb-rounded-input eb-border eb-border-inputBorder eb-bg-gray-100 eb-px-3 eb-py-2 eb-text-sm eb-text-foreground eb-opacity-50"
+                  >
+                    {(options
+                      ? matchedOption?.label
+                      : (valueOverride ?? field.value)) || 'N/A'}
+                  </div>
+                </FormControl>
+              ) : (
+                <p className="eb-font-bold">
+                  {(options
+                    ? matchedOption?.label
+                    : (valueOverride ?? field.value)) || 'N/A'}
+                </p>
+              )
             ) : (
               (() => {
                 switch (type) {

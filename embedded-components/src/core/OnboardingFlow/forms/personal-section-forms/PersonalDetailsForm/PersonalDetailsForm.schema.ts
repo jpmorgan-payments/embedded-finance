@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { createIndividualLegalNameSchemaShape } from '@/core/ClientProfile/schemas/individualLegalNameSchema';
 import {
   JOB_TITLES,
   NATURE_OF_OWNERSHIP_OPTIONS,
@@ -8,7 +9,6 @@ import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 import {
   containsHtmlLikeTag,
   JOB_TITLE_DESCRIPTION_PATTERN,
-  NAME_PATTERN,
   SUFFIX_PATTERN,
 } from '@/core/OnboardingFlow/utils/validationPatterns';
 
@@ -19,47 +19,14 @@ export const usePersonalDetailsFormSchema = () => {
       .string()
       .min(1, v('countryOfResidence', 'required'))
       .length(2, v('countryOfResidence', 'exactlyTwoChars')),
-    controllerFirstName: z
-      .string()
-      .min(1, v('controllerFirstName', 'required'))
-      .min(2, v('controllerFirstName', 'minLength'))
-      .max(30, v('controllerFirstName', 'maxLength'))
-      .refine(
-        (val) => NAME_PATTERN.test(val),
-        v('controllerFirstName', 'pattern')
-      )
-      .refine(
-        (val) => !/\s\s/.test(val),
-        v('controllerFirstName', 'noConsecutiveSpaces')
-      )
-      .refine(
-        (val) => !/-{2,}/.test(val),
-        v('controllerFirstName', 'noConsecutiveHyphens')
-      ),
-    controllerMiddleName: z
-      .string()
-      .max(30, v('controllerMiddleName', 'maxLength'))
-      .refine(
-        (val) => NAME_PATTERN.test(val),
-        v('controllerMiddleName', 'pattern')
-      ),
-    controllerLastName: z
-      .string()
-      .min(1, v('controllerLastName', 'required'))
-      .min(2, v('controllerLastName', 'minLength'))
-      .max(30, v('controllerLastName', 'maxLength'))
-      .refine(
-        (val) => NAME_PATTERN.test(val),
-        v('controllerLastName', 'pattern')
-      )
-      .refine(
-        (val) => !/\s\s/.test(val),
-        v('controllerLastName', 'noConsecutiveSpaces')
-      )
-      .refine(
-        (val) => !/-{2,}/.test(val),
-        v('controllerLastName', 'noConsecutiveHyphens')
-      ),
+    ...createIndividualLegalNameSchemaShape(
+      {
+        firstName: 'controllerFirstName',
+        middleName: 'controllerMiddleName',
+        lastName: 'controllerLastName',
+      },
+      v
+    ),
     controllerNameSuffix: z
       .string()
       .min(1, v('controllerNameSuffix', 'minLength'))

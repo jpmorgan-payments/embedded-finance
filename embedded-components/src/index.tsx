@@ -30,6 +30,10 @@ export type {
 
 export * from './core/OnboardingFlow';
 
+export * from './core/ApprovedClientMaintenance';
+
+export * from './core/ClientExperience';
+
 export * from './core/ClientDetails';
 
 export * as types from './api/generated/smbdo.schemas';

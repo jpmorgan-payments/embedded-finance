@@ -19,7 +19,7 @@ export function ClientInfoSection({
   title,
   headingLevel = 2,
 }: ClientInfoSectionProps) {
-  const { t, i18n } = useTranslationWithTokens('client-details');
+  const { t, i18n } = useTranslationWithTokens(['client-details', 'common']);
   const locale =
     i18n.resolvedLanguage
       ?.replace('_', '-')
@@ -34,7 +34,9 @@ export function ClientInfoSection({
     ? client.products.map((p, i) => (
         <Fragment key={p}>
           {i > 0 && ', '}
-          {t(`products.${p}`, { defaultValue: p })}
+          {t([`common:products.${p}`] as unknown as TemplateStringsArray, {
+            defaultValue: p,
+          })}
         </Fragment>
       ))
     : t('emptyValue');
