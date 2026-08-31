@@ -42,6 +42,11 @@ export type TestScenarioLoginProfile = {
   >;
 };
 
+type TestScenarioReadonlyFieldsConfig = {
+  fields: readonly string[];
+  mode?: 'whenPopulated' | 'always';
+};
+
 export type TestScenarioBundleConfig = {
   id: TestScenarioBundleId;
   headerOrgDisplayName: string;
@@ -62,19 +67,22 @@ export type TestScenarioBundleConfig = {
   /**
    * Static `<OnboardingFlow />` props for this bundle. When omitted, `TestScenarioPage` uses built-in defaults.
    */
-  onboardingFlow?: Pick<
-    OnboardingFlowProps,
-    | 'availableProducts'
-    | 'availableJurisdictions'
-    | 'availableOrganizationTypes'
-    | 'disclosureConfig'
-    | 'enablePubliclyTradedCompanies'
-    | 'hideLinkedAccountRemoval'
-    | 'priorityIndustryCodes'
-    | 'readonlyFields'
-    | 'deltaMode'
-    | 'skipTermsDocumentAcknowledgment'
-  >;
+  onboardingFlow?: Partial<
+    Pick<
+      OnboardingFlowProps,
+      | 'availableProducts'
+      | 'availableJurisdictions'
+      | 'availableOrganizationTypes'
+      | 'disclosureConfig'
+      | 'enablePubliclyTradedCompanies'
+      | 'hideLinkedAccountRemoval'
+      | 'priorityIndustryCodes'
+      | 'deltaMode'
+      | 'skipTermsDocumentAcknowledgment'
+    >
+  > & {
+    readonlyFields?: TestScenarioReadonlyFieldsConfig;
+  };
   loginProfiles: TestScenarioLoginProfile[];
 };
 

@@ -18,6 +18,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
+    server: {
+      deps: {
+        inline: ['@jpmorgan-payments/embedded-finance-components'],
+      },
+    },
     // Exclude Playwright e2e specs (they use @playwright/test, not Vitest)
     exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**'],
     coverage: {
