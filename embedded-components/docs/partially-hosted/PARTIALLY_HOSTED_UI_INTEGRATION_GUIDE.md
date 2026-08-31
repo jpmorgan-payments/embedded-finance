@@ -297,6 +297,13 @@ UI by appending optional URL parameters to the iframe `src` URL.
 | `contentTokens` | URL-encoded JSON | Language / locale selection (e.g., `enUS`, `frCA`) |
 | `componentProperties` | URL-encoded JSON | Serializable component props (see table below) |
 | `hostedExperienceType` | String | Experience type (`HOSTED_ONBOARDING_UI` or `HOSTED_DOC_UPLOAD_ONBOARDING_UI`) |
+| `cfg` | `z.<base64url>` | **Optional.** All three JSON parameters above, compressed into one. See [URL Size Limits & the Compact `cfg` Parameter](./URL_SIZE_AND_COMPACT_CONFIG.md) |
+
+> ⚠️ **Size limit:** the gateway rejects any request where `path + "?" + query string`
+> exceeds **2047 characters**, returning a 403 before the request reaches the application.
+> Three standard JSON parameters plus a session token routinely exceed this. If you hit it,
+> or want to avoid it, see
+> [URL Size Limits & the Compact `cfg` Parameter](./URL_SIZE_AND_COMPACT_CONFIG.md).
 
 **Onboarding Component Properties:**
 
