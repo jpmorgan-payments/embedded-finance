@@ -9,6 +9,7 @@ import es_zod from 'zod-i18n-map/locales/es/zod.json';
 import fr_zod from 'zod-i18n-map/locales/fr/zod.json';
 
 import enUS_accounts from './en-US/accounts.json';
+import enUS_approvedClientMaintenance from './en-US/approved-client-maintenance.json';
 import enUS_bankAccountForm from './en-US/bank-account-form.json';
 import enUS_clientDetails from './en-US/client-details.json';
 import enUS_common from './en-US/common.json';
@@ -19,6 +20,7 @@ import enUS_recipients from './en-US/recipients.json';
 import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
 import esUS_accounts from './es-US/accounts.json';
+import esUS_approvedClientMaintenance from './es-US/approved-client-maintenance.json';
 import esUS_bankAccountForm from './es-US/bank-account-form.json';
 import esUS_clientDetails from './es-US/client-details.json';
 import esUS_common from './es-US/common.json';
@@ -29,6 +31,7 @@ import esUS_recipients from './es-US/recipients.json';
 import esUS_transactions from './es-US/transactions.json';
 import esUS_validation from './es-US/validation.json';
 import frCA_accounts from './fr-CA/accounts.json';
+import frCA_approvedClientMaintenance from './fr-CA/approved-client-maintenance.json';
 import frCA_bankAccountForm from './fr-CA/bank-account-form.json';
 import frCA_clientDetails from './fr-CA/client-details.json';
 import frCA_common from './fr-CA/common.json';
@@ -49,6 +52,7 @@ export const defaultResources = {
     'linked-accounts': enUS_linkedAccounts,
     'bank-account-form': enUS_bankAccountForm,
     'client-details': enUS_clientDetails,
+    'approved-client-maintenance': enUS_approvedClientMaintenance,
     accounts: enUS_accounts,
     recipients: enUS_recipients,
     transactions: enUS_transactions,
@@ -63,6 +67,7 @@ export const defaultResources = {
     'linked-accounts': frCA_linkedAccounts,
     'bank-account-form': frCA_bankAccountForm,
     'client-details': frCA_clientDetails,
+    'approved-client-maintenance': frCA_approvedClientMaintenance,
     accounts: frCA_accounts,
     recipients: frCA_recipients,
     transactions: frCA_transactions,
@@ -77,6 +82,7 @@ export const defaultResources = {
     'linked-accounts': esUS_linkedAccounts,
     'bank-account-form': esUS_bankAccountForm,
     'client-details': esUS_clientDetails,
+    'approved-client-maintenance': esUS_approvedClientMaintenance,
     accounts: esUS_accounts,
     recipients: esUS_recipients,
     transactions: esUS_transactions,
@@ -128,6 +134,7 @@ i18n.use(initReactI18next).init({
     'linked-accounts',
     'bank-account-form',
     'client-details',
+    'approved-client-maintenance',
     'accounts',
     'recipients',
     'transactions',
@@ -187,6 +194,7 @@ export const createI18nInstance = (
       'make-payment',
       'linked-accounts',
       'bank-account-form',
+      'approved-client-maintenance',
       'accounts',
       'recipients',
       'transactions',

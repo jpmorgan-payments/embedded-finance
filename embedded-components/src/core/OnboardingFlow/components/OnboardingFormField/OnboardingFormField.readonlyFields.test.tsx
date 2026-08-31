@@ -124,8 +124,20 @@ describe('OnboardingFlow readonlyFields', () => {
       })
     );
 
-    expect(await screen.findByText('Acme LLC')).toBeInTheDocument();
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    const box = await screen.findByRole('textbox');
+    expect(box).toHaveTextContent('Acme LLC');
+    // Read-only display, not an editable input, and announced as read-only.
+    expect(box.tagName).toBe('DIV');
+    expect(box).toHaveAttribute('aria-readonly', 'true');
+    // Associated with its field label so screen readers announce them together.
+    expect(box).toHaveAccessibleName(/legal name of the company/i);
+    // Greyed, bordered box matching a disabled input.
+    expect(box).toHaveClass(
+      'eb-border',
+      'eb-border-inputBorder',
+      'eb-bg-gray-100',
+      'eb-opacity-50'
+    );
   });
 
   test('keeps a listed required field editable while it is still empty', async () => {
@@ -140,7 +152,9 @@ describe('OnboardingFlow readonlyFields', () => {
       })
     );
 
-    expect(await screen.findByRole('textbox')).toBeInTheDocument();
+    const input = await screen.findByRole('textbox');
+    expect(input.tagName).toBe('INPUT');
+    expect(input).not.toHaveAttribute('aria-readonly', 'true');
   });
 
   test('locks a listed optional field even when it is empty', async () => {
@@ -154,8 +168,10 @@ describe('OnboardingFlow readonlyFields', () => {
 
     // dbaName is optional → locked under the default 'whenPopulated' mode.
     // A locked empty field renders the read-only 'N/A' placeholder.
-    expect(await screen.findByText('N/A')).toBeInTheDocument();
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    const box = await screen.findByRole('textbox');
+    expect(box).toHaveTextContent('N/A');
+    expect(box.tagName).toBe('DIV');
+    expect(box).toHaveAttribute('aria-readonly', 'true');
   });
 
   test("mode 'always' locks a required field even when empty", async () => {
@@ -170,8 +186,10 @@ describe('OnboardingFlow readonlyFields', () => {
       })
     );
 
-    expect(await screen.findByText('N/A')).toBeInTheDocument();
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    const box = await screen.findByRole('textbox');
+    expect(box).toHaveTextContent('N/A');
+    expect(box.tagName).toBe('DIV');
+    expect(box).toHaveAttribute('aria-readonly', 'true');
   });
 
   test('does not lock anything when readonlyFields is omitted', async () => {
@@ -184,7 +202,9 @@ describe('OnboardingFlow readonlyFields', () => {
     );
 
     const input = await screen.findByRole('textbox');
+    expect(input.tagName).toBe('INPUT');
     expect(input).toHaveValue('Acme LLC');
+    expect(input).not.toHaveAttribute('aria-readonly', 'true');
   });
 
   test('locks every sub-input of a populated composite address', async () => {
@@ -211,8 +231,14 @@ describe('OnboardingFlow readonlyFields', () => {
 
     expect(await screen.findByText('1 Main St')).toBeInTheDocument();
     expect(screen.getByText('Columbus')).toBeInTheDocument();
-    // No editable inputs (text) or comboboxes (country/state) remain.
-    expect(screen.queryAllByRole('textbox')).toHaveLength(0);
+    // Every sub-input renders as a read-only textbox — no editable inputs or
+    // comboboxes (country/state) remain.
+    const boxes = screen.getAllByRole('textbox');
+    expect(boxes.length).toBeGreaterThan(0);
+    boxes.forEach((box) => {
+      expect(box.tagName).toBe('DIV');
+      expect(box).toHaveAttribute('aria-readonly', 'true');
+    });
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 });
