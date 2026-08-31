@@ -354,15 +354,19 @@ Double encoding turns every `{` into `%257B` instead of `%7B`. The same configur
 that costs 2321 characters single-encoded costs **2887** double-encoded — enough on its
 own to push a working URL over the limit.
 
-> Earlier versions of the bundled `partially-hosted-ui-component` utility double-encode.
-> Both forms are accepted by the service, so existing integrations keep working, but the
-> double-encoded form wastes roughly a quarter of your character budget.
+> **Fixed in the bundled utility.** `partially-hosted-ui-component.mjs` / `.js` previously
+> double-encoded. They now emit raw JSON and let `URLSearchParams` encode once, and they
+> **throw a descriptive error** if the generated URL would exceed the gateway limit — so an
+> oversized configuration fails at `mount()` with an actionable message instead of an
+> opaque 403. Both encoding forms remain accepted by the service, so integrations pinned to
+> an older copy of the utility keep working.
 
 `cfg` sidesteps this entirely: base64url contains no characters that require
 percent-encoding, so it passes through `URLSearchParams` unchanged.
 
 **Literal `%` in your content is safe.** Values such as `"5% cashback"` are handled
-correctly regardless of which encoding form you use.
+correctly regardless of which encoding form you use. So are values containing what look
+like escape sequences — `"100%20off"` and `"a%2Fb"` are preserved verbatim.
 
 ## When `cfg` is not enough
 
@@ -383,6 +387,7 @@ override of several hundred values — the URL is the wrong transport. Options:
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | **403** with a "Request Denied" page and `Support-Id` header | `path + query` exceeds 2047 characters | Measure the URI; switch to `cfg` |
+| `mount()` throws "Generated URL is N characters" | The utility's built-in length guard caught it before the request was made | Reduce configuration or switch to `cfg` |
 | Each parameter works alone, all together return 403 | Same as above — it is total length, not content | Measure the URI; switch to `cfg` |
 | Page loads but configuration is ignored | The parameter failed validation and was discarded | Open the browser console — validation errors are logged and name the offending path |
 | `cfg` ignored, console reports "could not decompress payload" | zlib/gzip header emitted instead of raw DEFLATE | Java: `new Deflater(level, true)`. Python: `wbits=-15`. Node: `deflateRawSync`, not `deflateSync` |
