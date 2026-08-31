@@ -53,6 +53,7 @@ export function buildOnboardingFlowProps(args: {
       bundleOnboarding?.enablePubliclyTradedCompanies ??
       false,
     priorityIndustryCodes: bundleOnboarding?.priorityIndustryCodes,
+    readonlyFields: bundleOnboarding?.readonlyFields,
     ...onboardingProps,
   };
 

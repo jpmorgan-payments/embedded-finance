@@ -71,6 +71,7 @@ export type TestScenarioBundleConfig = {
     | 'enablePubliclyTradedCompanies'
     | 'hideLinkedAccountRemoval'
     | 'priorityIndustryCodes'
+    | 'readonlyFields'
     | 'deltaMode'
     | 'skipTermsDocumentAcknowledgment'
   >;
@@ -284,6 +285,19 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     showLinkAccountStep: true,
     clientId: TEST_DEMO_SCENARIO_CLIENT_ID,
     linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS,
+    onboardingFlow: {
+      readonlyFields: {
+        fields: [
+          'organizationTypeHierarchy',
+          'organizationName',
+          'dbaName',
+          'organizationIdEin',
+          'organizationDescription',
+          'industry',
+        ],
+        mode: 'whenPopulated',
+      },
+    },
     loginProfiles: OPERATOR_PROFILES,
   },
   'test-scenario-2': {
