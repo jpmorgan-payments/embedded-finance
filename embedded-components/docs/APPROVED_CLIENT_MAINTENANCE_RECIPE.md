@@ -6,7 +6,7 @@
 
 This recipe covers one approved-client maintenance journey:
 
-1. An approved client already onboarded to `EMBEDDED_PAYMENTS / LIMITED_DDA_PAYMENTS` requests the additional `EMBEDDED_PAYMENTS / LIMITED_DDA` sub-product.
+1. An approved client already onboarded to `EMBEDDED_PAYMENTS / LIMITED_DDA` requests the additional `EMBEDDED_PAYMENTS / LIMITED_DDA_PAYMENTS` sub-product.
 2. While requesting it, the client discloses changes to the parties it already has: the client organization, the controller, and up to four beneficial owners.
 3. Because the upgrade can require disclosure of indirect ownership, the client certifies its ownership structure and, when ownership is held through intermediary entities, supplies each intermediary owner and indirect beneficial owner.
 
@@ -67,7 +67,7 @@ Where the guides and the specification are silent, the behavior described below 
 
 | Change                                            | Operation                                                       | Guide-mandated conditions                                                                                                      |
 | ------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Add the `LIMITED_DDA` sub-product                 | `PATCH /onboarding/v1/clients/{clientId}` with `productDetails` | `action: ADD`; keeps the approved `LIMITED_DDA_PAYMENTS` detail                                                                |
+| Add the `LIMITED_DDA_PAYMENTS` sub-product        | `PATCH /onboarding/v1/clients/{clientId}` with `productDetails` | `action: ADD`; keeps the approved `LIMITED_DDA` detail                                                                         |
 | Client legal name or DBA name                     | `PATCH /onboarding/v1/parties/{clientPartyId}`                  | Sole proprietorships also send `firstName`, `middleName`, `lastName`; upload the name-change documents listed in `outstanding` |
 | Client address                                    | `PATCH /onboarding/v1/parties/{clientPartyId}`                  | Supported address types only; an unsupported or sanctioned country terminates the request                                      |
 | Controller or beneficial owner name or birth date | `PATCH /onboarding/v1/parties/{partyId}`                        | `firstName`, `middleName`, `lastName`, `birthDate` only; provide documentary evidence                                          |
@@ -97,7 +97,7 @@ sequenceDiagram
     UI-->>Rep: Approved profile and available actions
 
     Note over Rep,API: 2 - Request the product and disclose changes
-    Rep->>UI: Request the Limited DDA sub-product
+    Rep->>UI: Request the Limited DDA Payments sub-product
     UI->>API: PATCH /clients/{clientId} with productDetails ADD
     UI-->>Rep: Has anything changed since your previous approval?
     alt Nothing else changed
@@ -200,7 +200,7 @@ Read product proposal metadata from `ClientResponse.productDetails` and `ClientR
 type ClientProductUpdate = {
   productDetails: Array<{
     product: 'EMBEDDED_PAYMENTS';
-    subProduct: 'LIMITED_DDA';
+    subProduct: 'LIMITED_DDA_PAYMENTS';
     action: 'ADD';
   }>;
 };
@@ -273,7 +273,7 @@ Keep every party from the approved client snapshot in its approved profile state
 
 Every write uses a fresh UUID v4 `Idempotency-Key`, reused only for retries of that same write. In the examples, `1000010400` is the client ID and `2000000555` is the client organization party (`roles: ["CLIENT"]`); they are different identifiers.
 
-### 1. Request the Limited DDA sub-product
+### 1. Request the Limited DDA Payments sub-product
 
 The product upgrade is the only change sent to `PATCH /clients`.
 
@@ -286,14 +286,14 @@ PATCH /onboarding/v1/clients/1000010400
   "productDetails": [
     {
       "product": "EMBEDDED_PAYMENTS",
-      "subProduct": "LIMITED_DDA",
+      "subProduct": "LIMITED_DDA_PAYMENTS",
       "action": "ADD"
     }
   ]
 }
 ```
 
-Add the requested detail only to the presentation-only proposed client and track it through `productDetails[].onboardingStatus`. Do not remove the approved `LIMITED_DDA_PAYMENTS` detail; this scenario adds a second sub-product rather than replacing the first.
+Add the requested detail only to the presentation-only proposed client and track it through `productDetails[].onboardingStatus`. Do not remove the approved `LIMITED_DDA` detail; this scenario adds a second sub-product rather than replacing the first.
 
 ### 2. Update the client organization
 
@@ -353,7 +353,7 @@ Removal is a sparse party update. The maintenance response returns `action: "MOD
 
 ### 5. Disclose indirect ownership
 
-Adding Limited DDA can require the client to certify how ownership is held. Present a certification step that asks whether any owner of 25% or more holds its stake through one or more intermediary entities.
+Adding Limited DDA Payments can require the client to certify how ownership is held. Present a certification step that asks whether any owner of 25% or more holds its stake through one or more intermediary entities.
 
 Collect, per the indirect ownership guide:
 
@@ -621,8 +621,8 @@ Disclose changes   Review changes       Attest       Submitted
 ────────────────────────────────────────────────────────────────────
 
 Products
-Limited DDA Payments                                   [Current]
-Limited DDA                                            [Proposed addition]
+Limited DDA                                            [Current]
+Limited DDA Payments                                   [Proposed addition]
 
 Has anything changed since your previous approval?
 ( ) No, nothing else changed
@@ -669,7 +669,7 @@ Stack the approved and proposed profiles on narrow viewports.
 
 ```text
 Product proposal · REVIEW IN PROGRESS
-  Limited DDA               ADD       [Review]
+  Limited DDA Payments      ADD       [Review]
 
 Party request 4000001049 · NEW · 5 tasks
   Marketplace Vendor LLC    MODIFY    [Review]
@@ -704,7 +704,7 @@ For cancellation, distinguish “Cancel all draft changes” from party-scoped c
 
 This guard is platform guidance rather than published API behavior. Start the five-minute window at the first verification response's `acceptedAt`, or at the host receipt time of that successful `202` when `acceptedAt` is absent.
 
-Keep the Limited DDA request and every later verification disabled until both conditions are true:
+Keep the Limited DDA Payments request and every later verification disabled until both conditions are true:
 
 1. At least five minutes have elapsed since that acceptance time.
 2. A fresh `GET /clients/{id}` reports the original product's `onboardingStatus` as `APPROVED`.
@@ -873,7 +873,7 @@ Eligibility and product:
 
 - approved-client, country, and legal-entity guards;
 - the lead-time guard blocked before five minutes, blocked at five minutes without an `APPROVED` product, and open only when both hold;
-- `LIMITED_DDA` added alongside the approved `LIMITED_DDA_PAYMENTS`, never replacing it, and never Merchant Services;
+- `LIMITED_DDA_PAYMENTS` added alongside the approved `LIMITED_DDA`, never replacing it, and never Merchant Services;
 - product proposal state read from `productDetails[].onboardingStatus` without manufacturing a party record.
 
 Party maintenance:
@@ -953,7 +953,7 @@ Move each resolved answer into the owning section above, then remove its row.
 | Flow area                              | Question                                                                                                                                                                                                                                                                                                                                 |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Request scope of a product change      | Does `PATCH /clients` with `productDetails` create the client's single maintenance request, join an open one, or sit outside it? If it joins, do submit and cancel act on products and parties together?                                                                                                                                 |
-| Product eligibility                    | Which approved `LIMITED_DDA_PAYMENTS` clients may add `LIMITED_DDA`, by country and legal entity type, and what response is returned when the addition is not permitted?                                                                                                                                                                 |
+| Product eligibility                    | Which approved `LIMITED_DDA` clients may add `LIMITED_DDA_PAYMENTS`, by country and legal entity type, and what response is returned when the addition is not permitted?                                                                                                                                                                 |
 | Product upgrade lead time              | Is the five-minute wait plus an `APPROVED` original product a real platform constraint, and what error is returned when the upgrade is sent too early?                                                                                                                                                                                   |
 | Indirect ownership in maintenance      | Can an approved client add `INTERMEDIARY_OWNER` parties and indirect owners after approval, and is `natureOfOwnership` updatable on an existing approved party?                                                                                                                                                                          |
 | Ownership certification                | Is there a certification or attestation specific to the indirect-ownership disclosure, beyond the FinCEN attestation for new owners?                                                                                                                                                                                                     |
