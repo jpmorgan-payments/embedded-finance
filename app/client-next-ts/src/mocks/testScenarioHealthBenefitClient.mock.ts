@@ -1,7 +1,7 @@
 /**
- * MSW seed for the `/test-scenario-3` onboarding demo — "Health & Benefit Solutions, LLC".
+ * MSW seed for `/test-scenario-3` happy path without PTC — "Health & Benefit Solutions, LLC".
  * Minimum data required to create a client + authorized user.
- * Seeded when `testScenarioBundle` is `test-scenario-3`.
+ * Seeded when `testScenarioBundle` is `test-scenario-3` and mode is not `happy-path-ptc`.
  */
 export const TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID = '3100007001';
 

@@ -44,7 +44,7 @@ export function ExperiencesSection() {
       icon: <Users className="h-5 w-5" />,
       status: 'available',
       npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-onboardingflow',
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#1-onboardingflow',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=onboarding&theme=Empty',
       githubUrl:
@@ -68,7 +68,7 @@ export function ExperiencesSection() {
       icon: <Link className="h-5 w-5" />,
       status: 'testing',
       npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#3-linkedaccountwidget',
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#4-linkedaccountwidget',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=linked-accounts&theme=Empty',
       githubUrl:
@@ -82,7 +82,7 @@ export function ExperiencesSection() {
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/RecipientWidgets/LINKED_ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account',
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/external-accounts/add-linked-account',
     },
     {
       id: 'recipients',
@@ -92,7 +92,7 @@ export function ExperiencesSection() {
       icon: <UserCheck className="h-5 w-5" />,
       status: 'testing',
       npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipients',
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipientswidget',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=recipients&theme=Empty',
       githubUrl:
@@ -109,7 +109,7 @@ export function ExperiencesSection() {
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/RecipientWidgets/RecipientsWidget/README.md',
       docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/third-party-recipient',
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/external-accounts/third-party-recipient',
     },
     {
       id: 'payments',
@@ -128,11 +128,11 @@ export function ExperiencesSection() {
         'Submit transaction with reference ID and memo',
       ],
       npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-paymentflow',
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components',
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/PaymentFlow/REQUIREMENTS.md',
       docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/payments-without-onboarding/how-to/make-payout',
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/payouts/overview',
     },
     {
       id: 'transactions',
@@ -151,11 +151,11 @@ export function ExperiencesSection() {
         'Provide search and sorting capabilities',
       ],
       npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-transactionsdisplay',
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#6-transactionsdisplay',
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/TransactionsDisplay/TRANSACTIONS_DISPLAY_REQUIREMENTS.md',
       docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2',
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/manage-transactions/view-and-display-transactions',
     },
 
     {
@@ -174,11 +174,11 @@ export function ExperiencesSection() {
         'Accessible, mobile-responsive design with tooltips and help text',
       ],
       npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#1-accountsdisplay',
+        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#2-accounts',
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/Accounts/ACCOUNTS_REQUIREMENTS.md',
       docsUrl:
-        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account',
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/accounts/account-setup/create-accounts',
     },
     {
       id: 'client-details',

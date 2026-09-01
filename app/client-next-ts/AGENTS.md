@@ -41,7 +41,7 @@ src/
 public/               # Static assets — reference with absolute paths: /sellSense.svg
 ```
 
-**Onboarding demo routes** (`/test-scenario`, `/test-scenario-2`, `/test-scenario-3`): see [docs/test-scenarios.md](docs/test-scenarios.md).
+**Onboarding demo routes** (`/test-scenario` … `/test-scenario-6`): see [docs/test-scenarios.md](docs/test-scenarios.md).
 
 Key files in `src/components/sellsense/`:
 - `dashboard-layout.tsx` — main orchestrator with URL state sync

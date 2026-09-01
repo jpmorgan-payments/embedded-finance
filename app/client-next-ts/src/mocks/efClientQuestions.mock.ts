@@ -1,5 +1,5 @@
 export const efClientQuestionsMock = {
-  metadata: { page: 0, total: 6 },
+  metadata: { page: 0, total: 7 },
   questions: [
     {
       content: [
@@ -50,6 +50,30 @@ export const efClientQuestionsMock = {
           questionIds: ['30162'],
         },
       ],
+    },
+
+    {
+      content: [
+        {
+          description: 'Please specify which countries from the above list.',
+          label: 'Please specify which countries from the above list.',
+          locale: 'en-US',
+        },
+      ],
+      defaultLocale: 'en-US',
+      description: 'Please specify which countries from the above list.',
+      id: '30162',
+      parentQuestionId: '30158',
+      responseSchema: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 1,
+        items: {
+          type: 'string',
+          _enum: [],
+        },
+      },
+      subQuestions: [],
     },
 
     {

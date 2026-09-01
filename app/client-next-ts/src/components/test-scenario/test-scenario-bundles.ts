@@ -8,6 +8,7 @@ import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
 import { TEST_SCENARIO_2_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-2-theme';
 import { TEST_SCENARIO_3_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-3-theme';
 import { TEST_SCENARIO_5_NAICS_CODES } from '@/components/test-scenario/test-scenario-naics-codes';
+import { TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID } from '@/mocks/testScenarioDeltaModeClient.mock';
 import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '@/mocks/testScenarioFasterFulfilmentClient.mock';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '@/mocks/testScenarioHealthBenefitClient.mock';
 import { TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID } from '@/mocks/testScenarioMultiLinkedIllustrationClient.mock';
@@ -22,6 +23,7 @@ export const TEST_SCENARIO_ROUTE_BY_BUNDLE = {
   'test-scenario-3': '/test-scenario-3',
   'test-scenario-4': '/test-scenario-4',
   'test-scenario-5': '/test-scenario-5',
+  'test-scenario-6': '/test-scenario-6',
 } as const satisfies Record<TestScenarioBundleId, string>;
 
 export type TestScenarioLoginProfile = {
@@ -33,8 +35,16 @@ export type TestScenarioLoginProfile = {
   /** Per-login `OnboardingFlow` props (e.g. scenario 4 PTC vs LLC happy paths). */
   onboardingFlow?: Pick<
     OnboardingFlowProps,
-    'availableOrganizationTypes' | 'enablePubliclyTradedCompanies'
+    | 'availableOrganizationTypes'
+    | 'enablePubliclyTradedCompanies'
+    | 'deltaMode'
+    | 'skipTermsDocumentAcknowledgment'
   >;
+};
+
+type TestScenarioReadonlyFieldsConfig = {
+  fields: readonly string[];
+  mode?: 'whenPopulated' | 'always';
 };
 
 export type TestScenarioBundleConfig = {
@@ -57,16 +67,22 @@ export type TestScenarioBundleConfig = {
   /**
    * Static `<OnboardingFlow />` props for this bundle. When omitted, `TestScenarioPage` uses built-in defaults.
    */
-  onboardingFlow?: Pick<
-    OnboardingFlowProps,
-    | 'availableProducts'
-    | 'availableJurisdictions'
-    | 'availableOrganizationTypes'
-    | 'disclosureConfig'
-    | 'enablePubliclyTradedCompanies'
-    | 'hideLinkedAccountRemoval'
-    | 'priorityIndustryCodes'
-  >;
+  onboardingFlow?: Partial<
+    Pick<
+      OnboardingFlowProps,
+      | 'availableProducts'
+      | 'availableJurisdictions'
+      | 'availableOrganizationTypes'
+      | 'disclosureConfig'
+      | 'enablePubliclyTradedCompanies'
+      | 'hideLinkedAccountRemoval'
+      | 'priorityIndustryCodes'
+      | 'deltaMode'
+      | 'skipTermsDocumentAcknowledgment'
+    >
+  > & {
+    readonlyFields?: TestScenarioReadonlyFieldsConfig;
+  };
   loginProfiles: TestScenarioLoginProfile[];
 };
 
@@ -181,7 +197,30 @@ const MULTI_LINK_DEMO_PROFILES: TestScenarioLoginProfile[] = [
   ...MULTI_LINK_START_PROFILES,
 ];
 
-/** `/test-scenario-4`: PTC happy path first, then LLC happy path without PTC, then other operator logins. */
+/** `/test-scenario-3`: PTC happy path first, then LLC happy path without PTC, then other operator logins. */
+const SCENARIO_3_PROFILES: TestScenarioLoginProfile[] = [
+  {
+    email: 'happy-path-ptc@demo.test',
+    label: 'Happy path \u2013 PTC (Nasdaq seed, enablePubliclyTradedCompanies)',
+    scenario: 'happy-path-ptc',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: true,
+      availableOrganizationTypes: ['C_CORPORATION'],
+    },
+  },
+  {
+    email: 'happy-path@demo.test',
+    label:
+      'Happy path \u2013 LLC, no PTC in mock or component (same health data)',
+    scenario: 'happy-path',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+    },
+  },
+  ...OPERATOR_PROFILES.filter((p) => p.email !== 'happy-path@demo.test'),
+];
+
 /** `/test-scenario-5`: Fund Management Platform — NAICS onboarding and pre-approved dashboard path. */
 const SCENARIO_5_PROFILES: TestScenarioLoginProfile[] = [
   {
@@ -204,6 +243,20 @@ const SCENARIO_5_PROFILES: TestScenarioLoginProfile[] = [
   },
 ];
 
+/** Restaurant NAICS for `/test-scenario-6` (full-service / limited-service / snack bars). */
+const TEST_SCENARIO_6_NAICS_CODES = ['722511', '722513', '722515'] as const;
+
+/** `/test-scenario-6`: restaurant-chain sole owner-operator delta review. */
+const SCENARIO_6_PROFILES: TestScenarioLoginProfile[] = [
+  {
+    email: 'delta-sole-owner@demo.test',
+    label:
+      'Delta mode — sole owner-operator (combined controller/owner; SSN, birthdate, contact, and sanctions outstanding)',
+    scenario: 'delta-sole-owner',
+  },
+];
+
+/** `/test-scenario-4`: PTC happy path first, then LLC happy path without PTC, then other operator logins. */
 const SCENARIO_4_PROFILES: TestScenarioLoginProfile[] = [
   {
     email: 'happy-path-ptc@demo.test',
@@ -240,6 +293,21 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     showLinkAccountStep: true,
     clientId: TEST_DEMO_SCENARIO_CLIENT_ID,
     linkAccountStepOptions: LINKED_ACCOUNT_OPTIONS,
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      readonlyFields: {
+        fields: [
+          'organizationTypeHierarchy',
+          'organizationName',
+          'dbaName',
+          'organizationIdEin',
+          'organizationDescription',
+          'industry',
+        ],
+        mode: 'whenPopulated',
+      },
+    },
     loginProfiles: OPERATOR_PROFILES,
   },
   'test-scenario-2': {
@@ -334,6 +402,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
       availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      enablePubliclyTradedCompanies: false,
       disclosureConfig: { platformName: 'Platform, Inc.' },
       hideLinkedAccountRemoval: false,
       priorityIndustryCodes: [
@@ -388,7 +457,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
         '624410',
       ],
     },
-    loginProfiles: OPERATOR_PROFILES,
+    loginProfiles: SCENARIO_3_PROFILES,
   },
   'test-scenario-4': {
     id: 'test-scenario-4',
@@ -450,6 +519,39 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
       priorityIndustryCodes: [...TEST_SCENARIO_5_NAICS_CODES],
     },
     loginProfiles: SCENARIO_5_PROFILES,
+  },
+  'test-scenario-6': {
+    id: 'test-scenario-6',
+    headerOrgDisplayName: 'Bright Fork Kitchen, LLC',
+    theme: 'Empty',
+    contentTokens: buildContentTokens({
+      controllerJobTitle: 'Role',
+      controllerJobTitleDescription: 'Role details',
+    }),
+    showLinkAccountStep: false,
+    clientId: TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID,
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      availableOrganizationTypes: [
+        'SOLE_PROPRIETORSHIP',
+        'LIMITED_LIABILITY_COMPANY',
+        'LIMITED_LIABILITY_PARTNERSHIP',
+        'GENERAL_PARTNERSHIP',
+        'LIMITED_PARTNERSHIP',
+        'C_CORPORATION',
+      ],
+      disclosureConfig: { platformName: 'Platform, Inc.' },
+      hideLinkedAccountRemoval: true,
+      priorityIndustryCodes: [...TEST_SCENARIO_6_NAICS_CODES],
+      deltaMode: {
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      },
+      skipTermsDocumentAcknowledgment: true,
+    },
+    loginProfiles: SCENARIO_6_PROFILES,
   },
 };
 

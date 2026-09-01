@@ -108,9 +108,67 @@ describe('test-scenario-config', () => {
     expect(resolved.loginProfile.email).toBe('happy-path-ptc@demo.test');
   });
 
+  it('maps health preset PTC login like logistics', () => {
+    const resolved = resolveTestScenarioConfig({
+      preset: 'health',
+      loginCase: 'happy-path-ptc',
+    });
+    expect(resolved.bundleId).toBe('test-scenario-3');
+    expect(resolved.loginProfile.email).toBe('happy-path-ptc@demo.test');
+    expect(resolved.onboardingProps.enablePubliclyTradedCompanies).toBe(true);
+    expect(resolved.onboardingProps.availableOrganizationTypes).toEqual([
+      'C_CORPORATION',
+    ]);
+  });
+
+  it('decodes health PTC in legacy compact format', () => {
+    expect(decodeTestScenarioConfig('o3.ptc')).toEqual({
+      preset: 'health',
+      loginCase: 'happy-path-ptc',
+    });
+  });
+
   it('defaults login case per preset', () => {
     expect(getDefaultLoginCaseForPreset('fundManagement')).toBe(
       'naics-codes-onboarding'
     );
+    expect(getDefaultLoginCaseForPreset('deltaOnboarding')).toBe(
+      'delta-sole-owner'
+    );
+  });
+
+  it('maps delta onboarding preset to Storybook sole owner-operator login', () => {
+    const resolved = resolveTestScenarioConfig({
+      preset: 'deltaOnboarding',
+    });
+    expect(resolved.bundleId).toBe('test-scenario-6');
+    expect(resolved.loginProfile.email).toBe('delta-sole-owner@demo.test');
+    expect(resolved.loginProfile.scenario).toBe('delta-sole-owner');
+    expect(resolved.onboardingProps.deltaMode).toEqual({
+      enabled: true,
+      maxPendingFields: 5,
+      defaultControllerNotAnOwner: true,
+    });
+    expect(resolved.onboardingProps.skipTermsDocumentAcknowledgment).toBe(true);
+    expect(resolved.onboardingProps.priorityIndustryCodes).toEqual([
+      '722511',
+      '722513',
+      '722515',
+    ]);
+    expect(resolved.onboardingProps.availableOrganizationTypes).toEqual([
+      'SOLE_PROPRIETORSHIP',
+      'LIMITED_LIABILITY_COMPANY',
+      'LIMITED_LIABILITY_PARTNERSHIP',
+      'GENERAL_PARTNERSHIP',
+      'LIMITED_PARTNERSHIP',
+      'C_CORPORATION',
+    ]);
+  });
+
+  it('decodes delta onboarding in legacy compact format', () => {
+    expect(decodeTestScenarioConfig('o6.dso')).toEqual({
+      preset: 'deltaOnboarding',
+      loginCase: 'delta-sole-owner',
+    });
   });
 });

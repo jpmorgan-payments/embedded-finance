@@ -106,6 +106,9 @@ export const RequirementStep: FC<RequirementStepProps> = ({
 
   const requirement = documentRequest.requirements?.[requirementIndex];
   if (!requirement) return null;
+  const requirementDescription = (
+    requirement as typeof requirement & { description?: string }
+  ).description;
 
   // Filter document types to only include ones not yet satisfied or currently selected
   const availableDocTypes = requirement.documentTypes.filter((docType) => {
@@ -134,6 +137,11 @@ export const RequirementStep: FC<RequirementStepProps> = ({
 
   const content = (
     <>
+      {requirementDescription ? (
+        <h4 className="eb-mb-4 eb-border-b eb-pb-3 eb-text-base eb-font-semibold eb-leading-6">
+          {requirementDescription}
+        </h4>
+      ) : null}
       {Array.from({ length: numFieldsToShow }).map((_, uploadIndex) => (
         <Fragment
           key={`${documentRequest.id}-${requirementIndex}-${uploadIndex}-${resetKey}`}

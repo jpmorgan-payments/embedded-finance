@@ -13,7 +13,12 @@ export const TEST_SCENARIO_CONSTRUCTOR_PATH = '/test-scenario/constructor';
 export const TEST_SCENARIO_CONFIG_VERSION = 2 as const;
 
 export type TestScenarioPresetId =
-  'operator80' | 'construction' | 'health' | 'logistics' | 'fundManagement';
+  | 'operator80'
+  | 'construction'
+  | 'health'
+  | 'logistics'
+  | 'fundManagement'
+  | 'deltaOnboarding';
 
 export type TestScenarioLayoutKind =
   | 'onboarding'
@@ -89,6 +94,7 @@ const PRESET_TO_BUNDLE: Record<TestScenarioPresetId, TestScenarioBundleId> = {
   health: 'test-scenario-3',
   logistics: 'test-scenario-4',
   fundManagement: 'test-scenario-5',
+  deltaOnboarding: 'test-scenario-6',
 };
 
 const OPERATOR_LOGIN_CASES: TestDemoScenarioMode[] = [
@@ -98,10 +104,14 @@ const OPERATOR_LOGIN_CASES: TestDemoScenarioMode[] = [
   'linked-account-active',
 ];
 
-const LOGISTICS_LOGIN_CASES: TestDemoScenarioMode[] = [
+const HEALTH_LOGIN_CASES: TestDemoScenarioMode[] = [
   'happy-path-ptc',
   'happy-path',
   ...OPERATOR_LOGIN_CASES.filter((m) => m !== 'happy-path'),
+];
+
+const LOGISTICS_LOGIN_CASES: TestDemoScenarioMode[] = [
+  ...HEALTH_LOGIN_CASES,
   'multi-linked-start-3',
 ];
 
@@ -109,6 +119,8 @@ const MULTI_LINK_LOGIN_CASES: TestDemoScenarioMode[] = [
   ...OPERATOR_LOGIN_CASES,
   'multi-linked-start-3',
 ];
+
+const DELTA_LOGIN_CASES: TestDemoScenarioMode[] = ['delta-sole-owner'];
 
 const FUND_MGMT_LOGIN_CASES: TestDemoScenarioMode[] = [
   'naics-codes-onboarding',
@@ -122,6 +134,7 @@ const LEGACY_PRESET_CODE: Record<TestScenarioPresetId, string> = {
   health: 'o3',
   logistics: 'o4',
   fundManagement: 'o5',
+  deltaOnboarding: 'o6',
 };
 
 const LEGACY_LOGIN_CASE_CODE: Record<TestDemoScenarioMode, string> = {
@@ -135,6 +148,7 @@ const LEGACY_LOGIN_CASE_CODE: Record<TestDemoScenarioMode, string> = {
   'naics-codes-onboarding': 'nao',
   'naics-codes-doc-request': 'nadr',
   'naics-codes-dashboard': 'nad',
+  'delta-sole-owner': 'dso',
 };
 
 const LEGACY_CODE_TO_PRESET = Object.fromEntries(
@@ -164,6 +178,8 @@ const LOGIN_CASE_LABELS: Record<TestDemoScenarioMode, string> = {
   'naics-codes-doc-request':
     'Unhappy path — fund document request (registration, structure, offering memo, etc.)',
   'naics-codes-dashboard': 'Pre-approved — open payments dashboard immediately',
+  'delta-sole-owner':
+    'Delta mode — sole owner-operator (combined controller/owner)',
 };
 
 export const TEST_SCENARIO_PRESETS: TestScenarioPresetMeta[] = [
@@ -194,8 +210,8 @@ export const TEST_SCENARIO_PRESETS: TestScenarioPresetMeta[] = [
     bundleId: 'test-scenario-3',
     themeLabel: 'Custom deep green',
     linkAccountMode: 'editable',
-    industryFocus: 'Health-sector NAICS',
-    availableLoginCases: OPERATOR_LOGIN_CASES,
+    industryFocus: 'Health-sector NAICS + optional PTC',
+    availableLoginCases: HEALTH_LOGIN_CASES,
   },
   {
     id: 'logistics',
@@ -216,6 +232,17 @@ export const TEST_SCENARIO_PRESETS: TestScenarioPresetMeta[] = [
     linkAccountMode: 'off',
     industryFocus: 'Fund management NAICS + assessment',
     availableLoginCases: FUND_MGMT_LOGIN_CASES,
+  },
+  {
+    id: 'deltaOnboarding',
+    label: 'Bright Fork Kitchen (delta mode)',
+    orgDisplayName: 'Bright Fork Kitchen, LLC',
+    bundleId: 'test-scenario-6',
+    themeLabel: 'Empty (component defaults)',
+    linkAccountMode: 'off',
+    industryFocus:
+      'Casual dining restaurant chain — sole owner-operator delta review',
+    availableLoginCases: DELTA_LOGIN_CASES,
   },
 ];
 

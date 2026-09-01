@@ -1,0 +1,110 @@
+/**
+ * MSW seed for `/test-scenario-3` PTC happy path — same Health & Benefit parties,
+ * C-corp + Nasdaq (`HBNS`) in the organization payload.
+ */
+export { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from './testScenarioHealthBenefitClient.mock';
+
+export const testScenarioHealthBenefitClientPtc = {
+  id: '3100007001',
+  attestations: [],
+  createdAt: '2026-05-20T09:15:00.000Z',
+  parties: [
+    {
+      id: '2100535200',
+      createdAt: '2026-05-20T09:15:00.1Z',
+      partyType: 'ORGANIZATION',
+      profileStatus: 'NEW',
+      roles: ['CLIENT'],
+      active: true,
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          fields: [
+            { name: 'addresses' },
+            { name: 'industryCategory' },
+            { name: 'industryType' },
+            { name: 'organizationDescription' },
+            { name: 'yearOfFormation' },
+            { name: 'organizationIds' },
+          ],
+        },
+      ],
+      organizationDetails: {
+        countryOfFormation: 'US',
+        dbaName: 'Health & Benefit Solutions',
+        organizationName: 'Health & Benefit Solutions, LLC',
+        organizationType: 'C_CORPORATION',
+        publiclyTraded: {
+          stockExchange: 'XNAS',
+          tickerSymbol: 'HBNS',
+        },
+      },
+      individualDetails: {},
+      status: 'ACTIVE',
+      preferences: {
+        defaultLanguage: 'en-US',
+      },
+      access: [],
+      networkRegistration: {},
+      parentPartyId: '',
+      parentExternalId: '',
+    },
+    {
+      id: '2100535201',
+      createdAt: '2026-05-20T09:15:00.2Z',
+      email: 'ross.gellar@healthbenefits.com',
+      partyType: 'INDIVIDUAL',
+      parentPartyId: '2100535200',
+      profileStatus: 'NEW',
+      roles: ['CONTROLLER', 'AUTHORIZED_USER'],
+      active: true,
+      validationResponse: [
+        {
+          validationStatus: 'NEEDS_INFO',
+          validationType: 'ENTITY_VALIDATION',
+          fields: [
+            { name: 'individualIds' },
+            { name: 'addresses' },
+            { name: 'birthDate' },
+            { name: 'countryOfResidence' },
+            { name: 'jobTitle' },
+            { name: 'jobTitleDescription' },
+          ],
+        },
+      ],
+      individualDetails: {
+        firstName: 'Ross',
+        middleName: 'Thomas',
+        lastName: 'Gellar',
+      },
+      organizationDetails: {},
+      status: 'ACTIVE',
+      preferences: {
+        defaultLanguage: 'en-US',
+      },
+      access: [],
+      networkRegistration: {},
+      parentExternalId: '',
+    },
+  ],
+  partyId: '2100535200',
+  products: ['EMBEDDED_PAYMENTS'],
+  outstanding: {
+    attestationDocumentIds: ['c93f9d42-1b46-5e02-a03b-ae2d7bb30d12'],
+    documentRequestIds: [],
+    questionIds: ['30195'],
+    partyIds: ['2100535200', '2100535201'],
+    partyRoles: [],
+  },
+  questionResponses: [
+    {
+      questionId: '30194',
+      values: ['500'],
+    },
+  ],
+  status: 'NEW',
+  results: {
+    customerIdentityStatus: 'NOT_STARTED',
+  },
+};

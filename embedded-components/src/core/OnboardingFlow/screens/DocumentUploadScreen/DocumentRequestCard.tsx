@@ -46,6 +46,8 @@ interface DocumentRequestCardProps {
    * Callback to reset the form
    */
   onReset: () => void;
+  /** Whether to render the card-level reset action. */
+  showReset?: boolean;
   /**
    * Maximum file size in bytes for uploads
    */
@@ -64,6 +66,7 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
   watch,
   resetKey,
   onReset,
+  showReset = true,
   maxFileSizeBytes,
 }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
@@ -81,21 +84,23 @@ export const DocumentRequestCard: FC<DocumentRequestCardProps> = ({
         </Alert>
       )}
 
-      <div className="eb-mt-6 eb-w-full">
-        <div className="eb-mb-4 eb-flex eb-justify-end">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onReset}
-            className="eb-flex eb-h-6 eb-items-center eb-gap-1 eb-p-1 eb-text-xs"
-          >
-            <RefreshCw className="!eb-size-3" />{' '}
-            {t('documentRequest.resetForm', 'Reset form')}
-          </Button>
-        </div>
+      <div className="eb-w-full">
+        {showReset ? (
+          <div className="eb-mb-4 eb-flex eb-justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onReset}
+              className="eb-flex eb-h-6 eb-items-center eb-gap-1 eb-p-1 eb-text-xs"
+            >
+              <RefreshCw className="!eb-size-3" />{' '}
+              {t('documentRequest.resetForm', 'Reset form')}
+            </Button>
+          </div>
+        ) : null}
 
-        <div className="eb-space-y-6">
+        <div className="eb-space-y-4">
           {documentRequest.requirements.map((requirement, requirementIndex) => {
             // Check if this requirement is active
             const isActive = activeRequirements.includes(requirementIndex);

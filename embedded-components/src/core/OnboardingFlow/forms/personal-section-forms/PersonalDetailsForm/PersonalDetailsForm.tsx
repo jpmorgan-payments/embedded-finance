@@ -2,6 +2,7 @@ import { useTranslationWithTokens } from '@/i18n';
 import { useFormContext } from 'react-hook-form';
 import { z } from 'zod';
 
+import { IndividualLegalNameFields } from '@/core/ClientProfile/fields/IndividualLegalNameFields';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components';
 import {
   COUNTRIES_OF_FORMATION,
@@ -59,20 +60,30 @@ export const PersonalDetailsForm: FormStepComponent = () => {
           {legalNameHeader}
         </legend>
         <p className="eb-text-sm">{legalNameDescription}</p>
-        <OnboardingFormField
+        <IndividualLegalNameFields
           control={form.control}
-          name="controllerFirstName"
-          type="text"
-        />
-        <OnboardingFormField
-          control={form.control}
-          name="controllerMiddleName"
-          type="text"
-        />
-        <OnboardingFormField
-          control={form.control}
-          name="controllerLastName"
-          type="text"
+          fieldNames={{
+            firstName: 'controllerFirstName',
+            middleName: 'controllerMiddleName',
+            lastName: 'controllerLastName',
+          }}
+          content={{
+            firstName: {
+              label: t('fields.controllerFirstName.label'),
+              placeholder: tString`fields.controllerFirstName.placeholder`,
+            },
+            middleName: {
+              label: t('fields.controllerMiddleName.label'),
+              placeholder: tString`fields.controllerMiddleName.placeholder`,
+            },
+            lastName: {
+              label: t('fields.controllerLastName.label'),
+              placeholder: tString`fields.controllerLastName.placeholder`,
+            },
+            optionalLabel: t([
+              'common:optional',
+            ] as unknown as TemplateStringsArray),
+          }}
         />
         <OnboardingFormField
           control={form.control}

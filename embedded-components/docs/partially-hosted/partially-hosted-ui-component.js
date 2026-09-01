@@ -37,6 +37,10 @@
   // Constants
   const DEFAULT_BASE_URL = 'https://onboarding.jpmorgan.com';
   const DEFAULT_EXPERIENCE_TYPE = 'HOSTED_DOC_UPLOAD_ONBOARDING_UI';
+
+  // Maximum `path + "?" + query` the gateway accepts; above this it returns a
+  // 403 "Request Denied" page before the request reaches the application.
+  const MAX_REQUEST_URI_LENGTH = 2047;
   const MOUNT_DELAY_MS = 100;
   const REFRESH_DELAY_MS = 100;
 
@@ -63,13 +67,36 @@
   };
 
   // Helper functions
+
+  // Returns raw JSON — percent-encoding is applied once, by URLSearchParams.
+  // Encoding here as well would double-encode ({ -> %257B instead of %7B) and
+  // inflate the query string by ~24%, which matters because the gateway rejects
+  // any request URI over MAX_REQUEST_URI_LENGTH characters.
   function encodeJsonParam(obj) {
     if (!obj || typeof obj !== 'object') return '';
     try {
-      return encodeURIComponent(JSON.stringify(obj));
+      return JSON.stringify(obj);
     } catch (error) {
       console.error('[PartiallyHostedUIComponent] Failed to encode JSON parameter:', error);
       return '';
+    }
+  }
+
+  // The edge rejects any request whose path + "?" + query exceeds the limit with
+  // a 403 "Request Denied" page before it reaches the application, so surface it
+  // here rather than letting it appear as an unexplained 403.
+  function assertUrlWithinGatewayLimit(url) {
+    var parsed = new URL(url);
+    var length = parsed.pathname.length + parsed.search.length;
+
+    if (length > MAX_REQUEST_URI_LENGTH) {
+      throw new Error(
+        '[PartiallyHostedUIComponent] Generated URL is ' + length + ' characters; ' +
+        'the gateway limit is ' + MAX_REQUEST_URI_LENGTH + ' and will reject it with a 403. ' +
+        'Reduce the configuration passed in theme/contentTokens/componentProperties, ' +
+        'or use the compact `cfg` parameter. ' +
+        'See docs/partially-hosted/URL_SIZE_AND_COMPACT_CONFIG.md'
+      );
     }
   }
 
@@ -103,9 +130,10 @@
       if (encodedProperties) params.append('componentProperties', encodedProperties);
     }
 
-    return `${baseUrl}/onboarding?${params.toString()}`;
+    const url = `${baseUrl}/onboarding?${params.toString()}`;
+    assertUrlWithinGatewayLimit(url);
+    return url;
   }
-
   function createIframe(url, customAttributes) {
     customAttributes = customAttributes || {};
     const iframe = document.createElement('iframe');
@@ -198,9 +226,13 @@
     }
 
     var self = this;
+    // Built synchronously so configuration errors - notably exceeding the gateway
+    // URL limit - reach the caller's try/catch. The timer callback below rethrows,
+    // which would otherwise surface as an uncatchable exception.
+    var iframeUrl = buildIframeUrl(self.config);
+
     setTimeout(function() {
       try {
-        var iframeUrl = buildIframeUrl(self.config);
         self._log('debug', 'Built iframe URL', {
           url: iframeUrl.replace(/token=[^&]*/, 'token=REDACTED'),
         });

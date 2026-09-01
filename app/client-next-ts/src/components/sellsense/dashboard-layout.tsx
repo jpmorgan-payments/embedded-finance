@@ -706,8 +706,8 @@ export function DashboardLayout() {
     // Determine clientId for fullscreen components that require it
     const fullscreenClientScenario =
       (searchParams.scenario as ClientScenario) || clientScenario;
-    const fullscreenClientId =
-      getClientIdForScenario(fullscreenClientScenario) || '0030000131';
+    const scenarioClientId = getClientIdForScenario(fullscreenClientScenario);
+    const fullscreenClientId = scenarioClientId || '0030000131';
 
     switch (searchParams.component) {
       case 'onboarding':
@@ -795,8 +795,8 @@ export function DashboardLayout() {
                   }}
                 >
                   <Accounts
-                    allowedCategories={['LIMITED_DDA_PAYMENTS']}
-                    clientId={fullscreenClientId}
+                    allowedCategories={['LIMITED_DDA_PAYMENTS', 'LIMITED_DDA']}
+                    clientId={scenarioClientId}
                   />
                 </EBComponentsProvider>
               </div>

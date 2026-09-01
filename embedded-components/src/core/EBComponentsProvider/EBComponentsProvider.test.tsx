@@ -1,4 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { useEffect } from 'react';
+import { server } from '@/msw/server';
+import { render, screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
+
+import { useAxiosInstance } from '@/api/AxiosInstanceContext';
 
 import { EBComponentsProvider } from './EBComponentsProvider';
 
@@ -11,6 +16,25 @@ function BuggyComponent() {
 // Test component that renders normally
 function NormalComponent() {
   return <div>Normal component content</div>;
+}
+
+function MutationProbe({
+  skipClientIdBodyInjection,
+}: {
+  skipClientIdBodyInjection?: boolean;
+}) {
+  const axiosInstance = useAxiosInstance();
+
+  useEffect(() => {
+    void axiosInstance({
+      url: '/provider-mutation-probe',
+      method: 'PATCH',
+      data: { individualDetails: { lastName: 'Diaz' } },
+      skipClientIdBodyInjection,
+    });
+  }, [axiosInstance, skipClientIdBodyInjection]);
+
+  return null;
 }
 
 describe('EBComponentsProvider', () => {
@@ -95,5 +119,50 @@ describe('EBComponentsProvider', () => {
     expect(
       screen.queryByText('Normal component content')
     ).not.toBeInTheDocument();
+  });
+
+  it('preserves sparse mutation bodies when body injection is disabled', async () => {
+    let requestBody: unknown;
+    server.use(
+      http.patch('*/provider-mutation-probe', async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({});
+      })
+    );
+
+    render(
+      <EBComponentsProvider apiBaseUrl="/" clientId="client-1">
+        <MutationProbe skipClientIdBodyInjection />
+      </EBComponentsProvider>
+    );
+
+    await waitFor(() => {
+      expect(requestBody).toEqual({
+        individualDetails: { lastName: 'Diaz' },
+      });
+    });
+  });
+
+  it('retains clientId body injection for existing mutation requests', async () => {
+    let requestBody: unknown;
+    server.use(
+      http.patch('*/provider-mutation-probe', async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({});
+      })
+    );
+
+    render(
+      <EBComponentsProvider apiBaseUrl="/" clientId="client-1">
+        <MutationProbe />
+      </EBComponentsProvider>
+    );
+
+    await waitFor(() => {
+      expect(requestBody).toEqual({
+        individualDetails: { lastName: 'Diaz' },
+        clientId: 'client-1',
+      });
+    });
   });
 });
