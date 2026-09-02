@@ -232,7 +232,7 @@ Apply these response rules:
 - A client response holds persisted state; a maintenance-list response holds pending state. The API returns no field-level `before` and `after` values.
 - Party proposals come from maintenance-request responses. Product state comes from `ClientResponse.productDetails` alone, because a product change carries no `updateRequest`; never synthesize a party record for it.
 - Preserve the submitted product command so the UI can label the requested `ADD` or `REMOVE`; `ProductDetailsStatusItem` returns status, not action.
-- Build the projection from the client-scoped list. `PartyResponse` declares no required properties, so treat every identifier as optional and correlate defensively. The published list example carries `id` on each item, including a pending `ADD`; the request-scoped examples carry none, and party-scoped reads have been seen without `id` or `partyId`. Keep the queried party ID as context rather than relying on the payload to carry it.
+- Build the projection from the client-scoped list, which is the only read whose published example carries `id` on every item. A proposal is a sparse delta, so without `id` it cannot be attached to a party: the request-scoped examples omit it, and party-scoped reads have been seen without it. Treat identifiers as optional, and keep the party ID you queried as context rather than relying on the payload to carry it.
 - One response can mix records for the same party from different requests, for example a `TERMINATED` record beside a `REVIEW_IN_PROGRESS` one. Filter by status; there is no server-side active filter.
 - Observed behavior: `updateRequest.submittedAt` is the last time that party's delta was written, not the time the request was submitted for review. Use it to order writes within a request, not to date the submission.
 - Validate `requestId`, `action`, and the party ID before projection. Reject payloads missing correlation data and block submission.
@@ -603,7 +603,7 @@ diff approvedClient and proposedClient across the same descriptors
 emit PartyChange[] and FieldChange[] with winning and superseded sources
 ```
 
-### 4. Preserve precedence and provenance
+### 4. Preserve provenance
 
 ```ts
 type ChangeSource = {
@@ -617,7 +617,6 @@ type FieldChange = {
   approvedValue: unknown;
   proposedValue: unknown;
   source: ChangeSource;
-  supersededSources: ChangeSource[];
   sensitivity: 'public' | 'masked';
 };
 
@@ -630,7 +629,7 @@ type ChangeSet = {
 };
 ```
 
-Compose party proposals that share one request ID in `submittedAt` order. The API coalesces repeated writes for a party and returns only the latest value, so `supersededSources` can hold only entries the host recorded when it made the earlier write. Leave it empty rather than inferring history from the response.
+The API coalesces repeated writes for a party and returns only the latest value, so each field carries exactly one source. Do not try to reconstruct earlier values from the response.
 
 ## Review UI
 
@@ -806,32 +805,11 @@ async function patchParty(partyId: string, changedFields: UpdatePartyRequest) {
 
 ## Staleness and consistency
 
-Client and maintenance responses carry no ETag, version, snapshot token, or `Last-Modified` header, so drift detection is best-effort and local. Use the review fingerprint for it. Immediately before attestation and verification, refetch the client and every maintenance page, rebuild the `ChangeSet`, and compare it with the reviewed fingerprint. Require two consecutive identical complete reads before submission. Invalidate the attestation and return to review when values change.
+The platform is the only writer, so it serializes its own edits and no cross-consumer conflict exists. What can still move underneath the UI is server-driven: a request can enter review, ask for information, be approved, or be auto-terminated at any moment.
 
-Build the review fingerprint from the proposed product and party changes:
+Refetch the client and every maintenance page immediately before attestation and verification, and rebuild the change set. If the request status is no longer the one the client reviewed under, show the new state instead of submitting.
 
-```ts
-const reviewedFingerprint = stableHash({
-  products: changeSet.productChanges,
-  parties: changeSet.partyChanges.map(
-    ({ partyId, action, removesParty, fieldChanges }) => ({
-      partyId,
-      action,
-      removesParty,
-      fields: fieldChanges.map(({ path, proposedValue, source }) => ({
-        path,
-        proposedValue,
-        requestId: source.requestId,
-        submittedAt: source.submittedAt,
-      })),
-    })
-  ),
-});
-```
-
-Compare the fingerprint after every pre-submit refetch. Block submission while either resource is stale, incomplete, or unavailable.
-
-Use the same event model as the regular onboarding flow. Refetch client and maintenance resources after a relevant event, track client product `onboardingStatus` and party `updateRequest.status` independently, and stop tracking each proposal when it becomes terminal. Continue lower-frequency client refetches during the 24-48 hour publication window. Do not keep an approved proposal overlay visible while waiting for publication.
+Use the same event model as the regular onboarding flow. Refetch client and maintenance resources after a relevant event, track product `onboardingStatus` and party `updateRequest.status`, and stop tracking each proposal when it becomes terminal. Continue lower-frequency client refetches during the 24-48 hour publication window. Do not keep an approved proposal overlay visible while waiting for publication.
 
 ## Sensitive data
 
@@ -859,25 +837,25 @@ Apply masking in the host before rendering or logging values.
 
 ## Required error and edge-state behavior
 
-| State                                                                            | Required host response                                                                                                          |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Client is not `APPROVED` or is out of scope                                      | Do not offer maintenance; route to the appropriate onboarding/support state                                                     |
-| Client load fails                                                                | Keep route context, show retry, do not render stale deltas as current                                                           |
-| Product, party-create, or party-update write fails                               | Keep local input, focus the error, and do not mutate the approved cache                                                         |
-| PATCH succeeds but maintenance refetch fails                                     | Show the request as synchronizing; do not invent the proposed value from the PATCH response                                     |
-| More than one open party-maintenance request ID is returned                      | Block attestation/verification and surface an integration error                                                                 |
-| Maintenance list is incomplete/unpageable                                        | Do not claim the proposed snapshot is complete                                                                                  |
-| Proposal lacks correlation fields                                                | Exclude it from projection, show a validation warning, and block submission                                                     |
-| Reviewed data changes before attestation                                         | Invalidate attestation and return to review                                                                                     |
-| Mutation returns `409`                                                           | Treat it as a concurrent-request conflict, preserve local input, refetch client and maintenance state, and require review again |
-| Mutation returns a status-related `422`                                          | Parse `ApiError.context`, refetch lifecycle status, and render the allowed state-specific actions                               |
-| Draft cancellation returns `409`/`422`                                           | Refetch status; do not locally mark the request terminated                                                                      |
-| Attestation PATCH fails                                                          | Do not call verification                                                                                                        |
-| Verification returns `409` or `422`                                              | Preserve review data and display actionable API context                                                                         |
-| Verification returns `202`                                                       | Show accepted for processing and refetch product and party status independently                                                 |
-| Product or party status becomes `INFORMATION_REQUESTED`                          | Surface returned outstanding questions, documents, and party requirements                                                       |
-| Product or party status becomes `APPROVED`                                       | Exclude that proposal from projection and refetch client through the 24-48 hour publication window                              |
-| Product or party status becomes `DECLINED`, or party status becomes `TERMINATED` | Remove that proposal from proposed state and retain request history and audit context                                           |
+| State                                                                            | Required host response                                                                                                |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Client is not `APPROVED` or is out of scope                                      | Do not offer maintenance; route to the appropriate onboarding/support state                                           |
+| Client load fails                                                                | Keep route context, show retry, do not render stale deltas as current                                                 |
+| Product, party-create, or party-update write fails                               | Keep local input, focus the error, and do not mutate the approved cache                                               |
+| PATCH succeeds but maintenance refetch fails                                     | Show the request as synchronizing; do not invent the proposed value from the PATCH response                           |
+| More than one open party-maintenance request ID is returned                      | Block attestation/verification and surface an integration error                                                       |
+| Maintenance list is incomplete/unpageable                                        | Do not claim the proposed snapshot is complete                                                                        |
+| Proposal lacks correlation fields                                                | Exclude it from projection, show a validation warning, and block submission                                           |
+| Request status changed since the client reviewed it                              | Show the new state instead of submitting                                                                              |
+| Mutation returns `409`                                                           | Treat it as a lifecycle lock, preserve local input, refetch client and maintenance state, and show the current status |
+| Mutation returns a status-related `422`                                          | Parse `ApiError.context`, refetch lifecycle status, and render the allowed state-specific actions                     |
+| Draft cancellation returns `409`/`422`                                           | Refetch status; do not locally mark the request terminated                                                            |
+| Attestation PATCH fails                                                          | Do not call verification                                                                                              |
+| Verification returns `409` or `422`                                              | Preserve review data and display actionable API context                                                               |
+| Verification returns `202`                                                       | Show accepted for processing and refetch product and party status independently                                       |
+| Product or party status becomes `INFORMATION_REQUESTED`                          | Surface returned outstanding questions, documents, and party requirements                                             |
+| Product or party status becomes `APPROVED`                                       | Exclude that proposal from projection and refetch client through the 24-48 hour publication window                    |
+| Product or party status becomes `DECLINED`, or party status becomes `TERMINATED` | Remove that proposal from proposed state and retain request history and audit context                                 |
 
 ## Required test coverage
 
@@ -892,7 +870,7 @@ Party maintenance:
 - the since-approval checkpoint: no continues with the product change only, yes reveals the disclosure controls;
 - request DTOs that omit unchanged fields and reject fields outside the allowlist;
 - client legal name, DBA name, and address sent to `PATCH /parties/{clientPartyId}`, never to `PATCH /clients`;
-- repeated party writes sharing one open `requestId` and merging into one delta, with `supersededSources` populated only from host-recorded history;
+- repeated party writes sharing one open `requestId` and merging into one delta, with the latest value winning per field;
 - `null` and empty-array properties treated as no-ops, nested objects merged property by property, and a non-empty array replacing the whole array;
 - no clear affordance offered for any field, and a write whose fields would all be ignored never sent;
 - `outstanding` driving the task list even though it reflects the proposed state;
@@ -964,15 +942,14 @@ Move each resolved answer into the owning section above, then remove its row.
 
 ### Not determinable from the specification, the guides, or the API
 
-| Flow area                              | Question                                                                                                                                                                                                                                                                                                                 |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Ownership certification                | Is there a certification or attestation specific to the indirect-ownership disclosure, beyond the FinCEN attestation for new owners?                                                                                                                                                                                     |
-| Writable field, role, and entity scope | What is the complete allowlist by country, legal entity type, party type, and role, and what response identifies an unsupported field, role, or entity?                                                                                                                                                                  |
-| Identifiers on maintenance reads       | The specification marks every `PartyResponse` property optional, yet the published list example carries `id` on each item while our party-scoped reads omit it. Is the omission a defect or intended? No example shows `parentPartyId` on a pending `ADD` — is it ever returned?                                         |
-| Attestation payload                    | `addAttestations`, `removeAttestations`, and `ClientResponse.attestations` are all deprecated in v1.4.1 with no successor in the specification. What replaces them, on what timeline, and until then is `addAttestations` with a structured `attester` supported in production?                                          |
-| Error taxonomy and correlation         | Which codes distinguish concurrency conflicts, lifecycle locks, invalid fields, unsupported roles, duplicate submissions, and retryable failures, and how must `ApiError.context`, `traceId`, `requestId`, and `Idempotency-Key` be correlated?                                                                          |
-| Status and publication events          | Which events carry maintenance status changes and the point at which approved values become live on the client, which identifiers do they include, and what delivery and retry behavior must the host support? Approved values are not always live when the request reaches `APPROVED`; closing that gap is in progress. |
-| Concurrency primitive                  | Is a version, ETag, as-of timestamp, snapshot token, or optimistic-concurrency precondition planned for review and verification?                                                                                                                                                                                         |
+| Flow area                              | Question                                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Ownership certification                | Is there a certification or attestation specific to the indirect-ownership disclosure, beyond the FinCEN attestation for new owners?                                                                                                                                                                                                                                           |
+| Writable field, role, and entity scope | What is the complete allowlist by country, legal entity type, party type, and role, and what response identifies an unsupported field, role, or entity?                                                                                                                                                                                                                        |
+| Correlating a proposal to a party      | A proposal is a sparse delta, so `id` is what attaches it to a party. `PartyResponse` marks `id` optional and the request-scoped examples omit it, leaving no way to place the items of a multi-party request. Is `id` guaranteed on maintenance reads? Is `parentPartyId` returned for a pending `ADD`, so a fresh session can place a proposed party in the ownership chain? |
+| Attestation payload                    | `addAttestations`, `removeAttestations`, and `ClientResponse.attestations` are all deprecated in v1.4.1 with no successor in the specification. What replaces them, on what timeline, and until then is `addAttestations` with a structured `attester` supported in production?                                                                                                |
+| Error taxonomy and correlation         | Which codes distinguish lifecycle locks, invalid fields, unsupported roles, duplicate submissions, and retryable failures, and how must `ApiError.context`, `traceId`, `requestId`, and `Idempotency-Key` be correlated?                                                                                                                                                       |
+| Status and publication events          | Which events carry maintenance status changes and the point at which approved values become live on the client, which identifiers do they include, and what delivery and retry behavior must the host support? Approved values are not always live when the request reaches `APPROVED`; closing that gap is in progress.                                                       |
 
 ### Observed behavior to confirm as contractual
 
@@ -992,4 +969,3 @@ The sections above already build on these. Each was established by exercising th
 - Four `BENEFICIAL_OWNER` parties is a server-enforced maximum, evaluated after pending edits and excluding `INTERMEDIARY_OWNER`.
 - `natureOfOwnership` is validated against the immediate parent's role: `Direct` under `CLIENT`, `Indirect` and mandatory under `INTERMEDIARY_OWNER`.
 - Mutation responses never carry the submitted value, so every write needs a follow-up maintenance read.
-- The precedence rule for concurrent writers to the same field has not been exercised.
