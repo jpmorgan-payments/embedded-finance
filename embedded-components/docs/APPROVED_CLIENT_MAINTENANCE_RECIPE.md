@@ -79,6 +79,7 @@ Where the guides and the specification are silent, the behavior described below 
 | Controller or beneficial owner name or birth date | `PATCH /onboarding/v1/parties/{partyId}`                        | `firstName`, `middleName`, `lastName`, `birthDate` only; provide documentary evidence                                          |
 | Add a beneficial owner or controller              | `POST /onboarding/v1/parties`                                   | `parentPartyId` is the immediate parent; the new party runs identity verification and KYC; FinCEN attestation required         |
 | Remove a related party                            | `PATCH /onboarding/v1/parties/{partyId}` with `active: false`   | Provide a replacement when removing the only `CONTROLLER`                                                                      |
+| Restate an owner as indirect                      | `PATCH /onboarding/v1/parties/{partyId}`                        | Set `parentPartyId` to the new intermediary and `natureOfOwnership` to `Indirect`                                              |
 | Disclose indirect ownership                       | `POST /onboarding/v1/parties` per ownership layer               | See [Disclose indirect ownership](#5-disclose-indirect-ownership)                                                              |
 
 The API enforces a maximum of four `BENEFICIAL_OWNER` parties, counted after pending edits are applied and with `INTERMEDIARY_OWNER` organizations excluded. A fifth is rejected, so mirror the limit in the UI and never let the user reach that error.
@@ -231,7 +232,7 @@ Apply these response rules:
 - A client response holds persisted state; a maintenance-list response holds pending state. The API returns no field-level `before` and `after` values.
 - Party proposals come from maintenance-request responses. Product state comes from `ClientResponse.productDetails` alone, because a product change carries no `updateRequest`; never synthesize a party record for it.
 - Preserve the submitted product command so the UI can label the requested `ADD` or `REMOVE`; `ProductDetailsStatusItem` returns status, not action.
-- Build the projection from the client-scoped list. Observed behavior: a maintenance response is rendered from the stored delta plus `updateRequest`, so it carries only the properties that were submitted. That is why party-scoped reads arrive without `id` or `partyId`, and why a party-scoped read is only detail for a party you already identified.
+- Build the projection from the client-scoped list. `PartyResponse` declares no required properties, so treat every identifier as optional and correlate defensively. The published list example carries `id` on each item, including a pending `ADD`; the request-scoped examples carry none, and party-scoped reads have been seen without `id` or `partyId`. Keep the queried party ID as context rather than relying on the payload to carry it.
 - One response can mix records for the same party from different requests, for example a `TERMINATED` record beside a `REVIEW_IN_PROGRESS` one. Filter by status; there is no server-side active filter.
 - Observed behavior: `updateRequest.submittedAt` is the last time that party's delta was written, not the time the request was submitted for review. Use it to order writes within a request, not to date the submission.
 - Validate `requestId`, `action`, and the party ID before projection. Reject payloads missing correlation data and block submission.
@@ -242,14 +243,14 @@ Apply these response rules:
 
 Enforce these state-machine guards:
 
-| `updateRequest.status`  | Host may mutate draft | Host may cancel | Host action                                                                 |
-| ----------------------- | --------------------- | --------------- | --------------------------------------------------------------------------- |
-| No open request         | Yes                   | No              | First supported change creates a draft                                      |
-| `NEW`                   | Yes                   | Yes             | Continue editing under the same `requestId`; attest and verify when ready   |
-| `REVIEW_IN_PROGRESS`    | No                    | No              | Show read-only submitted changes and await an outcome                       |
-| `INFORMATION_REQUESTED` | Yes                   | No              | Writes still merge into the same request; lead with the returned tasks      |
-| `APPROVED`              | No                    | No              | Exclude from proposed state and refetch until approved values are published |
-| `DECLINED`/`TERMINATED` | No                    | No              | Exclude from proposed state and retain request history                      |
+| `updateRequest.status`  | Host may mutate draft | Host may cancel | Host action                                                                                                                                                           |
+| ----------------------- | --------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No open request         | Yes                   | No              | First supported change creates a draft                                                                                                                                |
+| `NEW`                   | Yes                   | Yes             | Continue editing under the same `requestId`; attest and verify when ready                                                                                             |
+| `REVIEW_IN_PROGRESS`    | No                    | No              | Show read-only submitted changes and await an outcome                                                                                                                 |
+| `INFORMATION_REQUESTED` | Yes                   | No              | Writes still merge into the same request; lead with the returned tasks. Completing them returns the request to `REVIEW_IN_PROGRESS` without another verification call |
+| `APPROVED`              | No                    | No              | Exclude from proposed state and refetch until approved values are published                                                                                           |
+| `DECLINED`/`TERMINATED` | No                    | No              | Exclude from proposed state and retain request history                                                                                                                |
 
 Fail closed if more than one active `requestId` is returned for one client; the guide allows only one. Preserve the payload for support diagnostics, reject the projection, and block attestation. Records from earlier terminated requests are returned alongside the active one, so filter by status instead of assuming one record per party.
 
@@ -264,11 +265,14 @@ Use `ClientResponse.outstanding` as the task-discovery surface:
 1. Refetch `GET /clients/{id}` after every task write and lifecycle event.
 2. Whenever `questionIds` are returned, resolve them with `GET /questions?questionIds={ids}` and submit answers through `PATCH /clients/{id}` using `questionResponses`.
 3. For each returned `documentRequestId`, read `GET /document-requests/{id}`, upload every required file with `POST /documents`, then submit with `POST /document-requests/{id}/submit`.
-4. Present every document in `attestationDocumentIds`, capture the structured attester, and submit the attestation through `PATCH /clients/{id}`.
+4. Present every document in `attestationDocumentIds`, capture the structured attester, and submit the attestation through `PATCH /clients/{id}`. Confirm it landed by refetching until `attestationDocumentIds` no longer lists it, not by reading `ClientResponse.attestations`, which is deprecated.
 5. Submit verification and treat `202 Accepted` as the start of asynchronous review, not approval.
 6. Use `DocumentRequestResponse.partyId` to associate a document request with its party. Keep questions client-level because `QuestionResponse` has no `partyId`.
 7. Deduplicate by document request ID: the same request can appear both in `outstanding` and in a party's `validationResponse[].documentRequestIds`. It is one task, not two blockers.
-8. Keep the request read-only while additional information is outstanding after submission.
+8. Clear `outstanding.partyIds`, `outstanding.partyRoles`, and `validationResponse` entries by patching the client or the party with the information they name. There is no separate endpoint that starts or resumes validation; the write itself clears the block.
+9. Keep the request read-only while additional information is outstanding after submission.
+
+Completing the returned work resumes review by itself, exactly as in the original onboarding. Once every question is answered and every document is accepted, the status returns from `INFORMATION_REQUESTED` to `REVIEW_IN_PROGRESS` on its own. Do not call verification a second time; confirm the transition by refetching `GET /clients/{id}`. A document that is rejected leaves the status unchanged, so keep the task visible until the refetch shows it cleared.
 
 Track status through the notification events webhook channel or by polling `GET /maintenance-requests/{requestId}`; the guide names both.
 
@@ -374,7 +378,20 @@ Set `natureOfOwnership` from the parent's role. The API validates this pair and 
 
 Create each layer with its own `POST /parties`, starting with the layer closest to the client, and set `parentPartyId` to the immediate parent returned by the previous call.
 
-Ownership is also restated, not only added. When an owner the client already declared turns out to be held through a company, the client inserts that company between itself and the existing owner. Present this as one action, "this owner is held through a company", and let the UI do the rest: create the intermediary under the client, then re-parent the existing owner beneath it so its nature becomes `Indirect`. Never make the client delete and re-enter an owner they have already been approved for.
+Ownership is also restated, not only added. When an owner the client already declared turns out to be held through a company, the client inserts that company between itself and the existing owner. Present this as one action, "this owner is held through a company", and let the UI do the rest: create the intermediary under the client, then re-parent the existing owner beneath it. Never make the client delete and re-enter an owner they have already been approved for.
+
+Re-parenting is a sparse party update on the approved owner. Both properties are updatable after approval:
+
+```http
+PATCH /onboarding/v1/parties/2000000556
+```
+
+```json
+{
+  "parentPartyId": "2000000560",
+  "individualDetails": { "natureOfOwnership": "Indirect" }
+}
+```
 
 Intermediary owner (organization):
 
@@ -692,22 +709,22 @@ Open each task into the same field comparison used by the profile review hub.
 
 ### State-specific interactions
 
-| Resource state                             | Primary message                               | Available actions                                                                               |
-| ------------------------------------------ | --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| No open request                            | Approved profile                              | Edit a supported field, add a related party, or remove a related party                          |
-| Party `updateRequest.status: NEW`          | Draft changes are not yet submitted           | Continue supported party edits, review, attest, verify, or cancel the party-maintenance request |
-| Product or party `REVIEW_IN_PROGRESS`      | Submitted for review; not approved            | View read-only changes and status; prevent ordinary edit controls                               |
-| Product or party `INFORMATION_REQUESTED`   | More information is required                  | Show the returned tasks and keep ordinary draft edits disabled                                  |
-| Product or party `APPROVED`, not published | Approved; profile update may take 24-48 hours | Remove that proposal overlay and refetch the client until its approved values are published     |
-| Published                                  | Approved profile is current                   | Return to profile and retain request history                                                    |
-| Product or party `DECLINED`                | Changes were not approved                     | Remove that proposal overlay and retain its request history                                     |
-| Party `updateRequest.status: TERMINATED`   | Draft was canceled or auto-closed             | Remove the party proposal overlay and return to the approved profile                            |
+| Resource state                             | Primary message                               | Available actions                                                                                                     |
+| ------------------------------------------ | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| No open request                            | Approved profile                              | Edit a supported field, add a related party, or remove a related party                                                |
+| Party `updateRequest.status: NEW`          | Draft changes are not yet submitted           | Continue supported party edits, review, attest, verify, or cancel the party-maintenance request                       |
+| Product or party `REVIEW_IN_PROGRESS`      | Submitted for review; not approved            | View read-only changes and status; prevent ordinary edit controls                                                     |
+| Product or party `INFORMATION_REQUESTED`   | More information is required                  | Show the returned tasks; refetch after each one and return to the submitted view once the status flips back to review |
+| Product or party `APPROVED`, not published | Approved; profile update may take 24-48 hours | Remove that proposal overlay and refetch the client until its approved values are published                           |
+| Published                                  | Approved profile is current                   | Return to profile and retain request history                                                                          |
+| Product or party `DECLINED`                | Changes were not approved                     | Remove that proposal overlay and retain its request history                                                           |
+| Party `updateRequest.status: TERMINATED`   | Draft was canceled or auto-closed             | Remove the party proposal overlay and return to the approved profile                                                  |
 
 For cancellation, distinguish “Cancel all draft changes” from party-scoped cancellation. Display the request ID, affected party names, and irreversible result. Offer cancellation only while the request is `NEW`; disable it as soon as verification starts.
 
 ## Attestation and verification
 
-For the v1.4.1 payload shown here, send `addAttestations` with structured `attester` details. Retrieve each attestation document with `GET /documents/{id}` and its content with `GET /documents/{id}/file` before collecting acceptance:
+Attestations on an existing client go through `addAttestations`. In v1.4.1 that property is marked deprecated and the specification offers no successor, so it remains the only available path; build against it and expect a migration later. Inside it, use the structured `attester` rather than the deprecated `attesterFullName`, and send `attestationTime`, `documentId`, and `ipAddress`, all of which are required. Retrieve each attestation document with `GET /documents/{id}` and its content with `GET /documents/{id}/file` before collecting acceptance:
 
 ```json
 {
@@ -781,7 +798,7 @@ async function patchParty(partyId: string, changedFields: UpdatePartyRequest) {
 
 - Do not optimistically patch `approvedClient` with submitted values.
 - Retain form values until the maintenance refetch succeeds and label them local and unsynchronized.
-- Fetch page zero, then page with the limit you requested: `metadata` returns `page` and `total` but has been observed to omit `limit`. Keep paging until the collected count reaches `total`, then verify it against a final page-zero refetch before enabling review or attestation.
+- Fetch page zero, then page with the limit you requested: `metadata` returns `page` and `total` but has been observed to omit `limit`, and every field in it is optional. The maximum page size is 25. Keep paging until the collected count reaches `total`, then verify it against a final page-zero refetch before enabling review or attestation.
 - Treat malformed metadata, a missing page, or a changing total as an incomplete read and block review.
 - Rebuild the projection from query data; do not store a second mutable copy.
 - Key request-specific caches by both client and `requestId` to avoid cross-client collisions.
@@ -896,7 +913,8 @@ Party maintenance:
 Indirect ownership:
 
 - the certification question gating the chain controls;
-- inserting an intermediary above an already-declared owner without asking the client to re-enter that owner;
+- inserting an intermediary above an already-declared owner without asking the client to re-enter that owner, re-parenting it with `parentPartyId` and `natureOfOwnership`;
+- `outstanding` entries clearing through the patch that supplies the named information, with no separate validation call;
 - a controller replacement that adds the incoming controller before deactivating the outgoing one;
 - an owner declared `Indirect` blocking submission until at least one intermediary exists;
 - chain creation ordered from the client outward with `parentPartyId` set to the immediate parent;
@@ -910,7 +928,7 @@ Lifecycle:
 - full-request and party-scoped cancellation while `NEW`, and the lock after submission;
 - attestation required before verification;
 - verification moving `NEW` to `REVIEW_IN_PROGRESS` and preventing further edits;
-- `INFORMATION_REQUESTED` surfacing returned questions and document requests while ordinary edits stay disabled;
+- `INFORMATION_REQUESTED` surfacing returned questions and document requests, and returning to `REVIEW_IN_PROGRESS` once they are complete without a second verification call;
 - each documented `TERMINATED` trigger rendering its own explanation;
 - `202 Accepted` separated from later approval, and 24-48 hour publication messaging without overlaying approved data;
 - both client and maintenance resources refetched after every write and before attestation.
@@ -946,18 +964,15 @@ Move each resolved answer into the owning section above, then remove its row.
 
 ### Not determinable from the specification, the guides, or the API
 
-| Flow area                                     | Question                                                                                                                                                                                                                                                                                                                                                              |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Indirect ownership in maintenance             | Can an approved client add `INTERMEDIARY_OWNER` parties after approval? Inserting an intermediary above an owner the client already declared means re-parenting that approved party and flipping its nature to `Indirect`, so are `parentPartyId` and `natureOfOwnership` updatable on an approved party, and if not, what is the supported way to restate the chain? |
-| Ownership certification                       | Is there a certification or attestation specific to the indirect-ownership disclosure, beyond the FinCEN attestation for new owners?                                                                                                                                                                                                                                  |
-| Writable field, role, and entity scope        | What is the complete allowlist by country, legal entity type, party type, and role, and what response identifies an unsupported field, role, or entity?                                                                                                                                                                                                               |
-| Guaranteed fields per query scope             | Which identifiers are guaranteed for client-scoped, party-scoped, and request-scoped reads? Does a pending `ADD` always include `parentPartyId`?                                                                                                                                                                                                                      |
-| Outstanding party requirements                | How are `outstanding.partyIds`, `outstanding.partyRoles`, and party `validationResponse` entries completed during maintenance, and which endpoint starts or resumes validation for a newly added party?                                                                                                                                                               |
-| Resuming review after `INFORMATION_REQUESTED` | Once every returned question and document is complete, does review resume automatically or must verification be called again?                                                                                                                                                                                                                                         |
-| Attestation payload                           | What non-deprecated property replaces `addAttestations`, on what timeline, and is `addAttestations` with a structured `attester` the supported production payload until then?                                                                                                                                                                                         |
-| Error taxonomy and correlation                | Which codes distinguish concurrency conflicts, lifecycle locks, invalid fields, unsupported roles, duplicate submissions, and retryable failures, and how must `ApiError.context`, `traceId`, `requestId`, and `Idempotency-Key` be correlated?                                                                                                                       |
-| Status and publication events                 | Which events carry maintenance status changes and the point at which approved values become live on the client, which identifiers do they include, and what delivery and retry behavior must the host support? Approved values are not always live when the request reaches `APPROVED`; closing that gap is in progress.                                              |
-| Concurrency primitive                         | Is a version, ETag, as-of timestamp, snapshot token, or optimistic-concurrency precondition planned for review and verification?                                                                                                                                                                                                                                      |
+| Flow area                              | Question                                                                                                                                                                                                                                                                                                                 |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Ownership certification                | Is there a certification or attestation specific to the indirect-ownership disclosure, beyond the FinCEN attestation for new owners?                                                                                                                                                                                     |
+| Writable field, role, and entity scope | What is the complete allowlist by country, legal entity type, party type, and role, and what response identifies an unsupported field, role, or entity?                                                                                                                                                                  |
+| Identifiers on maintenance reads       | The specification marks every `PartyResponse` property optional, yet the published list example carries `id` on each item while our party-scoped reads omit it. Is the omission a defect or intended? No example shows `parentPartyId` on a pending `ADD` — is it ever returned?                                         |
+| Attestation payload                    | `addAttestations`, `removeAttestations`, and `ClientResponse.attestations` are all deprecated in v1.4.1 with no successor in the specification. What replaces them, on what timeline, and until then is `addAttestations` with a structured `attester` supported in production?                                          |
+| Error taxonomy and correlation         | Which codes distinguish concurrency conflicts, lifecycle locks, invalid fields, unsupported roles, duplicate submissions, and retryable failures, and how must `ApiError.context`, `traceId`, `requestId`, and `Idempotency-Key` be correlated?                                                                          |
+| Status and publication events          | Which events carry maintenance status changes and the point at which approved values become live on the client, which identifiers do they include, and what delivery and retry behavior must the host support? Approved values are not always live when the request reaches `APPROVED`; closing that gap is in progress. |
+| Concurrency primitive                  | Is a version, ETag, as-of timestamp, snapshot token, or optimistic-concurrency precondition planned for review and verification?                                                                                                                                                                                         |
 
 ### Observed behavior to confirm as contractual
 
