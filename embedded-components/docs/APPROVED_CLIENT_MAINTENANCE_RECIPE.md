@@ -16,6 +16,12 @@ The journey covers all three actions, because a real client rarely does only one
 
 The design problem is keeping the client oriented while all three are in flight at once: what is live today, what has been requested, and what still needs their input.
 
+### What the client response does not tell you
+
+One subtlety shapes the whole UI. `GET /clients/{id}` is guaranteed to report `products`, so an onboarded client reliably shows `EMBEDDED_PAYMENTS`. It is not guaranteed to report `productDetails`, which is where `subProduct` lives, so the response need not state that the client holds Limited DDA today.
+
+Where a platform is configured so that Embedded Payments means Limited DDA, treat that configuration as the source of truth for what the client already has. Do not gate the journey on finding `LIMITED_DDA` in the response, and do not tell the client they hold nothing because the sub-product is absent. Read `productDetails[].onboardingStatus` to follow the product being requested, and tolerate its absence for the product already held.
+
 Out of scope: Merchant Services, new-client onboarding, account and payment operations, and any role or field outside [Supported updates](#supported-updates).
 
 This is an implementation companion to the PDP guides in [References](#references). Those guides and the Digital Onboarding OpenAPI specification define supported API behavior. They do not, however, describe how a sparse proposal merges into an existing one, when writes are blocked, what the client response shows while a request is open, or how the UI should assemble a current-versus-requested view. This recipe fills those gaps with design guidance, projection invariants, UX patterns, failure handling, and test recommendations, and marks whether a statement comes from the published guides or from observed API behavior.
@@ -64,7 +70,7 @@ Where the guides and the specification are silent, the behavior described below 
 - Repeated writes for one party accumulate into a single stored delta. Per field the latest write wins; fields set by earlier writes remain. The API does not retain the earlier value, so any superseded history has to be recorded by the host.
 - A `PATCH` response returns the persisted values plus an `updateRequest` block. Pending values are visible only through the maintenance-request endpoints.
 - After verification moves the request to `REVIEW_IN_PROGRESS`, no further edits are allowed.
-- Adding a product does not create a maintenance request. `updateRequest` appears only when party information changes: modifying existing information, adding a party, or removing one. Track the product through `productDetails[].onboardingStatus` and the party request through `updateRequest`.
+- Adding a product does not create a maintenance request. `updateRequest` appears only when party information changes: modifying existing information, adding a party, or removing one. Track the requested product through `productDetails[].onboardingStatus` when it is present, and the party request through `updateRequest`.
 - One `POST /clients/{id}/verifications` submits the product request together with every party change under the open request. Both the product status and the party request status reach `APPROVED` together, so present them as one submission with one outcome.
 - Observed behavior: `ClientResponse.outstanding` is calculated against the proposed state, not the approved one. Pending party edits are overlaid and a party pending removal is excluded before requirements are computed, so outstanding work already reflects the draft.
 - Approved values can take 24-48 hours to appear in `GET /clients/{id}`. Approval itself arrives as a notification event; the client response remains the record of what has actually been published.
