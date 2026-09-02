@@ -16,11 +16,7 @@ The journey covers all three actions, because a real client rarely does only one
 
 The design problem is keeping the client oriented while all three are in flight at once: what is live today, what has been requested, and what still needs their input.
 
-### What the client response does not tell you
-
-One subtlety shapes the whole UI. `GET /clients/{id}` is guaranteed to report `products`, so an onboarded client reliably shows `EMBEDDED_PAYMENTS`. It is not guaranteed to report `productDetails`, which is where `subProduct` lives, so the response need not state that the client holds Limited DDA today.
-
-Where a platform is configured so that Embedded Payments means Limited DDA, treat that configuration as the source of truth for what the client already has. Do not gate the journey on finding `LIMITED_DDA` in the response, and do not tell the client they hold nothing because the sub-product is absent. Read `productDetails[].onboardingStatus` to follow the product being requested, and tolerate its absence for the product already held.
+There is one catch. `GET /clients/{id}` always includes `products`, so you can see the seller is on Embedded Payments. It does not have to include `productDetails`, and that is the only place `subProduct` appears, so the response may never mention Limited DDA at all. When a platform is set up so that Embedded Payments means Limited DDA, take the starting product from your own configuration: do not wait to see `LIMITED_DDA` in the response before offering the journey, and do not tell the seller they hold nothing because the sub-product is missing. Use `productDetails[].onboardingStatus` to follow the product being requested, and expect the product they already hold to be absent from it.
 
 Out of scope: Merchant Services, new-client onboarding, account and payment operations, and any role or field outside [Supported updates](#supported-updates).
 
