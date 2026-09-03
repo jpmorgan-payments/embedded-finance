@@ -31,6 +31,7 @@ import { Route as FortressGameRouteImport } from './routes/fortress-game'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DemosRouteImport } from './routes/demos'
 import { Route as ComponentsRouteImport } from './routes/components'
+import { Route as ApprovedClientMaintenanceRouteImport } from './routes/approved-client-maintenance'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestScenarioIndexRouteImport } from './routes/test-scenario.index'
 import { Route as StoriesIndexRouteImport } from './routes/stories.index'
@@ -148,6 +149,12 @@ const ComponentsRoute = ComponentsRouteImport.update({
   path: '/components',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApprovedClientMaintenanceRoute =
+  ApprovedClientMaintenanceRouteImport.update({
+    id: '/approved-client-maintenance',
+    path: '/approved-client-maintenance',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -181,6 +188,7 @@ const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/approved-client-maintenance': typeof ApprovedClientMaintenanceRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -211,6 +219,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/approved-client-maintenance': typeof ApprovedClientMaintenanceRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -240,6 +249,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/approved-client-maintenance': typeof ApprovedClientMaintenanceRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/approved-client-maintenance'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -302,6 +313,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/approved-client-maintenance'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -330,6 +342,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/approved-client-maintenance'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -361,6 +374,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApprovedClientMaintenanceRoute: typeof ApprovedClientMaintenanceRoute
   ComponentsRoute: typeof ComponentsRoute
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
@@ -541,6 +555,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComponentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/approved-client-maintenance': {
+      id: '/approved-client-maintenance'
+      path: '/approved-client-maintenance'
+      fullPath: '/approved-client-maintenance'
+      preLoaderRoute: typeof ApprovedClientMaintenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -617,6 +638,7 @@ const TestScenarioRouteWithChildren = TestScenarioRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApprovedClientMaintenanceRoute: ApprovedClientMaintenanceRoute,
   ComponentsRoute: ComponentsRoute,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,
