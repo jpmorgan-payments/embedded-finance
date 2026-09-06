@@ -1,6 +1,9 @@
 import { ClientStatus } from '@ef-api/smbdo-schemas';
 
-import type { TestScenarioBundleConfig } from '@/components/test-scenario/test-scenario-bundles';
+import {
+  TEST_SCENARIO_CORP_ORGANIZATION_TYPES,
+  type TestScenarioBundleConfig,
+} from '@/components/test-scenario/test-scenario-bundles';
 import type {
   ResolvedTestScenarioConfig,
   TestScenarioLoginCaseConfig,
@@ -33,14 +36,9 @@ export function buildOnboardingFlowProps(args: {
       'EMBEDDED_PAYMENTS',
     ],
     availableJurisdictions: bundleOnboarding?.availableJurisdictions ?? ['US'],
-    availableOrganizationTypes: profileOnboarding?.availableOrganizationTypes ??
+    availableOrganizationTypes:
       bundleOnboarding?.availableOrganizationTypes ?? [
-        'SOLE_PROPRIETORSHIP',
-        'LIMITED_LIABILITY_COMPANY',
-        'LIMITED_LIABILITY_PARTNERSHIP',
-        'GENERAL_PARTNERSHIP',
-        'LIMITED_PARTNERSHIP',
-        'C_CORPORATION',
+        ...TEST_SCENARIO_CORP_ORGANIZATION_TYPES,
       ],
     showLinkAccountStep,
     disclosureConfig: bundleOnboarding?.disclosureConfig ?? {
@@ -49,12 +47,11 @@ export function buildOnboardingFlowProps(args: {
     hideLinkedAccountRemoval:
       bundleOnboarding?.hideLinkedAccountRemoval ?? true,
     enablePubliclyTradedCompanies:
-      profileOnboarding?.enablePubliclyTradedCompanies ??
-      bundleOnboarding?.enablePubliclyTradedCompanies ??
-      false,
+      bundleOnboarding?.enablePubliclyTradedCompanies ?? false,
     priorityIndustryCodes: bundleOnboarding?.priorityIndustryCodes,
     readonlyFields: bundleOnboarding?.readonlyFields,
     ...onboardingProps,
+    ...profileOnboarding,
   };
 
   if (!showLinkAccountStep) return base;

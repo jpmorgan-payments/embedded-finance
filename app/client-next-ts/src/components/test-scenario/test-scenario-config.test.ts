@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { TEST_SCENARIO_CORP_ORGANIZATION_TYPES } from '@/components/test-scenario/test-scenario-bundles';
 import {
   buildMockResetPayload,
   buildTestScenarioPlayUrl,
@@ -10,6 +11,7 @@ import {
   resolveLayoutKind,
   resolveTestScenarioConfig,
 } from '@/components/test-scenario/test-scenario-config';
+import { buildOnboardingFlowProps } from '@/components/test-scenario/test-scenario-onboarding-props';
 
 describe('test-scenario-config', () => {
   it('encodes and decodes v2 base64 JSON configs', () => {
@@ -106,6 +108,20 @@ describe('test-scenario-config', () => {
     });
     expect(resolved.bundleId).toBe('test-scenario-4');
     expect(resolved.loginProfile.email).toBe('happy-path-ptc@demo.test');
+    expect(resolved.onboardingProps.availableOrganizationTypes).toEqual([
+      ...TEST_SCENARIO_CORP_ORGANIZATION_TYPES,
+    ]);
+
+    const ptcProps = buildOnboardingFlowProps({
+      bundleConfig: resolved.bundleConfig,
+      sessionScenario: resolved.loginProfile.scenario,
+      activeLoginCase: resolved.activeLoginCase,
+      onboardingProps: resolved.onboardingProps,
+    });
+    expect(ptcProps.enablePubliclyTradedCompanies).toBe(true);
+    expect(ptcProps.availableOrganizationTypes).toEqual([
+      ...TEST_SCENARIO_CORP_ORGANIZATION_TYPES,
+    ]);
   });
 
   it('maps health preset PTC login like logistics', () => {
@@ -115,9 +131,64 @@ describe('test-scenario-config', () => {
     });
     expect(resolved.bundleId).toBe('test-scenario-3');
     expect(resolved.loginProfile.email).toBe('happy-path-ptc@demo.test');
-    expect(resolved.onboardingProps.enablePubliclyTradedCompanies).toBe(true);
     expect(resolved.onboardingProps.availableOrganizationTypes).toEqual([
-      'C_CORPORATION',
+      ...TEST_SCENARIO_CORP_ORGANIZATION_TYPES,
+    ]);
+
+    const ptcProps = buildOnboardingFlowProps({
+      bundleConfig: resolved.bundleConfig,
+      sessionScenario: resolved.loginProfile.scenario,
+      activeLoginCase: resolved.activeLoginCase,
+      onboardingProps: resolved.onboardingProps,
+    });
+    expect(ptcProps.enablePubliclyTradedCompanies).toBe(true);
+    expect(ptcProps.availableOrganizationTypes).toEqual([
+      ...TEST_SCENARIO_CORP_ORGANIZATION_TYPES,
+    ]);
+  });
+
+  it('keeps all corp org types on health and logistics happy paths', () => {
+    for (const preset of ['health', 'logistics'] as const) {
+      const resolved = resolveTestScenarioConfig({
+        preset,
+        loginCase: 'happy-path',
+      });
+      const happyPathCase = resolved.loginCases.find(
+        (item) => item.scenario === 'happy-path'
+      );
+      expect(happyPathCase).toBeDefined();
+
+      const props = buildOnboardingFlowProps({
+        bundleConfig: resolved.bundleConfig,
+        sessionScenario: 'happy-path',
+        activeLoginCase: happyPathCase!,
+        onboardingProps: resolved.onboardingProps,
+      });
+      expect(props.availableOrganizationTypes).toEqual([
+        ...TEST_SCENARIO_CORP_ORGANIZATION_TYPES,
+      ]);
+      expect(props.enablePubliclyTradedCompanies).toBe(false);
+    }
+  });
+
+  it('does not leak PTC-only flags onto other health logins', () => {
+    const resolved = resolveTestScenarioConfig(
+      createDefaultTestScenarioConfig('health')
+    );
+    const docsCase = resolved.loginCases.find(
+      (item) => item.email === 'docs-requested@demo.test'
+    );
+    expect(docsCase).toBeDefined();
+
+    const props = buildOnboardingFlowProps({
+      bundleConfig: resolved.bundleConfig,
+      sessionScenario: 'doc-request',
+      activeLoginCase: docsCase!,
+      onboardingProps: resolved.onboardingProps,
+    });
+    expect(props.enablePubliclyTradedCompanies).toBe(false);
+    expect(props.availableOrganizationTypes).toEqual([
+      ...TEST_SCENARIO_CORP_ORGANIZATION_TYPES,
     ]);
   });
 

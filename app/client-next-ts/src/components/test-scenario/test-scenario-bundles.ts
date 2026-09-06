@@ -26,6 +26,16 @@ export const TEST_SCENARIO_ROUTE_BY_BUNDLE = {
   'test-scenario-6': '/test-scenario-6',
 } as const satisfies Record<TestScenarioBundleId, string>;
 
+/** Default registered/corp organization types offered on most demo bundles. */
+export const TEST_SCENARIO_CORP_ORGANIZATION_TYPES = [
+  'SOLE_PROPRIETORSHIP',
+  'LIMITED_LIABILITY_COMPANY',
+  'LIMITED_LIABILITY_PARTNERSHIP',
+  'GENERAL_PARTNERSHIP',
+  'LIMITED_PARTNERSHIP',
+  'C_CORPORATION',
+] as const;
+
 export type TestScenarioLoginProfile = {
   email: string;
   label: string;
@@ -205,7 +215,6 @@ const SCENARIO_3_PROFILES: TestScenarioLoginProfile[] = [
     scenario: 'happy-path-ptc',
     onboardingFlow: {
       enablePubliclyTradedCompanies: true,
-      availableOrganizationTypes: ['C_CORPORATION'],
     },
   },
   {
@@ -215,7 +224,6 @@ const SCENARIO_3_PROFILES: TestScenarioLoginProfile[] = [
     scenario: 'happy-path',
     onboardingFlow: {
       enablePubliclyTradedCompanies: false,
-      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
     },
   },
   ...OPERATOR_PROFILES.filter((p) => p.email !== 'happy-path@demo.test'),
@@ -264,7 +272,6 @@ const SCENARIO_4_PROFILES: TestScenarioLoginProfile[] = [
     scenario: 'happy-path-ptc',
     onboardingFlow: {
       enablePubliclyTradedCompanies: true,
-      availableOrganizationTypes: ['C_CORPORATION'],
     },
   },
   {
@@ -274,7 +281,6 @@ const SCENARIO_4_PROFILES: TestScenarioLoginProfile[] = [
     scenario: 'happy-path',
     onboardingFlow: {
       enablePubliclyTradedCompanies: false,
-      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
     },
   },
   ...OPERATOR_PROFILES.filter((p) => p.email !== 'happy-path@demo.test'),
@@ -401,7 +407,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
-      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      availableOrganizationTypes: [...TEST_SCENARIO_CORP_ORGANIZATION_TYPES],
       enablePubliclyTradedCompanies: false,
       disclosureConfig: { platformName: 'Platform, Inc.' },
       hideLinkedAccountRemoval: false,
@@ -485,7 +491,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
-      availableOrganizationTypes: ['LIMITED_LIABILITY_COMPANY'],
+      availableOrganizationTypes: [...TEST_SCENARIO_CORP_ORGANIZATION_TYPES],
       enablePubliclyTradedCompanies: false,
       disclosureConfig: { platformName: 'Platform, Inc.' },
       hideLinkedAccountRemoval: false,
@@ -533,14 +539,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
     onboardingFlow: {
       availableProducts: ['EMBEDDED_PAYMENTS'],
       availableJurisdictions: ['US'],
-      availableOrganizationTypes: [
-        'SOLE_PROPRIETORSHIP',
-        'LIMITED_LIABILITY_COMPANY',
-        'LIMITED_LIABILITY_PARTNERSHIP',
-        'GENERAL_PARTNERSHIP',
-        'LIMITED_PARTNERSHIP',
-        'C_CORPORATION',
-      ],
+      availableOrganizationTypes: [...TEST_SCENARIO_CORP_ORGANIZATION_TYPES],
       disclosureConfig: { platformName: 'Platform, Inc.' },
       hideLinkedAccountRemoval: true,
       priorityIndustryCodes: [...TEST_SCENARIO_6_NAICS_CODES],
