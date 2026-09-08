@@ -340,7 +340,7 @@ export function ClientMaintenanceWorkspace({
               {projection.approvedClient.outstanding.questionIds.length > 0 ? (
                 <InformationRequiredPanel
                   phase="before-attestation"
-                  questions={workspace.questionsQuery.data.questions}
+                  questions={workspace.questionsQuery.data?.questions ?? []}
                   documentRequests={[]}
                   parties={projection.proposedClient.parties}
                   newPartyIds={projection.partyChanges.flatMap((change) =>
