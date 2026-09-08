@@ -62,6 +62,14 @@ async function requestJson<Response>(
       response.status
     );
   }
+  // An unintercepted same-origin call falls through to the SPA shell, which is HTML.
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('json')) {
+    throw new ApiRequestError(
+      'The mock API did not handle this request. Its service worker is probably no longer running - reload the page to restart it.',
+      response.status
+    );
+  }
   return (await response.json()) as Response;
 }
 

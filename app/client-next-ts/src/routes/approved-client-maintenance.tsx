@@ -7,7 +7,8 @@ import { ClientMaintenanceWorkspace } from '@/components/client-maintenance/Clie
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: false },
+    // The backend is a mock worker, so a focus refetch adds no data and can outlive it.
+    queries: { retry: false, refetchOnWindowFocus: false },
     mutations: { retry: false },
   },
 });
