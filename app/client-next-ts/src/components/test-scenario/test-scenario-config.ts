@@ -547,10 +547,7 @@ export function resolveTestScenarioConfig(
   const onboardingProps =
     mergeRecords(
       bundleConfig.onboardingFlow as Record<string, unknown> | undefined,
-      mergeRecords(
-        activeLoginCase.onboardingFlow,
-        config.components?.onboarding
-      )
+      config.components?.onboarding
     ) ?? {};
 
   const dashboardProps = config.components?.dashboard ?? {};
