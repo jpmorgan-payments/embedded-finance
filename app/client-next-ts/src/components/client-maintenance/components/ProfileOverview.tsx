@@ -105,16 +105,18 @@ export function ProfileOverview({
     0
   );
   const changeCount = projection.productChanges.length + partyChangeCount;
-  const limitedDdaRequested = projection.productChanges.some(
-    (change) => change.subProduct === 'LIMITED_DDA'
+  const limitedDdaPaymentsRequested = projection.productChanges.some(
+    (change) => change.subProduct === 'LIMITED_DDA_PAYMENTS'
   );
-  const limitedDdaApproved =
+  const limitedDdaPaymentsApproved =
     projection.approvedClient.productDetails?.some(
-      (detail) => detail.subProduct === 'LIMITED_DDA'
+      (detail) => detail.subProduct === 'LIMITED_DDA_PAYMENTS'
     ) ?? false;
   const hasPartyDisclosures = projection.partyChanges.length > 0;
   const canReview =
-    changeCount > 0 && limitedDdaRequested && disclosureAnswer !== undefined;
+    changeCount > 0 &&
+    limitedDdaPaymentsRequested &&
+    disclosureAnswer !== undefined;
   const examplePartyAdded = visibleParties.some(
     (party) => party.email === 'sam.lee@marketplacevendor.example'
   );
@@ -222,7 +224,7 @@ export function ProfileOverview({
             <p className="mt-1 text-sm text-gray-700">
               {changeCount > 0
                 ? `${changeCount} proposed ${changeCount === 1 ? 'change' : 'changes'} across products and parties.`
-                : 'Request Limited DDA, then confirm whether anything changed since the previous approval.'}
+                : 'Request Limited DDA Payments, then confirm whether anything changed since the previous approval.'}
             </p>
           </div>
         </div>
@@ -270,9 +272,7 @@ export function ProfileOverview({
                 <ShieldCheck className="h-4 w-4" />
               </span>
               <div>
-                <h3 className="font-semibold text-gray-950">
-                  Limited DDA Payments
-                </h3>
+                <h3 className="font-semibold text-gray-950">Limited DDA</h3>
                 <p className="mt-0.5 text-xs text-gray-500">
                   Embedded Payments sub-product · Approved
                 </p>
@@ -291,22 +291,24 @@ export function ProfileOverview({
                 <Plus className="h-4 w-4" />
               </span>
               <div>
-                <h3 className="font-semibold text-gray-950">Limited DDA</h3>
+                <h3 className="font-semibold text-gray-950">
+                  Limited DDA Payments
+                </h3>
                 <p className="mt-0.5 text-xs text-gray-500">
                   Additional Embedded Payments sub-product
                 </p>
               </div>
             </div>
-            {limitedDdaRequested || limitedDdaApproved ? (
+            {limitedDdaPaymentsRequested || limitedDdaPaymentsApproved ? (
               <Badge
                 variant="outline"
                 className={`w-fit ${
-                  limitedDdaApproved
+                  limitedDdaPaymentsApproved
                     ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
                     : 'border-amber-300 bg-amber-50 text-amber-900'
                 }`}
               >
-                {limitedDdaApproved ? 'Current' : 'Proposed addition'}
+                {limitedDdaPaymentsApproved ? 'Current' : 'Proposed addition'}
               </Badge>
             ) : (
               <Button
@@ -335,7 +337,7 @@ export function ProfileOverview({
           <span className="text-xs text-gray-500">Required disclosure</span>
         </div>
         <fieldset
-          disabled={!limitedDdaRequested || isOperating}
+          disabled={!limitedDdaPaymentsRequested || isOperating}
           className="rounded-md border border-gray-200 bg-white p-4 disabled:bg-gray-50"
         >
           <legend className="px-1 font-semibold text-gray-950">
@@ -368,7 +370,7 @@ export function ProfileOverview({
                   No, nothing else changed
                 </span>
                 <span className="mt-0.5 block text-xs text-gray-600">
-                  Continue with the Limited DDA addition only.
+                  Continue with the Limited DDA Payments addition only.
                 </span>
               </span>
             </label>
@@ -397,9 +399,9 @@ export function ProfileOverview({
               </span>
             </label>
           </div>
-          {!limitedDdaRequested ? (
+          {!limitedDdaPaymentsRequested ? (
             <p className="mt-3 text-xs text-gray-500">
-              Request the Limited DDA sub-product before answering.
+              Request the Limited DDA Payments sub-product before answering.
             </p>
           ) : null}
           {hasPartyDisclosures ? (

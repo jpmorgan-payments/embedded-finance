@@ -1,6 +1,5 @@
-import { PackagePlus, Pencil } from 'lucide-react';
+import { PackagePlus } from 'lucide-react';
 
-import type { PartyResponse } from '@/components/client-maintenance/models/maintenance-api';
 import type { MaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
 import { formatMaintenanceValue } from '@/components/client-maintenance/utils/format-maintenance-value';
 import { formatMaintenanceStatus } from '@/components/client-maintenance/utils/maintenance-party-display';
@@ -11,20 +10,15 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 
 export function RequestTaskReview({
   projection,
-  onEditParty,
 }: {
   projection: MaintenanceProjection;
-  onEditParty: (party: PartyResponse) => void;
 }) {
   const request = projection.activeProposals[0]?.updateRequest;
-  const productSource = projection.productChanges[0]?.source;
-  const requestId =
-    request?.requestId ?? productSource?.requestId ?? 'Unavailable';
-  const status = request?.status ?? productSource?.status ?? 'NEW';
+  const productStatus = projection.productChanges[0]?.onboardingStatus;
+  const status = request?.status ?? productStatus ?? 'NEW';
   const changeCount =
     projection.productChanges.length +
     projection.partyChanges.reduce(
@@ -40,18 +34,18 @@ export function RequestTaskReview({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase text-sp-brand">
-              One open maintenance request
+              One open request
             </p>
             <h2
               id="request-task-review-heading"
               className="mt-1 text-xl font-semibold text-gray-950"
             >
-              Maintenance request {requestId}
+              Changes grouped by task
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-gray-700">
               This request groups all {changeCount} draft changes into{' '}
               {taskCount} {taskCount === 1 ? 'task' : 'tasks'}.
-            </p>
+            </p>{' '}
           </div>
           <Badge
             variant="outline"
@@ -78,7 +72,7 @@ export function RequestTaskReview({
               <AccordionTrigger className="gap-3 text-left hover:no-underline">
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                   <span className="font-semibold text-gray-950">
-                    Limited DDA
+                    Limited DDA Payments
                   </span>
                   <Badge variant="outline">ADD</Badge>
                   <span className="text-xs font-normal text-gray-500">
@@ -89,7 +83,7 @@ export function RequestTaskReview({
               <AccordionContent>
                 <div className="flex items-start gap-3 border-y border-gray-200 py-4 text-sm text-gray-700">
                   <PackagePlus className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
-                  Add Limited DDA alongside the approved Limited DDA Payments
+                  Add Limited DDA Payments alongside the approved Limited DDA
                   sub-product under Embedded Payments.
                 </div>
               </AccordionContent>
@@ -146,22 +140,6 @@ export function RequestTaskReview({
                   </div>
                 ))}
               </dl>
-
-              {partyChange.proposedParty &&
-              partyChange.action === 'MODIFY' &&
-              !partyChange.removesParty ? (
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEditParty(partyChange.proposedParty!)}
-                  >
-                    <Pencil />
-                    Edit proposed details
-                  </Button>
-                </div>
-              ) : null}
             </AccordionContent>
           </AccordionItem>
         ))}

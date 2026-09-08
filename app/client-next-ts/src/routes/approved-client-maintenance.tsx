@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 
@@ -10,14 +12,25 @@ const queryClient = new QueryClient({
   },
 });
 
+const approvedClientMaintenanceSearchSchema = z.object({
+  step: z.enum(['profile', 'review', 'attest', 'submitted']).optional(),
+});
+
 export const Route = createFileRoute('/approved-client-maintenance')({
   component: ApprovedClientMaintenanceRoute,
+  validateSearch: approvedClientMaintenanceSearchSchema,
 });
 
 function ApprovedClientMaintenanceRoute() {
+  const { step } = Route.useSearch();
+  const navigate = Route.useNavigate();
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ClientMaintenanceWorkspace />
+      <ClientMaintenanceWorkspace
+        step={step}
+        onStepChange={(next) => navigate({ search: { step: next } })}
+      />
     </QueryClientProvider>
   );
 }

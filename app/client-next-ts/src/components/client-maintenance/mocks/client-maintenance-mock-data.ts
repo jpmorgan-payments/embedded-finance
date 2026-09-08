@@ -23,7 +23,7 @@ export function createMaintenanceDemoClient(): ClientResponse {
     productDetails: [
       {
         product: 'EMBEDDED_PAYMENTS',
-        subProduct: 'LIMITED_DDA_PAYMENTS',
+        subProduct: 'LIMITED_DDA',
         onboardingStatus: 'APPROVED',
       },
     ],

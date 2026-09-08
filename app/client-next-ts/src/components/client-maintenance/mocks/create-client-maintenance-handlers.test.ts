@@ -27,7 +27,7 @@ async function createFourOperationDraft() {
       productDetails: [
         {
           product: 'EMBEDDED_PAYMENTS',
-          subProduct: 'LIMITED_DDA',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
           action: 'ADD',
         },
       ],
@@ -73,17 +73,17 @@ describe('client maintenance mock API', () => {
       productDetails: [
         {
           product: 'EMBEDDED_PAYMENTS',
-          subProduct: 'LIMITED_DDA_PAYMENTS',
+          subProduct: 'LIMITED_DDA',
           onboardingStatus: 'APPROVED',
         },
         {
           product: 'EMBEDDED_PAYMENTS',
-          subProduct: 'LIMITED_DDA',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
           onboardingStatus: 'NEW',
         },
       ],
-      updateRequest: { requestId: '5000001049', status: 'NEW' },
     });
+    expect(product.updateRequest).toBeUndefined();
     expect(added).toMatchObject({
       parentPartyId: '2000000555',
       updateRequest: {
@@ -185,12 +185,12 @@ describe('client maintenance mock API', () => {
       productDetails: [
         {
           product: 'EMBEDDED_PAYMENTS',
-          subProduct: 'LIMITED_DDA_PAYMENTS',
+          subProduct: 'LIMITED_DDA',
           onboardingStatus: 'APPROVED',
         },
         {
           product: 'EMBEDDED_PAYMENTS',
-          subProduct: 'LIMITED_DDA',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
           onboardingStatus: 'REVIEW_IN_PROGRESS',
         },
       ],
@@ -237,12 +237,12 @@ describe('client maintenance mock API', () => {
     expect(approved.productDetails).toMatchObject([
       {
         product: 'EMBEDDED_PAYMENTS',
-        subProduct: 'LIMITED_DDA_PAYMENTS',
+        subProduct: 'LIMITED_DDA',
         onboardingStatus: 'APPROVED',
       },
       {
         product: 'EMBEDDED_PAYMENTS',
-        subProduct: 'LIMITED_DDA',
+        subProduct: 'LIMITED_DDA_PAYMENTS',
         onboardingStatus: 'APPROVED',
       },
     ]);

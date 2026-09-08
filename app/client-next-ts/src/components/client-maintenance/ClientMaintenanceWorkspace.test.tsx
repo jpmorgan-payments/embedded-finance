@@ -11,16 +11,17 @@ import { createClientMaintenanceHandlers } from '@/components/client-maintenance
 import { API_URL } from '@/data/constants';
 
 import { ClientMaintenanceWorkspace } from './ClientMaintenanceWorkspace';
+import type { LinkableMaintenanceStep } from './ClientMaintenanceWorkspace';
 
 const server = setupServer(...createClientMaintenanceHandlers(API_URL));
 
-function renderWorkspace() {
+function renderWorkspace(props?: { step?: LinkableMaintenanceStep }) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <ClientMaintenanceWorkspace />
+      <ClientMaintenanceWorkspace {...props} />
     </QueryClientProvider>
   );
 }
@@ -42,6 +43,18 @@ afterEach(async () => {
 afterAll(() => server.close());
 
 describe('ClientMaintenanceWorkspace', () => {
+  it('opens on the review step and seeds the draft from a deep link', async () => {
+    renderWorkspace({ step: 'review' });
+
+    expect(
+      await screen.findByRole('heading', { name: 'Compare review patterns' })
+    ).toBeInTheDocument();
+    await waitFor(
+      () => expect(screen.getAllByText('Sam Lee')).not.toHaveLength(0),
+      { timeout: 5000 }
+    );
+  });
+
   it('treats a maintenance-list 404 as an empty workspace', async () => {
     server.use(
       http.get(
@@ -191,15 +204,18 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       screen.getByRole('heading', { name: 'Approved and proposed details' })
     ).toBeInTheDocument();
-    expect(screen.getAllByText('Limited DDA')).not.toHaveLength(0);
+    expect(screen.getAllByText('Limited DDA Payments')).not.toHaveLength(0);
     expect(screen.getAllByText('Diaz')).not.toHaveLength(0);
     expect(screen.getAllByText('Sam Lee')).not.toHaveLength(0);
     expect(
       screen.getByText(/This approved party is proposed for removal/)
     ).toBeInTheDocument();
     expect(
-      screen.getAllByText('Maintenance request 4000001049').length
+      screen.getAllByText('jane.diaz@marketplacevendor.example').length
     ).toBeGreaterThan(0);
+    expect(
+      screen.queryByText(/Maintenance request 4000001049/)
+    ).not.toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: 'Continue to attestation' })
@@ -352,7 +368,7 @@ describe('ClientMaintenanceWorkspace', () => {
     await user.click(
       screen.getByRole('button', { name: 'Review proposed changes' })
     );
-    expect(screen.getAllByText('Limited DDA')).not.toHaveLength(0);
+    expect(screen.getAllByText('Limited DDA Payments')).not.toHaveLength(0);
     expect(screen.queryByText('Diaz')).not.toBeInTheDocument();
   });
 
@@ -377,6 +393,20 @@ describe('ClientMaintenanceWorkspace', () => {
       'Trade-off: Unchanged profile context stays out of view.'
     );
 
+    await user.click(screen.getByRole('tab', { name: 'Highlighted' }));
+    const highlightedProfile = screen.getByRole('region', {
+      name: 'Proposed profile with highlighted changes',
+    });
+    expect(
+      within(highlightedProfile).getAllByText(/· Changed/).length
+    ).toBeGreaterThan(1);
+    expect(
+      within(highlightedProfile).getAllByText(/Approved value:/).length
+    ).toBeGreaterThan(1);
+    expect(reviewNote).toHaveTextContent(
+      'Best for: Seeing changes in context without reading two profiles.'
+    );
+
     await user.click(screen.getByRole('tab', { name: 'Profiles' }));
     expect(
       screen.getByRole('heading', { name: 'Complete profile comparison' })
@@ -390,12 +420,12 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       within(
         screen.getByRole('region', { name: 'Proposed profile' })
-      ).getByText('EMBEDDED PAYMENTS · LIMITED DDA · Proposed')
+      ).getByText('EMBEDDED PAYMENTS · LIMITED DDA PAYMENTS · Proposed')
     ).toBeInTheDocument();
     expect(
       within(
         screen.getByRole('region', { name: 'Proposed profile' })
-      ).getByText('EMBEDDED PAYMENTS · LIMITED DDA PAYMENTS')
+      ).getByText('EMBEDDED PAYMENTS · LIMITED DDA')
     ).toBeInTheDocument();
     expect(
       within(
@@ -408,12 +438,10 @@ describe('ClientMaintenanceWorkspace', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Request' }));
     expect(
-      screen.getByRole('heading', {
-        name: 'Maintenance request 4000001049',
-      })
+      screen.getByRole('heading', { name: 'Changes grouped by task' })
     ).toBeInTheDocument();
     expect(
-      screen.getByText('This request groups all 9 draft changes into 4 tasks.')
+      screen.getByText('This request groups all 10 draft changes into 4 tasks.')
     ).toBeInTheDocument();
     expect(reviewNote).toHaveTextContent(
       'Trade-off: Reviewers must expand a party before seeing every value.'

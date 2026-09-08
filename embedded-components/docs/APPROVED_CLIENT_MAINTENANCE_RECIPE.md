@@ -1,6 +1,6 @@
 # Approved Client Maintenance UI/UX Recipe
 
-> **Draft - under review.** Open items are tracked in [Open questions](#open-questions).
+> **Draft - under review.** Parts of the API contract described here are still being finalized and are subject to change. Guidance drawn from observed behavior rather than from the published guides is the most likely to move, and is marked as such throughout. Treat the published guides and the Digital Onboarding OpenAPI specification as authoritative at the time you build, and re-check this recipe against them before you depend on it in production. Open items are tracked in [Open questions](#open-questions).
 
 ## Scope
 
@@ -635,7 +635,7 @@ The API coalesces repeated writes for a party and returns only the latest value,
 
 ## Review UI
 
-One profile hub is the default layout. Alternate layouts must read the same `ChangeSet` and must not change projection rules or API behavior.
+One profile hub is the default layout. Alternate layouts must read the same `ChangeSet` and must not change projection rules or API behavior. For four worked layouts, colour and accessibility rules, and the terminology to use across them, see the [client maintenance review UI recipe](./CLIENT_MAINTENANCE_REVIEW_UI_RECIPE.md).
 
 ### Profile review hub
 
@@ -668,13 +668,16 @@ Owners: 3 of 4                              [Review proposed changes]
 Expanded review:
 
 ```text
-Jane Doe                                    MODIFY · request 4000001049
-┌──────────────────┬────────────────────┬───────────────────────────────┐
-│ Field            │ Approved           │ Proposed                      │
-├──────────────────┼────────────────────┼───────────────────────────────┤
-│ Last name        │ Doe                │ Diaz                          │
-└──────────────────┴────────────────────┴───────────────────────────────┘
+Jane Doe                                                        MODIFY
+┌──────────────────┬────────────────────────┬───────────────────────────┐
+│ Field            │ Approved               │ Proposed                  │
+├──────────────────┼────────────────────────┼───────────────────────────┤
+│ Last name        │ Doe                    │ Diaz                      │
+│ Email            │ jane.doe@vendor.exa…   │ jane.diaz@vendor.exa…     │
+└──────────────────┴────────────────────────┴───────────────────────────┘
 ```
+
+Do not display the request ID in the review step. It is a correlation key for host systems and support teams, not information a representative can act on.
 
 On narrow viewports, render each comparison as an `Approved`/`Proposed` definition stack and stack the ownership chain under its owner. Keep the disclosure answer and the owner count in host state.
 
@@ -696,7 +699,7 @@ Stack the approved and proposed profiles on narrow viewports.
 Product proposal · REVIEW IN PROGRESS
   Limited DDA Payments      ADD       [Review]
 
-Party request 4000001049 · NEW · 5 tasks
+Party changes · NEW · 5 tasks
   Marketplace Vendor LLC    MODIFY    [Review]
   Jane Doe                  MODIFY    [Review]
   Alex Smith                REMOVE    [Review]

@@ -73,7 +73,7 @@ export type ProductChange = {
   product: ProductDetailsStatusItem['product'];
   subProduct?: ProductDetailsStatusItem['subProduct'];
   action: 'ADD';
-  source: ChangeSource;
+  onboardingStatus: ActiveKycUpdateRequestStatus;
 };
 
 export type MaintenanceProjection = {
@@ -252,16 +252,12 @@ export function buildMaintenanceProjection(
   maintenanceParties: PartyResponse[]
 ): MaintenanceProjection {
   const approvedClient = structuredClone(clientResponse);
-  const productSource = getChangeSourceFromRequest(
-    clientResponse.updateRequest
-  );
-  const activeProductDetails = productSource
-    ? (approvedClient.productDetails ?? []).filter((detail) =>
-        ACTIVE_STATUSES.has(
-          detail.onboardingStatus as ActiveKycUpdateRequestStatus
-        )
+  const activeProductDetails = (approvedClient.productDetails ?? []).filter(
+    (detail) =>
+      ACTIVE_STATUSES.has(
+        detail.onboardingStatus as ActiveKycUpdateRequestStatus
       )
-    : [];
+  );
   approvedClient.productDetails = (approvedClient.productDetails ?? []).filter(
     (detail) =>
       !ACTIVE_STATUSES.has(
@@ -272,20 +268,18 @@ export function buildMaintenanceProjection(
 
   const proposedClient = structuredClone(approvedClient);
   const productChanges: ProductChange[] = [];
-  if (productSource) {
-    for (const detail of activeProductDetails) {
-      proposedClient.productDetails ??= [];
-      proposedClient.productDetails.push(structuredClone(detail));
-      if (!proposedClient.products.includes(detail.product)) {
-        proposedClient.products.push(detail.product);
-      }
-      productChanges.push({
-        product: detail.product,
-        subProduct: detail.subProduct,
-        action: 'ADD',
-        source: productSource,
-      });
+  for (const detail of activeProductDetails) {
+    proposedClient.productDetails ??= [];
+    proposedClient.productDetails.push(structuredClone(detail));
+    if (!proposedClient.products.includes(detail.product)) {
+      proposedClient.products.push(detail.product);
     }
+    productChanges.push({
+      product: detail.product,
+      subProduct: detail.subProduct,
+      action: 'ADD',
+      onboardingStatus: detail.onboardingStatus as ActiveKycUpdateRequestStatus,
+    });
   }
   const proposedById = new Map(
     proposedClient.parties.flatMap((party) =>

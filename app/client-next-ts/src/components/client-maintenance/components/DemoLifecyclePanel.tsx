@@ -35,7 +35,7 @@ export function DemoLifecyclePanel({
       ...projection.activeProposals.flatMap((party) =>
         party.updateRequest?.status ? [party.updateRequest.status] : []
       ),
-      ...projection.productChanges.map((change) => change.source.status),
+      ...projection.productChanges.map((change) => change.onboardingStatus),
     ])
   );
   const activeChangeCount =
@@ -46,7 +46,7 @@ export function DemoLifecyclePanel({
       (party) => party.updateRequest?.status === 'REVIEW_IN_PROGRESS'
     ) &&
     projection.productChanges.every(
-      (change) => change.source.status === 'REVIEW_IN_PROGRESS'
+      (change) => change.onboardingStatus === 'REVIEW_IN_PROGRESS'
     );
 
   return (

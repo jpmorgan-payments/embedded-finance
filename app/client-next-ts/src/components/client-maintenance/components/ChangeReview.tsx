@@ -1,12 +1,5 @@
-import {
-  AlertTriangle,
-  PackagePlus,
-  Pencil,
-  UserMinus,
-  UserPlus,
-} from 'lucide-react';
+import { PackagePlus, UserMinus, UserPlus } from 'lucide-react';
 
-import type { PartyResponse } from '@/components/client-maintenance/models/maintenance-api';
 import type {
   FieldChange,
   MaintenanceProjection,
@@ -20,30 +13,12 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 
 function actionClasses(action: PartyChange['action']): string {
   if (action === 'ADD')
     return 'border-emerald-200 bg-emerald-50 text-emerald-800';
   if (action === 'DELETE') return 'border-red-200 bg-red-50 text-red-800';
   return 'border-cyan-200 bg-cyan-50 text-cyan-800';
-}
-
-function RequestProvenance({ change }: { change: FieldChange }) {
-  return (
-    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-500">
-      <span>Maintenance request {change.source.requestId}</span>
-      {change.supersededSources.length > 0 ? (
-        <span className="inline-flex items-center gap-1 text-amber-800">
-          <AlertTriangle className="h-3 w-3" />
-          Supersedes{' '}
-          {change.supersededSources
-            .map((source) => source.requestId)
-            .join(', ')}
-        </span>
-      ) : null}
-    </div>
-  );
 }
 
 function ComparisonRows({ changes }: { changes: FieldChange[] }) {
@@ -63,7 +38,6 @@ function ComparisonRows({ changes }: { changes: FieldChange[] }) {
               <tr key={change.path} className="align-top">
                 <th scope="row" className="px-4 py-4 font-medium text-gray-900">
                   {change.label}
-                  <RequestProvenance change={change} />
                 </th>
                 <td className="break-words px-4 py-4 text-gray-600">
                   {formatMaintenanceValue(
@@ -92,7 +66,6 @@ function ComparisonRows({ changes }: { changes: FieldChange[] }) {
             className="rounded-md border border-gray-200 p-4"
           >
             <h4 className="font-medium text-gray-950">{change.label}</h4>
-            <RequestProvenance change={change} />
             <dl className="mt-3 grid gap-3 text-sm">
               <div>
                 <dt className="text-xs font-semibold uppercase text-gray-500">
@@ -128,10 +101,8 @@ function ComparisonRows({ changes }: { changes: FieldChange[] }) {
 
 export function ChangeReview({
   projection,
-  onEditParty,
 }: {
   projection: MaintenanceProjection;
-  onEditParty: (party: PartyResponse) => void;
 }) {
   return (
     <section aria-labelledby="change-review-heading">
@@ -169,7 +140,7 @@ export function ChangeReview({
               <AccordionTrigger className="gap-3 text-left hover:no-underline">
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                   <span className="font-semibold text-gray-950">
-                    Limited DDA
+                    Limited DDA Payments
                   </span>
                   <Badge
                     variant="outline"
@@ -185,8 +156,8 @@ export function ChangeReview({
               <AccordionContent>
                 <div className="mb-3 flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
                   <PackagePlus className="mt-0.5 h-4 w-4 shrink-0" />
-                  Limited DDA is proposed as an additional Embedded Payments
-                  sub-product for this approved client.
+                  Limited DDA Payments is proposed as an additional Embedded
+                  Payments sub-product for this approved client.
                 </div>
                 <dl className="grid gap-3 rounded-md border border-gray-200 p-4 text-sm sm:grid-cols-2">
                   <div>
@@ -194,7 +165,7 @@ export function ChangeReview({
                       Approved
                     </dt>
                     <dd className="mt-1 text-gray-700">
-                      Embedded Payments · Limited DDA Payments
+                      Embedded Payments · Limited DDA
                     </dd>
                   </div>
                   <div className="border-l-2 border-sp-brand bg-sp-accent/50 px-3 py-2">
@@ -202,13 +173,10 @@ export function ChangeReview({
                       Proposed
                     </dt>
                     <dd className="mt-1 font-medium text-gray-950">
-                      Embedded Payments · Limited DDA
+                      Embedded Payments · Limited DDA Payments
                     </dd>
                   </div>
                 </dl>
-                <p className="mt-2 text-[11px] text-gray-500">
-                  Maintenance request {productChange.source.requestId}
-                </p>
               </AccordionContent>
             </AccordionItem>
           );
@@ -253,22 +221,6 @@ export function ChangeReview({
 
               {partyChange.fieldChanges.length > 0 ? (
                 <ComparisonRows changes={partyChange.fieldChanges} />
-              ) : null}
-
-              {partyChange.proposedParty &&
-              partyChange.action === 'MODIFY' &&
-              !partyChange.removesParty ? (
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onEditParty(partyChange.proposedParty!)}
-                  >
-                    <Pencil />
-                    Edit proposed details
-                  </Button>
-                </div>
               ) : null}
             </AccordionContent>
           </AccordionItem>

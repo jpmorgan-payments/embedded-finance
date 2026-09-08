@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Columns2, ListChecks, Rows3 } from 'lucide-react';
+import { Columns2, Highlighter, ListChecks, Rows3 } from 'lucide-react';
 
-import type { PartyResponse } from '@/components/client-maintenance/models/maintenance-api';
 import type { MaintenanceProjection } from '@/components/client-maintenance/utils/build-maintenance-projection';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { ChangeReview } from './ChangeReview';
 import { CompleteProfileReview } from './CompleteProfileReview';
+import { HighlightedProfileReview } from './HighlightedProfileReview';
 import { RequestTaskReview } from './RequestTaskReview';
 
-type ReviewMode = 'fields' | 'profiles' | 'request';
+type ReviewMode = 'fields' | 'highlighted' | 'profiles' | 'request';
 
 const REVIEW_OPTIONS: Record<
   ReviewMode,
@@ -18,6 +18,10 @@ const REVIEW_OPTIONS: Record<
   fields: {
     bestFor: 'Fast, precise validation of every changed value.',
     tradeoff: 'Unchanged profile context stays out of view.',
+  },
+  highlighted: {
+    bestFor: 'Seeing changes in context without reading two profiles.',
+    tradeoff: 'Only one state is shown, so removals need their own treatment.',
   },
   profiles: {
     bestFor: 'Holistic or legal review of the complete client profile.',
@@ -31,16 +35,10 @@ const REVIEW_OPTIONS: Record<
 
 export function MaintenanceReviewOptions({
   projection,
-  onEditParty,
 }: {
   projection: MaintenanceProjection;
-  onEditParty: (party: PartyResponse) => void;
 }) {
   const [mode, setMode] = useState<ReviewMode>('fields');
-  const requestId =
-    projection.activeProposals[0]?.updateRequest?.requestId ??
-    projection.productChanges[0]?.source.requestId ??
-    'unavailable';
   const option = REVIEW_OPTIONS[mode];
 
   return (
@@ -53,11 +51,7 @@ export function MaintenanceReviewOptions({
           Compare review patterns
         </h2>
         <p className="mt-1 text-sm text-gray-600">
-          Each option renders the same proposed values.{' '}
-          <code className="font-semibold text-gray-900">
-            Maintenance request {requestId}
-          </code>{' '}
-          groups every change in this draft.
+          Each option renders the same proposed values from the same draft.
         </p>
       </div>
 
@@ -67,11 +61,15 @@ export function MaintenanceReviewOptions({
       >
         <TabsList
           aria-label="Review presentation options"
-          className="grid h-auto w-full grid-cols-3 bg-gray-100 p-1"
+          className="grid h-auto w-full grid-cols-2 bg-gray-100 p-1 sm:grid-cols-4"
         >
           <TabsTrigger value="fields" className="min-h-11 gap-1.5 px-2">
             <ListChecks className="h-4 w-4" />
             Fields
+          </TabsTrigger>
+          <TabsTrigger value="highlighted" className="min-h-11 gap-1.5 px-2">
+            <Highlighter className="h-4 w-4" />
+            Highlighted
           </TabsTrigger>
           <TabsTrigger value="profiles" className="min-h-11 gap-1.5 px-2">
             <Columns2 className="h-4 w-4" />
@@ -93,16 +91,16 @@ export function MaintenanceReviewOptions({
         </div>
 
         <TabsContent value="fields" className="mt-5">
-          <ChangeReview projection={projection} onEditParty={onEditParty} />
+          <ChangeReview projection={projection} />
+        </TabsContent>
+        <TabsContent value="highlighted" className="mt-5">
+          <HighlightedProfileReview projection={projection} />
         </TabsContent>
         <TabsContent value="profiles" className="mt-5">
           <CompleteProfileReview projection={projection} />
         </TabsContent>
         <TabsContent value="request" className="mt-5">
-          <RequestTaskReview
-            projection={projection}
-            onEditParty={onEditParty}
-          />
+          <RequestTaskReview projection={projection} />
         </TabsContent>
       </Tabs>
     </section>

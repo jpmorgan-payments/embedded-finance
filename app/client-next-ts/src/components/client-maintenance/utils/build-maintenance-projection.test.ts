@@ -240,11 +240,7 @@ describe('buildMaintenanceProjection', () => {
         product: 'EMBEDDED_PAYMENTS',
         subProduct: 'LIMITED_DDA_PAYMENTS',
         action: 'ADD',
-        source: {
-          requestId: '4000001049',
-          status: 'NEW',
-          submittedAt: '2026-04-12T10:00:00.000Z',
-        },
+        onboardingStatus: 'NEW',
       },
     ]);
   });

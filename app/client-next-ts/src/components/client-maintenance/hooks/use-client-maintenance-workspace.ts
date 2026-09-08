@@ -32,12 +32,12 @@ const EXAMPLE_PARTY: Omit<MaintenancePartyCreate, 'parentPartyId'> = {
   },
 };
 
-function requestLimitedDda() {
+function requestLimitedDdaPayments() {
   return clientMaintenanceApi.requestProduct(MAINTENANCE_DEMO_CLIENT_ID, {
     productDetails: [
       {
         product: 'EMBEDDED_PAYMENTS',
-        subProduct: 'LIMITED_DDA',
+        subProduct: 'LIMITED_DDA_PAYMENTS',
         action: 'ADD',
       },
     ],
@@ -53,6 +53,7 @@ function createExampleParty(parentPartyId: string) {
 
 function updateExampleParty() {
   return clientMaintenanceApi.updateParty('2000000556', {
+    email: 'jane.diaz@marketplacevendor.example',
     individualDetails: { lastName: 'Diaz' },
   });
 }
@@ -61,12 +62,12 @@ function removeExampleParty() {
   return clientMaintenanceApi.updateParty('2000000557', { active: false });
 }
 
-function hasLimitedDda(
+function hasLimitedDdaPayments(
   client: Parameters<typeof buildMaintenanceProjection>[0]
 ): boolean {
   return (
     client.productDetails?.some(
-      (detail) => detail.subProduct === 'LIMITED_DDA'
+      (detail) => detail.subProduct === 'LIMITED_DDA_PAYMENTS'
     ) ?? false
   );
 }
@@ -128,7 +129,7 @@ export function useClientMaintenanceWorkspace() {
   });
 
   const requestProduct = useMutation({
-    mutationFn: requestLimitedDda,
+    mutationFn: requestLimitedDdaPayments,
     onSuccess: refreshWorkspace,
   });
 
@@ -155,9 +156,9 @@ export function useClientMaintenanceWorkspace() {
       );
       if (
         latestProjection.productChanges.length === 0 &&
-        !hasLimitedDda(latestProjection.approvedClient)
+        !hasLimitedDdaPayments(latestProjection.approvedClient)
       ) {
-        await requestLimitedDda();
+        await requestLimitedDdaPayments();
       }
       if (
         !latestProjection.proposedClient.parties.some(

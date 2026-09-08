@@ -13,7 +13,6 @@ import type {
   ClientProductUpdate,
   ClientResponse,
   DocumentRequestResponse,
-  KycUpdateRequest,
   KycUpdateRequestStatus,
   ListKycPartyUpdateRequests,
   MaintenancePartyCreate,
@@ -42,12 +41,10 @@ type DemoState = {
   client: ClientResponse;
   clientProductProposal?: {
     productDetails: ProductDetailsStatusItem[];
-    updateRequest: KycUpdateRequest;
   };
   proposals: PartyResponse[];
   nextPartyId: number;
   nextPartyRequestId: number;
-  nextProductRequestId: number;
 };
 
 function createState(): DemoState {
@@ -56,12 +53,44 @@ function createState(): DemoState {
     proposals: createMaintenanceDemoProposals(),
     nextPartyId: 2000000558,
     nextPartyRequestId: 4000001049,
-    nextProductRequestId: 5000001049,
+  };
+}
+
+function getProductProposalStatus(
+  state: DemoState
+): KycUpdateRequestStatus | undefined {
+  return state.clientProductProposal?.productDetails[0]?.onboardingStatus as
+    KycUpdateRequestStatus | undefined;
+}
+
+function setProductProposalStatus(
+  state: DemoState,
+  onboardingStatus: KycUpdateRequestStatus
+): void {
+  if (!state.clientProductProposal) return;
+  state.clientProductProposal = {
+    productDetails: state.clientProductProposal.productDetails.map(
+      (detail) => ({
+        ...detail,
+        onboardingStatus,
+      })
+    ),
   };
 }
 
 function getClientResponse(state: DemoState): ClientResponse {
   const client = structuredClone(state.client);
+  // Only party changes open a maintenance request; a product add carries none.
+  const partyRequest = state.proposals.find((party) =>
+    isOpenStatus(party.updateRequest?.status)
+  )?.updateRequest;
+  if (partyRequest) {
+    client.updateRequest = {
+      requestId: partyRequest.requestId,
+      status: partyRequest.status,
+      submittedAt: partyRequest.submittedAt,
+    };
+  }
   if (!state.clientProductProposal) return client;
   return {
     ...client,
@@ -69,7 +98,6 @@ function getClientResponse(state: DemoState): ClientResponse {
       ...(client.productDetails ?? []),
       ...structuredClone(state.clientProductProposal.productDetails),
     ],
-    updateRequest: structuredClone(state.clientProductProposal.updateRequest),
   };
 }
 
@@ -124,7 +152,7 @@ function hasRequestStatus(
   status: KycUpdateRequestStatus
 ): boolean {
   return (
-    state.clientProductProposal?.updateRequest.status === status ||
+    getProductProposalStatus(state) === status ||
     state.proposals.some((party) => party.updateRequest?.status === status)
   );
 }
@@ -159,24 +187,6 @@ function resolvePartyDraftRequest(
   return {
     requestId:
       requestIds.values().next().value ?? String(state.nextPartyRequestId++),
-  };
-}
-
-function resolveProductDraftRequest(
-  state: DemoState
-):
-  | { requestId: string; response?: never }
-  | { requestId?: never; response: ReturnType<typeof conflict> } {
-  const updateRequest = state.clientProductProposal?.updateRequest;
-  if (isOpenStatus(updateRequest?.status) && updateRequest?.status !== 'NEW') {
-    return {
-      response: conflict(
-        'No further product edits are allowed after the product request is submitted.'
-      ),
-    };
-  }
-  return {
-    requestId: updateRequest?.requestId ?? String(state.nextProductRequestId++),
   };
 }
 
@@ -318,20 +328,18 @@ export function createClientMaintenanceHandlers(
       }
       const update = (await request.json()) as UpdateClientRequest;
       if (update.productDetails?.length) {
-        const draft = resolveProductDraftRequest(state);
-        if ('response' in draft) return draft.response;
+        const productStatus = getProductProposalStatus(state);
+        if (isOpenStatus(productStatus) && productStatus !== 'NEW') {
+          return conflict(
+            'No further product edits are allowed after the request is submitted.'
+          );
+        }
         state.clientProductProposal = {
           productDetails: update.productDetails.map((detail) => ({
             product: detail.product,
             subProduct: detail.subProduct,
             onboardingStatus: 'NEW',
           })),
-          updateRequest: {
-            action: 'MODIFY',
-            requestId: draft.requestId,
-            status: 'NEW',
-            submittedAt: new Date().toISOString(),
-          },
         };
         requireAttestation(state);
       }
@@ -371,7 +379,7 @@ export function createClientMaintenanceHandlers(
         !state.proposals.some(
           (party) => party.updateRequest?.status === 'NEW'
         ) &&
-        state.clientProductProposal?.updateRequest.status !== 'NEW'
+        getProductProposalStatus(state) !== 'NEW'
       ) {
         return HttpResponse.json(
           {
@@ -397,19 +405,8 @@ export function createClientMaintenanceHandlers(
             }
           : party
       );
-      if (state.clientProductProposal?.updateRequest.status === 'NEW') {
-        state.clientProductProposal = {
-          productDetails: state.clientProductProposal.productDetails.map(
-            (detail) => ({
-              ...detail,
-              onboardingStatus: 'REVIEW_IN_PROGRESS',
-            })
-          ),
-          updateRequest: {
-            ...state.clientProductProposal.updateRequest,
-            status: 'REVIEW_IN_PROGRESS',
-          },
-        };
+      if (getProductProposalStatus(state) === 'NEW') {
+        setProductProposalStatus(state, 'REVIEW_IN_PROGRESS');
       }
       return HttpResponse.json(
         { acceptedAt: new Date().toISOString() },
@@ -555,18 +552,7 @@ export function createClientMaintenanceHandlers(
           : party
       );
       if (state.clientProductProposal) {
-        state.clientProductProposal = {
-          productDetails: state.clientProductProposal.productDetails.map(
-            (detail) => ({
-              ...detail,
-              onboardingStatus: 'INFORMATION_REQUESTED',
-            })
-          ),
-          updateRequest: {
-            ...state.clientProductProposal.updateRequest,
-            status: 'INFORMATION_REQUESTED',
-          },
-        };
+        setProductProposalStatus(state, 'INFORMATION_REQUESTED');
       }
       return HttpResponse.json(getClientResponse(state));
     }),

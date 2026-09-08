@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -50,12 +50,45 @@ function LoadingState() {
   );
 }
 
-export function ClientMaintenanceWorkspace() {
+export type LinkableMaintenanceStep = Exclude<MaintenanceStep, 'information'>;
+
+export function ClientMaintenanceWorkspace({
+  step: requestedStep,
+  onStepChange,
+}: {
+  step?: LinkableMaintenanceStep;
+  onStepChange?: (step: LinkableMaintenanceStep) => void;
+} = {}) {
   const workspace = useClientMaintenanceWorkspace();
-  const [step, setStep] = useState<MaintenanceStep>('profile');
+  const [localStep, setLocalStep] =
+    useState<LinkableMaintenanceStep>('profile');
   const [editingParty, setEditingParty] = useState<PartyResponse>();
   const [disclosureAnswer, setDisclosureAnswer] = useState<'yes' | 'no'>();
+  const step = requestedStep ?? localStep;
+  const setStep = (next: LinkableMaintenanceStep) => {
+    setLocalStep(next);
+    onStepChange?.(next);
+  };
   const projection = workspace.projection;
+
+  const hasSeededDeepLink = useRef(false);
+  const isProjectionLoaded = projection !== undefined;
+  const hasDraft =
+    (projection?.productChanges.length ?? 0) > 0 ||
+    (projection?.partyChanges.length ?? 0) > 0;
+  const seedDemoDraft = workspace.loadCompleteStory.mutate;
+
+  // A link into a later step is only meaningful if the example draft exists.
+  useEffect(() => {
+    if (hasSeededDeepLink.current) return;
+    if (!requestedStep || requestedStep === 'profile') return;
+    if (!isProjectionLoaded) return;
+    hasSeededDeepLink.current = true;
+    if (hasDraft) return;
+    setDisclosureAnswer('yes');
+    seedDemoDraft();
+  }, [requestedStep, isProjectionLoaded, hasDraft, seedDemoDraft]);
+
   const queryError =
     workspace.clientQuery.error ?? workspace.maintenanceQuery.error;
   const acceptedAt = workspace.submitForVerification.data?.acceptedAt;
@@ -66,7 +99,7 @@ export function ClientMaintenanceWorkspace() {
         (party) => party.updateRequest?.status === 'INFORMATION_REQUESTED'
       ) ||
       projection.productChanges.some(
-        (change) => change.source.status === 'INFORMATION_REQUESTED'
+        (change) => change.onboardingStatus === 'INFORMATION_REQUESTED'
       ));
   const isComplete =
     step === 'submitted' &&
@@ -203,9 +236,9 @@ export function ClientMaintenanceWorkspace() {
                 {organizationName}
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-gray-600">
-                Add the Limited DDA sub-product, disclose anything that changed
-                since the previous approval, and coordinate the separate product
-                and party requests.
+                Add the Limited DDA Payments sub-product, disclose anything that
+                changed since the previous approval, and submit both in one
+                verification.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -284,10 +317,7 @@ export function ClientMaintenanceWorkspace() {
 
           {step === 'review' ? (
             <div className="space-y-6">
-              <MaintenanceReviewOptions
-                projection={projection}
-                onEditParty={setEditingParty}
-              />
+              <MaintenanceReviewOptions projection={projection} />
               <div className="flex flex-col-reverse justify-between gap-3 sm:flex-row">
                 <Button
                   type="button"

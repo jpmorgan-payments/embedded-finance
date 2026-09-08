@@ -9,14 +9,14 @@ import { formatMaintenanceValue } from '@/components/client-maintenance/utils/fo
 import { getMaintenancePartyName } from '@/components/client-maintenance/utils/maintenance-party-display';
 import { Badge } from '@/components/ui/badge';
 
-type DetailRow = {
+export type DetailRow = {
   label: string;
   path: EditablePartyPath;
   value: unknown;
   sensitivity?: 'public' | 'masked';
 };
 
-function getPartyDetails(party: PartyResponse): DetailRow[] {
+export function getPartyDetails(party: PartyResponse): DetailRow[] {
   if (party.partyType === 'ORGANIZATION') {
     return [
       {

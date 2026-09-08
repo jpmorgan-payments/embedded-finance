@@ -160,6 +160,7 @@ export type PartyResponse = {
 // Fields exposed by this illustration follow the narrower update-party guide.
 export type MaintenancePartyUpdate = {
   active?: false;
+  email?: string;
   individualDetails?: Pick<
     IndividualDetails,
     'firstName' | 'middleName' | 'lastName' | 'birthDate' | 'addresses'
