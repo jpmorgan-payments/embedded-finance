@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { PackagePlus, UserMinus, UserPlus } from 'lucide-react';
 
 import type {
@@ -104,6 +105,23 @@ export function ChangeReview({
 }: {
   projection: MaintenanceProjection;
 }) {
+  const itemIds = [
+    ...projection.productChanges.map(
+      (change) => `product-${change.product}-${change.subProduct}`
+    ),
+    ...projection.partyChanges.map((change) => change.partyId),
+  ];
+  const itemKey = itemIds.join('|');
+  const [openItems, setOpenItems] = useState(itemIds);
+  const openedKey = useRef(itemKey);
+
+  // The change set can arrive after mount on a direct link, so defaultValue is not enough.
+  useEffect(() => {
+    if (openedKey.current === itemKey) return;
+    openedKey.current = itemKey;
+    setOpenItems(itemKey ? itemKey.split('|') : []);
+  }, [itemKey]);
+
   return (
     <section aria-labelledby="change-review-heading">
       <div className="mb-4">
@@ -121,12 +139,8 @@ export function ChangeReview({
 
       <Accordion
         type="multiple"
-        defaultValue={[
-          ...projection.productChanges.map(
-            (change) => `product-${change.product}-${change.subProduct}`
-          ),
-          ...projection.partyChanges.map((change) => change.partyId),
-        ]}
+        value={openItems}
+        onValueChange={setOpenItems}
         className="overflow-hidden rounded-md border border-gray-200 bg-white"
       >
         {projection.productChanges.map((productChange) => {

@@ -49,10 +49,16 @@ describe('ClientMaintenanceWorkspace', () => {
     expect(
       await screen.findByRole('heading', { name: 'Compare review patterns' })
     ).toBeInTheDocument();
+    // Expanded values prove the field comparison opened, not just its collapsed rows.
     await waitFor(
-      () => expect(screen.getAllByText('Sam Lee')).not.toHaveLength(0),
-      { timeout: 5000 }
+      () => expect(screen.getAllByText('Diaz')).not.toHaveLength(0),
+      {
+        timeout: 5000,
+      }
     );
+    expect(
+      screen.getAllByText('jane.diaz@marketplacevendor.example')
+    ).not.toHaveLength(0);
   });
 
   it('treats a maintenance-list 404 as an empty workspace', async () => {
