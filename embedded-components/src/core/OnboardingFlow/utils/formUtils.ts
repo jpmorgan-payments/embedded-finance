@@ -675,13 +675,12 @@ const EMPTY_LOCKED_FIELDS: Set<string> = new Set<string>();
  * empty set — no client data is walked and behavior is unchanged.
  *
  * - `mode: 'always'` locks every listed field.
- * - `mode: 'whenPopulated'` (default) locks a field when it already has a value
- *   from the GET client response, or when it is optional. A required-but-empty
- *   field stays editable so onboarding can still be completed.
+ * - `mode: 'whenPopulated'` (default) locks a field only when it already has a
+ *   value from the GET client response. Empty fields stay editable so
+ *   onboarding can still be completed.
  */
 export function useReadonlyLockedFields(): Set<string> {
   const { clientData, readonlyFields } = useOnboardingContext();
-  const { getFieldRule } = useFormUtils();
 
   const hasConfig = !!readonlyFields?.fields?.length;
 
@@ -704,26 +703,9 @@ export function useReadonlyLockedFields(): Set<string> {
       }
       if (populatedKeys.has(field)) {
         locked.add(field);
-        return;
-      }
-      // Not populated: lock only when the field is optional; a required field
-      // that is still empty must stay editable so onboarding can be completed.
-      try {
-        const { fieldRule } = getFieldRule(
-          field as FieldPath<OnboardingFormValuesSubmit>
-        );
-        const required =
-          ('required' in fieldRule ? fieldRule.required : false) ?? false;
-        if (!required) locked.add(field);
-      } catch {
-        // Unknown field key — leave editable (it won't render anyway).
       }
     });
     return locked;
-    // `getFieldRule` is recreated each render; the resolution is cheap and
-    // stable for a given client/screen, so it is intentionally excluded to
-    // avoid needless recomputation.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasConfig, populatedKeys, readonlyFields]);
 }
 

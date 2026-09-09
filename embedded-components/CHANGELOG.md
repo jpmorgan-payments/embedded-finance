@@ -2,6 +2,16 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.11] - 2026-09-09
+
+### Changes
+
+#### Bug Fixes
+
+- **onboarding:** fix faulty behavior with emails in delta mode
+- **onboarding:** fix issue where readonlyFields prop would lock fields even when not populated
+- **linked-accounts:** resolve issue where payment methods were not being added to payload
+
 ## [0.17.10] - 2026-08-31
 
 ### Changes

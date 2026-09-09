@@ -70,10 +70,14 @@ describe('useRecipientForm', () => {
           paymentType: 'ACH' as const,
           routingNumber: '123456789',
         },
+        {
+          paymentType: 'WIRE' as const,
+          routingNumber: '987654321',
+        },
       ],
       accountNumber: '12345678',
       bankAccountType: 'CHECKING' as const,
-      paymentTypes: ['ACH' as const],
+      paymentTypes: ['ACH' as const, 'WIRE' as const],
       certify: true,
     };
 
@@ -85,6 +89,20 @@ describe('useRecipientForm', () => {
 
     expect(capturedData).toHaveProperty('type', 'LINKED_ACCOUNT');
     expect(capturedData).toHaveProperty('partyDetails');
+    expect(capturedData).toMatchObject({
+      account: {
+        routingInformation: [
+          {
+            routingNumber: '123456789',
+            transactionType: 'ACH',
+          },
+          {
+            routingNumber: '987654321',
+            transactionType: 'WIRE',
+          },
+        ],
+      },
+    });
     expect(onSuccess).toHaveBeenCalled();
     expect(onSettled).toHaveBeenCalled();
   });

@@ -282,8 +282,8 @@ export type OnboardingDeltaModeProp = boolean | OnboardingDeltaModeConfig;
  *
  * `mode` controls when each listed field locks:
  * - `'whenPopulated'` (**default**) — lock when the field already has a value
- *   from the GET client response, **or** when the field is optional. A required
- *   field that is still empty stays editable so onboarding can be completed.
+ *   from the GET client response. Empty fields stay editable so onboarding can
+ *   still be completed.
  * - `'always'` — the field is always read-only, regardless of value or whether
  *   it is required.
  *
