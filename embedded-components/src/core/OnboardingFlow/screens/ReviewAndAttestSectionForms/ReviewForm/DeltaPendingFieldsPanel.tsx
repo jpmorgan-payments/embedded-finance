@@ -2061,10 +2061,8 @@ export function useDeltaPendingFieldsForm(sections: SectionScreenConfig[]) {
     [clientData]
   );
 
-  const orgValues = convertPartyResponseToFormValues(orgParty ?? {});
-  const controllerValues = convertPartyResponseToFormValues(
-    controllerParty ?? {}
-  );
+  const { organizationValues: orgValues, controllerValues } =
+    buildDeltaPartyDefaultValues(orgParty, controllerParty);
 
   const ownersDefaults = useMemo(() => {
     // Seed fieldMap defaults for individual-type fields so owner addresses
@@ -2338,6 +2336,37 @@ function pickDirtyPartyValues(
     }
   }
   return out as Partial<OnboardingFormValuesSubmit>;
+}
+
+export function buildDeltaPartyDefaultValues(
+  organizationParty:
+    | Parameters<typeof convertPartyResponseToFormValues>[0]
+    | undefined,
+  controllerParty:
+    | Parameters<typeof convertPartyResponseToFormValues>[0]
+    | undefined
+): {
+  organizationValues: Partial<OnboardingFormValuesSubmit>;
+  controllerValues: Partial<OnboardingFormValuesSubmit>;
+} {
+  return {
+    organizationValues: pickDirtyPartyValues(
+      convertPartyResponseToFormValues(organizationParty ?? {}) as Record<
+        string,
+        unknown
+      >,
+      undefined,
+      ORG_PARTY_FIELD_KEYS
+    ),
+    controllerValues: pickDirtyPartyValues(
+      convertPartyResponseToFormValues(controllerParty ?? {}) as Record<
+        string,
+        unknown
+      >,
+      undefined,
+      INDIVIDUAL_PARTY_FIELD_KEYS
+    ),
+  };
 }
 
 function normalizeControllerIdsIssuer(

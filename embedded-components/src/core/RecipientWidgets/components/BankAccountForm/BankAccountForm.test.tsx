@@ -9,6 +9,7 @@
  * - Selecting an ORGANIZATION party derives `accountType`/`businessName`.
  * - Auto-selection of the only available party.
  */
+import { useMemo } from 'react';
 import { describe, expect, test, vi } from 'vitest';
 import { render, screen, userEvent, waitFor } from '@test-utils';
 
@@ -16,7 +17,9 @@ import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
 import {
   BankAccountForm,
+  createCustomConfig,
   useLinkedAccountConfig,
+  type BankAccountFormConfigOverride,
   type BankAccountFormData,
 } from './index';
 
@@ -27,11 +30,20 @@ import {
 function LinkedAccountSinglePageHarness({
   client,
   onSubmit,
+  configOverride,
 }: {
   client?: ClientResponse;
   onSubmit?: (data: BankAccountFormData) => void;
+  configOverride?: BankAccountFormConfigOverride;
 }) {
-  const config = useLinkedAccountConfig();
+  const baseConfig = useLinkedAccountConfig();
+  const config = useMemo(
+    () =>
+      configOverride
+        ? createCustomConfig(baseConfig, configOverride)
+        : baseConfig,
+    [baseConfig, configOverride]
+  );
   return (
     <BankAccountForm
       client={client}
@@ -159,5 +171,65 @@ describe('BankAccountForm — single-page linked create', () => {
     await waitFor(() => {
       expect(holder).toHaveTextContent(/Ada Lovelace/i);
     });
+  });
+
+  test('submits every selected payment method from a multi-method override', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const onSubmit = vi.fn();
+
+    render(
+      <LinkedAccountSinglePageHarness
+        client={singleIndividual}
+        onSubmit={onSubmit}
+        configOverride={{
+          paymentMethods: {
+            available: ['ACH', 'WIRE', 'RTP'],
+            allowMultiple: true,
+            defaultSelected: ['ACH'],
+          },
+        }}
+      />
+    );
+
+    await user.click(screen.getByRole('checkbox', { name: /Wire/i }));
+    await user.click(
+      screen.getByRole('checkbox', { name: /Real-Time Payments/i })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('checkbox', { name: /Wire/i })).toBeChecked();
+      expect(
+        screen.getByRole('checkbox', { name: /Real-Time Payments/i })
+      ).toBeChecked();
+    });
+
+    await user.type(screen.getByLabelText(/Account Number/i), '12345678');
+    await user.type(
+      screen.getByLabelText(/ACH \/ Wire \/ RTP Routing Number/i),
+      '021000021'
+    );
+    await user.type(screen.getByLabelText(/Street Address/i), '1 Main St');
+    await user.type(screen.getByLabelText(/^City/i), 'New York');
+    await user.click(screen.getByRole('combobox', { name: /^State/i }));
+    await user.click(await screen.findByRole('option', { name: 'New York' }));
+    await user.type(screen.getByLabelText(/ZIP Code/i), '10001');
+    await user.click(
+      screen.getByRole('checkbox', { name: /I authorize verification/i })
+    );
+    await user.click(
+      screen.getByRole('button', { name: /Confirm and Link Account/i })
+    );
+
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        paymentTypes: ['ACH', 'WIRE', 'RTP'],
+        routingNumbers: [
+          { paymentType: 'ACH', routingNumber: '021000021' },
+          { paymentType: 'WIRE', routingNumber: '021000021' },
+          { paymentType: 'RTP', routingNumber: '021000021' },
+        ],
+      })
+    );
   });
 });

@@ -8,13 +8,6 @@ import type {
 
 import type { BankAccountFormData } from './BankAccountForm.types';
 
-/** Linked accounts use ACH only in API payloads and review display. */
-function routingNumbersForLinkedAccountPayload(
-  routingNumbers: BankAccountFormData['routingNumbers']
-): BankAccountFormData['routingNumbers'] {
-  return routingNumbers.filter((r) => r.paymentType === 'ACH');
-}
-
 /** Placeholder id for {@link bankAccountFormDataToDisplayRecipient} (display-only, not persisted). */
 export const PREFILL_DISPLAY_RECIPIENT_ID = 'pending-prefill';
 
@@ -49,8 +42,7 @@ export function mergeBankAccountDefaultValues(
 export function bankAccountFormDataToDisplayRecipient(
   data: BankAccountFormData
 ): Recipient {
-  const achRows = routingNumbersForLinkedAccountPayload(data.routingNumbers);
-  const routingInformation: RoutingInformation[] = achRows.map(
+  const routingInformation: RoutingInformation[] = data.routingNumbers.map(
     (routingConfig) => ({
       routingCodeType: 'USABA' as const,
       routingNumber: routingConfig.routingNumber,
@@ -114,12 +106,7 @@ export function transformBankAccountFormToRecipientPayload(
   recipientType: RecipientType,
   routingCodeType: RoutingCodeType = 'USABA'
 ): RecipientRequest {
-  const sourceRoutingNumbers =
-    recipientType === 'LINKED_ACCOUNT'
-      ? routingNumbersForLinkedAccountPayload(data.routingNumbers)
-      : data.routingNumbers;
-
-  const routingInformation: RoutingInformation[] = sourceRoutingNumbers.map(
+  const routingInformation: RoutingInformation[] = data.routingNumbers.map(
     (routingConfig) => ({
       routingCodeType,
       routingNumber: routingConfig.routingNumber,

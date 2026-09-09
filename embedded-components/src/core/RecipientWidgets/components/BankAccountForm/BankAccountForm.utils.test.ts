@@ -66,7 +66,7 @@ describe('bankAccountFormDataToDisplayRecipient', () => {
     expect(r.account?.routingInformation?.[0]?.routingNumber).toBe('021000021');
   });
 
-  it('includes only ACH routing rows for linked-account display', () => {
+  it('includes all selected routing rows for linked-account display', () => {
     const data: BankAccountFormData = {
       ...base,
       routingNumbers: [
@@ -78,12 +78,12 @@ describe('bankAccountFormDataToDisplayRecipient', () => {
     const r = bankAccountFormDataToDisplayRecipient(data);
     expect(
       r.account?.routingInformation?.map((x) => x.transactionType)
-    ).toEqual(['ACH']);
+    ).toEqual(['ACH', 'WIRE']);
   });
 });
 
 describe('transformBankAccountFormToRecipientPayload', () => {
-  it('sends only ACH routing for LINKED_ACCOUNT even if form state has other types', () => {
+  it('preserves all selected routing types for LINKED_ACCOUNT', () => {
     const data: BankAccountFormData = {
       ...base,
       routingNumbers: [
@@ -98,7 +98,7 @@ describe('transformBankAccountFormToRecipientPayload', () => {
     );
     expect(
       payload.account?.routingInformation?.map((x) => x.transactionType)
-    ).toEqual(['ACH']);
+    ).toEqual(['WIRE', 'ACH']);
   });
 
   it('preserves all routing types for RECIPIENT', () => {

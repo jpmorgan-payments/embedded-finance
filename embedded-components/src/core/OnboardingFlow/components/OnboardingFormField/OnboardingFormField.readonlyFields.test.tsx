@@ -24,6 +24,7 @@ const orgPartyPopulated = {
   partyType: 'ORGANIZATION',
   organizationDetails: {
     organizationName: 'Acme LLC',
+    dbaName: 'Acme Services',
     organizationType: 'LIMITED_LIABILITY_COMPANY',
     addresses: [
       {
@@ -46,7 +47,10 @@ const clientEmpty = {
   parties: [
     {
       partyType: 'ORGANIZATION',
-      organizationDetails: { organizationType: 'LIMITED_LIABILITY_COMPANY' },
+      organizationDetails: {
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
+        dbaName: '',
+      },
     },
   ],
 } as unknown as ClientResponse;
@@ -157,7 +161,7 @@ describe('OnboardingFlow readonlyFields', () => {
     expect(input).not.toHaveAttribute('aria-readonly', 'true');
   });
 
-  test('locks a listed optional field even when it is empty', async () => {
+  test('keeps a listed optional field editable while it is still empty', async () => {
     renderInFlow(
       <FieldHarness name="dbaName" defaultValues={{ dbaName: '' }} />,
       makeContext({
@@ -166,11 +170,27 @@ describe('OnboardingFlow readonlyFields', () => {
       })
     );
 
-    // dbaName is optional → locked under the default 'whenPopulated' mode.
-    // A locked empty field renders the read-only 'N/A' placeholder.
+    const input = await screen.findByRole('textbox');
+    expect(input.tagName).toBe('INPUT');
+    expect(input).toHaveValue('');
+    expect(input).not.toHaveAttribute('aria-readonly', 'true');
+  });
+
+  test('locks a listed optional field when it is populated from the GET client', async () => {
+    renderInFlow(
+      <FieldHarness
+        name="dbaName"
+        defaultValues={{ dbaName: 'Acme Services' }}
+      />,
+      makeContext({
+        clientData: clientPopulated,
+        readonlyFields: { fields: ['dbaName'] },
+      })
+    );
+
     const box = await screen.findByRole('textbox');
-    expect(box).toHaveTextContent('N/A');
     expect(box.tagName).toBe('DIV');
+    expect(box).toHaveTextContent('Acme Services');
     expect(box).toHaveAttribute('aria-readonly', 'true');
   });
 
