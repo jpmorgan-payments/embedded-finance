@@ -5,13 +5,25 @@ import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { useEbInstance } from '@/api/use-axios-instance';
 
 import {
+  addLimitedDdaPaymentsProduct,
+  cancelLimitedDdaPaymentsAddition,
   cancelMaintenanceRequest,
+  createMaintenanceParty,
+  downloadMaintenanceAttestation,
   getAllMaintenanceParties,
   getMaintenanceClient,
   getMaintenanceDocumentRequests,
+  getMaintenanceQuestions,
+  patchMaintenanceParty,
   patchMaintenancePartyName,
   submitMaintenanceVerification,
+  updateMaintenanceClientTasks,
 } from '../clientMaintenanceApi';
+import type {
+  MaintenanceClientTaskUpdateRequest,
+  MaintenancePartyCreateRequest,
+  MaintenancePartyUpdateRequest,
+} from '../models/maintenanceApi.types';
 import type { PartyNameUpdateRequest } from '../utils/buildPartyNameUpdate';
 import { validateStableMaintenanceSubmission } from '../utils/maintenanceReview';
 
@@ -34,6 +46,12 @@ export function useMaintenanceWorkspace(clientId: string) {
     queryKey: getMaintenancePartiesQueryKey(clientId),
     queryFn: () => getAllMaintenanceParties(request, clientId),
     enabled: Boolean(clientId),
+  });
+  const questionIds = clientQuery.data?.outstanding?.questionIds ?? [];
+  const questionsQuery = useQuery({
+    queryKey: ['approved-client-maintenance', 'questions', ...questionIds],
+    queryFn: () => getMaintenanceQuestions(request, questionIds),
+    enabled: questionIds.length > 0,
   });
   const expectedDocumentRequestIds = [
     ...new Set([
@@ -100,6 +118,42 @@ export function useMaintenanceWorkspace(clientId: string) {
       patchMaintenancePartyName(request, partyId, requestBody, idempotencyKey),
     onSuccess: refreshMaintenanceWorkspace,
   });
+  const updatePartyMutation = useMutation({
+    mutationFn: ({
+      partyId,
+      requestBody,
+    }: {
+      partyId: string;
+      requestBody: MaintenancePartyUpdateRequest;
+    }) =>
+      patchMaintenanceParty(request, partyId, requestBody, crypto.randomUUID()),
+    onSuccess: refreshMaintenanceWorkspace,
+  });
+  const createPartyMutation = useMutation({
+    mutationFn: (requestBody: MaintenancePartyCreateRequest) =>
+      createMaintenanceParty(request, requestBody, crypto.randomUUID()),
+    onSuccess: refreshMaintenanceWorkspace,
+  });
+  const addProductMutation = useMutation({
+    mutationFn: () =>
+      addLimitedDdaPaymentsProduct(request, clientId, crypto.randomUUID()),
+    onSuccess: refreshMaintenanceWorkspace,
+  });
+  const cancelProductAdditionMutation = useMutation({
+    mutationFn: () =>
+      cancelLimitedDdaPaymentsAddition(request, clientId, crypto.randomUUID()),
+    onSettled: refreshMaintenanceWorkspace,
+  });
+  const clientTaskMutation = useMutation({
+    mutationFn: (requestBody: MaintenanceClientTaskUpdateRequest) =>
+      updateMaintenanceClientTasks(
+        request,
+        clientId,
+        requestBody,
+        crypto.randomUUID()
+      ),
+    onSuccess: refreshMaintenanceWorkspace,
+  });
   const cancelMaintenanceMutation = useMutation({
     mutationFn: ({
       requestId,
@@ -158,6 +212,11 @@ export function useMaintenanceWorkspace(clientId: string) {
       }),
     [updatePartyNameMutation]
   );
+  const updateParty = useCallback(
+    (partyId: string, requestBody: MaintenancePartyUpdateRequest) =>
+      updatePartyMutation.mutateAsync({ partyId, requestBody }),
+    [updatePartyMutation]
+  );
   const cancelChanges = useCallback(
     (requestId: string, partyId?: string) =>
       cancelMaintenanceMutation.mutateAsync({
@@ -176,10 +235,15 @@ export function useMaintenanceWorkspace(clientId: string) {
     verificationIdempotencyKeyRef.current = undefined;
     verificationMutation.reset();
   }, [verificationMutation]);
+  const downloadAttestation = useCallback(
+    (documentId: string) => downloadMaintenanceAttestation(request, documentId),
+    [request]
+  );
 
   return {
     clientQuery,
     maintenanceQuery,
+    questionsQuery,
     documentRequestsQuery,
     expectedDocumentRequestIds,
     isDocumentDiscoveryPending:
@@ -190,6 +254,17 @@ export function useMaintenanceWorkspace(clientId: string) {
       ),
     updatePartyNameMutation,
     updatePartyName,
+    updatePartyMutation,
+    updateParty,
+    createPartyMutation,
+    createParty: createPartyMutation.mutateAsync,
+    addProductMutation,
+    addProduct: addProductMutation.mutateAsync,
+    cancelProductAdditionMutation,
+    cancelProductAddition: cancelProductAdditionMutation.mutateAsync,
+    clientTaskMutation,
+    updateClientTasks: clientTaskMutation.mutateAsync,
+    downloadAttestation,
     cancelMaintenanceMutation,
     cancelChanges,
     verificationMutation,

@@ -51,9 +51,22 @@ describe('DocumentUploadRequestForm', () => {
 
     const resetButton = screen.getByRole('button', { name: 'Reset form' });
     expect(resetButton).toBeDisabled();
-    expect(resetButton.closest('.eb-border-t')).toHaveClass(
-      'sm:eb-grid-cols-[auto_1fr]'
+    expect(resetButton.closest('footer')).toBeNull();
+    const cancelButton = screen.getByRole('button', {
+      name: 'Cancel upload',
+    });
+    const footer = cancelButton.closest('footer');
+    expect(footer).toHaveClass('eb-border-t', 'eb-py-3');
+    expect(footer).not.toHaveClass('eb--mb-4', '@[40rem]:eb--mb-5');
+    expect(footer?.closest('form')?.parentElement).toHaveClass(
+      'eb-pt-4',
+      '@[40rem]:eb-pt-5'
     );
+    expect(footer?.closest('form')?.parentElement).not.toHaveClass(
+      'eb-p-4',
+      '@[40rem]:eb-p-5'
+    );
+    expect(cancelButton).toHaveClass('eb-border');
     await user.click(screen.getByRole('combobox'));
     await user.click(
       await screen.findByRole('option', { name: /business license/i })

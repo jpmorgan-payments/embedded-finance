@@ -1,16 +1,23 @@
-import type { IndividualLegalNameValues } from '@/core/ClientProfile/models/individualLegalName.types';
-
 import {
   isActiveMaintenanceStatus,
   type ActiveMaintenanceStatus,
   type MaintenanceClient,
   type MaintenanceParty,
+  type MaintenanceStatus,
 } from '../models/maintenanceApi.types';
+import {
+  MAINTENANCE_FIELD_DESCRIPTORS,
+  type EditablePartyField,
+} from './maintenanceFieldDescriptors';
 
 export type PartyFieldChange = {
-  field: keyof IndividualLegalNameValues;
+  field: EditablePartyField;
+  labelKey: string;
   approvedValue: string;
   proposedValue: string;
+  approvedRawValue?: unknown;
+  proposedRawValue: unknown;
+  sensitivity: 'public' | 'masked';
   source: {
     requestId: string;
     submittedAt: string;
@@ -20,9 +27,23 @@ export type PartyFieldChange = {
 
 export type PartyChange = {
   partyId: string;
-  approvedParty: MaintenanceParty;
+  approvedParty?: MaintenanceParty;
   proposal: MaintenanceParty;
+  action: 'ADD' | 'MODIFY' | 'DELETE';
+  removesParty: boolean;
   fieldChanges: PartyFieldChange[];
+};
+
+export type ProductChange = {
+  product: string;
+  subProduct?: string;
+  requestedAction: 'ADD' | 'REMOVE';
+  onboardingStatus?: string;
+  source: {
+    requestId?: string;
+    status: ActiveMaintenanceStatus;
+    submittedAt?: string;
+  };
 };
 
 export type PartyValidationTask = {
@@ -35,6 +56,8 @@ export type PartyValidationTask = {
 
 export type MaintenanceProjection = {
   approvedClient: MaintenanceClient;
+  proposedClient: MaintenanceClient;
+  productChanges: ProductChange[];
   partyChanges: PartyChange[];
   validationTasks: PartyValidationTask[];
   documentRequestIds: string[];
@@ -44,12 +67,6 @@ export type MaintenanceProjection = {
   activeRequestId?: string;
   canReview: boolean;
 };
-
-const NAME_FIELDS: Array<keyof IndividualLegalNameValues> = [
-  'firstName',
-  'middleName',
-  'lastName',
-];
 
 const hasRequiredCorrelation = (proposal: MaintenanceParty) => {
   const updateRequest = proposal.updateRequest;
@@ -78,9 +95,54 @@ export function buildMaintenanceProjection(
   approvedClient: MaintenanceClient,
   maintenanceParties: MaintenanceParty[]
 ): MaintenanceProjection {
-  const activeProposals = maintenanceParties.filter((party) =>
-    isActiveMaintenanceStatus(party.updateRequest?.status)
+  const approvedBaseline = structuredClone(approvedClient);
+  const proposedClient = structuredClone(approvedClient);
+  const nonApprovedEmbeddedAdditions = (approvedClient.parties ?? []).filter(
+    (party) =>
+      party.updateRequest?.action === 'ADD' &&
+      party.updateRequest.status !== 'APPROVED'
   );
+  const activeEmbeddedAdditionProposals = nonApprovedEmbeddedAdditions.filter(
+    (party) => isActiveMaintenanceStatus(party.updateRequest?.status)
+  );
+  const embeddedAdditionIds = new Set(
+    nonApprovedEmbeddedAdditions
+      .map((party) => party.id)
+      .filter((partyId): partyId is string => Boolean(partyId))
+  );
+  approvedBaseline.parties = (approvedBaseline.parties ?? []).filter(
+    (party) => !party.id || !embeddedAdditionIds.has(party.id)
+  );
+  proposedClient.parties = (proposedClient.parties ?? []).filter(
+    (party) => !party.id || !embeddedAdditionIds.has(party.id)
+  );
+  const normalizedProductDetails = (approvedClient.productDetails ?? []).map(
+    (detail) => ({
+      ...detail,
+      product:
+        detail.product ??
+        (detail.subProduct === 'LIMITED_DDA' ||
+        detail.subProduct === 'LIMITED_DDA_PAYMENTS'
+          ? 'EMBEDDED_PAYMENTS'
+          : undefined),
+      subProduct:
+        detail.subProduct ??
+        (detail.product === 'EMBEDDED_PAYMENTS' ? 'LIMITED_DDA' : undefined),
+    })
+  );
+  approvedBaseline.productDetails = structuredClone(normalizedProductDetails);
+  proposedClient.productDetails = structuredClone(normalizedProductDetails);
+  const maintenancePartyIds = new Set(
+    maintenanceParties
+      .map((party) => party.id)
+      .filter((partyId): partyId is string => Boolean(partyId))
+  );
+  const activeProposals = [
+    ...maintenanceParties,
+    ...activeEmbeddedAdditionProposals.filter(
+      (party) => !party.id || !maintenancePartyIds.has(party.id)
+    ),
+  ].filter((party) => isActiveMaintenanceStatus(party.updateRequest?.status));
   const unresolvedProposals = activeProposals.filter(
     (proposal) => !hasRequiredCorrelation(proposal)
   );
@@ -88,60 +150,164 @@ export function buildMaintenanceProjection(
   const activeRequestIds = new Set(
     correlatedProposals.map((proposal) => proposal.updateRequest!.requestId!)
   );
+  if (
+    isActiveMaintenanceStatus(approvedClient.updateRequest?.status) &&
+    approvedClient.updateRequest?.requestId
+  ) {
+    activeRequestIds.add(approvedClient.updateRequest.requestId);
+  }
   const proposalsByPartyId = groupProposalsByPartyId(correlatedProposals);
-  let hasConflicts = activeRequestIds.size > 1;
+  const hasConflicts = activeRequestIds.size > 1;
   const partyChanges: PartyChange[] = [];
 
+  const productChanges: ProductChange[] = [];
+  normalizedProductDetails
+    .filter(
+      (detail) =>
+        detail.subProduct === 'LIMITED_DDA_PAYMENTS' &&
+        isActiveMaintenanceStatus(
+          detail.onboardingStatus as MaintenanceStatus | undefined
+        )
+    )
+    .forEach((detail) => {
+      if (!detail.product) return;
+      productChanges.push({
+        product: detail.product,
+        subProduct: detail.subProduct,
+        requestedAction: detail.action ?? 'ADD',
+        onboardingStatus: detail.onboardingStatus,
+        source: {
+          requestId: approvedClient.updateRequest?.requestId,
+          status: detail.onboardingStatus as ActiveMaintenanceStatus,
+          submittedAt: approvedClient.updateRequest?.submittedAt,
+        },
+      });
+    });
+  if (productChanges.length > 0) {
+    const activeProductKeys = new Set(
+      productChanges.map(
+        (change) => `${change.product}:${change.subProduct ?? ''}`
+      )
+    );
+    approvedBaseline.productDetails = (
+      approvedBaseline.productDetails ?? []
+    ).filter(
+      (detail) =>
+        !activeProductKeys.has(
+          `${detail.product ?? ''}:${detail.subProduct ?? ''}`
+        )
+    );
+  }
+
   proposalsByPartyId.forEach((proposals, partyId) => {
-    const approvedParty = approvedClient.parties?.find(
+    const orderedProposals = [...proposals].sort((left, right) =>
+      (left.updateRequest?.submittedAt ?? '').localeCompare(
+        right.updateRequest?.submittedAt ?? ''
+      )
+    );
+    const latestProposal = orderedProposals.at(-1)!;
+    const additionProposal = orderedProposals.find(
+      (proposal) => proposal.updateRequest?.action === 'ADD'
+    );
+    const approvedParty = approvedBaseline.parties?.find(
       (party) => party.id === partyId
     );
-    if (!approvedParty) {
+    const action =
+      !approvedParty && additionProposal
+        ? 'ADD'
+        : latestProposal.updateRequest?.action;
+    if (!approvedParty && !additionProposal) {
       unresolvedProposals.push(...proposals);
       return;
     }
 
-    const fieldChanges: PartyFieldChange[] = [];
-    NAME_FIELDS.forEach((field) => {
-      const proposalsWithField = proposals.filter(
-        (proposal) => proposal.individualDetails?.[field] !== undefined
-      );
-      const proposedValues = new Set(
-        proposalsWithField.map(
-          (proposal) => proposal.individualDetails?.[field] as string
-        )
-      );
+    const baselineParty: MaintenanceParty = approvedParty ?? {
+      id: partyId,
+      partyType: latestProposal.partyType,
+      roles: [],
+    };
 
-      if (proposedValues.size > 1) {
-        hasConflicts = true;
+    const proposedParty =
+      proposedClient.parties?.find((party) => party.id === partyId) ??
+      structuredClone(additionProposal ?? latestProposal);
+    const fieldChanges: PartyFieldChange[] = [];
+    const effectiveRoles =
+      orderedProposals
+        .filter((proposal) => (proposal.roles?.length ?? 0) > 0)
+        .at(-1)?.roles ??
+      baselineParty.roles ??
+      [];
+    MAINTENANCE_FIELD_DESCRIPTORS.forEach((descriptor) => {
+      if (
+        descriptor.field === 'natureOfOwnership' &&
+        !effectiveRoles.includes('BENEFICIAL_OWNER')
+      ) {
         return;
       }
-
-      const proposal = proposalsWithField[0];
+      const proposal = orderedProposals
+        .filter((candidate) => {
+          if (!descriptor.isPresent(candidate)) return false;
+          const value = descriptor.read(candidate);
+          return !Array.isArray(value) || value.length > 0;
+        })
+        .at(-1);
       if (!proposal) return;
 
-      const proposedValue = proposal.individualDetails?.[field];
-      const approvedValue = approvedParty.individualDetails?.[field] ?? '';
-      if (proposedValue === undefined || proposedValue === approvedValue)
+      const approvedRawValue =
+        descriptor.field === 'natureOfOwnership' &&
+        !baselineParty.roles?.includes('BENEFICIAL_OWNER')
+          ? undefined
+          : descriptor.read(baselineParty);
+      const proposedRawValue = descriptor.read(proposal);
+      if (proposedRawValue === undefined) return;
+      if (
+        JSON.stringify(proposedRawValue) === JSON.stringify(approvedRawValue)
+      ) {
         return;
+      }
+      const proposedValue = descriptor.format(proposedRawValue);
+      const approvedValue = descriptor.format(approvedRawValue);
 
       fieldChanges.push({
-        field,
+        field: descriptor.field,
+        labelKey: descriptor.labelKey,
         approvedValue,
         proposedValue,
+        approvedRawValue,
+        proposedRawValue,
+        sensitivity: descriptor.sensitivity,
         source: {
           requestId: proposal.updateRequest!.requestId!,
           submittedAt: proposal.updateRequest!.submittedAt!,
           status: proposal.updateRequest!.status as ActiveMaintenanceStatus,
         },
       });
+      descriptor.write(proposedParty, proposedRawValue);
     });
 
-    if (fieldChanges.length > 0) {
+    const removesParty = proposals.some(
+      (proposal) => proposal.active === false
+    );
+    if (action === 'ADD' && !approvedParty) {
+      proposedClient.parties = [
+        ...(proposedClient.parties ?? []).filter(
+          (party) => party.id !== proposedParty.id
+        ),
+        proposedParty,
+      ];
+    } else if (removesParty) {
+      proposedClient.parties = (proposedClient.parties ?? []).filter(
+        (party) => party.id !== partyId
+      );
+    }
+
+    if (fieldChanges.length > 0 || removesParty || action === 'ADD') {
       partyChanges.push({
         partyId,
         approvedParty,
-        proposal: proposals[0],
+        proposal: latestProposal,
+        action: action ?? 'MODIFY',
+        removesParty,
         fieldChanges,
       });
     }
@@ -171,7 +337,9 @@ export function buildMaintenanceProjection(
   ];
 
   return {
-    approvedClient,
+    approvedClient: approvedBaseline,
+    proposedClient,
+    productChanges,
     partyChanges,
     validationTasks,
     documentRequestIds,

@@ -2,6 +2,21 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.12] - 2026-09-14
+
+### Changes
+
+#### Features
+
+- **linked-accounts:** disable ACH routing number field when editing linked accounts
+- **client-maintenance:** continued WIP ApprovedClientMaintenance feature implementation
+- **client-maintenance:** wip feature implementation of client maintenance component
+- **client-maintenance:** wip updates
+
+#### Bug Fixes
+
+- **linked-accounts:** add form validation for when no party is selected
+
 ## [0.17.11] - 2026-09-09
 
 ### Changes

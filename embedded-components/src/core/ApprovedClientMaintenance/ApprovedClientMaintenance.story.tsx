@@ -20,7 +20,8 @@ const approvedClient = {
   productDetails: [
     {
       product: 'EMBEDDED_PAYMENTS',
-      subProduct: 'LIMITED_DDA_PAYMENTS',
+      subProduct: 'LIMITED_DDA',
+      onboardingStatus: 'APPROVED',
     },
   ],
   parties: [
@@ -30,9 +31,33 @@ const approvedClient = {
       roles: ['CLIENT'],
       organizationDetails: {
         organizationName: 'Neverland Books',
+        dbaName: 'Neverland Books & Paper',
         countryOfFormation: 'US',
         organizationType: 'LIMITED_LIABILITY_COMPANY',
+        yearOfFormation: '2018',
+        organizationDescription:
+          'Independent bookseller and educational publisher serving schools and families.',
+        industryType: 'Book Stores',
+        industry: { codeType: 'NAICS', code: '459210' },
+        organizationIds: [{ idType: 'EIN', value: '123456789', issuer: 'US' }],
+        addresses: [
+          {
+            addressType: 'BUSINESS_ADDRESS',
+            addressLines: ['14 Neverland Avenue', 'Suite 200'],
+            city: 'New York',
+            state: 'NY',
+            postalCode: '10001',
+            country: 'US',
+          },
+        ],
+        phone: {
+          phoneType: 'BUSINESS_PHONE',
+          countryCode: '+1',
+          phoneNumber: '2125550142',
+        },
+        website: 'https://neverland-books.example',
       },
+      email: 'operations@neverland-books.example',
     },
     {
       id: CONTROLLER_PARTY_ID,
@@ -41,7 +66,28 @@ const approvedClient = {
       individualDetails: {
         firstName: 'Peiter',
         lastName: 'Pan',
+        birthDate: '1988-03-14',
+        countryOfResidence: 'US',
+        jobTitle: 'CEO',
+        natureOfOwnership: 'Direct',
+        individualIds: [{ idType: 'SSN', value: '111223333', issuer: 'US' }],
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['42 Second Star Road'],
+            city: 'New York',
+            state: 'NY',
+            postalCode: '10001',
+            country: 'US',
+          },
+        ],
+        phone: {
+          phoneType: 'MOBILE_PHONE',
+          countryCode: '+1',
+          phoneNumber: '6465550199',
+        },
       },
+      email: 'peiter.pan@example.com',
     },
     {
       id: OWNER_PARTY_ID,
@@ -50,18 +96,58 @@ const approvedClient = {
       individualDetails: {
         firstName: 'Tinker',
         lastName: 'Ball',
+        birthDate: '1992-07-18',
+        countryOfResidence: 'CA',
+        jobTitle: 'Other',
+        jobTitleDescription: 'Founding partner',
+        natureOfOwnership: 'Direct',
+        individualIds: [
+          { idType: 'PASSPORT', value: 'PA123456', issuer: 'CA' },
+        ],
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['10 King Street West'],
+            city: 'Toronto',
+            state: 'ON',
+            postalCode: 'M5H 1A1',
+            country: 'CA',
+          },
+        ],
       },
+      email: 'tinker.ball@example.com',
     },
   ],
 };
 
-const createHandlers = () => {
-  let pendingProposals: MaintenanceParty[] = [];
+const createHandlers = ({
+  initialProductPending = false,
+  initialProposals = [],
+}: {
+  initialProductPending?: boolean;
+  initialProposals?: MaintenanceParty[];
+} = {}) => {
+  let pendingProposals: MaintenanceParty[] = initialProposals;
+  let pendingProduct = initialProductPending;
+  let nextPartyId = 2200000114;
 
   return [
     http.get('/clients/:clientId', () =>
       HttpResponse.json({
         ...approvedClient,
+        productDetails: [
+          ...approvedClient.productDetails,
+          ...(pendingProduct
+            ? [
+                {
+                  product: 'EMBEDDED_PAYMENTS',
+                  subProduct: 'LIMITED_DDA_PAYMENTS',
+                  action: 'ADD',
+                  onboardingStatus: 'NEW',
+                },
+              ]
+            : []),
+        ],
         updateRequest:
           pendingProposals.length > 0
             ? { status: 'NEW', requestId: MAINTENANCE_REQUEST_ID }
@@ -78,21 +164,38 @@ const createHandlers = () => {
       });
     }),
     http.patch('/parties/:partyId', async ({ request, params }) => {
-      const body = (await request.json()) as {
-        individualDetails?: {
-          firstName?: string;
-          middleName?: string;
-          lastName?: string;
-        };
-      };
+      const body = (await request.json()) as MaintenanceParty;
       const partyId = String(params.partyId);
+      const approvedParty = approvedClient.parties.find(
+        (party) => party.id === partyId
+      );
+      const pendingParty = pendingProposals.find(
+        (party) => party.id === partyId
+      );
+      const baselineParty = pendingParty ?? approvedParty;
       const nextProposal: MaintenanceParty = {
+        ...baselineParty,
         id: partyId,
-        partyType: 'INDIVIDUAL',
-        individualDetails: body.individualDetails,
+        partyType: baselineParty?.partyType,
+        roles: body.roles ?? baselineParty?.roles,
+        email: body.email ?? baselineParty?.email,
+        individualDetails: body.individualDetails
+          ? {
+              ...baselineParty?.individualDetails,
+              ...body.individualDetails,
+            }
+          : baselineParty?.individualDetails,
+        organizationDetails: body.organizationDetails
+          ? {
+              ...baselineParty?.organizationDetails,
+              ...body.organizationDetails,
+            }
+          : baselineParty?.organizationDetails,
+        active: body.active,
         updateRequest: {
           status: 'NEW',
-          action: 'MODIFY',
+          action:
+            pendingParty?.updateRequest?.action === 'ADD' ? 'ADD' : 'MODIFY',
           requestId: MAINTENANCE_REQUEST_ID,
           submittedAt: '2026-08-26T12:00:00.000Z',
         },
@@ -105,9 +208,39 @@ const createHandlers = () => {
       // The mutation response keeps approved persisted values. The proposal is
       // intentionally available only from GET /maintenance-requests.
       return HttpResponse.json({
-        ...approvedClient.parties.find((party) => party.id === partyId),
+        ...baselineParty,
         updateRequest: nextProposal.updateRequest,
       });
+    }),
+    http.post('/parties', async ({ request }) => {
+      const body = (await request.json()) as MaintenanceParty;
+      const nextProposal: MaintenanceParty = {
+        ...body,
+        id: String(nextPartyId++),
+        updateRequest: {
+          status: 'NEW',
+          action: 'ADD',
+          requestId: MAINTENANCE_REQUEST_ID,
+          submittedAt: new Date().toISOString(),
+        },
+      };
+      pendingProposals = [...pendingProposals, nextProposal];
+      return HttpResponse.json(nextProposal, { status: 201 });
+    }),
+    http.patch('/clients/:clientId', async ({ request }) => {
+      const body = (await request.json()) as {
+        productDetails?: Array<{
+          subProduct?: string;
+          action?: 'ADD' | 'REMOVE';
+        }>;
+      };
+      const limitedDdaPaymentsUpdate = body.productDetails?.find(
+        (detail) => detail.subProduct === 'LIMITED_DDA_PAYMENTS'
+      );
+      if (limitedDdaPaymentsUpdate) {
+        pendingProduct = limitedDdaPaymentsUpdate.action !== 'REMOVE';
+      }
+      return HttpResponse.json(approvedClient);
     }),
     http.delete('/maintenance-requests/:requestId', ({ request }) => {
       const requestUrl = new URL(request.url);
@@ -137,16 +270,18 @@ const createHandlers = () => {
   ];
 };
 
-const createActiveMaintenanceRequestHandlers = () => {
+const createActiveMaintenanceRequestHandlers = (
+  requestStatus: 'NEW' | 'INFORMATION_REQUESTED' = 'NEW'
+) => {
   let pendingProposals: MaintenanceParty[] = [
     {
       id: CONTROLLER_PARTY_ID,
       individualDetails: {
+        ...(approvedClient.parties[1].individualDetails ?? {}),
         firstName: 'Peter',
-        lastName: 'Pan',
       },
       updateRequest: {
-        status: 'NEW',
+        status: requestStatus,
         action: 'MODIFY',
         requestId: MAINTENANCE_REQUEST_ID,
         submittedAt: '2026-08-26T18:16:06.210Z',
@@ -154,9 +289,12 @@ const createActiveMaintenanceRequestHandlers = () => {
     },
     {
       id: OWNER_PARTY_ID,
-      individualDetails: { lastName: 'Bell' },
+      individualDetails: {
+        ...(approvedClient.parties[2].individualDetails ?? {}),
+        lastName: 'Bell',
+      },
       updateRequest: {
-        status: 'NEW',
+        status: requestStatus,
         action: 'MODIFY',
         requestId: MAINTENANCE_REQUEST_ID,
         submittedAt: '2026-08-26T18:15:00.535Z',
@@ -230,7 +368,7 @@ const createActiveMaintenanceRequestHandlers = () => {
     },
     updateRequest:
       pendingProposals.length > 0
-        ? { status: 'NEW', requestId: MAINTENANCE_REQUEST_ID }
+        ? { status: requestStatus, requestId: MAINTENANCE_REQUEST_ID }
         : undefined,
   });
 
@@ -308,7 +446,16 @@ const STORY_ELIGIBILITY: ApprovedClientMaintenanceProps['eligibility'] = [
   ['US', 'CA'].map((country) => ({
     country,
     organizationType,
-    operations: ['EDIT_PARTY_NAME'] as const,
+    operations: [
+      'ADD_LIMITED_DDA_PAYMENTS',
+      'EDIT_ORGANIZATION',
+      'EDIT_PARTY_NAME',
+      'EDIT_PARTY_BIRTH_DATE',
+      'ADD_CONTROLLER',
+      'ADD_BENEFICIAL_OWNER',
+      'REMOVE_RELATED_PARTY',
+      'DISCLOSE_INDIRECT_OWNERSHIP',
+    ] as const,
   }))
 );
 
@@ -328,6 +475,7 @@ const meta: Meta<ApprovedClientMaintenanceStoryArgs> = {
   },
   args: {
     eligibility: STORY_ELIGIBILITY,
+    initialProductVerificationAcceptedAt: '2026-08-26T11:50:00.000Z',
   },
   argTypes: {
     apiBaseUrl: {
@@ -390,6 +538,106 @@ export const EditExistingPartyName: Story = {
       },
     ],
   },
+};
+
+export const FullMaintenanceWorkspace: Story = {
+  parameters: {
+    msw: { handlers: createHandlers() },
+  },
+  args: {
+    clientId: CLIENT_ID,
+    eligibility: STORY_ELIGIBILITY,
+  },
+};
+
+export const ProductUpgradeDraft: Story = {
+  parameters: {
+    msw: {
+      handlers: createHandlers({ initialProductPending: true }),
+    },
+  },
+  args: {
+    clientId: CLIENT_ID,
+    eligibility: STORY_ELIGIBILITY,
+  },
+};
+
+export const InformationRequested: Story = {
+  parameters: {
+    msw: {
+      handlers: createActiveMaintenanceRequestHandlers('INFORMATION_REQUESTED'),
+    },
+  },
+  args: {
+    clientId: CLIENT_ID,
+    eligibility: STORY_ELIGIBILITY,
+  },
+};
+
+export const OwnershipPatterns: Story = {
+  parameters: {
+    msw: {
+      handlers: createHandlers({
+        initialProposals: [
+          {
+            id: '2200000114',
+            parentPartyId: ORGANIZATION_PARTY_ID,
+            partyType: 'ORGANIZATION',
+            roles: ['INTERMEDIARY_OWNER'],
+            organizationDetails: {
+              organizationName: 'Neverland Holdings LLC',
+              organizationType: 'LIMITED_LIABILITY_COMPANY',
+              countryOfFormation: 'US',
+              natureOfOwnership: 'Direct',
+            },
+            updateRequest: {
+              status: 'NEW',
+              action: 'ADD',
+              requestId: MAINTENANCE_REQUEST_ID,
+              submittedAt: '2026-09-02T10:00:00.000Z',
+            },
+          },
+          {
+            id: '2200000115',
+            parentPartyId: '2200000114',
+            partyType: 'INDIVIDUAL',
+            roles: ['BENEFICIAL_OWNER'],
+            individualDetails: {
+              firstName: 'Wendy',
+              lastName: 'Darling',
+              natureOfOwnership: 'Indirect',
+            },
+            updateRequest: {
+              status: 'NEW',
+              action: 'ADD',
+              requestId: MAINTENANCE_REQUEST_ID,
+              submittedAt: '2026-09-02T10:01:00.000Z',
+            },
+          },
+        ],
+      }),
+    },
+  },
+  args: {
+    clientId: CLIENT_ID,
+    eligibility: STORY_ELIGIBILITY,
+  },
+};
+
+export const NarrowProfile: Story = {
+  parameters: {
+    msw: { handlers: createHandlers() },
+    layout: 'fullscreen',
+  },
+  args: {
+    clientId: CLIENT_ID,
+    eligibility: STORY_ELIGIBILITY,
+  },
+  render: (args) => (
+    <div className="eb-mx-auto eb-w-[390px] eb-max-w-full eb-p-3">
+      <ApprovedClientMaintenance {...args} />
+    </div>
+  ),
 };
 
 /**

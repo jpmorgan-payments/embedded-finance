@@ -3,21 +3,53 @@
   "description": "Revise la información aprobada del negocio y declare los cambios admitidos.",
   "loading": "Cargando el perfil del negocio",
   "clientLabel": "Cliente {{clientId}}",
+  "clientStatus": "Estado del cliente: {{status}}",
+  "clientStatuses": {
+    "APPROVED": "Aprobado",
+    "INFORMATION_REQUESTED": "Información solicitada",
+    "REVIEW_IN_PROGRESS": "Revisión en curso",
+    "DECLINED": "Rechazado"
+  },
+  "clientStatusBanner": {
+    "default": "Revise el estado del perfil y complete las acciones disponibles antes de continuar.",
+    "INFORMATION_REQUESTED": {
+      "title": "El perfil del cliente necesita más información",
+      "description": "Complete los elementos solicitados en la solicitud de mantenimiento para que la revisión pueda continuar."
+    },
+    "REVIEW_IN_PROGRESS": {
+      "title": "El perfil del cliente está en revisión",
+      "description": "Los cambios están bloqueados durante la revisión. Aún puede consultar la información enviada y el estado."
+    },
+    "DECLINED": {
+      "title": "El perfil del cliente no fue aprobado",
+      "description": "Revise el estado devuelto y comuníquese con soporte antes de iniciar otra solicitud de mantenimiento."
+    }
+  },
   "organization": "Detalles del negocio",
   "products": "Productos",
   "product": "Producto",
   "subProduct": "Subproducto",
-  "people": "Personas",
-  "peopleDescription": "Controladores, propietarios y otras partes relacionadas de este perfil.",
+  "people": "Partes relacionadas",
+  "peopleDescription": "Roles clave y empresas intermediarias",
+  "peopleAreas": {
+    "controller": "Controlador",
+    "controllerCaption": "Contacto principal de administración",
+    "controllerRowDescription": "Administra o dirige la empresa",
+    "alsoController": "También es el controlador",
+    "directOwner": "Beneficiario efectivo directo",
+    "ownership": "Propiedad",
+    "ownershipCaption_one": "{{count}} beneficiario efectivo con el 25 % o más",
+    "ownershipCaption_other": "{{count}} beneficiarios efectivos con el 25 % o más"
+  },
   "sectionCaption": {
     "organization": "Entidad legal registrada",
     "profileDetails": "Valores aprobados registrados",
-    "updates": "Incluidas en esta solicitud de mantenimiento",
+    "updates": "Revise el negocio, las personas, los productos y las acciones requeridas antes de enviar.",
     "partyUpdates": {
-      "draft": "Cambios del borrador aún no enviados",
-      "review": "Cambios enviados en revisión",
-      "information": "Cambios enviados en espera de información requerida",
-      "submitted": "Cambios enviados"
+      "draft": "Guardados en esta solicitud. Puede editar o descartar estos cambios antes de enviarlos.",
+      "review": "No se pueden editar estos cambios mientras están en revisión.",
+      "information": "La revisión está pausada hasta que se proporcione la información solicitada.",
+      "submitted": "No se requiere ninguna acción, a menos que se solicite más información."
     },
     "requirements": "Necesario para continuar",
     "upload": "Adjunte un archivo para cada requisito",
@@ -36,8 +68,38 @@
   "pendingSummary_other": "{{count}} cambios propuestos están esperando revisión.",
   "request": "Solicitud de mantenimiento {{requestId}}",
   "noProducts": "No hay detalles de productos disponibles",
-  "noPeople": "No hay personas relacionadas disponibles",
+  "noPeople": "No hay partes relacionadas disponibles",
   "noRoles": "No hay funciones indicadas",
+  "productsAction": {
+    "addLimitedDda": "Agregar DDA limitado",
+    "add": "Agregar pagos de DDA limitada",
+    "adding": "Agregando pagos de DDA limitada"
+  },
+  "productStatus": {
+    "active": "Activo",
+    "available": "Disponible",
+    "ready": "Listo para continuar",
+    "pending": "Pendiente",
+    "review": "En revisión",
+    "action": "Acción requerida",
+    "declined": "No aprobado"
+  },
+  "productNode": {
+    "available": "Subproducto disponible",
+    "ready": "Subproducto listo",
+    "pending": "Adición de subproducto pendiente",
+    "review": "Subproducto en revisión",
+    "action": "El subproducto requiere atención",
+    "declined": "Subproducto no aprobado"
+  },
+  "productCancellation": {
+    "action": "Cancelar la adición del producto",
+    "title": "¿Cancelar la adición de Pagos de DDA limitada?",
+    "description": "Pagos de DDA limitada se eliminará de las actualizaciones que se están preparando para revisión.",
+    "maintenancePreserved": "Los cambios de mantenimiento de la empresa y las partes relacionadas permanecerán en curso.",
+    "keep": "Conservar la adición del producto",
+    "confirm": "Cancelar la adición del producto"
+  },
   "legalName": "Nombre legal del negocio",
   "entityType": "Tipo de entidad",
   "countryOfFormation": "País de constitución",
@@ -49,29 +111,73 @@
     "businessInformation": "Información del negocio",
     "documentsNeeded": "Se necesitan documentos",
     "uploadDocuments": "Cargar documentos",
-    "reviewProfileUpdates": "Revisar actualizaciones del perfil",
-    "viewSubmittedUpdates": "Ver actualizaciones enviadas",
-    "draftUpdate": "Actualización del borrador",
-    "submittedUpdate": "Actualización enviada",
+    "reviewProfileUpdates": "Revisar los cambios de esta solicitud",
+    "viewSubmittedUpdates": "Ver cambios enviados",
+    "draftUpdate": "Cambio pendiente",
+    "submittedUpdate": "Cambio enviado",
     "preparingDocuments": "Preparando documentos",
+    "preparingRequiredDocuments": "Preparando documentos requeridos",
+    "preparingRequiredDocumentsDescription": "Sus cambios están guardados. La nueva solicitud de documentos se abrirá en cuanto esté lista.",
     "confirmingChanges": "Confirmando sus cambios…"
   },
   "requestSummary": {
+    "draftRequirements": {
+      "title": "Los requisitos pendientes necesitan atención",
+      "description": "Sus cambios aún se pueden editar. Complete los documentos requeridos antes de enviar esta solicitud para revisión."
+    },
     "draft": {
-      "title": "Actualizaciones del perfil en borrador",
-      "description": "Sus actualizaciones están guardadas aquí, pero no se han enviado para revisión."
+      "title": "Cambios pendientes",
+      "description": "Sus cambios están guardados aquí, pero no se han enviado para revisión."
     },
     "submitted": {
-      "title": "Actualizaciones del perfil enviadas",
-      "description": "Estas actualizaciones del perfil están en revisión."
+      "title": "Cambios enviados",
+      "description": "Estos cambios están en revisión. No se pueden editar ni cancelar hasta que finalice la revisión."
     },
     "action": {
       "title": "Se necesita más información",
-      "description": "Complete los elementos solicitados para que la revisión pueda continuar."
+      "description": "Complete las tareas devueltas en un plazo de 30 días para que la revisión pueda continuar y la solicitud no se cierre automáticamente."
     },
-    "viewSubmittedChanges": "Ver cambios enviados",
-    "viewRequiredActions": "Ver acciones requeridas",
-    "viewRequestDetails": "Ver detalles de la solicitud de mantenimiento"
+    "completeRequirements": "Completar requisitos",
+    "completeRequiredActions": "Completar acciones requeridas",
+    "viewSubmittedChanges": "Ver actualizaciones enviadas"
+  },
+  "updateSummary": {
+    "product": {
+      "draft": {
+        "title": "Actualización del producto lista para revisión",
+        "description": "Pagos de DDA limitada está pendiente y no se ha enviado para revisión."
+      },
+      "draftRequirements": {
+        "title": "La actualización del producto requiere atención",
+        "description": "Complete los requisitos antes de enviar la actualización del producto."
+      },
+      "submitted": {
+        "title": "Actualización del producto enviada",
+        "description": "La actualización de Pagos de DDA limitada está en revisión."
+      },
+      "action": {
+        "title": "La actualización del producto requiere más información",
+        "description": "Complete los requisitos devueltos para que la revisión pueda continuar."
+      }
+    },
+    "combined": {
+      "draft": {
+        "title": "Actualizaciones listas para revisión",
+        "description": "La actualización del producto y los cambios de mantenimiento están listos para revisión."
+      },
+      "draftRequirements": {
+        "title": "Las actualizaciones requieren atención",
+        "description": "Complete los requisitos antes de enviar sus actualizaciones."
+      },
+      "submitted": {
+        "title": "Actualizaciones enviadas",
+        "description": "La actualización del producto y los cambios de mantenimiento están en revisión."
+      },
+      "action": {
+        "title": "Las actualizaciones requieren más información",
+        "description": "Complete los requisitos devueltos para que continúe la revisión."
+      }
+    }
   },
   "requestDetails": {
     "title": "Detalles de la solicitud de mantenimiento",
@@ -90,19 +196,22 @@
     "currentProfileName": "Nombre actual del perfil: {{name}}"
   },
   "changes": {
-    "draftTitle": "Actualizaciones del borrador",
-    "submittedTitle": "Actualizaciones enviadas",
-    "reviewTitle": "Actualizaciones en revisión",
-    "informationTitle": "Actualizaciones que requieren información",
+    "draftTitle": "Cambios pendientes",
+    "submittedTitle": "Cambios enviados",
+    "reviewTitle": "Cambios en revisión",
+    "additionReviewTitle": "Adición en revisión",
+    "informationTitle": "Cambios que requieren información",
     "field": "Campo",
-    "currentProfile": "Perfil actual",
-    "draftUpdate": "Actualización del borrador",
-    "submittedUpdate": "Actualización enviada",
-    "editDraft": "Editar cambios"
+    "currentProfile": "Valor actual",
+    "draftUpdate": "Cambio pendiente",
+    "submittedUpdate": "Cambio enviado",
+    "editDraft": "Agregar o editar cambios",
+    "business": "Negocio",
+    "roles": "Funciones"
   },
   "entity": {
     "back": "Perfil del negocio",
-    "pendingUpdates": "Actualizaciones del perfil",
+    "pendingUpdates": "Cambios en esta solicitud",
     "profileDetails": "Detalles del perfil",
     "editDetails": "Editar detalles",
     "currentProfile": "Perfil actual",
@@ -114,6 +223,31 @@
     "documentsDescription": "Cargue los documentos requeridos para continuar.",
     "continue": "Continuar",
     "maskedValue": "••••••••"
+  },
+  "organizationDetails": {
+    "title": "Información de la empresa",
+    "description": "Información registrada, de contacto y operativa del perfil aprobado.",
+    "industry": "Industria",
+    "email": "Correo electrónico de la empresa",
+    "phone": "Teléfono de la organización",
+    "identityGroup": "Identidad",
+    "registrationGroup": "Registro",
+    "operationsGroup": "Actividad comercial",
+    "contactGroup": "Contacto y dirección"
+  },
+  "individualDetails": {
+    "identityGroup": "Identidad legal",
+    "responsibilityGroup": "Responsabilidad comercial",
+    "contactGroup": "Contacto y dirección",
+    "nameSuffix": "Sufijo del nombre",
+    "countryOfResidence": "País de residencia",
+    "jobTitle": "Cargo",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "ownership": "Relación de propiedad",
+    "roles": "Funciones en este perfil",
+    "identification": "Identificación gubernamental",
+    "address": "Dirección residencial"
   },
   "document": {
     "back": "Volver a {{name}}",
@@ -130,28 +264,304 @@
     "removePerson": "Eliminar persona",
     "editBirthDate": "Editar fecha de nacimiento"
   },
+  "addParty": {
+    "title": "Agregar parte relacionada",
+    "description": "Agregue un controlador o beneficiario efectivo a esta solicitud de mantenimiento.",
+    "replacementTitle": "Agregar controlador de reemplazo",
+    "replacementDescription": "Primero agregue al nuevo controlador. Después de guardar a esta persona, se eliminará al controlador actual en la misma solicitud de mantenimiento.",
+    "ownershipPathTitle": "Confirmar datos del propietario",
+    "ownershipPathDescription": "Se agregó el intermediario. Confirme los datos del propietario para crear la nueva ruta indirecta antes de retirar el registro de propiedad directa anterior.",
+    "beneficialOwnerDescription": "Agregue a una persona que posea directamente el 25 % o más de la empresa.",
+    "indirectOwnerDescription": "Agregue a la persona que finalmente posee el 25 % o más a través de esta empresa intermediaria.",
+    "caption": "Identidad y propiedad",
+    "role": "Función",
+    "roleDescription": "Elija la responsabilidad que esta persona tiene en la empresa.",
+    "roleDescriptions": {
+      "CONTROLLER": "Una persona con responsabilidad significativa en la administración de la empresa.",
+      "BENEFICIAL_OWNER": "Una persona que posee directa o indirectamente el 25 % o más de la empresa."
+    },
+    "identity": "Detalles de identidad",
+    "identityDescription": "Ingrese la información legal de la persona exactamente como aparece en su identificación.",
+    "identificationTitle": "Identificación gubernamental",
+    "identificationDescription": "Los tipos de identificación disponibles dependen del país de residencia de la persona.",
+    "countryOfResidence": "País de residencia",
+    "idType": "Tipo de identificación",
+    "idTypePlaceholder": "Seleccione un tipo de identificación",
+    "idInvalid": "Ingrese los 9 dígitos del SSN o ITIN.",
+    "ssn": "Número de Seguro Social",
+    "residentialAddress": "Dirección residencial",
+    "addressDescription": "Ingrese la dirección donde vive actualmente esta persona.",
+    "alsoBeneficialOwner": "Esta persona también posee el 25 % o más",
+    "alsoBeneficialOwnerDescription": "El reemplazo se creará una sola vez con las funciones de Controlador y Beneficiario efectivo.",
+    "roles": {
+      "CONTROLLER": "Controlador",
+      "BENEFICIAL_OWNER": "Beneficiario efectivo"
+    },
+    "cancel": "Cancelar",
+    "saveReplacement": "Agregar reemplazo y eliminar al controlador actual",
+    "saveOwnershipPath": "Crear nueva ruta de propiedad",
+    "saveBeneficialOwner": "Agregar beneficiario efectivo",
+    "save": "Agregar parte relacionada"
+  },
+  "removeParty": {
+    "action": "Eliminar parte relacionada",
+    "replaceController": "Reemplazar controlador",
+    "replacementDialogTitle": "¿Reemplazar a {{name}} como controlador?",
+    "title": "¿Eliminar a {{name}}?",
+    "description": "Esta eliminación se incluirá en la solicitud de mantenimiento. El perfil aprobado no cambia hasta que finalice la revisión.",
+    "replacementTitle": "Cobertura del controlador",
+    "replacementCaption": "Se requiere un controlador",
+    "replacementDescription": "Se requiere una persona controladora. Agregue un reemplazo para continuar.",
+    "addReplacement": "Elegir controlador de reemplazo",
+    "finishReplacement": "Finalizar reemplazo del controlador",
+    "replacementUnavailable": "No se puede agregar un controlador de reemplazo con la configuración de mantenimiento actual. Comuníquese con soporte antes de eliminar a esta persona.",
+    "remainsOwnerQuestion": "Después de reemplazar al controlador, ¿esta persona seguirá poseyendo el 25 % o más?",
+    "remainsOwnerYes": "Sí, mantener como beneficiario efectivo",
+    "remainsOwnerNo": "No, eliminar a esta persona",
+    "keep": "Conservar parte relacionada",
+    "confirm": "Eliminar parte relacionada"
+  },
+  "roleChange": {
+    "controllerDescription": "El controlador es la persona responsable de este perfil empresarial.",
+    "directOwnerTitle": "Propietario beneficiario directo",
+    "directOwnerDescription": "Esta persona posee directamente el 25 % o más de la empresa cliente. No hay otra empresa entre el cliente y este propietario.",
+    "directRelationshipTitle": "¿Esta propiedad se mantiene a través de otra empresa?",
+    "directRelationshipDescription": "Si una o más empresas se encuentran entre el cliente y este propietario, actualice la relación para reflejar la ruta de propiedad intermediaria.",
+    "changeToIndirect": "Cambiar a propiedad indirecta",
+    "indirectOwnerTitle": "Propietario beneficiario indirecto",
+    "indirectOwnerDescription": "Esta persona posee el 25 % o más de la empresa cliente a través de una o más empresas intermediarias.",
+    "indirectRelationshipTitle": "Propiedad a través de otra empresa",
+    "indirectRelationshipDescription": "La participación de este propietario se mantiene a través de {{businesses}}.",
+    "reviewOwnershipPath": "Revisar ruta de propiedad",
+    "pendingAddition": "Adición pendiente",
+    "pendingAdditionDescription": "Esta función y sus datos de propiedad están incluidos en la solicitud actual. Para eliminarla, se deben descartar todos los cambios pendientes de esta persona.",
+    "pendingRemoval": "Eliminación pendiente",
+    "pendingRemovalDescription": "Esta función permanece activa en el perfil aprobado hasta que se apruebe su eliminación.",
+    "sectionTitle": "Propiedad y funciones",
+    "pendingPartySectionTitle": "Funciones pendientes",
+    "pendingPartyRoleDescription": "Esta función se agregará con la persona cuando se apruebe la solicitud de mantenimiento.",
+    "addOwner": "Agregar función de beneficiario efectivo",
+    "addOwnerTitle": "¿Agregar la función de beneficiario efectivo?",
+    "addOwnerDescription": "{{name}} seguirá siendo el controlador y también se registrará como beneficiario efectivo directo.",
+    "confirmAddOwner": "Agregar función de beneficiario efectivo",
+    "discardPartyDraft": "Descartar todos los cambios pendientes de esta persona",
+    "cancel": "Cancelar"
+  },
+  "pendingAddition": {
+    "eyebrow": "Perfil pendiente",
+    "personDescription": "Esta persona se agregará al perfil empresarial cuando se apruebe la solicitud de mantenimiento.",
+    "businessDescription": "Esta empresa intermediaria se agregará a la estructura de propiedad cuando se apruebe la solicitud de mantenimiento.",
+    "personDetailsTitle": "Detalles propuestos de la persona",
+    "businessDetailsTitle": "Detalles propuestos de la empresa",
+    "description": "La adición de esta persona está pendiente y aún no forma parte del perfil comercial aprobado.",
+    "reviewGuidance": "Revise los datos propuestos y complete los documentos requeridos antes de enviar la solicitud.",
+    "detailsTitle": "Datos propuestos de la parte",
+    "edit": "Editar persona pendiente",
+    "discard": "Descartar adición pendiente",
+    "discardTitle": "¿Descartar a {{name}}?",
+    "discardDescription": "Esta persona no se agregará al perfil comercial. Se conservarán los demás cambios de la solicitud.",
+    "pendingParty": "Persona pendiente"
+  },
+  "formExit": {
+    "title": "¿Descartar esta entrada sin guardar?",
+    "description": "La información ingresada en esta página no se agregó a la solicitud de mantenimiento.",
+    "keepEditing": "Seguir editando",
+    "discard": "Descartar entrada"
+  },
+  "questions": {
+    "title": "Preguntas adicionales",
+    "description": "Responda las preguntas requeridas para que la revisión pueda continuar.",
+    "sectionTitle": "Preguntas",
+    "loading": "Cargando preguntas",
+    "progress": "{{answered}} de {{total}} respondidas",
+    "emptyTitle": "No se pudieron cargar las preguntas",
+    "emptyDescription": "Vuelva a la revisión e inténtelo de nuevo. El envío no estará disponible hasta que se devuelvan todas las preguntas solicitadas.",
+    "select": "Seleccione una respuesta",
+    "yes": "Sí",
+    "no": "No",
+    "cancel": "Volver a la revisión",
+    "save": "Guardar respuestas"
+  },
+  "attestation": {
+    "title": "Revisar y certificar",
+    "description": "Revise cada documento requerido y confirme la información a continuación.",
+    "sectionTitle": "Certificación",
+    "document": "Documento de certificación {{number}}",
+    "documentsTitle": "Revisar los documentos requeridos",
+    "documentsDescription": "Abra cada documento antes de ingresar los datos de la persona que realiza esta certificación.",
+    "progress": "{{reviewed}} de {{total}} revisados",
+    "review": "Revisar documento",
+    "opened": "Revisado",
+    "signerTitle": "Persona que realiza esta certificación",
+    "signerDescription": "Ingrese su nombre legal y su función en la empresa.",
+    "signerLocked": "Revise todos los documentos requeridos para desbloquear los datos del firmante.",
+    "designation": "Cargo",
+    "designationPlaceholder": "Por ejemplo, director ejecutivo, controlador o socio",
+    "designationDescription": "Use su cargo o función en la empresa.",
+    "confirmation": "He revisado los documentos requeridos y certifico que la información está completa y es correcta.",
+    "cancel": "Volver a la revisión",
+    "save": "Enviar certificación"
+  },
+  "ownership": {
+    "action": "Estructura de propiedad",
+    "manageAction": "Administrar propiedad",
+    "title": "Estructura de propiedad",
+    "description": "Revise los propietarios calificados y las empresas intermediarias. Actualice cualquier información incompleta o incorrecta.",
+    "beneficialOwnersTitle": "Beneficiarios efectivos",
+    "beneficialOwnersDescription": "Agregue a cada persona que posea directamente el 25 % o más. Un controlador que también posea el 25 % o más aparece aquí como beneficiario efectivo.",
+    "addDirectOwner": "Agregar beneficiario efectivo",
+    "changePath": "Cambiar ruta de propiedad",
+    "viewOwner": "Ver detalles del propietario",
+    "viewBusiness": "Ver detalles de la empresa",
+    "viewDetails": "Ver detalles",
+    "addOwner": "Agregar propietario",
+    "addOwnerThroughBusiness": "Agregar propietario a través de esta empresa",
+    "addBeneficialOwner": "Agregar propietario beneficiario",
+    "structureRoot": "Inicio de la estructura de propiedad",
+    "viewStructure": "Ver estructura de propiedad",
+    "backToReview": "Volver a la revisión",
+    "throughBusiness": "A través de {{name}}",
+    "viewOwnerPath": "Ver esta ruta de propiedad",
+    "insertBusinessForOwner": "Cambiar a propiedad indirecta",
+    "pathPreviewTitle": "Ruta de propiedad resultante",
+    "pathPreviewDescription": "Primero agregue el negocio intermediario. Luego confirme al propietario debajo de este. El registro de propiedad directa actual se retira solo cuando la nueva ruta esté completa.",
+    "newIntermediary": "Nuevo negocio intermediario",
+    "insertIntermediary": "Agregar intermediario a la ruta de propiedad",
+    "insertIntermediaryDescription": "Agregue la empresa que se encuentra entre el cliente y este propietario. Luego confirme los datos del propietario bajo el nuevo intermediario.",
+    "alsoController": "Beneficiario efectivo · También es el controlador",
+    "directOwner": "Beneficiario efectivo directo",
+    "noDirectOwners": "Aún no hay beneficiarios efectivos directos.",
+    "threshold": "Propietarios del 25 % o más",
+    "chainTitle": "Estructura de propiedad",
+    "unifiedDescription": "Cada rama muestra cómo se relaciona un propietario con el cliente. Los propietarios con sangría mantienen su participación a través del negocio que aparece encima; use la acción de una persona o negocio para cambiar esa rama.",
+    "previewDescription": "Una vista simplificada de los propietarios directos y de la propiedad mantenida a través de otros negocios.",
+    "chainDescription": "Cree cada nivel de propiedad desde este negocio hacia afuera",
+    "intermediaryOwner": "Propietario intermediario",
+    "intermediaryCaption": "Entidad legal y propiedad",
+    "addIntermediary": "Agregar empresa intermediaria",
+    "addIndirectOwner": "Agregar beneficiario efectivo indirecto",
+    "addLayer": "Agregar otro nivel intermediario",
+    "clientRoot": "Su empresa",
+    "direct": "Directo",
+    "indirect": "Indirecto",
+    "relationshipUnavailable": "Relación no disponible",
+    "ein": "Número de identificación del empleador",
+    "businessIdentity": "Identidad de la empresa",
+    "businessIdentityDescription": "Ingrese la información legal registrada del intermediario.",
+    "unsupportedOrganizationId": "Este contrato de API solo confirma compatibilidad con el EIN de EE. UU. para propietarios intermediarios. Seleccione Estados Unidos o comuníquese con soporte antes de continuar.",
+    "legalAddress": "Dirección legal",
+    "legalAddressDescription": "Ingrese la dirección que aparece en los documentos de registro del intermediario.",
+    "cancel": "Volver a la estructura de propiedad",
+    "saveIntermediary": "Agregar propietario intermediario"
+  },
+  "ownerRelationship": {
+    "title": "Relación de propiedad",
+    "addTitle": "Agregar un beneficiario efectivo",
+    "addDescription": "Primero elija si este propietario mantiene su participación directamente o a través de una empresa intermediaria.",
+    "controllerTitle": "Agregar función de beneficiario efectivo",
+    "controllerDescription": "Elija cómo {{name}} mantiene su participación de propiedad.",
+    "changeTitle": "Elija una empresa intermediaria para {{name}}",
+    "changeDescription": "Seleccione la empresa que se encuentra entre su empresa y {{name}}, o agregue primero esa empresa.",
+    "newOwner": "el nuevo propietario",
+    "directTitle": "Posee al cliente directamente",
+    "directDescription": "Elija esta opción cuando no haya otro negocio entre el propietario y el cliente.",
+    "directPath": "Resultado: Negocio cliente → Propietario",
+    "indirectTitle": "Posee a través de otro negocio",
+    "indirectDescription": "Elija esta opción cuando el propietario mantenga su participación mediante una empresa intermediaria. Seleccione un negocio existente o agregue primero el intermediario.",
+    "chooseBusiness": "Elegir el negocio intermediario",
+    "resultingPath": "El propietario se agregará debajo de este negocio.",
+    "addBusiness": "Agregar una nueva empresa intermediaria",
+    "changeExistingTitle": "Usar una empresa intermediaria existente",
+    "changeExistingDescription": "Elija dónde {{name}} mantiene su participación de propiedad.",
+    "changeChooseBusiness": "Seleccionar una empresa intermediaria",
+    "changeResultingPath": "{{name}} tendrá la propiedad a través de esta empresa.",
+    "changeAddBusiness": "Agregar una nueva empresa intermediaria para este propietario"
+  },
+  "controllerReplacement": {
+    "title": "Elegir un controlador de reemplazo",
+    "description": "Seleccione una persona existente relacionada directamente con esta empresa o agregue una nueva.",
+    "existingTitle": "Usar una persona existente",
+    "existingDescription": "Se conservarán sus funciones actuales y los datos de su perfil.",
+    "selectDescription": "Designar a esta persona como controlador",
+    "emptyTitle": "No hay personas existentes disponibles",
+    "emptyDescription": "Agregue una nueva persona para continuar con el reemplazo del controlador.",
+    "addNew": "Agregar una nueva persona"
+  },
+  "form": {
+    "back": "Volver",
+    "selectCountry": "Seleccione un país",
+    "searchCountries": "Buscar países",
+    "noResults": "No se encontraron opciones coincidentes.",
+    "selectRegion": "Seleccione un estado o provincia",
+    "selectOrganizationType": "Seleccione un tipo de organización"
+  },
+  "organizationForm": {
+    "identityTitle": "Identidad de la empresa",
+    "identityDescription": "Use los nombres legales registrados actualmente para esta empresa.",
+    "editDescription": "Actualice los datos comerciales registrados compatibles. Solo los campos modificados se agregan a la solicitud.",
+    "addressDescription": "Enviar una nueva dirección comercial reemplaza toda la dirección aprobada. Revise cada línea antes de guardar."
+  },
+  "productAddition": {
+    "title": "Agregar Pagos DDA limitados",
+    "description": "Agregue capacidades de pago al producto Embedded Payments existente.",
+    "embeddedPayments": "Embedded Payments",
+    "current": "Producto actual",
+    "adding": "Producto para agregar",
+    "limitedDda": "DDA limitada",
+    "limitedDdaPayments": "Pagos de DDA limitada",
+    "aboutTitle": "Acerca de Pagos de DDA limitada",
+    "paymentsDescription": "Agrega capacidades de pago junto al subproducto DDA limitada existente.",
+    "selected": "Actualización seleccionada",
+    "nextTitle": "Antes de solicitar",
+    "nextDescription": "Después de solicitar Pagos de DDA limitada, aparece como un subproducto pendiente. Puede revisar y actualizar la información de la empresa, las partes relacionadas o la propiedad antes de enviar todas las actualizaciones juntas para revisión.",
+    "back": "Volver al perfil del negocio",
+    "continue": "Continuar",
+    "confirm": "Solicitar pagos de DDA limitada"
+  },
+  "availability": {
+    "productAlreadyAdded": "Pagos DDA limitados ya forma parte de este perfil o solicitud.",
+    "requestLocked": "No se pueden hacer cambios nuevos mientras se revisa esta solicitud de mantenimiento.",
+    "productNotEligible": "Pagos DDA limitados no está configurado para el país y el tipo de entidad legal de esta empresa.",
+    "originalProductPending": "El producto DDA limitado original debe estar aprobado antes de agregar este producto.",
+    "verificationRequired": "Complete la verificación del producto original antes de agregar Pagos DDA limitados.",
+    "productLeadTime": "Pagos DDA limitados estará disponible después de las {{time}}, una vez transcurrida la ventana de verificación de cinco minutos.",
+    "ownerLimit": "Esta solicitud ya incluye el máximo de cuatro beneficiarios efectivos.",
+    "limitedDdaHostAction": "DDA limitado debe agregarse mediante la experiencia de incorporación antes de que Pagos DDA limitados esté disponible."
+  },
   "submission": {
-    "draftExplanation": "Sus actualizaciones se guardaron como borrador y no se enviaron para revisión.",
+    "draftExplanation": "Sus cambios pendientes están guardados y no se enviaron para revisión.",
     "reviewAndSubmit": "Revisar y enviar",
     "backToProfile": "Volver al perfil del negocio",
-    "reviewTitle": "Revise sus actualizaciones",
-    "reviewDescription": "Compruebe que incluyan todo lo que quería cambiar. Todas las actualizaciones se enviarán juntas.",
-    "submittedChangesTitle": "Actualizaciones del perfil enviadas",
-    "submittedChangesDescription": "Estas son las actualizaciones del perfil que están en revisión.",
-    "reviewUpdated": "El borrador cambió mientras lo revisaba. Revise las actualizaciones más recientes antes de confirmar.",
-    "profileUpdates": "Actualizaciones del perfil",
+    "reviewTitle": "Revise sus cambios",
+    "reviewDescription": "Revise la actualización del producto, la información de la empresa y las partes relacionadas, y la estructura de propiedad que se enviarán juntas.",
+    "submittedChangesTitle": "Cambios enviados",
+    "submittedChangesDescription": "Estos son los cambios que están en revisión.",
+    "reviewUpdated": "Los cambios pendientes se actualizaron mientras los revisaba. Revise los cambios más recientes antes de confirmar.",
+    "profileUpdates": "Cambios en esta solicitud",
     "edit": "Editar",
     "beforeSubmission": "Antes del envío",
     "allRequirementsComplete": "Toda la información requerida está completa.",
     "returnToProfile": "Volver al perfil del negocio",
     "completeRequirement": "Completar",
+    "ownershipTitle": "Estructura de propiedad",
+    "ownershipDescription": "Revise cada persona y empresa intermediaria que posea el 25 % o más.",
+    "updateOwnership": "Actualizar propiedad",
+    "blockedTitle": "Envío bloqueado",
+    "blockedDescription": "Complete los elementos requeridos que se muestran arriba antes de enviar estas actualizaciones.",
+    "blockedGuidance": "Los controles de confirmación y el botón Enviar para revisión estarán disponibles cuando se completen todos los requisitos.",
     "readyTitle": "Listo para enviar",
-    "lockWarning": "Al enviar, todas las actualizaciones del borrador se envían para revisión. No podrá editarlas ni descartarlas después.",
-    "confirmation": "Confirmo que revisé todas las actualizaciones y que están completas y son correctas.",
+    "lockWarning": "Al enviar, la actualización del producto y todos los cambios de mantenimiento se envían juntos para revisión. No podrá editarlos ni descartarlos después.",
+    "confirmationDescription": "Use las acciones de edición o vuelva al perfil del negocio si necesita cambiar algo. Los documentos de certificación requeridos se completan por separado.",
+    "informationConfirmation": "Revisé la información de la empresa y de las partes relacionadas registrada, incluidas las actualizaciones que se muestran aquí, y confirmo que no se necesitan otros cambios.",
+    "ownershipConfirmation": "Revisé la estructura de propiedad y confirmo que incluye a cada persona y empresa intermediaria que posee el 25 % o más.",
+    "confirmation": "Confirmo que revisé todos los cambios y que están completos y son correctos.",
     "submitForReview": "Enviar para revisión",
     "receiptTitle": "Enviado para revisión",
-    "receiptDescription": "Sus actualizaciones se aceptaron para revisión el {{date}}.",
-    "profileRemainsActive": "Su perfil actual permanece activo mientras se revisan las actualizaciones.",
+    "receiptDescription": "Sus cambios se aceptaron para revisión el {{date}}.",
+    "profileRemainsActive": "Su perfil actual permanece activo mientras se revisan los cambios.",
+    "receiptNextTitle": "La revisión ha comenzado",
+    "receiptNextDescription": "La solicitud fue aceptada para revisión, pero aún no está aprobada. Después de la aprobación, los valores actualizados pueden tardar entre 24 y 48 horas en aparecer.",
+    "receiptLeave": "Puede salir de esta página de forma segura y volver al perfil del negocio para consultar el estado de la solicitud.",
     "blockers": {
       "documents_one": "Debe completar 1 requisito de documento.",
       "documents_other": "Debe completar {{count}} requisitos de documentos.",
@@ -163,26 +573,37 @@
       "roles_other": "Debe completar {{count}} funciones requeridas.",
       "attestations_one": "Debe revisar y aceptar 1 atestación.",
       "attestations_other": "Debe revisar y aceptar {{count}} atestaciones.",
-      "unresolved_one": "No se pudo resolver 1 actualización.",
-      "unresolved_other": "No se pudieron resolver {{count}} actualizaciones.",
-      "conflict": "Se deben resolver las actualizaciones activas del perfil en conflicto.",
-      "request": "No se pudo identificar la actualización activa del perfil."
+      "disclosure": "Confirme si la información comercial o de propiedad cambió desde la aprobación.",
+      "unresolved_one": "No se pudo resolver 1 cambio.",
+      "unresolved_other": "No se pudieron resolver {{count}} cambios.",
+      "conflict": "Se deben resolver las solicitudes de mantenimiento activas en conflicto.",
+      "request": "No se pudo identificar la solicitud de mantenimiento activa."
     }
   },
   "cancel": {
-    "cancelAll": "Descartar todos los cambios",
-    "removePerson": "Descartar cambios",
-    "allTitle": "¿Descartar todos los cambios del borrador?",
-    "allDescription": "Esto descartará todos los cambios de este borrador.",
+    "cancelAll": "Descartar todos los cambios pendientes",
+    "discardChanges": "Descartar cambios",
+    "allTitle": "¿Descartar todos los cambios pendientes?",
+    "allDescription": "Esto descartará todos los cambios pendientes de esta solicitud.",
     "personTitle": "¿Descartar los cambios de {{name}}?",
-    "personDescription": "Esto descartará los cambios del borrador de esta persona.",
+    "personDescription": "Esto descartará los cambios pendientes de esta persona.",
+    "organizationTitle": "¿Descartar los cambios del negocio?",
+    "organizationDescription": "Esto descartará los cambios pendientes del negocio. El cliente no se eliminará.",
     "affectedPeople": "Personas afectadas",
-    "pendingUpdates": "Actualizaciones del borrador",
+    "pendingUpdates": "Cambios pendientes",
+    "targets": {
+      "product": "Producto: {{product}}",
+      "business": "Cambios del perfil comercial",
+      "personChange": "Cambios para {{name}}",
+      "personAddition": "Agregar persona: {{name}}",
+      "intermediaryAddition": "Agregar negocio intermediario: {{name}}",
+      "requiredWork_one": "1 tarea de documento requerida",
+      "requiredWork_other": "{{count}} tareas de documentos requeridas"
+    },
     "profileUnchanged": "El perfil actual del negocio no cambiará.",
     "cannotUndo": "Esta acción no se puede deshacer.",
     "keep": "Conservar cambios",
-    "confirmAll": "Descartar todos los cambios",
-    "confirmPerson": "Descartar cambios"
+    "confirmAll": "Descartar todos los cambios pendientes"
   },
   "workspace": {
     "requestTitle": "Solicitud de mantenimiento {{requestId}}",
@@ -200,10 +621,35 @@
     "editParty": "Editar a {{name}}"
   },
   "editor": {
+    "sparseUpdateGuidance": "Cambie solo lo que necesite actualizar. La información sin cambios de esta sección se conserva al enviarla.",
+    "legalIdentityTitle": "Identidad legal",
+    "legalIdentityDescription": "Use el nombre que aparece en la identificación gubernamental vigente de la persona.",
+    "residenceAndIdTitle": "Residencia e identificación",
+    "residenceAndIdDescription": "Revise o actualice la residencia, la identificación oficial y el domicilio de la persona.",
+    "responsibilityTitle": "Responsabilidad empresarial",
+    "responsibilityDescription": "Revise o actualice el cargo y las responsabilidades actuales de la persona. Las funciones y la propiedad se administran desde la página de detalles.",
+    "contactTitle": "Contacto",
+    "contactDescription": "Revise o actualice el mejor correo electrónico y número de teléfono para esta persona.",
+    "phoneCountryCode": "Código de país",
+    "personalDetailsTitle": "Datos personales",
+    "personalDetailsDescription": "Las fechas de nacimiento se ocultan en todas partes fuera de este formulario.",
+    "dbaName": "Nombre comercial",
+    "addresses": "Dirección del negocio",
+    "address": {
+      "country": "País",
+      "line1": "Línea de dirección 1",
+      "line2": "Línea de dirección 2",
+      "line3": "Línea de dirección 3",
+      "city": "Ciudad",
+      "state": "Estado o provincia",
+      "postalCode": "Código postal"
+    },
     "firstName": "Nombre",
     "middleName": "Segundo nombre",
     "lastName": "Apellido",
     "birthDate": "Fecha de nacimiento",
+    "birthDateInvalid": "Ingrese una fecha de nacimiento válida.",
+    "phoneIncomplete": "Ingrese un tipo de teléfono, código de país y número de teléfono válido.",
     "firstNamePlaceholder": "Ingrese el nombre",
     "middleNamePlaceholder": "Ingrese el segundo nombre",
     "lastNamePlaceholder": "Ingrese el apellido",
@@ -213,7 +659,10 @@
     "discard": "Descartar",
     "cancelEditing": "Cancelar edición",
     "noChanges": "Cambie al menos un campo antes de guardar.",
-    "unsupportedClear": "Esta versión preliminar no permite eliminar un valor existente."
+    "unsupportedClear": "La eliminación de {{field}} aún no es compatible con la API.",
+    "restoreValue": "Restaurar valor",
+    "restoreIdentification": "Restaurar identificación aprobada",
+    "restoreCountryAndIdentification": "Restaurar país e identificación aprobados"
   },
   "documents": {
     "required": "Requerido",
@@ -229,6 +678,7 @@
     "eyebrow": "Editar perfil",
     "title": "Editar nombre legal",
     "description": "Actualice el nombre legal de {{name}}. Solo se envían los campos que cambie.",
+    "editDescription": "Actualice los datos de identidad, residencia, responsabilidad y contacto. Solo los campos modificados se agregan a la solicitud.",
     "fieldsTitle": "Nombre legal",
     "approvedValue": "Aprobado: {{value}}",
     "summaryTitle": "Cambios por enviar",
@@ -242,7 +692,7 @@
     "save": "Guardar cambios",
     "cancel": "Cancelar",
     "noChanges": "Cambie al menos un campo del nombre antes de guardar.",
-    "unsupportedClear": "Esta versión preliminar no permite eliminar un valor de nombre existente."
+    "unsupportedClear": "La eliminación de {{field}} aún no es compatible con la API. Restaure el valor existente para continuar."
   },
   "review": {
     "eyebrow": "Revisión",
@@ -263,8 +713,10 @@
   },
   "status": {
     "ACTION_REQUIRED": "Acción requerida",
+    "PENDING_ADDITION": "Adición pendiente",
+    "PENDING_REMOVAL": "Eliminación pendiente",
     "APPROVED": "Aprobado, actualizando el perfil",
-    "NEW": "Cambios del borrador",
+    "NEW": "Cambios pendientes",
     "REVIEW_IN_PROGRESS": "En revisión",
     "INFORMATION_REQUESTED": "Se necesita más información",
     "DECLINED": "Cambios no aprobados",

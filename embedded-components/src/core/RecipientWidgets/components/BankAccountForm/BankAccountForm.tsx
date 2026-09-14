@@ -56,6 +56,46 @@ import type {
 import { mergeBankAccountDefaultValues } from './BankAccountForm.utils';
 import { LinkAccountAcknowledgementsGroup } from './linkAccountAcknowledgements';
 
+const orderPaymentMethods = (
+  methods: RoutingInformationTransactionType[],
+  configuredOrder: RoutingInformationTransactionType[]
+) => {
+  const orderByMethod = new Map(
+    configuredOrder.map((method, index) => [method, index])
+  );
+
+  return methods
+    .map((method, index) => ({ method, index }))
+    .sort(
+      (left, right) =>
+        (orderByMethod.get(left.method) ??
+          configuredOrder.length + left.index) -
+        (orderByMethod.get(right.method) ??
+          configuredOrder.length + right.index)
+    )
+    .map(({ method }) => method);
+};
+
+const orderRoutingNumbers = (
+  routingNumbers: BankAccountFormData['routingNumbers'],
+  orderedMethods: RoutingInformationTransactionType[]
+) => {
+  const routingNumberByMethod = new Map(
+    routingNumbers.map((routingNumber) => [
+      routingNumber.paymentType,
+      routingNumber,
+    ])
+  );
+
+  return orderedMethods.map(
+    (paymentType) =>
+      routingNumberByMethod.get(paymentType) ?? {
+        paymentType,
+        routingNumber: '',
+      }
+  );
+};
+
 /**
  * PaymentMethodSelector - Compact checkbox selector for payment methods
  */
@@ -100,7 +140,7 @@ const PaymentMethodSelector: FC<PaymentMethodSelectorProps> = ({
       newTypes = [type];
     }
 
-    onChange(newTypes);
+    onChange(orderPaymentMethods(newTypes, availableTypes));
   };
 
   // Get icon for payment method type
@@ -429,6 +469,7 @@ interface RoutingNumberFieldsProps {
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
   control: UseFormReturn<BankAccountFormData>['control'];
   disabled?: boolean;
+  readonlyTypes?: RoutingInformationTransactionType[];
   /** Cross-border (FX) overrides for the bank/routing code field. */
   internationalConfig?: BankAccountFormProps['config']['internationalFieldConfig'];
 }
@@ -440,9 +481,14 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   configs,
   control,
   disabled = false,
+  readonlyTypes = [],
   internationalConfig,
 }) => {
   const { t, tString } = useTranslationWithTokens('bank-account-form');
+  const isReadonly = (method: RoutingInformationTransactionType) =>
+    readonlyTypes.includes(method);
+  const hasReadonlyMethod = paymentMethods.some(isReadonly);
+  const effectiveUseSameForAll = useSameForAll && !hasReadonlyMethod;
 
   // Single-page layout can render bank details before any rail is selected
   // (recipients default to no selected payment methods). Defer routing fields
@@ -523,8 +569,19 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                 placeholder={tString('routingNumbers.placeholder')}
                 maxLength={9}
                 disabled={disabled}
+                readOnly={isReadonly(singleMethod)}
+                className={
+                  isReadonly(singleMethod)
+                    ? 'eb-cursor-default eb-bg-muted'
+                    : undefined
+                }
               />
             </FormControl>
+            {isReadonly(singleMethod) ? (
+              <FormDescription>
+                {t('routingNumbers.readonlyLinkedAccountAchDescription')}
+              </FormDescription>
+            ) : null}
             <FormMessage>{fieldState.error?.message}</FormMessage>
           </FormItem>
         )}
@@ -539,24 +596,26 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
         {t('routingNumbers.legend')}
       </legend>
 
-      {/* Checkbox for using same routing number */}
-      <label
-        htmlFor="useSameRoutingNumber"
-        className="eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-pb-2"
-      >
-        <Checkbox
-          id="useSameRoutingNumber"
-          checked={useSameForAll}
-          onCheckedChange={onUseSameForAllChange}
-          disabled={disabled}
-        />
-        <span className="eb-text-sm eb-font-medium eb-leading-none">
-          {t('routingNumbers.useSameForAll')}
-        </span>
-      </label>
+      {/* A shared value could indirectly change a readonly routing number. */}
+      {!hasReadonlyMethod ? (
+        <label
+          htmlFor="useSameRoutingNumber"
+          className="eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-pb-2"
+        >
+          <Checkbox
+            id="useSameRoutingNumber"
+            checked={effectiveUseSameForAll}
+            onCheckedChange={onUseSameForAllChange}
+            disabled={disabled}
+          />
+          <span className="eb-text-sm eb-font-medium eb-leading-none">
+            {t('routingNumbers.useSameForAll')}
+          </span>
+        </label>
+      ) : null}
 
       {/* Routing number fields */}
-      {useSameForAll ? (
+      {effectiveUseSameForAll ? (
         // Single field when using same for all
         <FormField
           control={control}
@@ -610,8 +669,21 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                         placeholder={tString('routingNumbers.placeholder')}
                         maxLength={9}
                         disabled={disabled}
+                        readOnly={isReadonly(method)}
+                        className={
+                          isReadonly(method)
+                            ? 'eb-cursor-default eb-bg-muted'
+                            : undefined
+                        }
                       />
                     </FormControl>
+                    {isReadonly(method) ? (
+                      <FormDescription>
+                        {t(
+                          'routingNumbers.readonlyLinkedAccountAchDescription'
+                        )}
+                      </FormDescription>
+                    ) : null}
                     <FormMessage>{fieldState.error?.message}</FormMessage>
                   </FormItem>
                 )}
@@ -1120,6 +1192,7 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
           }}
           configs={effectiveConfig.paymentMethods.configs}
           disabled={isLoading}
+          readonlyTypes={effectiveConfig.readonlyFields?.routingNumberTypes}
           internationalConfig={effectiveConfig.internationalFieldConfig}
         />
       </fieldset>
@@ -1627,65 +1700,51 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   // Create dynamic schema based on effective config
   const createSchema = useBankAccountFormSchema();
   const formSchema = useMemo(
-    () => createSchema(effectiveConfig),
-    [createSchema, effectiveConfig]
+    () =>
+      createSchema(effectiveConfig, {
+        requirePartySelection: usePartySelector,
+      }),
+    [createSchema, effectiveConfig, usePartySelector]
   );
 
   // Extract payment types and routing numbers from recipient if editing
   const initialPaymentTypes = useMemo(() => {
-    // If explicitly provided via prop, use that (e.g., when enabling new payment method)
+    const configuredOrder = effectiveConfig.paymentMethods.available;
+
     if (initialPaymentTypesProp && initialPaymentTypesProp.length > 0) {
-      return initialPaymentTypesProp;
+      return orderPaymentMethods(initialPaymentTypesProp, configuredOrder);
     }
-    // Otherwise, extract from existing recipient
     if (recipient?.account?.routingInformation) {
-      return recipient.account.routingInformation
-        .map((ri) => ri.transactionType)
+      const recipientPaymentTypes = recipient.account.routingInformation
+        .map((routing) => routing.transactionType)
         .filter(
           (type): type is RoutingInformationTransactionType =>
             type !== undefined && ['ACH', 'WIRE', 'RTP'].includes(type)
         );
+      return orderPaymentMethods(recipientPaymentTypes, configuredOrder);
     }
-    return effectiveConfig.paymentMethods.defaultSelected || [];
+    return orderPaymentMethods(
+      effectiveConfig.paymentMethods.defaultSelected || [],
+      configuredOrder
+    );
   }, [
     initialPaymentTypesProp,
     recipient,
+    effectiveConfig.paymentMethods.available,
     effectiveConfig.paymentMethods.defaultSelected,
   ]);
 
   const initialRoutingNumbers = useMemo(() => {
-    // Get existing routing numbers from recipient
-    const existingRoutingNumbers: Array<{
-      paymentType: RoutingInformationTransactionType;
-      routingNumber: string;
-    }> = [];
+    const existingRoutingNumbers =
+      recipient?.account?.routingInformation
+        ?.filter((routing) => routing.transactionType && routing.routingNumber)
+        .map((routing) => ({
+          paymentType:
+            routing.transactionType as RoutingInformationTransactionType,
+          routingNumber: routing.routingNumber as string,
+        })) ?? [];
 
-    if (recipient?.account?.routingInformation) {
-      recipient.account.routingInformation
-        .filter((ri) => ri.transactionType && ri.routingNumber)
-        .forEach((ri) => {
-          existingRoutingNumbers.push({
-            paymentType:
-              ri.transactionType as RoutingInformationTransactionType,
-            routingNumber: ri.routingNumber as string,
-          });
-        });
-    }
-
-    // Also add empty entries for any payment methods in initialPaymentTypes that aren't in existing
-    // This handles the "enable new payment method" case
-    initialPaymentTypes.forEach((paymentType) => {
-      if (
-        !existingRoutingNumbers.find((rn) => rn.paymentType === paymentType)
-      ) {
-        existingRoutingNumbers.push({
-          paymentType,
-          routingNumber: '',
-        });
-      }
-    });
-
-    return existingRoutingNumbers;
+    return orderRoutingNumbers(existingRoutingNumbers, initialPaymentTypes);
   }, [recipient, initialPaymentTypes]);
 
   // Extract contacts from recipient with proper validation
@@ -1860,9 +1919,35 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
   // Watch form values
   const accountType = form.watch('accountType');
-  const paymentTypes = form.watch('paymentTypes');
+  const selectedPaymentTypes = form.watch('paymentTypes');
+  const paymentTypes = useMemo(
+    () =>
+      orderPaymentMethods(
+        selectedPaymentTypes,
+        effectiveConfig.paymentMethods.available
+      ),
+    [selectedPaymentTypes, effectiveConfig.paymentMethods.available]
+  );
   const useSameRoutingNumber = form.watch('useSameRoutingNumber');
   const firstRoutingNumber = form.watch('routingNumbers.0.routingNumber');
+  const hasReadonlyRoutingNumber = paymentTypes.some((paymentType) =>
+    effectiveConfig.readonlyFields?.routingNumberTypes?.includes(paymentType)
+  );
+
+  useEffect(() => {
+    if (
+      paymentTypes.length > 1 &&
+      hasReadonlyRoutingNumber &&
+      useSameRoutingNumber
+    ) {
+      form.setValue('useSameRoutingNumber', false);
+    }
+  }, [
+    form,
+    hasReadonlyRoutingNumber,
+    paymentTypes.length,
+    useSameRoutingNumber,
+  ]);
 
   // Clear routing number errors when toggling "use same" checkbox
   useEffect(() => {
@@ -1872,7 +1957,12 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
   // Sync all routing numbers when "use same" is checked and first routing number changes
   useEffect(() => {
-    if (useSameRoutingNumber && paymentTypes.length > 1 && firstRoutingNumber) {
+    if (
+      useSameRoutingNumber &&
+      !hasReadonlyRoutingNumber &&
+      paymentTypes.length > 1 &&
+      firstRoutingNumber
+    ) {
       const currentRoutingNumbers = form.getValues('routingNumbers') || [];
 
       // Check if any routing numbers are different from the first one
@@ -1890,7 +1980,13 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         });
       }
     }
-  }, [useSameRoutingNumber, firstRoutingNumber, paymentTypes, form]);
+  }, [
+    useSameRoutingNumber,
+    hasReadonlyRoutingNumber,
+    firstRoutingNumber,
+    paymentTypes,
+    form,
+  ]);
 
   // When payment types change, clean up routing numbers for removed methods
   // and update useSameRoutingNumber checkbox if needed
@@ -1898,21 +1994,16 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     const currentRoutingNumbers = form.getValues('routingNumbers') || [];
 
     // Remove routing numbers for deselected payment methods
-    const validRoutingNumbers = currentRoutingNumbers.filter((rn) =>
-      paymentTypes.includes(rn.paymentType)
+    const hasNewPaymentMethod = paymentTypes.some(
+      (paymentType) =>
+        !currentRoutingNumbers.some(
+          (routingNumber) => routingNumber.paymentType === paymentType
+        )
     );
-
-    // Add empty routing numbers for newly selected payment methods
-    const updatedRoutingNumbers = [...validRoutingNumbers];
-    let hasNewPaymentMethod = false;
-
-    paymentTypes.forEach((paymentType) => {
-      if (!updatedRoutingNumbers.find((rn) => rn.paymentType === paymentType)) {
-        // New payment method - add with empty routing number
-        updatedRoutingNumbers.push({ paymentType, routingNumber: '' });
-        hasNewPaymentMethod = true;
-      }
-    });
+    const updatedRoutingNumbers = orderRoutingNumbers(
+      currentRoutingNumbers,
+      paymentTypes
+    );
 
     // Only update if there were changes
     if (
@@ -1926,6 +2017,8 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     if (paymentTypes.length <= 1) {
       // If only one payment method, always set to true
       form.setValue('useSameRoutingNumber', true);
+    } else if (hasReadonlyRoutingNumber) {
+      form.setValue('useSameRoutingNumber', false);
     } else if (hasNewPaymentMethod) {
       // If a new payment method was added, uncheck if any existing routing numbers have values
       // (because the new method will have empty routing number, creating inconsistency)
@@ -1952,7 +2045,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         form.setValue('useSameRoutingNumber', allSame);
       }
     }
-  }, [paymentTypes, form]);
+  }, [paymentTypes, form, hasReadonlyRoutingNumber]);
 
   // Determine required fields based on selected payment methods
   const showAddressFields = useMemo(() => {
@@ -2072,6 +2165,14 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   const handleFormSubmit = (data: BankAccountFormData) => {
     // Clean up the data before submission
     const cleanedData = { ...data };
+    cleanedData.paymentTypes = orderPaymentMethods(
+      data.paymentTypes,
+      effectiveConfig.paymentMethods.available
+    );
+    cleanedData.routingNumbers = orderRoutingNumbers(
+      data.routingNumbers,
+      cleanedData.paymentTypes
+    );
 
     // Remove address if it wasn't required/shown
     if (!showAddressFields || !cleanedData.address) {

@@ -47,6 +47,7 @@ export const useLinkedAccountEditConfig = (): BankAccountFormConfig => {
       businessName: true,
       accountNumber: true,
       bankAccountType: true,
+      routingNumberTypes: ['ACH'],
     },
     content: {
       submitButtonText: t('linkedAccountEdit.submitButton'),

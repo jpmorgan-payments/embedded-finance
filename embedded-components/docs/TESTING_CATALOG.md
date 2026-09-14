@@ -21,15 +21,15 @@ Before testing, ensure the following prerequisites are met:
 
 ### Sandbox Base URLs
 
-| Service | Base URL |
-|---------|----------|
-| Onboarding | `https://api-sandbox.payments.jpmorgan.com/onboarding/v1` |
-| Transactions | `https://api-sandbox.payments.jpmorgan.com/embedded/v2` |
-| Accounts | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
-| Accounts V2 (Beta) | `https://api-sandbox.payments.jpmorgan.com/embedded/v2` |
-| Recipients | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
-| Webhooks | `https://api-sandbox.payments.jpmorgan.com/embedded/v1` |
-| Error Codes | [Embedded Finance Error Code Catalog](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/error-codes#embedded-finance-error-code-catalog) |
+| Service            | Base URL                                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Onboarding         | `https://api-sandbox.payments.jpmorgan.com/onboarding/v1`                                                                                                                       |
+| Transactions       | `https://api-sandbox.payments.jpmorgan.com/embedded/v2`                                                                                                                         |
+| Accounts           | `https://api-sandbox.payments.jpmorgan.com/embedded/v1`                                                                                                                         |
+| Accounts V2 (Beta) | `https://api-sandbox.payments.jpmorgan.com/embedded/v2`                                                                                                                         |
+| Recipients         | `https://api-sandbox.payments.jpmorgan.com/embedded/v1`                                                                                                                         |
+| Webhooks           | `https://api-sandbox.payments.jpmorgan.com/embedded/v1`                                                                                                                         |
+| Error Codes        | [Embedded Finance Error Code Catalog](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/error-codes#embedded-finance-error-code-catalog) |
 
 > [!NOTE]
 > **Accounts V2 API (Beta):** The Accounts V2 API is currently available in beta. Some clients may begin integration directly with V2 endpoints. For the latest information on V2 availability, features, and migration guidance, see the [Embedded Payments documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments).
@@ -62,10 +62,10 @@ To simulate specific KYC outcomes in Sandbox, include the `"externalId"` magic v
 
 Use the following `"externalId"` values on a party in the `POST /clients` request payload to trigger specific Sandbox behaviors:
 
-| `externalId` Value | Behavior |
-|--------------------|----------|
-| `"kycApproved"` | Client is approved after verification is triggered |
-| `"kycDocRequest"` | Triggers a document request during the KYC process (`INFORMATION_REQUESTED` state) |
+| `externalId` Value              | Behavior                                                                                             |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `"kycApproved"`                 | Client is approved after verification is triggered                                                   |
+| `"kycDocRequest"`               | Triggers a document request during the KYC process (`INFORMATION_REQUESTED` state)                   |
 | _(omit or use any other value)_ | Standard flow — see [Scenario 6: Simulate KYC Decline](#scenario-6-simulate-kyc-decline) for details |
 
 > [!TIP]
@@ -357,7 +357,7 @@ Verify the flow when KYC is declined.
 
 ## Guide 2: Add an Account to Manage Funds
 
-> **Portal Guide:** [Embedded Payments – Add an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account)
+> **Portal Guide:** [Embedded Payments – Add an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/accounts/account-setup/create-accounts)
 
 **Prerequisite:** Client must be in `APPROVED` state.
 
@@ -377,7 +377,7 @@ Verify creating a Limited DDA Payments account and retrieving account details.
 
 ## Guide 3: Close an Account
 
-> **Portal Guide:** [Embedded Payments – Close an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/close-account)
+> **Portal Guide:** [Embedded Payments – Close an Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/accounts/manage-accounts/manage-account-states)
 
 **Prerequisite:** Client must be in `APPROVED` state with an active account that has a zero balance.
 
@@ -397,7 +397,7 @@ Verify closing a client account and confirming the account status is updated.
 
 ## Guide 4: Link an External Bank Account
 
-> **Portal Guide:** [Embedded Payments – Link a Bank Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-linked-account)
+> **Portal Guide:** [Embedded Payments – Link a Bank Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/external-accounts/add-linked-account)
 
 **Prerequisite:** Client must be in `APPROVED` state with an active account.
 
@@ -406,15 +406,15 @@ Verify closing a client account and confirming the account status is updated.
 
 ### Mock Linked Account Data — With Microdeposit Verification
 
-| Account Number | Routing Number | Clearing ID Type | Type | Owner Name | Deposit 1 | Deposit 2 |
-|---------------|---------------|-----------------|------|-----------|-----------|-----------|
-| 111291262181 | 021000021 | ABA | Individual | Monica Gellar | $0.03 | $0.09 |
+| Account Number | Routing Number | Clearing ID Type | Type       | Owner Name    | Deposit 1 | Deposit 2 |
+| -------------- | -------------- | ---------------- | ---------- | ------------- | --------- | --------- |
+| 111291262181   | 021000021      | ABA              | Individual | Monica Gellar | $0.03     | $0.09     |
 
 ### Mock Linked Account Data — Microdeposit Not Required
 
-| Account Number | Routing Number | Type | Owner Name |
-|---------------|---------------|------|-----------|
-| 3990388854 | 122199983 | Individual | Jamie Cooper |
+| Account Number | Routing Number | Type       | Owner Name   |
+| -------------- | -------------- | ---------- | ------------ |
+| 3990388854     | 122199983      | Individual | Jamie Cooper |
 
 ### Scenario 9: Link, Verify, and Remove an External Bank Account
 
@@ -432,7 +432,7 @@ Verify the full lifecycle of linking an external bank account via ACH.
 
 ## Guide 5: Receive Funds & Payout Funds
 
-> **Portal Guide:** [Embedded Payments – Transfer & Payout](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/transfer-payout)
+> **Portal Guide:** [Embedded Payments – Transfer & Payout](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/payouts/how-to/linked-account)
 
 **Prerequisite:** Client must be in `APPROVED` state with an active account and linked account.
 
@@ -456,7 +456,7 @@ Verify receiving funds and making payouts through multiple payment rails.
 
 ## Guide 6: Manage and Display Transactions
 
-> **Portal Guide:** [Embedded Payments – Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2)
+> **Portal Guide:** [Embedded Payments – Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/manage-transactions/view-and-display-transactions)
 
 **Prerequisite:** Client must have an active account with transaction history.
 
@@ -499,7 +499,7 @@ Verify creating, updating, retrieving, and confirming webhook subscriptions.
 
 ## Guide 8: Initiate Direct Debits
 
-> **Portal Guide:** [Embedded Payments – Transfer & Payout (Direct Debits)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/transfer-payout)
+> **Portal Guide:** [Embedded Payments – Transfer & Payout (Direct Debits)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/fund-account/how-to/request-direct-debits)
 
 **Prerequisite:** Client must have an active account and a verified linked account.
 
@@ -516,7 +516,7 @@ Verify initiating a direct debit to pull funds from a linked account.
 
 ## Guide 9: Managing Negative Balances & Alerts
 
-> **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/managing-negative-balances)
+> **Portal Guide:** [Embedded Payments – Manage Negative Balances](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/accounts/balances/how-to/manage-negative-balance)
 >
 > **Note:** These scenarios use the **Accounts V2** endpoints (`GET /v2/accounts/{id}`, `GET /v2/accounts/{id}/balances`). The Accounts V2 API is currently available in beta — see the [Embedded Payments documentation](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments) for details.
 

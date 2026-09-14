@@ -162,6 +162,30 @@ describe('BankAccountForm — single-page linked create', () => {
     );
   });
 
+  test('shows an inline validation error when no account holder is selected', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const onSubmit = vi.fn();
+
+    render(
+      <LinkedAccountSinglePageHarness
+        client={orgAndIndividuals}
+        onSubmit={onSubmit}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Confirm and Link Account/i })
+    );
+
+    expect(
+      await screen.findByText(/Please select an account holder/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: /Account Holder/i })
+    ).toHaveAttribute('aria-invalid', 'true');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   test('auto-selects the only available party', async () => {
     render(<LinkedAccountSinglePageHarness client={singleIndividual} />);
 

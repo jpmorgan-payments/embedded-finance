@@ -32,13 +32,63 @@ export type MaintenanceIndividualDetails = {
   lastName?: string;
   birthDate?: string;
   countryOfResidence?: string;
+  natureOfOwnership?: 'Direct' | 'Indirect' | string;
+  nameSuffix?: string;
+  jobTitle?: string;
+  jobTitleDescription?: string;
+  addresses?: MaintenanceAddress[];
+  individualIds?: MaintenanceIndividualId[];
+  phone?: MaintenancePhone;
 };
+
+export type MaintenancePhone = {
+  phoneType?: string;
+  countryCode?: string;
+  phoneNumber?: string;
+};
+
+export type MaintenanceAddress = {
+  addressType?: string;
+  addressLines?: string[];
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+};
+
+export type MaintenanceIndividualId = {
+  idType?: string;
+  value?: string;
+  issuer?: string;
+};
+
+export type MaintenanceOrganizationId = MaintenanceIndividualId;
 
 export type MaintenanceOrganizationDetails = {
   organizationName?: string;
   dbaName?: string;
   organizationType?: string;
   countryOfFormation?: string;
+  natureOfOwnership?: 'Direct' | 'Indirect' | string;
+  addresses?: MaintenanceAddress[];
+  organizationIds?: MaintenanceOrganizationId[];
+  organizationDescription?: string;
+  yearOfFormation?: string;
+  industryCategory?: string;
+  industryType?: string;
+  industry?: { codeType?: string; code?: string };
+  mcc?: string;
+  associatedCountries?: string[];
+  phone?: MaintenancePhone;
+  website?: string;
+  entitiesInOwnership?: boolean;
+};
+
+export type MaintenanceProductDetail = {
+  product?: string;
+  subProduct?: string;
+  action?: 'ADD' | 'REMOVE';
+  onboardingStatus?: MaintenanceStatus | string;
 };
 
 export type MaintenanceValidationResponse = {
@@ -58,10 +108,42 @@ export type MaintenanceParty = {
   profileStatus?: string;
   status?: string;
   active?: boolean;
+  email?: string;
+  externalId?: string;
   individualDetails?: MaintenanceIndividualDetails;
   organizationDetails?: MaintenanceOrganizationDetails;
   validationResponse?: MaintenanceValidationResponse[];
   updateRequest?: MaintenanceUpdateRequest;
+};
+
+export type MaintenancePartyUpdateRequest = {
+  active?: false;
+  email?: string;
+  externalId?: string;
+  status?: string;
+  roles?: string[];
+  individualDetails?: MaintenanceIndividualDetails;
+  organizationDetails?: MaintenanceOrganizationDetails;
+};
+
+export type MaintenancePartyCreateRequest = {
+  partyType: 'INDIVIDUAL' | 'ORGANIZATION';
+  parentPartyId: string;
+  email?: string;
+  roles: Array<'CONTROLLER' | 'BENEFICIAL_OWNER' | 'INTERMEDIARY_OWNER'>;
+  individualDetails?: MaintenanceIndividualDetails & {
+    addresses?: MaintenanceAddress[];
+    individualIds?: MaintenanceIndividualId[];
+  };
+  organizationDetails?: MaintenanceOrganizationDetails;
+};
+
+export type MaintenanceProductUpdateRequest = {
+  productDetails: Array<{
+    product: 'EMBEDDED_PAYMENTS';
+    subProduct: 'LIMITED_DDA_PAYMENTS';
+    action: 'ADD' | 'REMOVE';
+  }>;
 };
 
 export type MaintenanceOutstanding = {
@@ -72,14 +154,47 @@ export type MaintenanceOutstanding = {
   partyRoles?: string[];
 };
 
+export type MaintenanceQuestion = {
+  id?: string;
+  label: string;
+  description?: string;
+  responseType?: 'boolean' | 'string' | 'number' | 'integer' | 'enum';
+  options?: string[];
+};
+
+export type MaintenanceQuestionResponse = {
+  questionId: string;
+  values: string[];
+};
+
+export type MaintenanceAttester = {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+  designation: string;
+};
+
+export type MaintenanceAttestation = {
+  documentId: string;
+  attestationTime: string;
+  ipAddress: string;
+  attester: MaintenanceAttester;
+};
+
+export type MaintenanceClientTaskUpdateRequest = {
+  questionResponses?: MaintenanceQuestionResponse[];
+  addAttestations?: MaintenanceAttestation[];
+};
+
 export type MaintenanceClient = {
   id: string;
   partyId?: string;
   status: string;
   parties?: MaintenanceParty[];
   products?: unknown[];
-  productDetails?: unknown[];
+  productDetails?: MaintenanceProductDetail[];
   outstanding?: MaintenanceOutstanding;
+  questionResponses?: MaintenanceQuestionResponse[];
   updateRequest?: MaintenanceUpdateRequest;
 };
 

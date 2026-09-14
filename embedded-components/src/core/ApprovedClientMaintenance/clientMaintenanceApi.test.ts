@@ -2,11 +2,18 @@ import { AxiosError, type AxiosRequestConfig } from 'axios';
 import { describe, expect, test, vi } from 'vitest';
 
 import {
+  addLimitedDdaPaymentsProduct,
+  cancelLimitedDdaPaymentsAddition,
   cancelMaintenanceRequest,
+  createMaintenanceParty,
+  downloadMaintenanceAttestation,
   getAllMaintenanceParties,
   getMaintenanceDocumentRequests,
+  getMaintenanceQuestions,
+  patchMaintenanceParty,
   patchMaintenancePartyName,
   submitMaintenanceVerification,
+  updateMaintenanceClientTasks,
   type MaintenanceRequest,
 } from './clientMaintenanceApi';
 
@@ -116,7 +123,10 @@ describe('clientMaintenanceApi', () => {
       parties: [
         {
           id: '2001166633',
-          individualDetails: { lastName: 'EP UAT 1' },
+          individualDetails: {
+            firstName: 'Embedded Payments',
+            lastName: 'EP UAT 1',
+          },
           updateRequest: {
             status: 'NEW',
             action: 'MODIFY',
@@ -218,14 +228,21 @@ describe('clientMaintenanceApi', () => {
     ).rejects.toThrow('changed while pages were loading');
   });
 
-  test('sends a sparse update with the supplied idempotency key', async () => {
+  test('sends the supplied individual delta with the idempotency key', async () => {
     const request = vi.fn<(config: AxiosRequestConfig) => Promise<unknown>>();
     request.mockResolvedValue({});
 
     await patchMaintenancePartyName(
       request,
       'party-1',
-      { individualDetails: { lastName: 'Diaz' } },
+      {
+        individualDetails: {
+          firstName: 'Jane',
+          middleName: 'R',
+          lastName: 'Diaz',
+          countryOfResidence: 'US',
+        },
+      },
       'idempotency-1'
     );
 
@@ -234,7 +251,272 @@ describe('clientMaintenanceApi', () => {
       method: 'PATCH',
       skipClientIdBodyInjection: true,
       headers: { 'Idempotency-Key': 'idempotency-1' },
-      data: { individualDetails: { lastName: 'Diaz' } },
+      data: {
+        individualDetails: {
+          firstName: 'Jane',
+          middleName: 'R',
+          lastName: 'Diaz',
+          countryOfResidence: 'US',
+        },
+      },
+    });
+  });
+
+  test('sends organization and removal updates without provider body injection', async () => {
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({});
+
+    await patchMaintenanceParty(
+      request,
+      'organization-1',
+      {
+        organizationDetails: {
+          organizationName: 'Neverland Books',
+          organizationType: 'LIMITED_LIABILITY_COMPANY',
+          countryOfFormation: 'US',
+          dbaName: 'Neverland Bookshop',
+          addresses: [
+            {
+              addressType: 'BUSINESS_ADDRESS',
+              addressLines: ['100 Market Street'],
+              city: 'San Francisco',
+              state: 'CA',
+              postalCode: '94105',
+              country: 'US',
+            },
+          ],
+        },
+      },
+      'idempotency-org'
+    );
+    await patchMaintenanceParty(
+      request,
+      'person-1',
+      { active: false },
+      'idempotency-remove'
+    );
+
+    expect(request).toHaveBeenNthCalledWith(1, {
+      url: '/parties/organization-1',
+      method: 'PATCH',
+      skipClientIdBodyInjection: true,
+      headers: { 'Idempotency-Key': 'idempotency-org' },
+      data: {
+        organizationDetails: {
+          organizationName: 'Neverland Books',
+          organizationType: 'LIMITED_LIABILITY_COMPANY',
+          countryOfFormation: 'US',
+          dbaName: 'Neverland Bookshop',
+          addresses: [
+            expect.objectContaining({ addressLines: ['100 Market Street'] }),
+          ],
+        },
+      },
+    });
+    expect(request).toHaveBeenNthCalledWith(2, {
+      url: '/parties/person-1',
+      method: 'PATCH',
+      skipClientIdBodyInjection: true,
+      headers: { 'Idempotency-Key': 'idempotency-remove' },
+      data: { active: false },
+    });
+  });
+
+  test('preserves complete role arrays', async () => {
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({});
+
+    await patchMaintenanceParty(
+      request,
+      'person-1',
+      {
+        roles: ['BENEFICIAL_OWNER'],
+      },
+      'idempotency-root-update'
+    );
+
+    expect(request).toHaveBeenCalledWith({
+      url: '/parties/person-1',
+      method: 'PATCH',
+      skipClientIdBodyInjection: true,
+      headers: { 'Idempotency-Key': 'idempotency-root-update' },
+      data: {
+        roles: ['BENEFICIAL_OWNER'],
+      },
+    });
+  });
+
+  test('creates a related party with its immediate parent and role', async () => {
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({
+      id: 'person-2',
+      partyType: 'INDIVIDUAL',
+      roles: ['BENEFICIAL_OWNER'],
+    });
+
+    await expect(
+      createMaintenanceParty(
+        request,
+        {
+          partyType: 'INDIVIDUAL',
+          parentPartyId: 'organization-1',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            birthDate: '1975-03-12',
+            natureOfOwnership: 'Direct',
+          },
+        },
+        'idempotency-create'
+      )
+    ).resolves.toEqual(expect.objectContaining({ id: 'person-2' }));
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/parties',
+        method: 'POST',
+        skipClientIdBodyInjection: true,
+        headers: { 'Idempotency-Key': 'idempotency-create' },
+        data: expect.objectContaining({
+          parentPartyId: 'organization-1',
+          roles: ['BENEFICIAL_OWNER'],
+        }),
+      })
+    );
+  });
+
+  test('adds Limited DDA Payments without replacing existing products', async () => {
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({});
+
+    await addLimitedDdaPaymentsProduct(
+      request,
+      'client-1',
+      'idempotency-product'
+    );
+
+    expect(request).toHaveBeenCalledWith({
+      url: '/clients/client-1',
+      method: 'PATCH',
+      skipClientIdBodyInjection: true,
+      headers: { 'Idempotency-Key': 'idempotency-product' },
+      data: {
+        productDetails: [
+          {
+            product: 'EMBEDDED_PAYMENTS',
+            subProduct: 'LIMITED_DDA_PAYMENTS',
+            action: 'ADD',
+          },
+        ],
+      },
+    });
+  });
+
+  test('cancels a pending Limited DDA Payments addition', async () => {
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({});
+
+    await cancelLimitedDdaPaymentsAddition(
+      request,
+      'client-1',
+      'idempotency-product-remove'
+    );
+
+    expect(request).toHaveBeenCalledWith({
+      url: '/clients/client-1',
+      method: 'PATCH',
+      skipClientIdBodyInjection: true,
+      headers: { 'Idempotency-Key': 'idempotency-product-remove' },
+      data: {
+        productDetails: [
+          {
+            product: 'EMBEDDED_PAYMENTS',
+            subProduct: 'LIMITED_DDA_PAYMENTS',
+            action: 'REMOVE',
+          },
+        ],
+      },
+    });
+  });
+
+  test('loads localized questions and preserves response options', async () => {
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({
+      questions: [
+        {
+          id: '30005',
+          content: [
+            { locale: 'en-US', label: 'What is your expected volume?' },
+          ],
+          responseSchema: {
+            items: { type: 'enum', enum: ['$10,000', '$25,000'] },
+          },
+        },
+      ],
+    });
+
+    await expect(getMaintenanceQuestions(request, ['30005'])).resolves.toEqual([
+      expect.objectContaining({
+        id: '30005',
+        label: 'What is your expected volume?',
+        options: ['$10,000', '$25,000'],
+      }),
+    ]);
+    expect(request).toHaveBeenCalledWith({
+      url: '/questions',
+      method: 'GET',
+      params: { questionIds: '30005' },
+    });
+  });
+
+  test('submits question responses and structured attestations as sparse client tasks', async () => {
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({});
+    const attestation = {
+      documentId: 'attestation-1',
+      attestationTime: '2026-09-01T12:00:00.000Z',
+      ipAddress: '127.0.0.1',
+      attester: {
+        firstName: 'Peiter',
+        lastName: 'Pan',
+        designation: 'Chief financial officer',
+      },
+    };
+
+    await updateMaintenanceClientTasks(
+      request,
+      'client-1',
+      { questionResponses: [{ questionId: '30005', values: ['$10,000'] }] },
+      'question-key'
+    );
+    await updateMaintenanceClientTasks(
+      request,
+      'client-1',
+      { addAttestations: [attestation] },
+      'attestation-key'
+    );
+
+    expect(request).toHaveBeenNthCalledWith(1, {
+      url: '/clients/client-1',
+      method: 'PATCH',
+      skipClientIdBodyInjection: true,
+      headers: { 'Idempotency-Key': 'question-key' },
+      data: {
+        questionResponses: [{ questionId: '30005', values: ['$10,000'] }],
+      },
+    });
+    expect(request).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        data: { addAttestations: [attestation] },
+      })
+    );
+  });
+
+  test('downloads attestation files as blobs', async () => {
+    const blob = new Blob(['attestation'], { type: 'application/pdf' });
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue(blob);
+
+    await expect(
+      downloadMaintenanceAttestation(request, 'attestation-1')
+    ).resolves.toBe(blob);
+    expect(request).toHaveBeenCalledWith({
+      url: '/documents/attestation-1/file',
+      method: 'GET',
+      responseType: 'blob',
     });
   });
 

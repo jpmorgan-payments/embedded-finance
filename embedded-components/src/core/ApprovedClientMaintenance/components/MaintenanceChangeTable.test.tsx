@@ -11,8 +11,12 @@ describe('MaintenanceChangeTable', () => {
         changes={[
           {
             field: 'lastName',
+            labelKey: 'editor.lastName',
             approvedValue: 'Doe',
             proposedValue: 'Diaz',
+            approvedRawValue: 'Doe',
+            proposedRawValue: 'Diaz',
+            sensitivity: 'public',
             source: {
               requestId: 'request-1',
               submittedAt: '2026-08-27T12:00:00.000Z',
@@ -23,11 +27,11 @@ describe('MaintenanceChangeTable', () => {
       />
     );
 
-    expect(screen.getByLabelText('Current profile: Doe')).toBeInTheDocument();
-    expect(screen.getByLabelText('Draft update: Diaz')).toBeInTheDocument();
+    expect(screen.getByLabelText('Current value: Doe')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pending change: Diaz')).toBeInTheDocument();
     expect(container.querySelector('dl > div')).toHaveClass(
       'eb-grid-cols-2',
-      'sm:eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)]'
+      '@[40rem]:eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)]'
     );
   });
 });

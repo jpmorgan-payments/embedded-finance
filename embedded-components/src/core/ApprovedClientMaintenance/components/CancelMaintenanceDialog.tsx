@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon, Undo2Icon } from 'lucide-react';
 
 import {
   AlertDialog,
@@ -16,8 +16,9 @@ import { Button } from '@/components/ui';
 
 type CancelMaintenanceDialogProps = {
   open: boolean;
-  scope: 'all' | 'party';
+  scope: 'all' | 'party' | 'organization' | 'pending-addition';
   affectedNames: string[];
+  allTargets?: React.ReactNode[];
   changedFieldLabels?: React.ReactNode[];
   error?: unknown;
   isPending: boolean;
@@ -29,6 +30,7 @@ export function CancelMaintenanceDialog({
   open,
   scope,
   affectedNames,
+  allTargets = [],
   changedFieldLabels = [],
   error,
   isPending,
@@ -37,6 +39,26 @@ export function CancelMaintenanceDialog({
 }: CancelMaintenanceDialogProps) {
   const { t } = useTranslationWithTokens('approved-client-maintenance');
   const [localError, setLocalError] = useState<unknown>();
+  const [presentation, setPresentation] = useState({
+    scope,
+    affectedNames,
+    allTargets,
+    changedFieldLabels,
+  });
+
+  useLayoutEffect(() => {
+    if (open) {
+      setPresentation({ scope, affectedNames, allTargets, changedFieldLabels });
+    }
+    // Snapshot only when a new open cycle starts; live refetches must not
+    // replace dialog content during its open or exit animation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const displayedScope = presentation.scope;
+  const displayedNames = presentation.affectedNames;
+  const displayedTargets = presentation.allTargets;
+  const displayedFieldLabels = presentation.changedFieldLabels;
 
   const confirm = async () => {
     setLocalError(undefined);
@@ -61,32 +83,47 @@ export function CancelMaintenanceDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {scope === 'all'
+            {displayedScope === 'all'
               ? t('cancel.allTitle')
-              : t('cancel.personTitle', {
-                  name: affectedNames[0] ?? '',
-                })}
+              : displayedScope === 'organization'
+                ? t('cancel.organizationTitle')
+                : displayedScope === 'pending-addition'
+                  ? t('pendingAddition.discardTitle', {
+                      name: displayedNames[0] ?? '',
+                    })
+                  : t('cancel.personTitle', {
+                      name: displayedNames[0] ?? '',
+                    })}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {scope === 'all'
+            {displayedScope === 'all'
               ? t('cancel.allDescription')
-              : t('cancel.personDescription')}
+              : displayedScope === 'organization'
+                ? t('cancel.organizationDescription')
+                : displayedScope === 'pending-addition'
+                  ? t('pendingAddition.discardDescription')
+                  : t('cancel.personDescription')}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        {affectedNames.length > 0 ? (
+        {displayedNames.length > 0 || displayedTargets.length > 0 ? (
           <div>
             <p className="eb-text-sm eb-font-medium">
-              {scope === 'all'
+              {displayedScope === 'all'
                 ? t('cancel.affectedPeople')
-                : t('cancel.pendingUpdates')}
+                : displayedScope === 'pending-addition'
+                  ? t('pendingAddition.pendingParty')
+                  : t('cancel.pendingUpdates')}
             </p>
             <ul className="eb-mt-2 eb-list-inside eb-list-disc eb-space-y-1 eb-text-sm eb-text-muted-foreground">
-              {(scope === 'all' ? affectedNames : changedFieldLabels).map(
-                (label, index) => (
-                  <li key={index}>{label}</li>
-                )
-              )}
+              {(displayedScope === 'all'
+                ? displayedTargets
+                : displayedScope === 'pending-addition'
+                  ? displayedNames
+                  : displayedFieldLabels
+              ).map((label, index) => (
+                <li key={index}>{label}</li>
+              ))}
             </ul>
           </div>
         ) : null}
@@ -105,9 +142,12 @@ export function CancelMaintenanceDialog({
           </AlertDialogCancel>
           <Button variant="destructive" onClick={confirm} disabled={isPending}>
             {isPending ? <Loader2Icon className="eb-animate-spin" /> : null}
-            {scope === 'all'
+            {!isPending ? <Undo2Icon /> : null}
+            {displayedScope === 'all'
               ? t('cancel.confirmAll')
-              : t('cancel.confirmPerson')}
+              : displayedScope === 'pending-addition'
+                ? t('pendingAddition.discard')
+                : t('cancel.discardChanges')}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

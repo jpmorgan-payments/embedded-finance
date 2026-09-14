@@ -13,17 +13,20 @@ export function MaintenanceChangeTable({
   changes,
   mode,
 }: MaintenanceChangeTableProps) {
-  const { t, tString } = useTranslationWithTokens(
-    'approved-client-maintenance'
-  );
+  const { t, tString } = useTranslationWithTokens([
+    'approved-client-maintenance',
+    'common',
+  ]);
   const updatedValueLabel =
     mode === 'draft'
       ? tString('changes.draftUpdate')
       : tString('changes.submittedUpdate');
 
+  if (changes.length === 0) return null;
+
   return (
     <div>
-      <div className="eb-hidden eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] eb-gap-3 eb-border-b eb-bg-muted/30 eb-px-4 eb-py-2 sm:eb-grid">
+      <div className="eb-hidden eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] eb-gap-3 eb-border-b eb-bg-muted/30 eb-px-4 eb-py-2 @[40rem]:eb-grid">
         <span className="eb-text-xs eb-font-semibold eb-text-muted-foreground">
           {t('changes.field')}
         </span>
@@ -37,19 +40,40 @@ export function MaintenanceChangeTable({
       <dl className="eb-divide-y">
         {changes.map((change) => {
           const fieldLabel = tString([
-            `editor.${change.field}`,
+            change.labelKey,
           ] as unknown as TemplateStringsArray);
-          const currentValue = change.approvedValue || tString('notProvided');
-          const updatedValue = change.proposedValue || tString('notProvided');
+          const formatValue = (rawValue: unknown, displayValue: string) =>
+            change.field === 'roles' && Array.isArray(rawValue)
+              ? rawValue
+                  .map((role) =>
+                    tString(
+                      [
+                        `common:partyRoles.${String(role)}`,
+                      ] as unknown as TemplateStringsArray,
+                      { defaultValue: String(role) }
+                    )
+                  )
+                  .join(', ')
+              : displayValue;
+          const approvedDisplayValue = formatValue(
+            change.approvedRawValue,
+            change.approvedValue
+          );
+          const proposedDisplayValue = formatValue(
+            change.proposedRawValue,
+            change.proposedValue
+          );
+          const currentValue = approvedDisplayValue || tString('notProvided');
+          const updatedValue = proposedDisplayValue || tString('notProvided');
           const isCurrentValueMissing = !change.approvedValue;
           const isUpdatedValueMissing = !change.proposedValue;
 
           return (
             <div
               key={change.field}
-              className="eb-grid eb-grid-cols-2 eb-items-start eb-gap-x-3 eb-gap-y-2 eb-px-4 eb-py-3 sm:eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] sm:eb-items-center"
+              className="eb-grid eb-grid-cols-2 eb-items-start eb-gap-x-3 eb-gap-y-2 eb-px-4 eb-py-3 @[40rem]:eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] @[40rem]:eb-items-center"
             >
-              <dt className="eb-col-span-2 eb-text-sm eb-font-medium sm:eb-col-span-1">
+              <dt className="eb-col-span-2 eb-text-sm eb-font-medium @[40rem]:eb-col-span-1">
                 {fieldLabel}
               </dt>
               <dd
@@ -59,7 +83,7 @@ export function MaintenanceChangeTable({
                 )}
                 aria-label={`${tString('changes.currentProfile')}: ${currentValue}`}
               >
-                <span className="eb-mb-0.5 eb-block eb-text-xs eb-font-semibold eb-text-muted-foreground sm:eb-hidden">
+                <span className="eb-mb-0.5 eb-block eb-text-xs eb-font-semibold eb-text-muted-foreground @[40rem]:eb-hidden">
                   {t('changes.currentProfile')}
                 </span>
                 {currentValue}
@@ -71,7 +95,7 @@ export function MaintenanceChangeTable({
                 )}
                 aria-label={`${updatedValueLabel}: ${updatedValue}`}
               >
-                <span className="eb-mb-0.5 eb-block eb-text-xs eb-font-semibold eb-text-muted-foreground sm:eb-hidden">
+                <span className="eb-mb-0.5 eb-block eb-text-xs eb-font-semibold eb-text-muted-foreground @[40rem]:eb-hidden">
                   {updatedValueLabel}
                 </span>
                 {updatedValue}

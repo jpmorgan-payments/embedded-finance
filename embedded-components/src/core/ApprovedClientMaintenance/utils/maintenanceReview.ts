@@ -1,3 +1,5 @@
+import { v5 as uuidv5 } from 'uuid';
+
 import type { DocumentRequestResponse } from '@/api/generated/smbdo.schemas';
 
 import type {
@@ -6,6 +8,18 @@ import type {
 } from '../models/maintenanceApi.types';
 import type { MaintenanceProjection } from './buildMaintenanceProjection';
 import { buildMaintenanceProjection } from './buildMaintenanceProjection';
+
+const REVIEW_FINGERPRINT_NAMESPACE = '7f31f43e-91f2-4f96-95bc-d66c6be27990';
+
+const canonicalize = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+      .map(([key, nestedValue]) => [key, canonicalize(nestedValue)])
+  );
+};
 
 export type MaintenanceRequirementType =
   | 'documents'
@@ -26,7 +40,7 @@ export function createMaintenanceReviewFingerprint(
   client: MaintenanceClient,
   projection: MaintenanceProjection
 ): string {
-  return JSON.stringify({
+  const reviewState = {
     requestId: projection.activeRequestId,
     clientRequest: client.updateRequest
       ? {
@@ -42,16 +56,28 @@ export function createMaintenanceReviewFingerprint(
         partyId: change.partyId,
         action: change.proposal.updateRequest?.action,
         status: change.proposal.updateRequest?.status,
+        proposal: {
+          partyType: change.proposal.partyType,
+          parentPartyId: change.proposal.parentPartyId,
+          roles: [...(change.proposal.roles ?? [])].sort(),
+          active: change.proposal.active,
+          individualDetails: change.proposal.individualDetails,
+          organizationDetails: change.proposal.organizationDetails,
+        },
         fields: [...change.fieldChanges]
           .sort((left, right) => left.field.localeCompare(right.field))
           .map((fieldChange) => ({
             field: fieldChange.field,
-            proposedValue: fieldChange.proposedValue,
+            proposedValue: fieldChange.proposedRawValue,
             requestId: fieldChange.source.requestId,
             submittedAt: fieldChange.source.submittedAt,
           })),
       })),
-  });
+  };
+  return uuidv5(
+    JSON.stringify(canonicalize(reviewState)),
+    REVIEW_FINGERPRINT_NAMESPACE
+  );
 }
 
 export function getMaintenanceSubmissionBlockers(
@@ -66,7 +92,9 @@ export function getMaintenanceSubmissionBlockers(
     if (count > 0) blockers.push({ type, count });
   };
 
-  if (!projection.activeRequestId) addBlocker('request', 1);
+  if (projection.partyChanges.length > 0 && !projection.activeRequestId) {
+    addBlocker('request', 1);
+  }
   if (projection.hasConflicts) addBlocker('conflict', 1);
   addBlocker('unresolved', projection.unresolvedProposals.length);
   addBlocker('questions', outstanding?.questionIds?.length ?? 0);
@@ -160,7 +188,7 @@ export async function validateStableMaintenanceSubmission(
   }
   if (firstFingerprint !== reviewedFingerprint) {
     throw new MaintenanceSubmissionError(
-      'Draft updates changed before submission. Review the latest updates.',
+      'The draft changed before submission. Review the latest changes.',
       'CHANGED'
     );
   }
@@ -188,7 +216,7 @@ export async function validateStableMaintenanceSubmission(
   }
   if (!areMaintenanceReadsStable(firstFingerprint, secondFingerprint)) {
     throw new MaintenanceSubmissionError(
-      'Draft updates changed while they were being checked. Review the latest updates.',
+      'The draft changed while it was being checked. Review the latest changes.',
       'CHANGED'
     );
   }
