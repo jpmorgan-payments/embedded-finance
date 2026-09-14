@@ -2,19 +2,27 @@ import type { ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 
 import { ProfileTextField } from '../forms/ProfileTextField';
+import type { ProfileFieldRestoreAction } from '../forms/ProfileTextField';
 
 export type IndividualLegalNameFieldContent = {
   firstName: {
     label: ReactNode;
     placeholder?: string;
     description?: ReactNode;
+    restoreAction?: ProfileFieldRestoreAction;
   };
   middleName: {
     label: ReactNode;
     placeholder?: string;
     description?: ReactNode;
+    restoreAction?: ProfileFieldRestoreAction;
   };
-  lastName: { label: ReactNode; placeholder?: string; description?: ReactNode };
+  lastName: {
+    label: ReactNode;
+    placeholder?: string;
+    description?: ReactNode;
+    restoreAction?: ProfileFieldRestoreAction;
+  };
   optionalLabel?: ReactNode;
 };
 
@@ -41,6 +49,7 @@ export function IndividualLegalNameFields<TFieldValues extends FieldValues>({
         label={content.firstName.label}
         placeholder={content.firstName.placeholder}
         description={content.firstName.description}
+        restoreAction={content.firstName.restoreAction}
         required
       />
       <ProfileTextField
@@ -49,6 +58,7 @@ export function IndividualLegalNameFields<TFieldValues extends FieldValues>({
         label={content.middleName.label}
         placeholder={content.middleName.placeholder}
         description={content.middleName.description}
+        restoreAction={content.middleName.restoreAction}
         optionalLabel={content.optionalLabel}
       />
       <ProfileTextField
@@ -57,6 +67,7 @@ export function IndividualLegalNameFields<TFieldValues extends FieldValues>({
         label={content.lastName.label}
         placeholder={content.lastName.placeholder}
         description={content.lastName.description}
+        restoreAction={content.lastName.restoreAction}
         required
       />
     </>

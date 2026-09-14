@@ -1,5 +1,5 @@
 import { useTranslationWithTokens } from '@/i18n';
-import { CheckCircle2Icon } from 'lucide-react';
+import { CheckCircle2Icon, Clock3Icon } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 
@@ -33,6 +33,20 @@ export function MaintenanceReceiptView({
       <p className="eb-mt-2 eb-text-sm eb-text-muted-foreground">
         {t('submission.profileRemainsActive')}
       </p>
+      <div className="eb-mt-5 eb-flex eb-items-start eb-gap-3 eb-rounded-md eb-border eb-border-informative/50 eb-bg-informative-accent eb-p-4">
+        <Clock3Icon className="eb-mt-0.5 eb-size-5 eb-shrink-0 eb-text-informative" />
+        <div>
+          <h3 className="eb-text-sm eb-font-semibold">
+            {t('submission.receiptNextTitle')}
+          </h3>
+          <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+            {t('submission.receiptNextDescription')}
+          </p>
+          <p className="eb-mt-2 eb-text-sm eb-text-muted-foreground">
+            {t('submission.receiptLeave')}
+          </p>
+        </div>
+      </div>
       {requestId ? (
         <p className="eb-mt-4 eb-text-xs eb-text-muted-foreground">
           {t('flow.changeSet', { requestId })}

@@ -3,21 +3,53 @@
   "description": "Review approved business information and disclose supported changes.",
   "loading": "Loading business profile",
   "clientLabel": "Client {{clientId}}",
+  "clientStatus": "Client status: {{status}}",
+  "clientStatuses": {
+    "APPROVED": "Approved",
+    "INFORMATION_REQUESTED": "Information requested",
+    "REVIEW_IN_PROGRESS": "Review in progress",
+    "DECLINED": "Declined"
+  },
+  "clientStatusBanner": {
+    "default": "Review the profile status and complete any available actions before continuing.",
+    "INFORMATION_REQUESTED": {
+      "title": "The client profile needs more information",
+      "description": "Complete the requested items shown in the maintenance request so review can continue."
+    },
+    "REVIEW_IN_PROGRESS": {
+      "title": "The client profile is under review",
+      "description": "Profile changes are locked while review is in progress. You can still view submitted information and status."
+    },
+    "DECLINED": {
+      "title": "The client profile was not approved",
+      "description": "Review the returned status and contact support before starting another maintenance request."
+    }
+  },
   "organization": "Business details",
   "products": "Products",
   "product": "Product",
   "subProduct": "Sub-product",
-  "people": "People",
-  "peopleDescription": "Controllers, owners, and other related parties on this profile.",
+  "people": "Related parties",
+  "peopleDescription": "Key roles and intermediary businesses",
+  "peopleAreas": {
+    "controller": "Controller",
+    "controllerCaption": "Primary management contact",
+    "controllerRowDescription": "Manages or directs the business",
+    "alsoController": "Also the controller",
+    "directOwner": "Direct beneficial owner",
+    "ownership": "Ownership",
+    "ownershipCaption_one": "{{count}} beneficial owner at 25% or more",
+    "ownershipCaption_other": "{{count}} beneficial owners at 25% or more"
+  },
   "sectionCaption": {
     "organization": "Legal entity on file",
     "profileDetails": "Approved values on file",
-    "updates": "Included in this maintenance request",
+    "updates": "Review the business, people, products, and required actions included before submitting.",
     "partyUpdates": {
-      "draft": "Draft changes not yet submitted",
-      "review": "Submitted changes being reviewed",
-      "information": "Submitted changes awaiting required information",
-      "submitted": "Submitted changes"
+      "draft": "Saved in this request. You can edit or discard these changes before submission.",
+      "review": "Editing is unavailable while these changes are under review.",
+      "information": "Review is paused until the requested information is provided.",
+      "submitted": "No action is needed unless more information is requested."
     },
     "requirements": "Needed to continue",
     "upload": "Attach a file for each requirement",
@@ -36,8 +68,38 @@
   "pendingSummary_other": "{{count}} proposed changes are waiting for review.",
   "request": "Maintenance request {{requestId}}",
   "noProducts": "No product details available",
-  "noPeople": "No related people available",
+  "noPeople": "No related parties available",
   "noRoles": "No roles listed",
+  "productsAction": {
+    "addLimitedDda": "Add Limited DDA",
+    "add": "Add Limited DDA Payments",
+    "adding": "Adding Limited DDA Payments"
+  },
+  "productStatus": {
+    "active": "Active",
+    "available": "Available",
+    "ready": "Ready to continue",
+    "pending": "Pending",
+    "review": "Under review",
+    "action": "Action required",
+    "declined": "Not approved"
+  },
+  "productNode": {
+    "available": "Sub-product available",
+    "ready": "Sub-product ready",
+    "pending": "Sub-product pending addition",
+    "review": "Sub-product under review",
+    "action": "Sub-product needs attention",
+    "declined": "Sub-product not approved"
+  },
+  "productCancellation": {
+    "action": "Cancel product addition",
+    "title": "Cancel the Limited DDA Payments addition?",
+    "description": "Limited DDA Payments will be removed from the updates being prepared for review.",
+    "maintenancePreserved": "Your business and related-party maintenance changes will remain in progress.",
+    "keep": "Keep product addition",
+    "confirm": "Cancel product addition"
+  },
   "legalName": "Legal business name",
   "entityType": "Entity type",
   "countryOfFormation": "Country of formation",
@@ -49,29 +111,73 @@
     "businessInformation": "Business information",
     "documentsNeeded": "Documents needed",
     "uploadDocuments": "Upload documents",
-    "reviewProfileUpdates": "Review profile updates",
-    "viewSubmittedUpdates": "View submitted updates",
-    "draftUpdate": "Draft update",
-    "submittedUpdate": "Submitted update",
+    "reviewProfileUpdates": "Review changes in this request",
+    "viewSubmittedUpdates": "View submitted changes",
+    "draftUpdate": "Pending change",
+    "submittedUpdate": "Submitted change",
     "preparingDocuments": "Preparing documents",
+    "preparingRequiredDocuments": "Preparing required documents",
+    "preparingRequiredDocumentsDescription": "Your changes are saved. The new document request will open as soon as it is ready.",
     "confirmingChanges": "Confirming your changes…"
   },
   "requestSummary": {
+    "draftRequirements": {
+      "title": "Pending requirements need attention",
+      "description": "Your changes are still editable. Complete the required documents before submitting this request for review."
+    },
     "draft": {
-      "title": "Draft profile updates",
-      "description": "Your updates are saved here but have not been submitted for review."
+      "title": "Pending changes",
+      "description": "Your changes are saved here but have not been submitted for review."
     },
     "submitted": {
-      "title": "Profile updates submitted",
-      "description": "These profile updates are being reviewed."
+      "title": "Changes submitted",
+      "description": "These changes are being reviewed. Editing and cancellation are unavailable until review is complete."
     },
     "action": {
       "title": "More information is required",
-      "description": "Complete the required items so the review can continue."
+      "description": "Complete the returned tasks within 30 days so the review can continue and the request is not automatically closed."
     },
-    "viewSubmittedChanges": "View submitted changes",
-    "viewRequiredActions": "View required actions",
-    "viewRequestDetails": "View maintenance request details"
+    "completeRequirements": "Complete requirements",
+    "completeRequiredActions": "Complete required actions",
+    "viewSubmittedChanges": "View submitted updates"
+  },
+  "updateSummary": {
+    "product": {
+      "draft": {
+        "title": "Product update ready to review",
+        "description": "Limited DDA Payments is pending and has not been submitted for review."
+      },
+      "draftRequirements": {
+        "title": "Product update needs attention",
+        "description": "Complete the requirements before submitting the product update."
+      },
+      "submitted": {
+        "title": "Product update submitted",
+        "description": "The Limited DDA Payments update is being reviewed."
+      },
+      "action": {
+        "title": "Product update needs more information",
+        "description": "Complete the returned requirements so review can continue."
+      }
+    },
+    "combined": {
+      "draft": {
+        "title": "Updates ready to review",
+        "description": "The product update and maintenance changes are ready for review."
+      },
+      "draftRequirements": {
+        "title": "Updates need attention",
+        "description": "Complete the requirements before submitting your updates."
+      },
+      "submitted": {
+        "title": "Updates submitted",
+        "description": "The product update and maintenance changes are under review."
+      },
+      "action": {
+        "title": "Updates need more information",
+        "description": "Complete the returned requirements so review can continue."
+      }
+    }
   },
   "requestDetails": {
     "title": "Maintenance request details",
@@ -90,19 +196,22 @@
     "currentProfileName": "Current profile name: {{name}}"
   },
   "changes": {
-    "draftTitle": "Draft updates",
-    "submittedTitle": "Submitted updates",
-    "reviewTitle": "Updates under review",
-    "informationTitle": "Updates requiring information",
+    "draftTitle": "Pending changes",
+    "submittedTitle": "Submitted changes",
+    "reviewTitle": "Changes under review",
+    "additionReviewTitle": "Addition under review",
+    "informationTitle": "Changes requiring information",
     "field": "Field",
-    "currentProfile": "Current profile",
-    "draftUpdate": "Draft update",
-    "submittedUpdate": "Submitted update",
-    "editDraft": "Edit changes"
+    "currentProfile": "Current value",
+    "draftUpdate": "Pending change",
+    "submittedUpdate": "Submitted change",
+    "editDraft": "Add or edit changes",
+    "business": "Business",
+    "roles": "Roles"
   },
   "entity": {
     "back": "Business profile",
-    "pendingUpdates": "Profile updates",
+    "pendingUpdates": "Changes in this request",
     "profileDetails": "Profile details",
     "editDetails": "Edit details",
     "currentProfile": "Current profile",
@@ -114,6 +223,31 @@
     "documentsDescription": "Upload the required documents to continue.",
     "continue": "Continue",
     "maskedValue": "••••••••"
+  },
+  "organizationDetails": {
+    "title": "Business information",
+    "description": "Registered, contact, and operating information on the approved profile.",
+    "industry": "Industry",
+    "email": "Company email address",
+    "phone": "Organization phone",
+    "identityGroup": "Identity",
+    "registrationGroup": "Registration",
+    "operationsGroup": "Business activity",
+    "contactGroup": "Contact and address"
+  },
+  "individualDetails": {
+    "identityGroup": "Legal identity",
+    "responsibilityGroup": "Business responsibility",
+    "contactGroup": "Contact and address",
+    "nameSuffix": "Name suffix",
+    "countryOfResidence": "Country of residence",
+    "jobTitle": "Job title",
+    "email": "Email",
+    "phone": "Phone",
+    "ownership": "Ownership relationship",
+    "roles": "Roles on this profile",
+    "identification": "Government identification",
+    "address": "Residential address"
   },
   "document": {
     "back": "Back to {{name}}",
@@ -130,28 +264,304 @@
     "removePerson": "Remove person",
     "editBirthDate": "Edit birth date"
   },
+  "addParty": {
+    "title": "Add related party",
+    "description": "Add a controller or beneficial owner to this maintenance request.",
+    "replacementTitle": "Add replacement controller",
+    "replacementDescription": "Add the new controller first. After this person is saved, the current controller will be removed in the same maintenance request.",
+    "ownershipPathTitle": "Confirm owner details",
+    "ownershipPathDescription": "The intermediary was added. Confirm this owner's details to create the new indirect path before the old direct ownership record is retired.",
+    "beneficialOwnerDescription": "Add a person who directly owns 25% or more of the business.",
+    "indirectOwnerDescription": "Add the person who ultimately owns 25% or more through this intermediary business.",
+    "caption": "Identity and ownership details",
+    "role": "Role",
+    "roleDescription": "Choose the responsibility this person has for the business.",
+    "roleDescriptions": {
+      "CONTROLLER": "A person with significant responsibility for managing the business.",
+      "BENEFICIAL_OWNER": "A person who owns 25% or more of the business, directly or indirectly."
+    },
+    "identity": "Identity details",
+    "identityDescription": "Enter the person's legal information exactly as it appears on their identification.",
+    "identificationTitle": "Government identification",
+    "identificationDescription": "The available identification types depend on the person's country of residence.",
+    "countryOfResidence": "Country of residence",
+    "idType": "Identification type",
+    "idTypePlaceholder": "Select an identification type",
+    "idInvalid": "Enter all 9 digits for an SSN or ITIN.",
+    "ssn": "Social Security number",
+    "residentialAddress": "Residential address",
+    "addressDescription": "Enter the address where this person currently lives.",
+    "alsoBeneficialOwner": "This person also owns 25% or more",
+    "alsoBeneficialOwnerDescription": "The replacement will be created once with both Controller and Beneficial owner roles.",
+    "roles": {
+      "CONTROLLER": "Controller",
+      "BENEFICIAL_OWNER": "Beneficial owner"
+    },
+    "cancel": "Cancel",
+    "saveReplacement": "Add replacement and remove current controller",
+    "saveOwnershipPath": "Create new ownership path",
+    "saveBeneficialOwner": "Add beneficial owner",
+    "save": "Add related party"
+  },
+  "removeParty": {
+    "action": "Remove related party",
+    "replaceController": "Replace controller",
+    "replacementDialogTitle": "Replace {{name}} as controller?",
+    "title": "Remove {{name}}?",
+    "description": "This removal will be included in the maintenance request. The approved profile remains unchanged until review is complete.",
+    "replacementTitle": "Controller coverage",
+    "replacementCaption": "A controller is required",
+    "replacementDescription": "A controller is required. Add a replacement to continue.",
+    "addReplacement": "Choose replacement controller",
+    "finishReplacement": "Finish replacing controller",
+    "replacementUnavailable": "A replacement controller cannot be added under the current maintenance configuration. Contact support before removing this person.",
+    "remainsOwnerQuestion": "After the controller is replaced, will this person still own 25% or more?",
+    "remainsOwnerYes": "Yes, keep as a beneficial owner",
+    "remainsOwnerNo": "No, remove this person",
+    "keep": "Keep related party",
+    "confirm": "Remove related party"
+  },
+  "roleChange": {
+    "controllerDescription": "The controller is the person responsible for this business profile.",
+    "directOwnerTitle": "Direct beneficial owner",
+    "directOwnerDescription": "This person owns 25% or more of the client business directly. No other business sits between the client and this owner.",
+    "directRelationshipTitle": "Is this ownership held through another business?",
+    "directRelationshipDescription": "If one or more businesses sit between the client and this owner, update the relationship to reflect the intermediary ownership path.",
+    "changeToIndirect": "Change to indirect ownership",
+    "indirectOwnerTitle": "Indirect beneficial owner",
+    "indirectOwnerDescription": "This person owns 25% or more of the client business through one or more intermediary businesses.",
+    "indirectRelationshipTitle": "Ownership through another business",
+    "indirectRelationshipDescription": "This owner's interest is held through {{businesses}}.",
+    "reviewOwnershipPath": "Review ownership path",
+    "pendingAddition": "Pending addition",
+    "pendingAdditionDescription": "This role and its ownership details are included in the current request. Removing it requires discarding all pending changes for this person.",
+    "pendingRemoval": "Pending removal",
+    "pendingRemovalDescription": "This role remains active on the approved profile until its removal is approved.",
+    "sectionTitle": "Ownership and roles",
+    "pendingPartySectionTitle": "Pending roles",
+    "pendingPartyRoleDescription": "This role will be added with the person when the maintenance request is approved.",
+    "addOwner": "Add beneficial owner role",
+    "addOwnerTitle": "Add beneficial owner role?",
+    "addOwnerDescription": "{{name}} will remain the controller and will also be recorded as a direct beneficial owner.",
+    "confirmAddOwner": "Add beneficial owner role",
+    "discardPartyDraft": "Discard all pending changes for this person",
+    "cancel": "Cancel"
+  },
+  "pendingAddition": {
+    "eyebrow": "Pending profile",
+    "personDescription": "This person will be added to the business profile when the maintenance request is approved.",
+    "businessDescription": "This intermediary business will be added to the ownership structure when the maintenance request is approved.",
+    "personDetailsTitle": "Proposed person details",
+    "businessDetailsTitle": "Proposed business details",
+    "description": "This person's addition is pending and is not yet part of the approved business profile.",
+    "reviewGuidance": "Review the proposed details and complete any required documents before submitting the request.",
+    "detailsTitle": "Proposed party details",
+    "edit": "Edit pending party",
+    "discard": "Discard pending addition",
+    "discardTitle": "Discard {{name}}?",
+    "discardDescription": "This person will not be added to the business profile. Other changes in the request will be preserved.",
+    "pendingParty": "Pending party"
+  },
+  "formExit": {
+    "title": "Discard this unsaved entry?",
+    "description": "The information entered on this page has not been added to the maintenance request.",
+    "keepEditing": "Keep editing",
+    "discard": "Discard entry"
+  },
+  "questions": {
+    "title": "Additional questions",
+    "description": "Answer the required questions so review can continue.",
+    "sectionTitle": "Questions",
+    "loading": "Loading questions",
+    "progress": "{{answered}} of {{total}} answered",
+    "emptyTitle": "Questions could not be loaded",
+    "emptyDescription": "Return to review and try again. Submission remains unavailable until every requested question is returned.",
+    "select": "Select an answer",
+    "yes": "Yes",
+    "no": "No",
+    "cancel": "Back to review",
+    "save": "Save answers"
+  },
+  "attestation": {
+    "title": "Review and attest",
+    "description": "Review each required document and confirm the information below.",
+    "sectionTitle": "Attestation",
+    "document": "Attestation document {{number}}",
+    "documentsTitle": "Review required documents",
+    "documentsDescription": "Open every document before entering the details of the person making this attestation.",
+    "progress": "{{reviewed}} of {{total}} reviewed",
+    "review": "Review document",
+    "opened": "Reviewed",
+    "signerTitle": "Person making this attestation",
+    "signerDescription": "Enter your legal name and your role at the business.",
+    "signerLocked": "Review every required document to unlock signer details.",
+    "designation": "Job title",
+    "designationPlaceholder": "For example, CEO, controller, or partner",
+    "designationDescription": "Use your title or role at the business.",
+    "confirmation": "I have reviewed the required documents and attest that the information is complete and accurate.",
+    "cancel": "Back to review",
+    "save": "Submit attestation"
+  },
+  "ownership": {
+    "action": "Ownership structure",
+    "manageAction": "Manage ownership",
+    "title": "Ownership structure",
+    "description": "Review qualifying owners and intermediary businesses. Update anything that is incomplete or incorrect.",
+    "beneficialOwnersTitle": "Beneficial owners",
+    "beneficialOwnersDescription": "Add each person who directly owns 25% or more. A controller who also owns 25% or more appears here as a beneficial owner.",
+    "addDirectOwner": "Add beneficial owner",
+    "changePath": "Change ownership path",
+    "viewOwner": "View owner details",
+    "viewBusiness": "View business details",
+    "viewDetails": "View details",
+    "addOwner": "Add owner",
+    "addOwnerThroughBusiness": "Add owner through this business",
+    "addBeneficialOwner": "Add beneficial owner",
+    "structureRoot": "Start of ownership structure",
+    "viewStructure": "View ownership structure",
+    "backToReview": "Back to review",
+    "throughBusiness": "Through {{name}}",
+    "viewOwnerPath": "View this ownership path",
+    "insertBusinessForOwner": "Change to indirect ownership",
+    "pathPreviewTitle": "Resulting ownership path",
+    "pathPreviewDescription": "First add the intermediary business. Next, confirm the owner beneath it. The current direct ownership record is retired only after the new path is complete.",
+    "newIntermediary": "New intermediary business",
+    "insertIntermediary": "Add intermediary to ownership path",
+    "insertIntermediaryDescription": "Add the business that sits between the client and this owner. Next, confirm the owner's details under the new intermediary.",
+    "alsoController": "Beneficial owner · Also the controller",
+    "directOwner": "Direct beneficial owner",
+    "noDirectOwners": "No direct beneficial owners are listed yet.",
+    "threshold": "Owners of 25% or more",
+    "chainTitle": "Ownership structure",
+    "unifiedDescription": "Each branch shows how an owner connects to the client. Indented owners hold their interest through the business above them; use the action on a person or business to change that branch.",
+    "previewDescription": "A simplified view of direct owners and ownership held through other businesses.",
+    "chainDescription": "Create each ownership layer from this business outward",
+    "intermediaryOwner": "Intermediary owner",
+    "intermediaryCaption": "Legal entity and ownership details",
+    "addIntermediary": "Add intermediary business",
+    "addIndirectOwner": "Add indirect beneficial owner",
+    "addLayer": "Add another intermediary layer",
+    "clientRoot": "Your business",
+    "direct": "Direct",
+    "indirect": "Indirect",
+    "relationshipUnavailable": "Relationship unavailable",
+    "ein": "Employer identification number",
+    "businessIdentity": "Business identity",
+    "businessIdentityDescription": "Enter the intermediary's registered legal information.",
+    "unsupportedOrganizationId": "This API contract only confirms US EIN support for intermediary owners. Choose the United States or contact support before continuing.",
+    "legalAddress": "Legal address",
+    "legalAddressDescription": "Enter the address shown on the intermediary's registration documents.",
+    "cancel": "Back to ownership structure",
+    "saveIntermediary": "Add intermediary owner"
+  },
+  "ownerRelationship": {
+    "title": "Ownership relationship",
+    "addTitle": "Add a beneficial owner",
+    "addDescription": "First choose whether this owner holds their interest directly or through an intermediary business.",
+    "controllerTitle": "Add beneficial owner role",
+    "controllerDescription": "Choose how {{name}} holds their ownership interest.",
+    "changeTitle": "Choose an intermediary for {{name}}",
+    "changeDescription": "Select the business that sits between your business and {{name}}, or add that business first.",
+    "newOwner": "the new owner",
+    "directTitle": "Owns the client directly",
+    "directDescription": "Choose this when no other business sits between the owner and the client.",
+    "directPath": "Result: Client business → Owner",
+    "indirectTitle": "Owns through another business",
+    "indirectDescription": "Choose this when the owner holds their interest through an intermediary company. Select an existing business below or add the intermediary first.",
+    "chooseBusiness": "Choose the intermediary business",
+    "resultingPath": "The owner will be added beneath this business.",
+    "addBusiness": "Add a new intermediary business",
+    "changeExistingTitle": "Use an existing intermediary business",
+    "changeExistingDescription": "Choose where {{name}} holds their ownership interest.",
+    "changeChooseBusiness": "Select an intermediary business",
+    "changeResultingPath": "{{name}} will own through this business.",
+    "changeAddBusiness": "Add a new intermediary for this owner"
+  },
+  "controllerReplacement": {
+    "title": "Choose a replacement controller",
+    "description": "Select an existing person who is directly related to this business, or add someone new.",
+    "existingTitle": "Use an existing person",
+    "existingDescription": "Their current roles and profile details will be preserved.",
+    "selectDescription": "Make this person the controller",
+    "emptyTitle": "No existing people are available",
+    "emptyDescription": "Add a new person to continue replacing the controller.",
+    "addNew": "Add a new person"
+  },
+  "form": {
+    "back": "Back",
+    "selectCountry": "Select a country",
+    "searchCountries": "Search countries",
+    "noResults": "No matching options found.",
+    "selectRegion": "Select a state or province",
+    "selectOrganizationType": "Select an organization type"
+  },
+  "organizationForm": {
+    "identityTitle": "Business identity",
+    "identityDescription": "Use the legal names currently registered for this business.",
+    "editDescription": "Update supported registered business details. Only fields that change are added to the request.",
+    "addressDescription": "Submitting a new business address replaces the complete approved address. Review every line before saving."
+  },
+  "productAddition": {
+    "title": "Add Limited DDA Payments",
+    "description": "Add payment capabilities to the existing Embedded Payments product.",
+    "embeddedPayments": "Embedded Payments",
+    "current": "Current product",
+    "adding": "Product to add",
+    "limitedDda": "Limited DDA",
+    "limitedDdaPayments": "Limited DDA Payments",
+    "aboutTitle": "About Limited DDA Payments",
+    "paymentsDescription": "Adds payment capabilities alongside the existing Limited DDA sub-product.",
+    "selected": "Selected upgrade",
+    "nextTitle": "Before you request",
+    "nextDescription": "After you request Limited DDA Payments, it appears as a pending sub-product. You can review and update business, related-party, or ownership information before submitting all updates together for review.",
+    "back": "Back to business profile",
+    "continue": "Continue",
+    "confirm": "Request Limited DDA Payments"
+  },
+  "availability": {
+    "productAlreadyAdded": "Limited DDA Payments is already part of this profile or request.",
+    "requestLocked": "New changes are unavailable while this maintenance request is being reviewed.",
+    "productNotEligible": "Limited DDA Payments is not configured for this business's country and legal entity type.",
+    "originalProductPending": "The original Limited DDA product must be approved before this product can be added.",
+    "verificationRequired": "Complete the original product verification before adding Limited DDA Payments.",
+    "productLeadTime": "Limited DDA Payments becomes available after {{time}}, once the five-minute verification window has passed.",
+    "ownerLimit": "This request already includes the maximum of four beneficial owners.",
+    "limitedDdaHostAction": "Limited DDA must be added through the onboarding experience before Limited DDA Payments is available."
+  },
   "submission": {
-    "draftExplanation": "Your updates are saved as a draft and have not been submitted for review.",
+    "draftExplanation": "Your pending changes are saved and have not been submitted for review.",
     "reviewAndSubmit": "Review and submit",
     "backToProfile": "Back to business profile",
-    "reviewTitle": "Review your updates",
-    "reviewDescription": "Check that this includes everything you intended to change. All updates will be submitted together.",
-    "submittedChangesTitle": "Submitted profile updates",
-    "submittedChangesDescription": "These are the profile updates currently under review.",
-    "reviewUpdated": "The draft changed while you were reviewing it. Review the latest updates before confirming.",
-    "profileUpdates": "Profile updates",
+    "reviewTitle": "Review your changes",
+    "reviewDescription": "Review the product update, business and related-party information, and ownership structure that will be submitted together.",
+    "submittedChangesTitle": "Submitted changes",
+    "submittedChangesDescription": "These are the changes currently under review.",
+    "reviewUpdated": "The pending changes were updated while you were reviewing them. Review the latest changes before confirming.",
+    "profileUpdates": "Changes in this request",
     "edit": "Edit",
     "beforeSubmission": "Before submission",
     "allRequirementsComplete": "All required information is complete.",
     "returnToProfile": "Return to business profile",
     "completeRequirement": "Complete",
+    "ownershipTitle": "Ownership structure",
+    "ownershipDescription": "Review every individual and intermediary business that owns 25% or more.",
+    "updateOwnership": "Update ownership",
+    "blockedTitle": "Submission blocked",
+    "blockedDescription": "Complete the required items shown above before submitting these updates.",
+    "blockedGuidance": "The confirmation controls and Submit for review button will become available when every requirement is complete.",
     "readyTitle": "Ready to submit",
-    "lockWarning": "Submitting sends all draft updates for review. You will not be able to edit or discard them after submission.",
-    "confirmation": "I confirm that I reviewed all updates and they are complete and accurate.",
+    "lockWarning": "Submitting sends the product update and all maintenance changes together for review. You will not be able to edit or discard them after submission.",
+    "confirmationDescription": "Use the edit actions or return to the business profile if anything needs to change. Required attestation documents are completed separately.",
+    "informationConfirmation": "I reviewed the business and related-party information on file, including the updates shown here, and confirm no other changes are needed.",
+    "ownershipConfirmation": "I reviewed the ownership structure and confirm it includes every individual and intermediary business that owns 25% or more.",
+    "confirmation": "I confirm that I reviewed all changes and they are complete and accurate.",
     "submitForReview": "Submit for review",
     "receiptTitle": "Submitted for review",
-    "receiptDescription": "Your updates were accepted for review on {{date}}.",
-    "profileRemainsActive": "Your current profile remains active while the updates are reviewed.",
+    "receiptDescription": "Your changes were accepted for review on {{date}}.",
+    "profileRemainsActive": "Your current profile remains active while the changes are reviewed.",
+    "receiptNextTitle": "Review has started",
+    "receiptNextDescription": "The request is accepted for review, not yet approved. After approval, updated profile values may take 24 to 48 hours to appear.",
+    "receiptLeave": "You can safely leave this page and return to the business profile to check the request status.",
     "blockers": {
       "documents_one": "1 document requirement must be completed.",
       "documents_other": "{{count}} document requirements must be completed.",
@@ -163,26 +573,37 @@
       "roles_other": "{{count}} required roles must be completed.",
       "attestations_one": "1 attestation must be reviewed and accepted.",
       "attestations_other": "{{count}} attestations must be reviewed and accepted.",
-      "unresolved_one": "1 update could not be resolved.",
-      "unresolved_other": "{{count}} updates could not be resolved.",
+      "disclosure": "Confirm whether business or ownership information changed since approval.",
+      "unresolved_one": "1 change could not be resolved.",
+      "unresolved_other": "{{count}} changes could not be resolved.",
       "conflict": "Conflicting active maintenance requests must be resolved.",
       "request": "The active maintenance request could not be identified."
     }
   },
   "cancel": {
-    "cancelAll": "Discard all changes",
-    "removePerson": "Discard changes",
-    "allTitle": "Discard all draft changes?",
-    "allDescription": "This will discard every change in this draft.",
+    "cancelAll": "Discard all pending changes",
+    "discardChanges": "Discard changes",
+    "allTitle": "Discard all pending changes?",
+    "allDescription": "This will discard every pending change in this request.",
     "personTitle": "Discard changes for {{name}}?",
-    "personDescription": "This will discard this person's draft changes.",
+    "personDescription": "This will discard this person's pending changes.",
+    "organizationTitle": "Discard business changes?",
+    "organizationDescription": "This will discard the pending changes to the business. The client will not be removed.",
     "affectedPeople": "Affected people",
-    "pendingUpdates": "Draft updates",
+    "pendingUpdates": "Pending changes",
+    "targets": {
+      "product": "Product: {{product}}",
+      "business": "Business profile changes",
+      "personChange": "Changes for {{name}}",
+      "personAddition": "Add person: {{name}}",
+      "intermediaryAddition": "Add intermediary business: {{name}}",
+      "requiredWork_one": "1 required document task",
+      "requiredWork_other": "{{count}} required document tasks"
+    },
     "profileUnchanged": "The current business profile will not be changed.",
     "cannotUndo": "This cannot be undone.",
     "keep": "Keep changes",
-    "confirmAll": "Discard all changes",
-    "confirmPerson": "Discard changes"
+    "confirmAll": "Discard all pending changes"
   },
   "workspace": {
     "requestTitle": "Maintenance request {{requestId}}",
@@ -200,10 +621,35 @@
     "editParty": "Edit {{name}}"
   },
   "editor": {
+    "sparseUpdateGuidance": "Change only what needs updating. Unedited information in this section is preserved when the section is submitted.",
+    "legalIdentityTitle": "Legal identity",
+    "legalIdentityDescription": "Use the name shown on the person's current government identification.",
+    "residenceAndIdTitle": "Residence and identification",
+    "residenceAndIdDescription": "Review or update the person's residence, government identification, and home address.",
+    "responsibilityTitle": "Business responsibility",
+    "responsibilityDescription": "Review or update the person's current job title and responsibilities. Roles and ownership are managed from the party details page.",
+    "contactTitle": "Contact",
+    "contactDescription": "Review or update the best email address and phone number for this person.",
+    "phoneCountryCode": "Country code",
+    "personalDetailsTitle": "Personal details",
+    "personalDetailsDescription": "Birth dates are masked everywhere outside this form.",
+    "dbaName": "Doing business as",
+    "addresses": "Business address",
+    "address": {
+      "country": "Country",
+      "line1": "Address line 1",
+      "line2": "Address line 2",
+      "line3": "Address line 3",
+      "city": "City",
+      "state": "State or province",
+      "postalCode": "Postal code"
+    },
     "firstName": "First name",
     "middleName": "Middle name",
     "lastName": "Last name",
     "birthDate": "Date of birth",
+    "birthDateInvalid": "Enter a valid date of birth.",
+    "phoneIncomplete": "Enter a phone type, country code, and valid phone number.",
     "firstNamePlaceholder": "Enter first name",
     "middleNamePlaceholder": "Enter middle name",
     "lastNamePlaceholder": "Enter last name",
@@ -213,7 +659,10 @@
     "discard": "Discard",
     "cancelEditing": "Cancel editing",
     "noChanges": "Change at least one field before saving.",
-    "unsupportedClear": "Removing an existing value is not supported by this draft."
+    "unsupportedClear": "Clearing {{field}} is not yet supported by the API.",
+    "restoreValue": "Restore value",
+    "restoreIdentification": "Restore approved identification",
+    "restoreCountryAndIdentification": "Restore approved country and identification"
   },
   "documents": {
     "required": "Required",
@@ -229,6 +678,7 @@
     "eyebrow": "Edit profile",
     "title": "Edit legal name",
     "description": "Update the legal name for {{name}}. Only the fields you change are submitted.",
+    "editDescription": "Update identity, residence, responsibility, and contact details. Only fields that change are added to the request.",
     "fieldsTitle": "Legal name",
     "approvedValue": "Approved: {{value}}",
     "summaryTitle": "Changes to submit",
@@ -242,7 +692,7 @@
     "save": "Save changes",
     "cancel": "Cancel",
     "noChanges": "Change at least one name field before saving.",
-    "unsupportedClear": "Removing an existing name value is not supported by this draft."
+    "unsupportedClear": "Clearing {{field}} is not yet supported by the API. Restore the existing value to continue."
   },
   "review": {
     "eyebrow": "Review",
@@ -263,8 +713,10 @@
   },
   "status": {
     "ACTION_REQUIRED": "Action required",
+    "PENDING_ADDITION": "Pending addition",
+    "PENDING_REMOVAL": "Pending removal",
     "APPROVED": "Approved, updating profile",
-    "NEW": "Draft changes",
+    "NEW": "Pending changes",
     "REVIEW_IN_PROGRESS": "Under review",
     "INFORMATION_REQUESTED": "More information needed",
     "DECLINED": "Changes not approved",

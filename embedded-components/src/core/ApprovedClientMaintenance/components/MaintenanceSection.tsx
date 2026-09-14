@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 type MaintenanceSectionProps = {
   id: string;
   title: ReactNode;
+  icon?: ReactNode;
   caption?: ReactNode;
   actions?: ReactNode;
   afterContent?: ReactNode;
@@ -19,6 +20,7 @@ type MaintenanceSectionProps = {
 export function MaintenanceSection({
   id,
   title,
+  icon,
   caption,
   actions,
   afterContent,
@@ -40,7 +42,7 @@ export function MaintenanceSection({
     >
       {children}
       {footer ? (
-        <div className="eb-border-t eb-bg-muted/10 eb-px-4 eb-py-3">
+        <div className="eb-border-t eb-bg-background eb-px-4 eb-py-3">
           {footer}
         </div>
       ) : null}
@@ -51,7 +53,7 @@ export function MaintenanceSection({
     <section
       aria-labelledby={id}
       className={cn(
-        'eb-grid eb-gap-x-8 eb-gap-y-3 eb-px-4 eb-py-5 sm:eb-grid-cols-[minmax(8rem,1fr)_2.5fr]',
+        'eb-grid eb-gap-x-8 eb-gap-y-3 eb-px-4 eb-py-5 @[48rem]:eb-grid-cols-[minmax(8rem,1fr)_2.5fr]',
         tone === 'informative'
           ? 'eb-bg-informative-accent/40'
           : tone === 'warning'
@@ -72,7 +74,10 @@ export function MaintenanceSection({
                 : 'eb-text-foreground'
           )}
         >
-          {title}
+          <span className="eb-inline-flex eb-items-center eb-gap-1.5">
+            {icon}
+            {title}
+          </span>
         </h3>
         {caption ? (
           <p className="eb-mt-1 eb-text-xs eb-text-muted-foreground">

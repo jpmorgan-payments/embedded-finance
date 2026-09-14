@@ -120,6 +120,71 @@ describe('RecipientFormDialog internationalMode', () => {
 });
 
 describe('RecipientFormDialog linked-account payment methods', () => {
+  it('keeps existing ACH routing readonly while other rails remain editable', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+
+    render(
+      <RecipientFormDialog
+        mode="edit"
+        open
+        recipientType="LINKED_ACCOUNT"
+        i18nNamespace="linked-accounts"
+        recipient={
+          {
+            id: 'linked-account-1',
+            type: 'LINKED_ACCOUNT',
+            status: 'ACTIVE',
+            partyDetails: {
+              type: 'ORGANIZATION',
+              businessName: 'Acme',
+            },
+            account: {
+              number: '1234567890',
+              type: 'CHECKING',
+              countryCode: 'US',
+              routingInformation: [
+                {
+                  routingNumber: '026009593',
+                  transactionType: 'WIRE',
+                  routingCodeType: 'USABA',
+                },
+                {
+                  routingNumber: '021000021',
+                  transactionType: 'ACH',
+                  routingCodeType: 'USABA',
+                },
+              ],
+            },
+          } as unknown as Recipient
+        }
+      />
+    );
+
+    const achRoutingNumber = screen.getByLabelText(/ACH Routing Number/i);
+    const wireRoutingNumber = screen.getByLabelText(/Wire Routing Number/i);
+
+    expect(achRoutingNumber).toHaveValue('021000021');
+    expect(achRoutingNumber).toHaveAttribute('readonly');
+    expect(achRoutingNumber).toHaveClass('eb-cursor-default', 'eb-bg-muted');
+    expect(achRoutingNumber.compareDocumentPosition(wireRoutingNumber)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+    expect(
+      screen.getByText(
+        'ACH routing number cannot be updated for linked accounts.'
+      )
+    ).toBeInTheDocument();
+    expect(wireRoutingNumber).not.toHaveAttribute('readonly');
+    expect(
+      screen.queryByRole('checkbox', { name: /Use same routing number/i })
+    ).not.toBeInTheDocument();
+
+    await user.clear(wireRoutingNumber);
+    await user.type(wireRoutingNumber, '031000503');
+    expect(wireRoutingNumber).toHaveValue('031000503');
+    expect(achRoutingNumber).toHaveValue('021000021');
+  });
+
   it('submits every payment method selected through the widget create override', async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
     const onRecipientSettled = vi.fn();

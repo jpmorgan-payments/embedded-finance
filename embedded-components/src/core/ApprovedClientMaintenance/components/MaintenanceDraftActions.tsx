@@ -1,4 +1,4 @@
-import { EllipsisVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import { EllipsisVerticalIcon, PencilIcon, Undo2Icon } from 'lucide-react';
 
 import {
   DropdownMenu,
@@ -50,7 +50,7 @@ export function MaintenanceDraftActions({
               className="eb-text-destructive focus:eb-text-destructive"
               onSelect={onRemove}
             >
-              <Trash2Icon />
+              <Undo2Icon />
               {removeLabel}
             </DropdownMenuItem>
           </>

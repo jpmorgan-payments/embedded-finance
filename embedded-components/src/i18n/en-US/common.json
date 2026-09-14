@@ -323,6 +323,7 @@
   "phoneTypes": {
     "BUSINESS_PHONE": "Business",
     "MOBILE_PHONE": "Mobile",
+    "ALTERNATE_PHONE": "Alternate",
     "ALTERNAE_PHONE": "Alternate"
   },
   "addressTypes": {

@@ -13,6 +13,8 @@ import type {
 export type PartyMaintenanceEntityTask = {
   partyId: string;
   party: MaintenanceParty;
+  proposedParty: MaintenanceParty;
+  isPendingAddition: boolean;
   change?: PartyChange;
   validationTasks: PartyValidationTask[];
   documentRequests: DocumentRequestResponse[];
@@ -21,6 +23,7 @@ export type PartyMaintenanceEntityTask = {
 
 export type OrganizationMaintenanceEntityTask = {
   party?: MaintenanceParty;
+  change?: PartyChange;
   documentRequests: DocumentRequestResponse[];
   unresolvedDocumentRequestIds: string[];
 };
@@ -28,6 +31,7 @@ export type OrganizationMaintenanceEntityTask = {
 export type MaintenanceEntityTasks = {
   organization: OrganizationMaintenanceEntityTask;
   parties: PartyMaintenanceEntityTask[];
+  intermediaryOrganizations: PartyMaintenanceEntityTask[];
 };
 
 const getOrganizationParty = (client: MaintenanceClient) =>
@@ -102,30 +106,77 @@ export function buildMaintenanceEntityTasks(
     organizationDocuments.push(documentRequest);
   });
 
-  const parties = (client.parties ?? [])
+  const proposedPartyIds = new Set(
+    (projection.proposedClient.parties ?? [])
+      .map((party) => party.id)
+      .filter((id): id is string => Boolean(id))
+  );
+  const approvedParties = (client.parties ?? []).filter(
+    (party) =>
+      !party.id ||
+      proposedPartyIds.has(party.id) ||
+      projection.partyChanges.some(
+        (change) => change.partyId === party.id && change.removesParty
+      )
+  );
+  const approvedPartyIds = new Set(
+    approvedParties
+      .map((party) => party.id)
+      .filter((id): id is string => Boolean(id))
+  );
+  const addedParties = (projection.proposedClient.parties ?? []).filter(
+    (party) => party.id && !approvedPartyIds.has(party.id)
+  );
+  const createEntityTask = (
+    party: MaintenanceParty & { id: string }
+  ): PartyMaintenanceEntityTask => ({
+    partyId: party.id,
+    party,
+    proposedParty:
+      projection.proposedClient.parties?.find(
+        (proposedParty) => proposedParty.id === party.id
+      ) ?? party,
+    change: projection.partyChanges.find(
+      (change) => change.partyId === party.id
+    ),
+    isPendingAddition: projection.partyChanges.some(
+      (change) =>
+        change.partyId === party.id &&
+        change.action === 'ADD' &&
+        !change.approvedParty
+    ),
+    validationTasks: projection.validationTasks.filter(
+      (validationTask) => validationTask.partyId === party.id
+    ),
+    documentRequests: partyDocuments.get(party.id) ?? [],
+    unresolvedDocumentRequestIds: partyUnresolvedIds.get(party.id) ?? [],
+  });
+  const relatedEntities = [...approvedParties, ...addedParties].filter(
+    (party): party is MaintenanceParty & { id: string } => Boolean(party.id)
+  );
+  const parties = relatedEntities
+    .filter((party) => party.partyType === 'INDIVIDUAL')
+    .map(createEntityTask);
+  const intermediaryOrganizations = relatedEntities
     .filter(
-      (party): party is MaintenanceParty & { id: string } =>
-        party.partyType === 'INDIVIDUAL' && Boolean(party.id)
+      (party) =>
+        party.partyType === 'ORGANIZATION' &&
+        party.roles?.includes('INTERMEDIARY_OWNER')
     )
-    .map((party) => ({
-      partyId: party.id,
-      party,
-      change: projection.partyChanges.find(
-        (change) => change.partyId === party.id
-      ),
-      validationTasks: projection.validationTasks.filter(
-        (validationTask) => validationTask.partyId === party.id
-      ),
-      documentRequests: partyDocuments.get(party.id) ?? [],
-      unresolvedDocumentRequestIds: partyUnresolvedIds.get(party.id) ?? [],
-    }));
+    .map(createEntityTask);
+
+  const organizationParty = getOrganizationParty(client);
 
   return {
     organization: {
-      party: getOrganizationParty(client),
+      party: organizationParty,
+      change: projection.partyChanges.find(
+        (change) => change.partyId === organizationParty?.id
+      ),
       documentRequests: organizationDocuments,
       unresolvedDocumentRequestIds: organizationUnresolvedIds,
     },
     parties,
+    intermediaryOrganizations,
   };
 }

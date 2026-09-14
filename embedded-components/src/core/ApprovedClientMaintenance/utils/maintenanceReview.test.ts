@@ -25,7 +25,7 @@ const client: MaintenanceClient = {
 
 const proposal = {
   id: 'person-1',
-  individualDetails: { lastName: 'Diaz' },
+  individualDetails: { firstName: 'Jane', lastName: 'Diaz' },
   updateRequest: {
     status: 'NEW' as const,
     action: 'MODIFY' as const,
@@ -35,12 +35,100 @@ const proposal = {
 };
 
 describe('maintenanceReview', () => {
+  test('does not require a maintenance request ID for a product-only upgrade', () => {
+    const productOnlyClient = {
+      ...client,
+      productDetails: [
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA_PAYMENTS',
+          action: 'ADD' as const,
+          onboardingStatus: 'NEW',
+        },
+      ],
+    };
+    const productOnlyProjection = buildMaintenanceProjection(
+      productOnlyClient,
+      []
+    );
+
+    expect(
+      getMaintenanceSubmissionBlockers(
+        productOnlyClient,
+        productOnlyProjection,
+        [],
+        false
+      )
+    ).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: 'request' })])
+    );
+  });
+
   test('creates a deterministic fingerprint for the complete change set', () => {
     const projection = buildMaintenanceProjection(client, [proposal]);
 
     expect(createMaintenanceReviewFingerprint(client, projection)).toBe(
       createMaintenanceReviewFingerprint(client, projection)
     );
+  });
+
+  test('detects drift in added-party ownership, identity, and address details', () => {
+    const addedParty = {
+      id: 'person-2',
+      parentPartyId: 'organization-1',
+      partyType: 'INDIVIDUAL' as const,
+      roles: ['BENEFICIAL_OWNER'],
+      individualDetails: {
+        firstName: 'Wendy',
+        lastName: 'Darling',
+        natureOfOwnership: 'Direct',
+        addresses: [
+          {
+            addressType: 'RESIDENTIAL_ADDRESS',
+            addressLines: ['14 Kensington Gardens'],
+            city: 'London',
+            state: 'NY',
+            postalCode: '10001',
+            country: 'US',
+          },
+        ],
+        individualIds: [{ idType: 'SSN', value: '123456789', issuer: 'US' }],
+      },
+      updateRequest: {
+        status: 'NEW' as const,
+        action: 'ADD' as const,
+        requestId: 'request-1',
+        submittedAt: '2026-08-26T12:00:00.000Z',
+      },
+    };
+    const changedParty = {
+      ...addedParty,
+      parentPartyId: 'intermediary-1',
+      individualDetails: {
+        ...addedParty.individualDetails,
+        natureOfOwnership: 'Indirect',
+        addresses: [
+          {
+            ...addedParty.individualDetails.addresses[0],
+            postalCode: '10002',
+          },
+        ],
+        individualIds: [{ idType: 'SSN', value: '987654321', issuer: 'US' }],
+      },
+    };
+
+    const reviewedFingerprint = createMaintenanceReviewFingerprint(
+      client,
+      buildMaintenanceProjection(client, [addedParty])
+    );
+    const changedFingerprint = createMaintenanceReviewFingerprint(
+      client,
+      buildMaintenanceProjection(client, [changedParty])
+    );
+
+    expect(changedFingerprint).not.toBe(reviewedFingerprint);
+    expect(reviewedFingerprint).not.toContain('123456789');
+    expect(reviewedFingerprint).not.toContain('Wendy');
   });
 
   test('reports every outstanding requirement category once', () => {
@@ -165,7 +253,7 @@ describe('maintenanceReview', () => {
       parties: [
         {
           ...proposal,
-          individualDetails: { lastName: 'Smith' },
+          individualDetails: { firstName: 'Jane', lastName: 'Smith' },
         },
       ],
       documentRequests: [],

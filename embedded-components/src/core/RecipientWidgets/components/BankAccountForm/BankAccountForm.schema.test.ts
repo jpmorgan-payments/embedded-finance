@@ -182,3 +182,30 @@ describe('createBankAccountFormSchema — internationalFieldConfig (FX)', () => 
     expect(hasIssueAt(invalid, 'routingNumbers.0.routingNumber')).toBe(true);
   });
 });
+
+describe('createBankAccountFormSchema — party selection', () => {
+  it('requires a party when the unified selector is enabled', () => {
+    const schema = createBankAccountFormSchema(makeConfig(), v, {
+      requirePartySelection: true,
+    });
+
+    const result = schema.safeParse(makeData({ selectedPartyId: undefined }));
+
+    expect(hasIssueAt(result, 'selectedPartyId')).toBe(true);
+    if (!result.success) {
+      expect(
+        result.error.issues.find(
+          (issue) => issue.path.join('.') === 'selectedPartyId'
+        )?.message
+      ).toBe('partySelector.validation.required');
+    }
+  });
+
+  it('keeps party selection optional when the unified selector is disabled', () => {
+    const schema = createBankAccountFormSchema(makeConfig(), v);
+
+    const result = schema.safeParse(makeData({ selectedPartyId: undefined }));
+
+    expect(hasIssueAt(result, 'selectedPartyId')).toBe(false);
+  });
+});

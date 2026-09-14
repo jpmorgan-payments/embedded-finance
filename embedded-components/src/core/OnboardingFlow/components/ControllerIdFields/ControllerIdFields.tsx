@@ -11,17 +11,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  getDefaultIndividualIdType,
+  getIndividualIdTypesForCountry,
+  isTaxpayerIdType,
+  NON_US_INDIVIDUAL_ID_TYPES,
+  US_INDIVIDUAL_ID_TYPES,
+} from '@/core/ClientProfile/utils/identityDocumentTypes';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components/OnboardingFormField/OnboardingFormField';
 
 /** Extends the API type with an empty string to represent "no selection yet". */
 type IdTypeSelection = IndividualIdentityIdType | '';
-
-const US_ID_TYPES: readonly IdTypeSelection[] = ['SSN', 'ITIN'] as const;
-const NON_US_ID_TYPES: readonly IdTypeSelection[] = [
-  'PASSPORT',
-  'DRIVERS_LICENSE',
-  'OTHER_GOVERNMENT_ID',
-] as const;
 
 /**
  * Shared identity-document editor: the ID type + value inputs plus the
@@ -69,9 +69,9 @@ export function ControllerIdFields({
     name: idTypeName as never,
   }) as unknown as string | undefined;
   const currentIdType: IdTypeSelection = (watchedIdType ||
-    (isUS ? 'SSN' : '')) as IdTypeSelection;
-  const isSsnOrItin = currentIdType === 'SSN' || currentIdType === 'ITIN';
-  const availableIdTypes = isUS ? US_ID_TYPES : NON_US_ID_TYPES;
+    getDefaultIndividualIdType(issuer)) as IdTypeSelection;
+  const isSsnOrItin = isTaxpayerIdType(currentIdType);
+  const availableIdTypes = getIndividualIdTypesForCountry(issuer);
 
   const getValueLabel = (idType: IdTypeSelection) =>
     idType
@@ -85,13 +85,13 @@ export function ControllerIdFields({
   // delta there is no issuer control, so `isUS` never changes and this is inert.
   useEffect(() => {
     const currentType = form.getValues(idTypeName) as IdTypeSelection;
-    if (isUS && !US_ID_TYPES.includes(currentType)) {
+    if (isUS && !US_INDIVIDUAL_ID_TYPES.includes(currentType as never)) {
       form.setValue(idTypeName, 'SSN');
       form.setValue(valueName, '');
     } else if (
       !isUS &&
       currentType !== '' &&
-      !NON_US_ID_TYPES.includes(currentType)
+      !NON_US_INDIVIDUAL_ID_TYPES.includes(currentType as never)
     ) {
       form.setValue(idTypeName, '');
       form.setValue(valueName, '');
@@ -129,7 +129,7 @@ export function ControllerIdFields({
             ''
           )}
           tooltip=""
-          options={NON_US_ID_TYPES.map((idType) => ({
+          options={NON_US_INDIVIDUAL_ID_TYPES.map((idType) => ({
             value: idType,
             label: getValueLabel(idType),
           }))}

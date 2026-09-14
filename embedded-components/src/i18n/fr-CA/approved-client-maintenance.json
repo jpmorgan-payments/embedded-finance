@@ -3,21 +3,53 @@
   "description": "Consultez les renseignements approuvés sur l'entreprise et déclarez les changements pris en charge.",
   "loading": "Chargement du profil de l'entreprise",
   "clientLabel": "Client {{clientId}}",
+  "clientStatus": "État du client : {{status}}",
+  "clientStatuses": {
+    "APPROVED": "Approuvé",
+    "INFORMATION_REQUESTED": "Renseignements demandés",
+    "REVIEW_IN_PROGRESS": "Examen en cours",
+    "DECLINED": "Refusé"
+  },
+  "clientStatusBanner": {
+    "default": "Examinez l'état du profil et effectuez les actions disponibles avant de continuer.",
+    "INFORMATION_REQUESTED": {
+      "title": "Le profil du client nécessite des renseignements supplémentaires",
+      "description": "Fournissez les éléments demandés dans la demande de maintenance afin que l'examen puisse se poursuivre."
+    },
+    "REVIEW_IN_PROGRESS": {
+      "title": "Le profil du client est en cours d'examen",
+      "description": "Les changements sont verrouillés pendant l'examen. Vous pouvez toujours consulter les renseignements soumis et l'état."
+    },
+    "DECLINED": {
+      "title": "Le profil du client n'a pas été approuvé",
+      "description": "Examinez l'état retourné et communiquez avec le soutien avant de commencer une autre demande de maintenance."
+    }
+  },
   "organization": "Détails de l'entreprise",
   "products": "Produits",
   "product": "Produit",
   "subProduct": "Sous-produit",
-  "people": "Personnes",
-  "peopleDescription": "Contrôleurs, propriétaires et autres parties liées à ce profil.",
+  "people": "Parties liées",
+  "peopleDescription": "Rôles clés et entreprises intermédiaires",
+  "peopleAreas": {
+    "controller": "Contrôleur",
+    "controllerCaption": "Principal contact de gestion",
+    "controllerRowDescription": "Gère ou dirige l'entreprise",
+    "alsoController": "Également contrôleur",
+    "directOwner": "Bénéficiaire effectif direct",
+    "ownership": "Propriété",
+    "ownershipCaption_one": "{{count}} bénéficiaire effectif détenant au moins 25 %",
+    "ownershipCaption_other": "{{count}} bénéficiaires effectifs détenant au moins 25 %"
+  },
   "sectionCaption": {
     "organization": "Entité juridique au dossier",
     "profileDetails": "Valeurs approuvées au dossier",
-    "updates": "Incluses dans cette demande de maintenance",
+    "updates": "Examinez l'entreprise, les personnes, les produits et les actions requises avant de soumettre.",
     "partyUpdates": {
-      "draft": "Changements à l'état d'ébauche non soumis",
-      "review": "Changements soumis en cours d'examen",
-      "information": "Changements soumis en attente de renseignements requis",
-      "submitted": "Changements soumis"
+      "draft": "Enregistrés dans cette demande. Vous pouvez modifier ou ignorer ces changements avant la soumission.",
+      "review": "Ces changements ne peuvent pas être modifiés pendant leur examen.",
+      "information": "L'examen est suspendu jusqu'à ce que les renseignements demandés soient fournis.",
+      "submitted": "Aucune action n'est requise, sauf si des renseignements supplémentaires sont demandés."
     },
     "requirements": "Nécessaire pour continuer",
     "upload": "Joignez un fichier pour chaque exigence",
@@ -36,8 +68,38 @@
   "pendingSummary_other": "{{count}} changements proposés attendent un examen.",
   "request": "Demande de maintenance {{requestId}}",
   "noProducts": "Aucun détail de produit disponible",
-  "noPeople": "Aucune personne liée disponible",
+  "noPeople": "Aucune partie liée disponible",
   "noRoles": "Aucun rôle indiqué",
+  "productsAction": {
+    "addLimitedDda": "Ajouter DDA limité",
+    "add": "Ajouter les paiements DDA limitée",
+    "adding": "Ajout des paiements DDA limitée"
+  },
+  "productStatus": {
+    "active": "Actif",
+    "available": "Disponible",
+    "ready": "Prêt à continuer",
+    "pending": "En attente",
+    "review": "En cours d’examen",
+    "action": "Action requise",
+    "declined": "Non approuvé"
+  },
+  "productNode": {
+    "available": "Sous-produit disponible",
+    "ready": "Sous-produit prêt",
+    "pending": "Ajout du sous-produit en attente",
+    "review": "Sous-produit en cours d’examen",
+    "action": "Le sous-produit nécessite une action",
+    "declined": "Sous-produit non approuvé"
+  },
+  "productCancellation": {
+    "action": "Annuler l’ajout du produit",
+    "title": "Annuler l’ajout des paiements DDA limitée?",
+    "description": "Les paiements DDA limitée seront retirés des mises à jour en préparation pour examen.",
+    "maintenancePreserved": "Les changements de maintenance de l’entreprise et des parties liées demeureront en cours.",
+    "keep": "Conserver l’ajout de produit",
+    "confirm": "Annuler l’ajout du produit"
+  },
   "legalName": "Dénomination légale de l'entreprise",
   "entityType": "Type d'entité",
   "countryOfFormation": "Pays de constitution",
@@ -49,29 +111,73 @@
     "businessInformation": "Renseignements sur l'entreprise",
     "documentsNeeded": "Documents requis",
     "uploadDocuments": "Téléverser les documents",
-    "reviewProfileUpdates": "Examiner les mises à jour du profil",
-    "viewSubmittedUpdates": "Voir les mises à jour soumises",
-    "draftUpdate": "Mise à jour à l'état d'ébauche",
-    "submittedUpdate": "Mise à jour soumise",
+    "reviewProfileUpdates": "Examiner les changements de cette demande",
+    "viewSubmittedUpdates": "Voir les changements soumis",
+    "draftUpdate": "Changement en attente",
+    "submittedUpdate": "Changement soumis",
     "preparingDocuments": "Préparation des documents",
+    "preparingRequiredDocuments": "Préparation des documents requis",
+    "preparingRequiredDocumentsDescription": "Vos changements sont enregistrés. La nouvelle demande de documents s'ouvrira dès qu'elle sera prête.",
     "confirmingChanges": "Confirmation de vos changements…"
   },
   "requestSummary": {
+    "draftRequirements": {
+      "title": "Les exigences en attente nécessitent votre attention",
+      "description": "Vos changements peuvent encore être modifiés. Fournissez les documents requis avant de soumettre cette demande pour examen."
+    },
     "draft": {
-      "title": "Mises à jour du profil à l'état d'ébauche",
-      "description": "Vos mises à jour sont enregistrées ici, mais n'ont pas été soumises pour examen."
+      "title": "Changements en attente",
+      "description": "Vos changements sont enregistrés ici, mais n'ont pas été soumis pour examen."
     },
     "submitted": {
-      "title": "Mises à jour du profil soumises",
-      "description": "Ces mises à jour du profil sont en cours d'examen."
+      "title": "Changements soumis",
+      "description": "Ces changements sont en cours d'examen. La modification et l'annulation ne sont pas disponibles avant la fin de l'examen."
     },
     "action": {
       "title": "Des renseignements supplémentaires sont requis",
-      "description": "Fournissez les éléments demandés afin que l'examen puisse se poursuivre."
+      "description": "Effectuez les tâches retournées dans les 30 jours afin que l'examen puisse se poursuivre et que la demande ne soit pas fermée automatiquement."
     },
-    "viewSubmittedChanges": "Voir les changements soumis",
-    "viewRequiredActions": "Voir les actions requises",
-    "viewRequestDetails": "Voir les détails de la demande de maintenance"
+    "completeRequirements": "Remplir les exigences",
+    "completeRequiredActions": "Effectuer les actions requises",
+    "viewSubmittedChanges": "Voir les mises à jour soumises"
+  },
+  "updateSummary": {
+    "product": {
+      "draft": {
+        "title": "Mise à jour du produit prête à examiner",
+        "description": "Les paiements DDA limitée sont en attente et n’ont pas été soumis aux fins d’examen."
+      },
+      "draftRequirements": {
+        "title": "La mise à jour du produit nécessite une intervention",
+        "description": "Remplissez les exigences avant de soumettre la mise à jour du produit."
+      },
+      "submitted": {
+        "title": "Mise à jour du produit soumise",
+        "description": "La mise à jour des paiements DDA limitée est en cours d’examen."
+      },
+      "action": {
+        "title": "La mise à jour du produit nécessite plus de renseignements",
+        "description": "Remplissez les exigences retournées afin que l’examen puisse se poursuivre."
+      }
+    },
+    "combined": {
+      "draft": {
+        "title": "Mises à jour prêtes à examiner",
+        "description": "La mise à jour du produit et les changements de maintenance sont prêts à être examinés."
+      },
+      "draftRequirements": {
+        "title": "Les mises à jour nécessitent une intervention",
+        "description": "Remplissez les exigences avant de soumettre vos changements."
+      },
+      "submitted": {
+        "title": "Mises à jour soumises",
+        "description": "La mise à jour du produit et les changements de maintenance sont en cours d’examen."
+      },
+      "action": {
+        "title": "Les mises à jour nécessitent plus de renseignements",
+        "description": "Remplissez les exigences retournées afin que l’examen puisse se poursuivre."
+      }
+    }
   },
   "requestDetails": {
     "title": "Détails de la demande de maintenance",
@@ -90,19 +196,22 @@
     "currentProfileName": "Nom actuel du profil : {{name}}"
   },
   "changes": {
-    "draftTitle": "Mises à jour à l'état d'ébauche",
-    "submittedTitle": "Mises à jour soumises",
-    "reviewTitle": "Mises à jour en cours d'examen",
-    "informationTitle": "Mises à jour nécessitant des renseignements",
+    "draftTitle": "Changements en attente",
+    "submittedTitle": "Changements soumis",
+    "reviewTitle": "Changements en cours d'examen",
+    "additionReviewTitle": "Ajout en cours d'examen",
+    "informationTitle": "Changements nécessitant des renseignements",
     "field": "Champ",
-    "currentProfile": "Profil actuel",
-    "draftUpdate": "Mise à jour à l'état d'ébauche",
-    "submittedUpdate": "Mise à jour soumise",
-    "editDraft": "Modifier les changements"
+    "currentProfile": "Valeur actuelle",
+    "draftUpdate": "Changement en attente",
+    "submittedUpdate": "Changement soumis",
+    "editDraft": "Ajouter ou modifier des changements",
+    "business": "Entreprise",
+    "roles": "Rôles"
   },
   "entity": {
     "back": "Profil de l'entreprise",
-    "pendingUpdates": "Mises à jour du profil",
+    "pendingUpdates": "Changements de cette demande",
     "profileDetails": "Détails du profil",
     "editDetails": "Modifier les détails",
     "currentProfile": "Profil actuel",
@@ -114,6 +223,31 @@
     "documentsDescription": "Téléversez les documents requis pour continuer.",
     "continue": "Continuer",
     "maskedValue": "••••••••"
+  },
+  "organizationDetails": {
+    "title": "Renseignements sur l'entreprise",
+    "description": "Renseignements enregistrés, coordonnées et renseignements opérationnels du profil approuvé.",
+    "industry": "Secteur d'activité",
+    "email": "Adresse courriel de l'entreprise",
+    "phone": "Téléphone de l'organisation",
+    "identityGroup": "Identité",
+    "registrationGroup": "Enregistrement",
+    "operationsGroup": "Activité de l'entreprise",
+    "contactGroup": "Coordonnées et adresse"
+  },
+  "individualDetails": {
+    "identityGroup": "Identité légale",
+    "responsibilityGroup": "Responsabilité au sein de l'entreprise",
+    "contactGroup": "Coordonnées et adresse",
+    "nameSuffix": "Suffixe du nom",
+    "countryOfResidence": "Pays de résidence",
+    "jobTitle": "Titre du poste",
+    "email": "Courriel",
+    "phone": "Téléphone",
+    "ownership": "Relation de propriété",
+    "roles": "Rôles dans ce profil",
+    "identification": "Pièce d'identité gouvernementale",
+    "address": "Adresse résidentielle"
   },
   "document": {
     "back": "Retour à {{name}}",
@@ -130,28 +264,304 @@
     "removePerson": "Supprimer la personne",
     "editBirthDate": "Modifier la date de naissance"
   },
+  "addParty": {
+    "title": "Ajouter une partie liée",
+    "description": "Ajoutez un contrôleur ou un bénéficiaire effectif à cette demande de maintenance.",
+    "replacementTitle": "Ajouter un contrôleur de remplacement",
+    "replacementDescription": "Ajoutez d'abord le nouveau contrôleur. Une fois cette personne enregistrée, le contrôleur actuel sera retiré dans la même demande de maintenance.",
+    "ownershipPathTitle": "Confirmer les renseignements du propriétaire",
+    "ownershipPathDescription": "L'intermédiaire a été ajouté. Confirmez les renseignements du propriétaire pour créer le nouveau chemin indirect avant le retrait de l'ancien enregistrement de propriété directe.",
+    "beneficialOwnerDescription": "Ajoutez une personne qui détient directement au moins 25 % de l'entreprise.",
+    "indirectOwnerDescription": "Ajoutez la personne qui détient ultimement au moins 25 % par l'intermédiaire de cette entreprise.",
+    "caption": "Identité et propriété",
+    "role": "Rôle",
+    "roleDescription": "Choisissez la responsabilité de cette personne au sein de l'entreprise.",
+    "roleDescriptions": {
+      "CONTROLLER": "Une personne qui assume une responsabilité importante dans la gestion de l'entreprise.",
+      "BENEFICIAL_OWNER": "Une personne qui détient directement ou indirectement au moins 25 % de l'entreprise."
+    },
+    "identity": "Renseignements d'identité",
+    "identityDescription": "Saisissez les renseignements légaux de la personne exactement comme ils figurent sur sa pièce d'identité.",
+    "identificationTitle": "Pièce d'identité gouvernementale",
+    "identificationDescription": "Les types de pièces d'identité disponibles dépendent du pays de résidence de la personne.",
+    "countryOfResidence": "Pays de résidence",
+    "idType": "Type de pièce d'identité",
+    "idTypePlaceholder": "Sélectionnez un type de pièce d'identité",
+    "idInvalid": "Saisissez les 9 chiffres du SSN ou de l'ITIN.",
+    "ssn": "Numéro de sécurité sociale",
+    "residentialAddress": "Adresse résidentielle",
+    "addressDescription": "Saisissez l'adresse où cette personne réside actuellement.",
+    "alsoBeneficialOwner": "Cette personne détient également au moins 25 %",
+    "alsoBeneficialOwnerDescription": "Le remplaçant sera créé une seule fois avec les rôles de contrôleur et de bénéficiaire effectif.",
+    "roles": {
+      "CONTROLLER": "Contrôleur",
+      "BENEFICIAL_OWNER": "Bénéficiaire effectif"
+    },
+    "cancel": "Annuler",
+    "saveReplacement": "Ajouter le remplaçant et retirer le contrôleur actuel",
+    "saveOwnershipPath": "Créer le nouveau chemin de propriété",
+    "saveBeneficialOwner": "Ajouter un bénéficiaire effectif",
+    "save": "Ajouter la partie liée"
+  },
+  "removeParty": {
+    "action": "Retirer la partie liée",
+    "replaceController": "Remplacer le contrôleur",
+    "replacementDialogTitle": "Remplacer {{name}} comme contrôleur?",
+    "title": "Retirer {{name}}?",
+    "description": "Ce retrait sera inclus dans la demande de maintenance. Le profil approuvé demeure inchangé jusqu'à la fin de l'examen.",
+    "replacementTitle": "Couverture du contrôleur",
+    "replacementCaption": "Un contrôleur est requis",
+    "replacementDescription": "Un contrôleur est requis. Ajoutez un remplaçant pour continuer.",
+    "addReplacement": "Choisir un contrôleur de remplacement",
+    "finishReplacement": "Terminer le remplacement du contrôleur",
+    "replacementUnavailable": "Un contrôleur de remplacement ne peut pas être ajouté avec la configuration de maintenance actuelle. Communiquez avec le soutien avant de retirer cette personne.",
+    "remainsOwnerQuestion": "Après le remplacement du contrôleur, cette personne détiendra-t-elle toujours au moins 25 %?",
+    "remainsOwnerYes": "Oui, conserver comme bénéficiaire effectif",
+    "remainsOwnerNo": "Non, retirer cette personne",
+    "keep": "Conserver la partie liée",
+    "confirm": "Retirer la partie liée"
+  },
+  "roleChange": {
+    "controllerDescription": "Le contrôleur est la personne responsable de ce profil d’entreprise.",
+    "directOwnerTitle": "Propriétaire bénéficiaire direct",
+    "directOwnerDescription": "Cette personne détient directement au moins 25 % de l’entreprise cliente. Aucune autre entreprise ne se trouve entre le client et ce propriétaire.",
+    "directRelationshipTitle": "Cette propriété est-elle détenue par l’intermédiaire d’une autre entreprise?",
+    "directRelationshipDescription": "Si une ou plusieurs entreprises se trouvent entre le client et ce propriétaire, mettez à jour la relation pour refléter le chemin de propriété intermédiaire.",
+    "changeToIndirect": "Passer à une propriété indirecte",
+    "indirectOwnerTitle": "Propriétaire bénéficiaire indirect",
+    "indirectOwnerDescription": "Cette personne détient au moins 25 % de l’entreprise cliente par l’intermédiaire d’une ou de plusieurs entreprises.",
+    "indirectRelationshipTitle": "Propriété par l’intermédiaire d’une autre entreprise",
+    "indirectRelationshipDescription": "La participation de ce propriétaire est détenue par l’intermédiaire de {{businesses}}.",
+    "reviewOwnershipPath": "Vérifier le chemin de propriété",
+    "pendingAddition": "Ajout en attente",
+    "pendingAdditionDescription": "Ce rôle et ses renseignements de propriété sont inclus dans la demande actuelle. Pour le retirer, tous les changements en attente de cette personne doivent être abandonnés.",
+    "pendingRemoval": "Retrait en attente",
+    "pendingRemovalDescription": "Ce rôle demeure actif dans le profil approuvé jusqu’à ce que son retrait soit approuvé.",
+    "sectionTitle": "Propriété et rôles",
+    "pendingPartySectionTitle": "Rôles en attente",
+    "pendingPartyRoleDescription": "Ce rôle sera ajouté avec la personne lorsque la demande de maintenance sera approuvée.",
+    "addOwner": "Ajouter le rôle de bénéficiaire effectif",
+    "addOwnerTitle": "Ajouter le rôle de bénéficiaire effectif?",
+    "addOwnerDescription": "{{name}} demeurera contrôleur et sera également inscrit comme bénéficiaire effectif direct.",
+    "confirmAddOwner": "Ajouter le rôle de bénéficiaire effectif",
+    "discardPartyDraft": "Abandonner tous les changements en attente de cette personne",
+    "cancel": "Annuler"
+  },
+  "pendingAddition": {
+    "eyebrow": "Profil en attente",
+    "personDescription": "Cette personne sera ajoutée au profil d’entreprise lorsque la demande de maintenance sera approuvée.",
+    "businessDescription": "Cette entreprise intermédiaire sera ajoutée à la structure de propriété lorsque la demande de maintenance sera approuvée.",
+    "personDetailsTitle": "Détails proposés de la personne",
+    "businessDetailsTitle": "Détails proposés de l’entreprise",
+    "description": "L'ajout de cette personne est en attente et elle ne fait pas encore partie du profil d'entreprise approuvé.",
+    "reviewGuidance": "Examinez les renseignements proposés et fournissez les documents requis avant de soumettre la demande.",
+    "detailsTitle": "Renseignements proposés sur la partie",
+    "edit": "Modifier la personne en attente",
+    "discard": "Annuler l'ajout en attente",
+    "discardTitle": "Annuler l'ajout de {{name}}?",
+    "discardDescription": "Cette personne ne sera pas ajoutée au profil d'entreprise. Les autres changements de la demande seront conservés.",
+    "pendingParty": "Personne en attente"
+  },
+  "formExit": {
+    "title": "Annuler cette saisie non enregistrée?",
+    "description": "Les renseignements saisis sur cette page n'ont pas été ajoutés à la demande de maintenance.",
+    "keepEditing": "Continuer la modification",
+    "discard": "Annuler la saisie"
+  },
+  "questions": {
+    "title": "Questions supplémentaires",
+    "description": "Répondez aux questions requises afin que l'examen puisse se poursuivre.",
+    "sectionTitle": "Questions",
+    "loading": "Chargement des questions",
+    "progress": "{{answered}} sur {{total}} répondues",
+    "emptyTitle": "Les questions n'ont pas pu être chargées",
+    "emptyDescription": "Retournez à l'examen et réessayez. La soumission demeure indisponible jusqu'à ce que toutes les questions demandées soient retournées.",
+    "select": "Sélectionnez une réponse",
+    "yes": "Oui",
+    "no": "Non",
+    "cancel": "Retour à l'examen",
+    "save": "Enregistrer les réponses"
+  },
+  "attestation": {
+    "title": "Examiner et attester",
+    "description": "Examinez chaque document requis et confirmez les renseignements ci-dessous.",
+    "sectionTitle": "Attestation",
+    "document": "Document d'attestation {{number}}",
+    "documentsTitle": "Examiner les documents requis",
+    "documentsDescription": "Ouvrez chaque document avant de saisir les renseignements sur la personne qui fait cette attestation.",
+    "progress": "{{reviewed}} sur {{total}} examinés",
+    "review": "Examiner le document",
+    "opened": "Examiné",
+    "signerTitle": "Personne qui fait cette attestation",
+    "signerDescription": "Saisissez votre nom légal et votre rôle au sein de l'entreprise.",
+    "signerLocked": "Examinez chaque document requis pour déverrouiller les renseignements du signataire.",
+    "designation": "Titre du poste",
+    "designationPlaceholder": "Par exemple, PDG, contrôleur ou associé",
+    "designationDescription": "Utilisez votre titre ou votre rôle au sein de l'entreprise.",
+    "confirmation": "J'ai examiné les documents requis et j'atteste que les renseignements sont complets et exacts.",
+    "cancel": "Retour à l'examen",
+    "save": "Soumettre l'attestation"
+  },
+  "ownership": {
+    "action": "Structure de propriété",
+    "manageAction": "Gérer la propriété",
+    "title": "Structure de propriété",
+    "description": "Examinez les propriétaires admissibles et les entreprises intermédiaires. Mettez à jour tout renseignement incomplet ou incorrect.",
+    "beneficialOwnersTitle": "Bénéficiaires effectifs",
+    "beneficialOwnersDescription": "Ajoutez chaque personne qui détient directement au moins 25 %. Un contrôleur qui détient également au moins 25 % apparaît ici comme bénéficiaire effectif.",
+    "addDirectOwner": "Ajouter un bénéficiaire effectif",
+    "changePath": "Modifier le chemin de propriété",
+    "viewOwner": "Voir les détails du propriétaire",
+    "viewBusiness": "Voir les détails de l’entreprise",
+    "viewDetails": "Voir les détails",
+    "addOwner": "Ajouter un propriétaire",
+    "addOwnerThroughBusiness": "Ajouter un propriétaire par l’intermédiaire de cette entreprise",
+    "addBeneficialOwner": "Ajouter un propriétaire bénéficiaire",
+    "structureRoot": "Début de la structure de propriété",
+    "viewStructure": "Voir la structure de propriété",
+    "backToReview": "Retour à l’examen",
+    "throughBusiness": "Par l’intermédiaire de {{name}}",
+    "viewOwnerPath": "Voir ce chemin de propriété",
+    "insertBusinessForOwner": "Passer à une propriété indirecte",
+    "pathPreviewTitle": "Chemin de propriété obtenu",
+    "pathPreviewDescription": "Ajoutez d'abord l'entreprise intermédiaire, puis confirmez le propriétaire sous celle-ci. Le dossier de propriété directe actuel n'est retiré qu'une fois le nouveau chemin terminé.",
+    "newIntermediary": "Nouvelle entreprise intermédiaire",
+    "insertIntermediary": "Ajouter un intermédiaire au chemin de propriété",
+    "insertIntermediaryDescription": "Ajoutez l'entreprise située entre le client et ce propriétaire. Ensuite, confirmez les renseignements du propriétaire sous le nouvel intermédiaire.",
+    "alsoController": "Bénéficiaire effectif · Également contrôleur",
+    "directOwner": "Bénéficiaire effectif direct",
+    "noDirectOwners": "Aucun bénéficiaire effectif direct n'est encore inscrit.",
+    "threshold": "Propriétaires de 25 % ou plus",
+    "chainTitle": "Structure de propriété",
+    "unifiedDescription": "Chaque branche montre comment un propriétaire est lié au client. Les propriétaires en retrait détiennent leur participation par l'intermédiaire de l'entreprise située au-dessus; utilisez l'action d'une personne ou d'une entreprise pour modifier cette branche.",
+    "previewDescription": "Une vue simplifiée des propriétaires directs et des participations détenues par l'intermédiaire d'autres entreprises.",
+    "chainDescription": "Créez chaque niveau de propriété à partir de cette entreprise",
+    "intermediaryOwner": "Propriétaire intermédiaire",
+    "intermediaryCaption": "Entité juridique et propriété",
+    "addIntermediary": "Ajouter une entreprise intermédiaire",
+    "addIndirectOwner": "Ajouter un bénéficiaire effectif indirect",
+    "addLayer": "Ajouter un autre niveau intermédiaire",
+    "clientRoot": "Votre entreprise",
+    "direct": "Direct",
+    "indirect": "Indirect",
+    "relationshipUnavailable": "Relation non disponible",
+    "ein": "Numéro d'identification de l'employeur",
+    "businessIdentity": "Identité de l'entreprise",
+    "businessIdentityDescription": "Saisissez les renseignements légaux enregistrés de l'intermédiaire.",
+    "unsupportedOrganizationId": "Ce contrat d'API confirme uniquement la prise en charge de l'EIN américain pour les propriétaires intermédiaires. Sélectionnez les États-Unis ou communiquez avec le soutien avant de continuer.",
+    "legalAddress": "Adresse légale",
+    "legalAddressDescription": "Saisissez l'adresse figurant sur les documents d'enregistrement de l'intermédiaire.",
+    "cancel": "Retour à la structure de propriété",
+    "saveIntermediary": "Ajouter le propriétaire intermédiaire"
+  },
+  "ownerRelationship": {
+    "title": "Relation de propriété",
+    "addTitle": "Ajouter un bénéficiaire effectif",
+    "addDescription": "Choisissez d’abord si ce propriétaire détient sa participation directement ou par l’intermédiaire d’une entreprise.",
+    "controllerTitle": "Ajouter le rôle de bénéficiaire effectif",
+    "controllerDescription": "Choisissez comment {{name}} détient sa participation.",
+    "changeTitle": "Choisir une entreprise intermédiaire pour {{name}}",
+    "changeDescription": "Sélectionnez l’entreprise située entre votre entreprise et {{name}}, ou ajoutez d’abord cette entreprise.",
+    "newOwner": "le nouveau propriétaire",
+    "directTitle": "Détient directement le client",
+    "directDescription": "Choisissez cette option lorsqu'aucune autre entreprise ne se trouve entre le propriétaire et le client.",
+    "directPath": "Résultat : Entreprise cliente → Propriétaire",
+    "indirectTitle": "Détient par l'intermédiaire d'une autre entreprise",
+    "indirectDescription": "Choisissez cette option lorsque la participation est détenue par une entreprise intermédiaire. Sélectionnez une entreprise existante ou ajoutez d'abord l'intermédiaire.",
+    "chooseBusiness": "Choisir l'entreprise intermédiaire",
+    "resultingPath": "Le propriétaire sera ajouté sous cette entreprise.",
+    "addBusiness": "Ajouter une nouvelle entreprise intermédiaire",
+    "changeExistingTitle": "Utiliser une entreprise intermédiaire existante",
+    "changeExistingDescription": "Choisissez où {{name}} détient sa participation.",
+    "changeChooseBusiness": "Sélectionner une entreprise intermédiaire",
+    "changeResultingPath": "{{name}} détiendra sa participation par l’intermédiaire de cette entreprise.",
+    "changeAddBusiness": "Ajouter une nouvelle entreprise intermédiaire pour ce propriétaire"
+  },
+  "controllerReplacement": {
+    "title": "Choisir un contrôleur de remplacement",
+    "description": "Sélectionnez une personne existante directement liée à cette entreprise ou ajoutez une nouvelle personne.",
+    "existingTitle": "Utiliser une personne existante",
+    "existingDescription": "Ses rôles actuels et les renseignements de son profil seront conservés.",
+    "selectDescription": "Désigner cette personne comme contrôleur",
+    "emptyTitle": "Aucune personne existante n’est disponible",
+    "emptyDescription": "Ajoutez une nouvelle personne pour poursuivre le remplacement du contrôleur.",
+    "addNew": "Ajouter une nouvelle personne"
+  },
+  "form": {
+    "back": "Retour",
+    "selectCountry": "Sélectionnez un pays",
+    "searchCountries": "Rechercher un pays",
+    "noResults": "Aucune option correspondante.",
+    "selectRegion": "Sélectionnez un État ou une province",
+    "selectOrganizationType": "Sélectionnez un type d'organisation"
+  },
+  "organizationForm": {
+    "identityTitle": "Identité de l'entreprise",
+    "identityDescription": "Utilisez les noms légaux actuellement enregistrés pour cette entreprise.",
+    "editDescription": "Modifiez les renseignements enregistrés pris en charge. Seuls les champs modifiés sont ajoutés à la demande.",
+    "addressDescription": "La soumission d'une nouvelle adresse professionnelle remplace l'adresse approuvée complète. Vérifiez chaque ligne avant d'enregistrer."
+  },
+  "productAddition": {
+    "title": "Ajouter Paiements DDA limités",
+    "description": "Ajoutez des capacités de paiement au produit Embedded Payments existant.",
+    "embeddedPayments": "Embedded Payments",
+    "current": "Produit actuel",
+    "adding": "Produit à ajouter",
+    "limitedDda": "DDA limitée",
+    "limitedDdaPayments": "Paiements DDA limitée",
+    "aboutTitle": "À propos des paiements DDA limitée",
+    "paymentsDescription": "Ajoute des capacités de paiement au sous-produit DDA limitée existant.",
+    "selected": "Mise à niveau sélectionnée",
+    "nextTitle": "Avant de faire la demande",
+    "nextDescription": "Après avoir demandé les paiements DDA limitée, ils apparaissent comme un sous-produit en attente. Vous pouvez examiner et mettre à jour les renseignements sur l’entreprise, les parties liées ou la propriété avant de soumettre toutes les mises à jour ensemble aux fins d’examen.",
+    "back": "Retour au profil de l'entreprise",
+    "continue": "Continuer",
+    "confirm": "Demander les paiements DDA limitée"
+  },
+  "availability": {
+    "productAlreadyAdded": "Paiements DDA limités fait déjà partie de ce profil ou de cette demande.",
+    "requestLocked": "Les nouveaux changements ne sont pas disponibles pendant l'examen de cette demande de maintenance.",
+    "productNotEligible": "Paiements DDA limités n'est pas configuré pour le pays et le type d'entité juridique de cette entreprise.",
+    "originalProductPending": "Le produit DDA limité d'origine doit être approuvé avant que ce produit puisse être ajouté.",
+    "verificationRequired": "Terminez la vérification du produit d'origine avant d'ajouter Paiements DDA limités.",
+    "productLeadTime": "Paiements DDA limités devient disponible après {{time}}, une fois la fenêtre de vérification de cinq minutes écoulée.",
+    "ownerLimit": "Cette demande comprend déjà le maximum de quatre bénéficiaires effectifs.",
+    "limitedDdaHostAction": "DDA limité doit être ajouté au moyen de l'expérience d'intégration avant que Paiements DDA limités soit disponible."
+  },
   "submission": {
-    "draftExplanation": "Vos mises à jour sont enregistrées comme ébauche et n'ont pas été soumises pour examen.",
+    "draftExplanation": "Vos changements en attente sont enregistrés et n'ont pas été soumis pour examen.",
     "reviewAndSubmit": "Examiner et soumettre",
     "backToProfile": "Retour au profil de l'entreprise",
-    "reviewTitle": "Examinez vos mises à jour",
-    "reviewDescription": "Vérifiez qu'elles comprennent tout ce que vous souhaitiez modifier. Toutes les mises à jour seront soumises ensemble.",
-    "submittedChangesTitle": "Mises à jour du profil soumises",
-    "submittedChangesDescription": "Voici les mises à jour du profil en cours d'examen.",
-    "reviewUpdated": "L'ébauche a changé pendant votre examen. Examinez les dernières mises à jour avant de confirmer.",
-    "profileUpdates": "Mises à jour du profil",
+    "reviewTitle": "Examinez vos changements",
+    "reviewDescription": "Examinez la mise à jour du produit, les renseignements sur l'entreprise et les parties liées, ainsi que la structure de propriété qui seront soumis ensemble.",
+    "submittedChangesTitle": "Changements soumis",
+    "submittedChangesDescription": "Voici les changements en cours d'examen.",
+    "reviewUpdated": "Les changements en attente ont été mis à jour pendant votre examen. Examinez les derniers changements avant de confirmer.",
+    "profileUpdates": "Changements de cette demande",
     "edit": "Modifier",
     "beforeSubmission": "Avant la soumission",
     "allRequirementsComplete": "Tous les renseignements requis sont complets.",
     "returnToProfile": "Retour au profil de l'entreprise",
     "completeRequirement": "Compléter",
+    "ownershipTitle": "Structure de propriété",
+    "ownershipDescription": "Examinez chaque personne et entreprise intermédiaire qui détient 25 % ou plus.",
+    "updateOwnership": "Mettre à jour la propriété",
+    "blockedTitle": "Soumission bloquée",
+    "blockedDescription": "Remplissez les éléments requis affichés ci-dessus avant de soumettre ces mises à jour.",
+    "blockedGuidance": "Les contrôles de confirmation et le bouton Soumettre pour examen seront disponibles lorsque toutes les exigences seront remplies.",
     "readyTitle": "Prêt à soumettre",
-    "lockWarning": "La soumission envoie toutes les mises à jour de l'ébauche pour examen. Vous ne pourrez plus les modifier ni les ignorer.",
-    "confirmation": "Je confirme avoir examiné toutes les mises à jour et qu'elles sont complètes et exactes.",
+    "lockWarning": "La soumission envoie ensemble la mise à jour du produit et tous les changements de maintenance aux fins d'examen. Vous ne pourrez plus les modifier ni les ignorer.",
+    "confirmationDescription": "Utilisez les actions de modification ou retournez au profil de l'entreprise si quelque chose doit changer. Les documents d'attestation requis sont remplis séparément.",
+    "informationConfirmation": "J'ai examiné les renseignements au dossier sur l'entreprise et les parties liées, y compris les mises à jour affichées ici, et je confirme qu'aucun autre changement n'est requis.",
+    "ownershipConfirmation": "J'ai examiné la structure de propriété et je confirme qu'elle comprend chaque personne et entreprise intermédiaire qui détient 25 % ou plus.",
+    "confirmation": "Je confirme avoir examiné tous les changements et qu'ils sont complets et exacts.",
     "submitForReview": "Soumettre pour examen",
     "receiptTitle": "Soumis pour examen",
-    "receiptDescription": "Vos mises à jour ont été acceptées pour examen le {{date}}.",
-    "profileRemainsActive": "Votre profil actuel demeure actif pendant l'examen des mises à jour.",
+    "receiptDescription": "Vos changements ont été acceptés pour examen le {{date}}.",
+    "profileRemainsActive": "Votre profil actuel demeure actif pendant l'examen des changements.",
+    "receiptNextTitle": "L'examen a commencé",
+    "receiptNextDescription": "La demande a été acceptée pour examen, mais n'est pas encore approuvée. Après l'approbation, les valeurs mises à jour peuvent prendre de 24 à 48 heures pour apparaître.",
+    "receiptLeave": "Vous pouvez quitter cette page en toute sécurité et revenir au profil de l'entreprise pour vérifier l'état de la demande.",
     "blockers": {
       "documents_one": "Une exigence documentaire doit être complétée.",
       "documents_other": "{{count}} exigences documentaires doivent être complétées.",
@@ -163,26 +573,37 @@
       "roles_other": "{{count}} rôles requis doivent être complétés.",
       "attestations_one": "Une attestation doit être examinée et acceptée.",
       "attestations_other": "{{count}} attestations doivent être examinées et acceptées.",
-      "unresolved_one": "Une mise à jour n'a pas pu être résolue.",
-      "unresolved_other": "{{count}} mises à jour n'ont pas pu être résolues.",
-      "conflict": "Les mises à jour actives du profil en conflit doivent être résolues.",
-      "request": "La mise à jour active du profil n'a pas pu être identifiée."
+      "disclosure": "Confirmez si les renseignements sur l'entreprise ou la propriété ont changé depuis l'approbation.",
+      "unresolved_one": "Un changement n'a pas pu être résolu.",
+      "unresolved_other": "{{count}} changements n'ont pas pu être résolus.",
+      "conflict": "Les demandes de maintenance actives en conflit doivent être résolues.",
+      "request": "La demande de maintenance active n'a pas pu être identifiée."
     }
   },
   "cancel": {
-    "cancelAll": "Ignorer tous les changements",
-    "removePerson": "Ignorer les changements",
-    "allTitle": "Ignorer tous les changements à l'état d'ébauche?",
-    "allDescription": "Cette action ignorera tous les changements de cette ébauche.",
+    "cancelAll": "Ignorer tous les changements en attente",
+    "discardChanges": "Ignorer les changements",
+    "allTitle": "Ignorer tous les changements en attente?",
+    "allDescription": "Cette action ignorera tous les changements en attente de cette demande.",
     "personTitle": "Ignorer les changements pour {{name}}?",
-    "personDescription": "Cette action ignorera les changements à l'état d'ébauche de cette personne.",
+    "personDescription": "Cette action ignorera les changements en attente de cette personne.",
+    "organizationTitle": "Ignorer les changements de l'entreprise?",
+    "organizationDescription": "Cette action ignorera les changements en attente apportés à l'entreprise. Le client ne sera pas supprimé.",
     "affectedPeople": "Personnes concernées",
-    "pendingUpdates": "Mises à jour à l'état d'ébauche",
+    "pendingUpdates": "Changements en attente",
+    "targets": {
+      "product": "Produit : {{product}}",
+      "business": "Changements au profil de l'entreprise",
+      "personChange": "Changements pour {{name}}",
+      "personAddition": "Ajouter une personne : {{name}}",
+      "intermediaryAddition": "Ajouter une entreprise intermédiaire : {{name}}",
+      "requiredWork_one": "1 tâche documentaire requise",
+      "requiredWork_other": "{{count}} tâches documentaires requises"
+    },
     "profileUnchanged": "Le profil actuel de l'entreprise ne sera pas modifié.",
     "cannotUndo": "Cette action est irréversible.",
     "keep": "Conserver les changements",
-    "confirmAll": "Ignorer tous les changements",
-    "confirmPerson": "Ignorer les changements"
+    "confirmAll": "Ignorer tous les changements en attente"
   },
   "workspace": {
     "requestTitle": "Demande de maintenance {{requestId}}",
@@ -200,10 +621,35 @@
     "editParty": "Modifier {{name}}"
   },
   "editor": {
+    "sparseUpdateGuidance": "Modifiez uniquement ce qui doit être mis à jour. Les renseignements non modifiés de cette section sont conservés lors de la soumission.",
+    "legalIdentityTitle": "Identité légale",
+    "legalIdentityDescription": "Utilisez le nom figurant sur la pièce d'identité gouvernementale actuelle de la personne.",
+    "residenceAndIdTitle": "Résidence et identification",
+    "residenceAndIdDescription": "Vérifiez ou mettez à jour le pays de résidence, l’identification gouvernementale et l’adresse de la personne.",
+    "responsibilityTitle": "Responsabilité dans l'entreprise",
+    "responsibilityDescription": "Vérifiez ou mettez à jour le titre de poste et les responsabilités actuels de la personne. Les rôles et la propriété sont gérés dans la page de détails.",
+    "contactTitle": "Coordonnées",
+    "contactDescription": "Vérifiez ou mettez à jour la meilleure adresse courriel et le meilleur numéro de téléphone pour cette personne.",
+    "phoneCountryCode": "Indicatif de pays",
+    "personalDetailsTitle": "Renseignements personnels",
+    "personalDetailsDescription": "Les dates de naissance sont masquées partout à l'extérieur de ce formulaire.",
+    "dbaName": "Nom commercial",
+    "addresses": "Adresse de l'entreprise",
+    "address": {
+      "country": "Pays",
+      "line1": "Ligne d'adresse 1",
+      "line2": "Ligne d'adresse 2",
+      "line3": "Ligne d'adresse 3",
+      "city": "Ville",
+      "state": "État ou province",
+      "postalCode": "Code postal"
+    },
     "firstName": "Prénom",
     "middleName": "Deuxième prénom",
     "lastName": "Nom de famille",
     "birthDate": "Date de naissance",
+    "birthDateInvalid": "Saisissez une date de naissance valide.",
+    "phoneIncomplete": "Entrez un type de téléphone, un indicatif de pays et un numéro de téléphone valide.",
     "firstNamePlaceholder": "Saisissez le prénom",
     "middleNamePlaceholder": "Saisissez le deuxième prénom",
     "lastNamePlaceholder": "Saisissez le nom de famille",
@@ -213,7 +659,10 @@
     "discard": "Annuler les modifications",
     "cancelEditing": "Annuler la modification",
     "noChanges": "Modifiez au moins un champ avant d’enregistrer.",
-    "unsupportedClear": "Cette ébauche ne permet pas de supprimer une valeur existante."
+    "unsupportedClear": "La suppression de {{field}} n'est pas encore prise en charge par l'API.",
+    "restoreValue": "Rétablir la valeur",
+    "restoreIdentification": "Rétablir l’identification approuvée",
+    "restoreCountryAndIdentification": "Rétablir le pays et l’identification approuvés"
   },
   "documents": {
     "required": "Requis",
@@ -229,6 +678,7 @@
     "eyebrow": "Modifier le profil",
     "title": "Modifier le nom légal",
     "description": "Mettez à jour le nom légal de {{name}}. Seuls les champs que vous modifiez sont soumis.",
+    "editDescription": "Modifiez les renseignements d'identité, de résidence, de responsabilité et de contact. Seuls les champs modifiés sont ajoutés à la demande.",
     "fieldsTitle": "Nom légal",
     "approvedValue": "Approuvé : {{value}}",
     "summaryTitle": "Changements à soumettre",
@@ -242,7 +692,7 @@
     "save": "Enregistrer les changements",
     "cancel": "Annuler",
     "noChanges": "Modifiez au moins un champ du nom avant d'enregistrer.",
-    "unsupportedClear": "Cette ébauche ne permet pas de supprimer une valeur de nom existante."
+    "unsupportedClear": "La suppression de {{field}} n'est pas encore prise en charge par l'API. Rétablissez la valeur existante pour continuer."
   },
   "review": {
     "eyebrow": "Examen",
@@ -263,8 +713,10 @@
   },
   "status": {
     "ACTION_REQUIRED": "Action requise",
+    "PENDING_ADDITION": "Ajout en attente",
+    "PENDING_REMOVAL": "Retrait en attente",
     "APPROVED": "Approuvé, mise à jour du profil",
-    "NEW": "Changements à l'état d'ébauche",
+    "NEW": "Changements en attente",
     "REVIEW_IN_PROGRESS": "En cours d'examen",
     "INFORMATION_REQUESTED": "Renseignements supplémentaires requis",
     "DECLINED": "Changements non approuvés",

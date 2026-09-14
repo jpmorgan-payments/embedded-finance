@@ -20,6 +20,7 @@ import {
   isDocumentRequestReady,
   type DocumentUploadFormValues,
 } from '../utils/documentUploadTasks';
+import { MaintenanceFormFooter } from './MaintenanceFormFooter';
 
 type DocumentUploadRequestFormProps = {
   documentRequest: DocumentRequestResponse;
@@ -100,7 +101,7 @@ export function DocumentUploadRequestForm({
   });
 
   return (
-    <div className="eb-p-4 sm:eb-p-5">
+    <div className="eb-px-4 eb-pt-4 @[40rem]:eb-px-5 @[40rem]:eb-pt-5">
       <Form {...form}>
         <form onSubmit={submit} className="eb-space-y-4">
           <DocumentRequestCard
@@ -116,30 +117,37 @@ export function DocumentUploadRequestForm({
             maxFileSizeBytes={maxFileSizeBytes}
           />
 
+          <div className="eb-flex eb-justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={reset}
+              disabled={form.formState.isSubmitting || !form.formState.isDirty}
+            >
+              <RefreshCwIcon />
+              {t('onboarding-overview:documentRequest.resetForm')}
+            </Button>
+          </div>
+
           <ServerErrorAlert
             error={uploadMutation.error ?? submitMutation.error}
           />
 
-          <div className="eb-grid eb-gap-3 eb-border-t eb-pt-4 sm:eb-grid-cols-[auto_1fr] sm:eb-items-center">
-            <button
-              type="button"
-              className="eb-flex eb-w-fit eb-items-center eb-gap-1.5 eb-text-sm eb-text-muted-foreground hover:eb-text-foreground hover:eb-underline focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring disabled:eb-opacity-50"
-              onClick={reset}
-              disabled={form.formState.isSubmitting || !form.formState.isDirty}
-            >
-              <RefreshCwIcon className="eb-size-3.5" />
-              {t('onboarding-overview:documentRequest.resetForm')}
-            </button>
-            <div className="eb-flex eb-flex-col-reverse eb-gap-2 sm:eb-flex-row sm:eb-justify-self-end">
+          <MaintenanceFormFooter
+            className="eb--mx-4 @[40rem]:eb--mx-5"
+            leading={
               <Button
                 type="button"
-                variant="outline"
+                variant="outlineSurface"
                 size="sm"
                 onClick={onCancel}
                 disabled={form.formState.isSubmitting}
               >
                 {t('approved-client-maintenance:document.cancel')}
               </Button>
+            }
+            trailing={
               <Button
                 type="submit"
                 size="sm"
@@ -157,8 +165,8 @@ export function DocumentUploadRequestForm({
                         'onboarding-overview:documentUpload.documentUploadForm.uploadDocuments'
                       )}
               </Button>
-            </div>
-          </div>
+            }
+          />
         </form>
       </Form>
     </div>

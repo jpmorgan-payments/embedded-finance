@@ -19,6 +19,8 @@ const party: MaintenanceParty = {
 const change = {
   partyId: 'person-1',
   approvedParty: party,
+  action: 'MODIFY',
+  removesParty: false,
   proposal: {
     id: 'person-1',
     individualDetails: { firstName: 'Janet', lastName: 'Diaz' },

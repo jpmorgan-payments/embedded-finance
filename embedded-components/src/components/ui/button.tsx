@@ -17,6 +17,8 @@ const buttonVariants = cva(
           'eb-bg-warning eb-text-button eb-font-button-destructive eb-tracking-button eb-text-warning-foreground eb-shadow-border-warning eb-button-text-transform [--tw-shadow-color:theme(colors.warning.foreground.DEFAULT)] hover:eb-bg-warning-hover hover:eb-text-warning-foreground-hover hover:[--tw-shadow-color:theme(colors.warning.foreground.hover)] active:eb-bg-warning-active active:eb-text-warning-foreground-active active:[--tw-shadow-color:theme(colors.warning.foreground.active)]',
         outline:
           'eb-border eb-border-border eb-bg-transparent eb-tracking-button eb-text-foreground eb-button-text-transform hover:eb-bg-accent hover:eb-text-accent-foreground',
+        outlineSurface:
+          'eb-border eb-border-border eb-bg-background eb-tracking-button eb-text-foreground eb-button-text-transform hover:eb-bg-accent hover:eb-text-accent-foreground',
         secondary:
           'eb-bg-secondary eb-text-button eb-font-button-secondary eb-tracking-button eb-text-secondary-foreground eb-shadow-border-secondary eb-button-text-transform [--tw-shadow-color:theme(colors.secondary.foreground.DEFAULT)] hover:eb-bg-secondary-hover hover:eb-text-secondary-foreground-hover hover:[--tw-shadow-color:theme(colors.secondary.foreground.hover)] active:eb-bg-secondary-active active:eb-text-secondary-foreground-active active:[--tw-shadow-color:theme(colors.secondary.foreground.active)]',
         ghost:

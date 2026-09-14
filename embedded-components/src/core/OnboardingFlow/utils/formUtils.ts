@@ -23,6 +23,7 @@ import {
   UpdateClientRequestSmbdo,
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
+import { sanitizeServerErrorMessage } from '@/core/ClientProfile/forms/apiFieldErrors';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
 import {
   useFlowContext,
@@ -43,6 +44,8 @@ import {
   OnboardingTopLevelArrayFieldNames,
   OptionalDefaults,
 } from '@/core/OnboardingFlow/types/form.types';
+
+export { sanitizeServerErrorMessage } from '@/core/ClientProfile/forms/apiFieldErrors';
 
 type FormError = {
   field?:
@@ -278,51 +281,6 @@ export function mapPartyApiErrorsToFormErrors(
  * // "Field /individualDetails/addresses[0]/postalCode/ value must have the expected value. The postal code [00000] is invalid for the country [US]."
  * // → "The postal code 00000 is invalid for the country US."
  */
-function removeBracketDelimiters(message: string): string {
-  let sanitized = '';
-
-  for (let index = 0; index < message.length; index += 1) {
-    if (message[index] !== '[') {
-      sanitized += message[index];
-      continue;
-    }
-
-    const closingBracketIndex = message.indexOf(']', index + 1);
-    if (closingBracketIndex <= index + 1) {
-      sanitized += message[index];
-      continue;
-    }
-
-    sanitized += message.slice(index + 1, closingBracketIndex);
-    index = closingBracketIndex;
-  }
-
-  return sanitized;
-}
-
-export function sanitizeServerErrorMessage(message: string): string {
-  let sanitized = message;
-
-  // Strip "Field /.../ value must have the expected value. " prefix
-  sanitized = sanitized.replace(
-    /^Field\s+\/[^/]*(?:\/[^/]*)*\/\s+value must have the expected value\.\s*/i,
-    ''
-  );
-
-  // Strip standalone "Field /.../ " path references anywhere in the message
-  sanitized = sanitized.replace(/Field\s+\/[^/]*(?:\/[^/]*)*\/\s*/g, '');
-
-  // Clean up bracket notation: [00000] → 00000, [US] → US
-  sanitized = removeBracketDelimiters(sanitized);
-
-  // Capitalize first letter if we stripped a prefix
-  if (sanitized && sanitized !== message) {
-    sanitized = sanitized.charAt(0).toUpperCase() + sanitized.slice(1);
-  }
-
-  return sanitized.trim() || message;
-}
-
 /**
  * Sets API errors into the form state and handles unhandled errors
  * @param form - React Hook Form instance

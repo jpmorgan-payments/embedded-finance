@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
 
+import { PatternInput } from '@/components/PatternInput';
 import {
   FormControl,
   FormDescription,
@@ -10,6 +11,9 @@ import {
   FormMessage,
   Input,
 } from '@/components/ui';
+
+import { ProfileFieldRestore } from './ProfileFieldRestore';
+import { ProfileReadonlyValue } from './ProfileReadonlyValue';
 
 type ProfileTextFieldProps<
   TFieldValues extends FieldValues,
@@ -22,7 +26,23 @@ type ProfileTextFieldProps<
   description?: ReactNode;
   optionalLabel?: ReactNode;
   required?: boolean;
+  readonly?: boolean;
   className?: string;
+  inputType?: React.HTMLInputTypeAttribute;
+  inputProps?: Omit<
+    React.ComponentProps<typeof Input>,
+    'defaultValue' | 'name' | 'value' | 'type'
+  >;
+  maskFormat?: string;
+  maskChar?: string;
+  obfuscateWhenUnfocused?: boolean;
+  restoreAction?: ProfileFieldRestoreAction;
+};
+
+export type ProfileFieldRestoreAction = {
+  originalValue: ReactNode;
+  label: ReactNode;
+  onClick: () => void;
 };
 
 export function ProfileTextField<
@@ -36,7 +56,14 @@ export function ProfileTextField<
   description,
   optionalLabel,
   required = false,
+  readonly = false,
   className,
+  inputType = 'text',
+  inputProps,
+  maskFormat,
+  maskChar,
+  obfuscateWhenUnfocused = false,
+  restoreAction,
 }: ProfileTextFieldProps<TFieldValues, TFieldName>) {
   return (
     <FormField
@@ -53,19 +80,40 @@ export function ProfileTextField<
               </span>
             ) : null}
           </FormLabel>
-          <FormControl>
-            <Input
-              {...field}
-              type="text"
-              value={field.value ?? ''}
-              placeholder={placeholder}
-              data-dtrum-tracking={field.name}
-            />
-          </FormControl>
+          {readonly ? (
+            <ProfileReadonlyValue value={field.value} />
+          ) : (
+            <FormControl>
+              {maskFormat ? (
+                <PatternInput
+                  {...field}
+                  {...inputProps}
+                  value={field.value ?? ''}
+                  format={maskFormat}
+                  mask={maskChar}
+                  obfuscateWhenUnfocused={obfuscateWhenUnfocused}
+                  placeholder={placeholder}
+                  data-dtrum-tracking={field.name}
+                />
+              ) : (
+                <Input
+                  {...field}
+                  {...inputProps}
+                  type={inputType}
+                  value={field.value ?? ''}
+                  placeholder={placeholder}
+                  data-dtrum-tracking={field.name}
+                />
+              )}
+            </FormControl>
+          )}
           {description ? (
-            <FormDescription className="eb-text-xs eb-italic">
+            <FormDescription className="eb-text-xs">
               {description}
             </FormDescription>
+          ) : null}
+          {!readonly && restoreAction ? (
+            <ProfileFieldRestore action={restoreAction} />
           ) : null}
           <FormMessage />
         </FormItem>

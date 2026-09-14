@@ -110,7 +110,7 @@ export function MaintenanceDocumentView({
       {documentDescription ? (
         <section
           aria-labelledby="document-upload-guidance-heading"
-          className="eb-border-b eb-bg-informative-accent/40 eb-px-4 eb-py-3 sm:eb-px-5"
+          className="eb-border-b eb-bg-informative-accent/40 eb-px-4 eb-py-3 @[40rem]:eb-px-5"
         >
           <h3
             id="document-upload-guidance-heading"

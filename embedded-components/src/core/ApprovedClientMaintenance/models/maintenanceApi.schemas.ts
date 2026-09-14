@@ -18,6 +18,33 @@ const maintenanceUpdateRequestSchema = z
   })
   .passthrough();
 
+const maintenanceAddressSchema = z
+  .object({
+    addressType: z.string().optional(),
+    addressLines: z.array(z.string()).optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    postalCode: z.string().optional(),
+    country: z.string().optional(),
+  })
+  .passthrough();
+
+const maintenanceIdentitySchema = z
+  .object({
+    idType: z.string().optional(),
+    value: z.string().optional(),
+    issuer: z.string().optional(),
+  })
+  .passthrough();
+
+const maintenancePhoneSchema = z
+  .object({
+    phoneType: z.string().optional(),
+    countryCode: z.string().optional(),
+    phoneNumber: z.string().optional(),
+  })
+  .passthrough();
+
 const maintenanceIndividualDetailsSchema = z
   .object({
     firstName: z.string().optional(),
@@ -25,6 +52,13 @@ const maintenanceIndividualDetailsSchema = z
     lastName: z.string().optional(),
     birthDate: z.string().optional(),
     countryOfResidence: z.string().optional(),
+    natureOfOwnership: z.string().optional(),
+    nameSuffix: z.string().optional(),
+    jobTitle: z.string().optional(),
+    jobTitleDescription: z.string().optional(),
+    addresses: z.array(maintenanceAddressSchema).optional(),
+    individualIds: z.array(maintenanceIdentitySchema).optional(),
+    phone: maintenancePhoneSchema.optional(),
   })
   .passthrough();
 
@@ -34,6 +68,22 @@ const maintenanceOrganizationDetailsSchema = z
     dbaName: z.string().optional(),
     organizationType: z.string().optional(),
     countryOfFormation: z.string().optional(),
+    natureOfOwnership: z.string().optional(),
+    addresses: z.array(maintenanceAddressSchema).optional(),
+    organizationIds: z.array(maintenanceIdentitySchema).optional(),
+    organizationDescription: z.string().optional(),
+    yearOfFormation: z.string().optional(),
+    industryCategory: z.string().optional(),
+    industryType: z.string().optional(),
+    industry: z
+      .object({ codeType: z.string().optional(), code: z.string().optional() })
+      .passthrough()
+      .optional(),
+    mcc: z.string().optional(),
+    associatedCountries: z.array(z.string()).optional(),
+    phone: maintenancePhoneSchema.optional(),
+    website: z.string().optional(),
+    entitiesInOwnership: z.boolean().optional(),
   })
   .passthrough();
 
@@ -57,6 +107,8 @@ export const maintenancePartySchema = z
     profileStatus: z.string().optional(),
     status: z.string().optional(),
     active: z.boolean().optional(),
+    email: z.string().optional(),
+    externalId: z.string().optional(),
     individualDetails: maintenanceIndividualDetailsSchema.optional(),
     organizationDetails: maintenanceOrganizationDetailsSchema.optional(),
     validationResponse: z.array(maintenanceValidationResponseSchema).optional(),
@@ -71,7 +123,18 @@ export const maintenanceClientSchema = z
     status: z.string(),
     parties: z.array(maintenancePartySchema).optional(),
     products: z.array(z.unknown()).optional(),
-    productDetails: z.array(z.unknown()).optional(),
+    productDetails: z
+      .array(
+        z
+          .object({
+            product: z.string().optional(),
+            subProduct: z.string().optional(),
+            action: z.enum(['ADD', 'REMOVE']).optional(),
+            onboardingStatus: z.string().optional(),
+          })
+          .passthrough()
+      )
+      .optional(),
     outstanding: z
       .object({
         attestationDocumentIds: z.array(z.string()).optional(),
@@ -81,6 +144,14 @@ export const maintenanceClientSchema = z
         partyRoles: z.array(z.string()).optional(),
       })
       .passthrough()
+      .optional(),
+    questionResponses: z
+      .array(
+        z.object({
+          questionId: z.string(),
+          values: z.array(z.string()),
+        })
+      )
       .optional(),
     updateRequest: maintenanceUpdateRequestSchema.optional(),
   })
@@ -117,6 +188,40 @@ export const maintenanceDocumentRequestListSchema = z
   .object({
     documentRequests: z
       .array(maintenanceDocumentRequestSummarySchema)
+      .default([]),
+  })
+  .passthrough();
+
+export const maintenanceQuestionListSchema = z
+  .object({
+    questions: z
+      .array(
+        z
+          .object({
+            id: z.string().optional(),
+            content: z
+              .array(
+                z.object({
+                  label: z.string(),
+                  description: z.string().optional(),
+                  locale: z.string(),
+                })
+              )
+              .optional(),
+            description: z.string().optional(),
+            responseSchema: z
+              .object({
+                items: z
+                  .object({
+                    type: z.string().optional(),
+                    enum: z.array(z.string()).optional(),
+                  })
+                  .optional(),
+              })
+              .optional(),
+          })
+          .passthrough()
+      )
       .default([]),
   })
   .passthrough();

@@ -1,53 +1,15 @@
 import { i18n } from '@/i18n/config';
 import { z } from 'zod';
 
+import {
+  isKnownInvalidSsn,
+  isValidItinMiddleDigits,
+  isValidSsn,
+} from '@/core/ClientProfile/schemas/isValidIndividualTaxId';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 
 const MIN_AGE = 18;
 const MAX_AGE = 120;
-
-// Helper function to check if the ITIN middle digits (4th-5th) are in a valid range.
-// Per IRS rules, the 4th-5th digits must be 50–55, 60–65, 70–79, 80–88, 90–92, or 94–99.
-const isValidItinMiddleDigits = (value: string): boolean => {
-  const middleDigits = parseInt(value.slice(3, 5), 10);
-
-  return (
-    (middleDigits >= 50 && middleDigits <= 55) ||
-    (middleDigits >= 60 && middleDigits <= 65) ||
-    (middleDigits >= 70 && middleDigits <= 79) ||
-    (middleDigits >= 80 && middleDigits <= 88) ||
-    (middleDigits >= 90 && middleDigits <= 92) ||
-    (middleDigits >= 94 && middleDigits <= 99)
-  );
-};
-
-const KNOWN_INVALID_SSNS = [
-  '078051120',
-  '219099999',
-  '123456789',
-  '888888888',
-  '777777777',
-  '555555555',
-  '444444444',
-  '333333333',
-  '222222222',
-  '111111111',
-  '457555462',
-  '012345678',
-  '987654321',
-];
-
-const isValidSsn = (value: string): boolean => {
-  const firstThree = parseInt(value.slice(0, 3), 10);
-  return !!(
-    value.length === 9 &&
-    /^\d{9}$/.test(value) &&
-    value.charAt(0) !== '9' &&
-    firstThree !== 666 &&
-    firstThree !== 0 &&
-    !KNOWN_INVALID_SSNS.includes(value)
-  );
-};
 
 const createControllerIdSchema = (
   v: ReturnType<typeof useGetValidationMessage>
@@ -167,7 +129,7 @@ const createControllerIdSchema = (
     .refine(
       (data) => {
         if (data.idType === 'SSN') {
-          return !KNOWN_INVALID_SSNS.includes(data.value);
+          return !isKnownInvalidSsn(data.value);
         }
         return true;
       },

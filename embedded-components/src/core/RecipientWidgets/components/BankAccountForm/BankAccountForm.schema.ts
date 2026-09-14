@@ -520,13 +520,22 @@ function validateDuplicateAccounts(
  */
 export function createBankAccountFormSchema(
   config: BankAccountFormConfig,
-  v: (key: string, interpolation?: Record<string, string | number>) => string
+  v: (key: string, interpolation?: Record<string, string | number>) => string,
+  options: { requirePartySelection?: boolean } = {}
 ): z.ZodType<BankAccountFormData> {
   const baseSchema = createBaseSchema(config, v);
 
   return baseSchema.superRefine((data, ctx) => {
     const { paymentTypes = [] } = data;
     const selectedMethods = paymentTypes as RoutingInformationTransactionType[];
+
+    if (options.requirePartySelection && !data.selectedPartyId?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: v('partySelector.validation.required'),
+        path: ['selectedPartyId'],
+      });
+    }
 
     // 1. Account holder information (always required)
     validateAccountHolder(data, v, ctx);
@@ -558,8 +567,10 @@ export function createBankAccountFormSchema(
 export const useBankAccountFormSchema = () => {
   const v = useGetBankAccountValidationMessage();
 
-  return (config: BankAccountFormConfig) =>
-    createBankAccountFormSchema(config, v);
+  return (
+    config: BankAccountFormConfig,
+    options?: { requirePartySelection?: boolean }
+  ) => createBankAccountFormSchema(config, v, options);
 };
 
 /**

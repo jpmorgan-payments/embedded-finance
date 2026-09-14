@@ -2,7 +2,10 @@ import { describe, expect, test } from 'vitest';
 
 import type { DocumentRequestResponse } from '@/api/generated/smbdo.schemas';
 
-import type { MaintenanceClient } from '../models/maintenanceApi.types';
+import type {
+  MaintenanceClient,
+  MaintenanceParty,
+} from '../models/maintenanceApi.types';
 import { buildMaintenanceEntityTasks } from './buildMaintenanceEntityTasks';
 import { buildMaintenanceProjection } from './buildMaintenanceProjection';
 
@@ -33,7 +36,10 @@ const client: MaintenanceClient = {
 
 const proposal = {
   id: 'person-1',
-  individualDetails: { lastName: 'Diaz' },
+  individualDetails: {
+    firstName: 'Jane',
+    lastName: 'Diaz',
+  },
   updateRequest: {
     status: 'NEW' as const,
     action: 'MODIFY' as const,
@@ -112,5 +118,62 @@ describe('buildMaintenanceEntityTasks', () => {
       'person-2',
     ]);
     expect(tasks.parties[1]?.change).toBeUndefined();
+  });
+
+  test('includes pending additions and retains approved parties pending removal', () => {
+    const addedParty: MaintenanceParty = {
+      id: 'person-2',
+      partyType: 'INDIVIDUAL',
+      roles: ['BENEFICIAL_OWNER'],
+      individualDetails: { firstName: 'Wendy', lastName: 'Darling' },
+      updateRequest: {
+        status: 'NEW',
+        action: 'ADD',
+        requestId: 'request-1',
+        submittedAt: '2026-08-27T12:00:00.000Z',
+      },
+    };
+    const additionProjection = buildMaintenanceProjection(client, [
+      proposal,
+      addedParty,
+    ]);
+    const removalProjection = buildMaintenanceProjection(client, [
+      { ...proposal, individualDetails: undefined, active: false },
+    ]);
+
+    expect(
+      buildMaintenanceEntityTasks(client, additionProjection, []).parties
+    ).toEqual([
+      expect.objectContaining({
+        partyId: 'person-1',
+        isPendingAddition: false,
+      }),
+      expect.objectContaining({
+        partyId: 'person-2',
+        isPendingAddition: true,
+        proposedParty: expect.objectContaining({ id: 'person-2' }),
+      }),
+    ]);
+    expect(
+      buildMaintenanceEntityTasks(client, removalProjection, []).parties
+    ).toEqual([
+      expect.objectContaining({
+        partyId: 'person-1',
+        isPendingAddition: false,
+        change: expect.objectContaining({ removesParty: true }),
+      }),
+    ]);
+  });
+
+  test('does not mark an approved party pending from an inconsistent ADD action', () => {
+    const projection = buildMaintenanceProjection(client, [proposal]);
+    const approvedPartyChange = projection.partyChanges[0];
+    if (!approvedPartyChange)
+      throw new Error('Expected an approved party change');
+    approvedPartyChange.action = 'ADD';
+
+    const task = buildMaintenanceEntityTasks(client, projection, []).parties[0];
+
+    expect(task?.isPendingAddition).toBe(false);
   });
 });

@@ -1,25 +1,32 @@
 import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 
-import type { IndividualLegalNameValues } from '@/core/ClientProfile/models/individualLegalName.types';
-
-import type { PartyNameUpdateRequest } from '../utils/buildPartyNameUpdate';
+import type {
+  MaintenanceAddress,
+  MaintenanceIndividualId,
+} from '../models/maintenanceApi.types';
+import type {
+  IndividualMaintenanceValues,
+  PartyNameUpdateRequest,
+} from '../utils/buildPartyNameUpdate';
 import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
-import { MaintenanceSection } from './MaintenanceSection';
 import { PartyChangeEditor } from './PartyChangeEditor';
 
 type MaintenanceEditViewProps = {
   breadcrumbs: MaintenanceBreadcrumbItem[];
-  initialValues: IndividualLegalNameValues;
-  originalValues: IndividualLegalNameValues;
+  initialValues: IndividualMaintenanceValues;
+  originalValues: IndividualMaintenanceValues;
+  approvedAddresses: MaintenanceAddress[];
+  approvedIndividualIds: MaintenanceIndividualId[];
   isSubmitting: boolean;
   mutationError?: unknown;
+  lockedCountry?: string;
   onBack: () => void;
   onSave: (
-    values: IndividualLegalNameValues,
+    values: IndividualMaintenanceValues,
     request: PartyNameUpdateRequest
   ) => Promise<void>;
 };
@@ -28,8 +35,11 @@ export function MaintenanceEditView({
   breadcrumbs,
   initialValues,
   originalValues,
+  approvedAddresses,
+  approvedIndividualIds,
   isSubmitting,
   mutationError,
+  lockedCountry,
   onBack,
   onSave,
 }: MaintenanceEditViewProps) {
@@ -56,21 +66,23 @@ export function MaintenanceEditView({
         >
           {t('entity.editDetails')}
         </h2>
+        <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+          {t('nameEditor.editDescription')}
+        </p>
       </header>
-      <MaintenanceSection
-        id="edit-details-heading"
-        title={t('nameEditor.fieldsTitle')}
-        caption={t('sectionCaption.edit')}
-      >
+      <div className="eb-w-full">
         <PartyChangeEditor
           initialValues={initialValues}
           approvedValues={originalValues}
+          approvedAddresses={approvedAddresses}
+          approvedIndividualIds={approvedIndividualIds}
           isSubmitting={isSubmitting}
           mutationError={mutationError}
+          lockedCountry={lockedCountry}
           onDiscard={onBack}
           onSave={onSave}
         />
-      </MaintenanceSection>
+      </div>
     </div>
   );
 }

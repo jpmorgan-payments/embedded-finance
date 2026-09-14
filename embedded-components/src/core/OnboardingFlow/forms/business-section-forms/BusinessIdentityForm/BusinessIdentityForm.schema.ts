@@ -1,32 +1,12 @@
 import { z } from 'zod';
 
+import { getEinValidationIssue } from '@/core/ClientProfile/schemas/isValidEin';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 import { NAME_PATTERN } from '@/core/OnboardingFlow/utils/validationPatterns';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const SPECIAL_CHARS_PATTERN = /[()_/@&+%#;,.: '-]/;
-
-// Blocklist of obviously invalid EIN values (all-same-digit, sequential patterns).
-const INVALID_EIN_VALUES = new Set([
-  '000000000',
-  '111111111',
-  '222222222',
-  '333333333',
-  '444444444',
-  '555555555',
-  '666666666',
-  '777777777',
-  '888888888',
-  '999999999',
-  '123456789',
-  '987654321',
-  '012345678',
-]);
-
-const isNotBlocklistedEin = (value: string): boolean => {
-  return !INVALID_EIN_VALUES.has(value);
-};
 
 // const OrganizationIdSchema = z
 //   .object({
@@ -202,7 +182,7 @@ export const useBusinessIdentityFormSchema = () => {
         v('organizationIdEin', 'digitsOnly')
       )
       .refine(
-        (val) => isNotBlocklistedEin(val),
+        (val) => getEinValidationIssue(val) !== 'invalidValue',
         v('organizationIdEin', 'invalidValue')
       ),
     solePropHasEin: z

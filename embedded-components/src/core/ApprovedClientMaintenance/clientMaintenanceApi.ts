@@ -4,13 +4,20 @@ import {
   maintenanceClientSchema,
   maintenanceDocumentRequestListSchema,
   maintenancePageSchema,
+  maintenancePartySchema,
+  maintenanceQuestionListSchema,
   maintenanceVerificationResponseSchema,
 } from './models/maintenanceApi.schemas';
 import type {
   MaintenanceClient,
+  MaintenanceClientTaskUpdateRequest,
   MaintenanceDocumentRequestSummary,
   MaintenancePage,
   MaintenanceParty,
+  MaintenancePartyCreateRequest,
+  MaintenancePartyUpdateRequest,
+  MaintenanceProductUpdateRequest,
+  MaintenanceQuestion,
   MaintenanceVerificationResponse,
 } from './models/maintenanceApi.types';
 import type { PartyNameUpdateRequest } from './utils/buildPartyNameUpdate';
@@ -189,13 +196,92 @@ export async function patchMaintenancePartyName(
   partyNameUpdate: PartyNameUpdateRequest,
   idempotencyKey: string
 ): Promise<void> {
+  return patchMaintenanceParty(
+    request,
+    partyId,
+    partyNameUpdate,
+    idempotencyKey
+  );
+}
+
+export async function patchMaintenanceParty(
+  request: MaintenanceRequest,
+  partyId: string,
+  partyUpdate: MaintenancePartyUpdateRequest,
+  idempotencyKey: string
+): Promise<void> {
   await request({
     url: `/parties/${partyId}`,
     method: 'PATCH',
     skipClientIdBodyInjection: true,
     headers: { 'Idempotency-Key': idempotencyKey },
-    data: partyNameUpdate,
+    data: partyUpdate,
   });
+}
+
+export async function createMaintenanceParty(
+  request: MaintenanceRequest,
+  party: MaintenancePartyCreateRequest,
+  idempotencyKey: string
+): Promise<MaintenanceParty> {
+  const response = await request({
+    url: '/parties',
+    method: 'POST',
+    skipClientIdBodyInjection: true,
+    headers: { 'Idempotency-Key': idempotencyKey },
+    data: party,
+  });
+  return maintenancePartySchema.parse(response) as MaintenanceParty;
+}
+
+const updateLimitedDdaPaymentsProduct = async (
+  request: MaintenanceRequest,
+  clientId: string,
+  idempotencyKey: string,
+  action: 'ADD' | 'REMOVE'
+) => {
+  const productUpdate: MaintenanceProductUpdateRequest = {
+    productDetails: [
+      {
+        product: 'EMBEDDED_PAYMENTS',
+        subProduct: 'LIMITED_DDA_PAYMENTS',
+        action,
+      },
+    ],
+  };
+  await request({
+    url: `/clients/${clientId}`,
+    method: 'PATCH',
+    skipClientIdBodyInjection: true,
+    headers: { 'Idempotency-Key': idempotencyKey },
+    data: productUpdate,
+  });
+};
+
+export async function addLimitedDdaPaymentsProduct(
+  request: MaintenanceRequest,
+  clientId: string,
+  idempotencyKey: string
+): Promise<void> {
+  await updateLimitedDdaPaymentsProduct(
+    request,
+    clientId,
+    idempotencyKey,
+    'ADD'
+  );
+}
+
+export async function cancelLimitedDdaPaymentsAddition(
+  request: MaintenanceRequest,
+  clientId: string,
+  idempotencyKey: string
+): Promise<void> {
+  await updateLimitedDdaPaymentsProduct(
+    request,
+    clientId,
+    idempotencyKey,
+    'REMOVE'
+  );
 }
 
 export async function cancelMaintenanceRequest(
@@ -230,4 +316,59 @@ export async function submitMaintenanceVerification(
   return maintenanceVerificationResponseSchema.parse(
     response
   ) as MaintenanceVerificationResponse;
+}
+
+export async function getMaintenanceQuestions(
+  request: MaintenanceRequest,
+  questionIds: string[],
+  locale = 'en-US'
+): Promise<MaintenanceQuestion[]> {
+  if (questionIds.length === 0) return [];
+  const response = maintenanceQuestionListSchema.parse(
+    await request({
+      url: '/questions',
+      method: 'GET',
+      params: { questionIds: questionIds.join(',') },
+    })
+  );
+  return response.questions.map((question) => {
+    const content =
+      question.content?.find((item) => item.locale === locale) ??
+      question.content?.[0];
+    return {
+      id: question.id,
+      label: content?.label ?? question.description ?? question.id ?? '',
+      description: content?.description ?? question.description,
+      responseType: question.responseSchema?.items?.type as
+        | MaintenanceQuestion['responseType']
+        | undefined,
+      options: question.responseSchema?.items?.enum,
+    };
+  });
+}
+
+export async function updateMaintenanceClientTasks(
+  request: MaintenanceRequest,
+  clientId: string,
+  taskUpdate: MaintenanceClientTaskUpdateRequest,
+  idempotencyKey: string
+): Promise<void> {
+  await request({
+    url: `/clients/${clientId}`,
+    method: 'PATCH',
+    skipClientIdBodyInjection: true,
+    headers: { 'Idempotency-Key': idempotencyKey },
+    data: taskUpdate,
+  });
+}
+
+export async function downloadMaintenanceAttestation(
+  request: MaintenanceRequest,
+  documentId: string
+): Promise<Blob> {
+  return request({
+    url: `/documents/${documentId}/file`,
+    method: 'GET',
+    responseType: 'blob',
+  }) as Promise<Blob>;
 }

@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon } from 'lucide-react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
+import { useAddressCountryReset } from '@/core/ClientProfile/hooks/useAddressCountryReset';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components/OnboardingFormField/OnboardingFormField';
 import {
   COUNTRIES_OF_FORMATION,
@@ -88,16 +88,10 @@ export function AddressFields({
   const stateFieldName = fieldName('state');
   const cityFieldName = fieldName('city');
   const postalCodeFieldName = fieldName('postalCode');
-  const isInitialCountryRender = useRef(true);
-  useEffect(() => {
-    if (isInitialCountryRender.current) {
-      isInitialCountryRender.current = false;
-      return;
-    }
+  useAddressCountryReset(addressCountry, () => {
     form.setValue(stateFieldName, '');
     form.clearErrors([cityFieldName, stateFieldName, postalCodeFieldName]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset state/city/postal only when the country changes; form and the field-name strings are read as latest and intentionally excluded (adding them re-runs the reset during the flow and can loop)
-  }, [addressCountry]);
+  });
 
   const hasCountryMismatch =
     !!mismatchCountry && !!addressCountry && addressCountry !== mismatchCountry;
