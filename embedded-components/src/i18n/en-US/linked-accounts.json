@@ -29,6 +29,10 @@
         "title": "Real-Time Payments Not Available",
         "description": "The bank associated with this account does not support Real-Time Payments (RTP). This payment method cannot be used for this account.",
         "suggestion": "You can still link this account using ACH or Wire transfer instead."
+      },
+      "RTP_INVALID_ROUTING_NUMBER": {
+        "title": "Routing number not valid for RTP",
+        "description": "The routing number provided is not valid for RTP transactions. Please provide a valid routing number or remove RTP from this request."
       }
     }
   },
@@ -112,6 +116,12 @@
       },
       "description": "Update the bank account information and payment methods.",
       "descriptionSuccess": "Your linked account has been updated successfully.",
+      "routingNumberChange": {
+        "title": "Update linked account?",
+        "description": "Updating the ACH routing number will trigger re-verification of this account, including microdeposit verification if required.",
+        "cancel": "Cancel",
+        "confirm": "Continue update"
+      },
       "error": {
         "title": "Unable to update account"
       }

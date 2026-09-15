@@ -2,6 +2,19 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.13] - 2026-09-15
+
+### Changes
+
+#### Features
+
+- **linked-acounts:** add error interceptor for invalid RTP
+- **linked-accounts:** enable editing ACH routing number for linked accounts, but prompt user to recreate a linked account instead
+
+#### Bug Fixes
+
+- prevent breaking layouts when using block rich text content tokens
+
 ## [0.17.12] - 2026-09-14
 
 ### Changes

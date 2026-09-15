@@ -16,3 +16,6 @@ export type {
   UseRecipientFormOptions,
   UseRecipientFormReturn,
 } from './useRecipientForm';
+
+export { useLinkedAccountRoutingReplacement } from './useLinkedAccountRoutingReplacement';
+export type { LinkedAccountReplacementFailureStage } from './useLinkedAccountRoutingReplacement';

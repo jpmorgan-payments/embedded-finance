@@ -5,7 +5,7 @@ import type { ErrorType } from '@/api/use-axios-instance';
  * Error codes that can be intercepted and displayed with friendly messages.
  * Add new error codes here as they are identified.
  */
-export type KnownErrorCode = 'RTP_UNAVAILABLE';
+export type KnownErrorCode = 'RTP_UNAVAILABLE' | 'RTP_INVALID_ROUTING_NUMBER';
 
 /**
  * Configuration for a known error type
@@ -21,6 +21,8 @@ export interface KnownErrorConfig {
   suggestionKey?: string;
   /** Icon variant to use */
   variant: 'warning' | 'error' | 'info';
+  /** Whether to include the raw API context beneath the friendly message. */
+  showContext?: boolean;
 }
 
 /**
@@ -35,7 +37,24 @@ export const KNOWN_ERROR_REGISTRY: Record<KnownErrorCode, KnownErrorConfig> = {
     suggestionKey: 'errors.known.RTP_UNAVAILABLE.suggestion',
     variant: 'warning',
   },
+  RTP_INVALID_ROUTING_NUMBER: {
+    code: 'RTP_INVALID_ROUTING_NUMBER',
+    titleKey: 'errors.known.RTP_INVALID_ROUTING_NUMBER.title',
+    descriptionKey: 'errors.known.RTP_INVALID_ROUTING_NUMBER.description',
+    variant: 'warning',
+    showContext: false,
+  },
 };
+
+type ExtendedApiError = ApiError & { message?: string };
+
+const isInvalidRtpRoutingMessage = (message?: string | null) =>
+  Boolean(
+    message &&
+      /routing number provided .* cannot be used for RTP transactions/i.test(
+        message
+      )
+  );
 
 /**
  * Result of intercepting an error
@@ -94,7 +113,21 @@ export function interceptError(
     return null;
   }
 
-  const responseData = error.response?.data;
+  const responseData = error.response?.data as ExtendedApiError | undefined;
+
+  const invalidRtpRoutingContext = responseData?.context?.find((context) =>
+    isInvalidRtpRoutingMessage(context.message)
+  );
+  if (
+    isInvalidRtpRoutingMessage(responseData?.message) ||
+    invalidRtpRoutingContext
+  ) {
+    return {
+      isKnown: true,
+      config: KNOWN_ERROR_REGISTRY.RTP_INVALID_ROUTING_NUMBER,
+      originalError: error,
+    };
+  }
 
   // Check for RTP_UNAVAILABLE error
   // This error has a context entry with code 'RTP_UNAVAILABLE'

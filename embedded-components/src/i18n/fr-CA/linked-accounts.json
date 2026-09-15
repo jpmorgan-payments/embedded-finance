@@ -34,6 +34,10 @@
         "title": "Paiements en temps réel non disponibles",
         "description": "La banque associée à ce compte ne prend pas en charge les paiements en temps réel (RTP). Ce mode de paiement ne peut pas être utilisé pour ce compte.",
         "suggestion": "Vous pouvez tout de même lier ce compte au moyen d'ACH ou d'un virement bancaire."
+      },
+      "RTP_INVALID_ROUTING_NUMBER": {
+        "title": "Numéro d'acheminement non valide pour RTP",
+        "description": "Le numéro d'acheminement fourni n'est pas valide pour les transactions RTP. Fournissez un numéro d'acheminement valide ou retirez RTP de cette demande."
       }
     }
   },
@@ -242,6 +246,12 @@
       },
       "description": "Mettre à jour les informations du compte bancaire et les méthodes de paiement.",
       "descriptionSuccess": "Votre compte lié a été mis à jour avec succès.",
+      "routingNumberChange": {
+        "title": "Mettre à jour le compte lié?",
+        "description": "La mise à jour du numéro d'acheminement ACH déclenchera une nouvelle vérification de ce compte, y compris la vérification par microdépôts si nécessaire.",
+        "cancel": "Annuler",
+        "confirm": "Continuer la mise à jour"
+      },
       "error": {
         "title": "Impossible de mettre à jour le compte"
       }

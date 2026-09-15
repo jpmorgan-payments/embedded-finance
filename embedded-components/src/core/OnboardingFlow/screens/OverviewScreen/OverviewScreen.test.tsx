@@ -1,3 +1,4 @@
+import type { ComponentProps } from 'react';
 import { i18n } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
@@ -7,6 +8,7 @@ import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { flowConfig } from '@/core/OnboardingFlow/config/flowConfig';
 import {
   FlowProvider,
@@ -63,8 +65,11 @@ const baseOnboardingContext: OnboardingContextType = {
   showDownloadChecklist: false,
 };
 
-function renderOverview(contextOverrides: Partial<OnboardingContextType> = {}) {
-  return render(
+function renderOverview(
+  contextOverrides: Partial<OnboardingContextType> = {},
+  contentTokens?: ComponentProps<typeof EBComponentsProvider>['contentTokens']
+) {
+  const overview = (
     <QueryClientProvider client={queryClient}>
       <OnboardingContext.Provider
         value={{ ...baseOnboardingContext, ...contextOverrides }}
@@ -74,6 +79,16 @@ function renderOverview(contextOverrides: Partial<OnboardingContextType> = {}) {
         </FlowProvider>
       </OnboardingContext.Provider>
     </QueryClientProvider>
+  );
+
+  return render(
+    contentTokens ? (
+      <EBComponentsProvider apiBaseUrl="" contentTokens={contentTokens}>
+        {overview}
+      </EBComponentsProvider>
+    ) : (
+      overview
+    )
   );
 }
 
@@ -129,6 +144,40 @@ describe('OverviewScreen', () => {
       'onboarding-overview:screens.overview.verifyBusinessSection.title'
     );
     expect(getVerifyBusinessHeadingText(expected)).toBeInTheDocument();
+  });
+
+  test('keeps rich warning content inside one flex item', () => {
+    renderOverview(
+      { clientData: buildClient('NEW') },
+      {
+        tokens: {
+          'onboarding-overview': {
+            screens: {
+              overview: {
+                verifyBusinessSection: {
+                  changeWarning: 'Contact <i>support@example.com</i> for help.',
+                },
+              },
+            },
+          },
+        },
+      }
+    );
+
+    const emphasized = screen.getByText('support@example.com');
+    const richContent = emphasized.closest('.eb-inline');
+    const warning = richContent?.parentElement;
+
+    expect(warning).toHaveClass(
+      'eb-flex',
+      'eb-text-xs',
+      'eb-italic',
+      'eb-text-muted-foreground'
+    );
+    expect(richContent).toBeInTheDocument();
+    expect(richContent?.parentElement).toBe(warning);
+    expect(emphasized.tagName).toBe('EM');
+    expect(emphasized.parentElement).toBe(richContent);
   });
 
   test('verify-business card heading uses default copy for INFORMATION_REQUESTED', () => {

@@ -202,11 +202,18 @@ This document describes **all existing behaviours** of the RecipientWidgets comp
 
 ### 3.10 Error Handling and Known Errors
 
+- **Sandbox AVS name association after a party name change**
+  - In the sandbox environment, AVS associates an account number with the party name used when the account is first linked.
+  - If that party's name is updated after the account is linked, a later attempt to link another account using the same account number and the updated party name is rejected because AVS still associates the account number with the original name.
+  - This is a sandbox test-data limitation and must not be treated as confirmed production behavior.
+  - For sandbox testing after a party name change, use a different account number. If the same account number is required, the sandbox AVS data must be reset or updated before retrying.
+
 - **List/load errors**
   - Display a clear message and a retry action.
 
 - **Form and mutation errors**
   - Known error codes (e.g. RTP_UNAVAILABLE) are mapped to friendly title, description, and suggestion; unknown errors use a generic server error display with optional “show details”.
+  - A `400 Bad Request` stating that a routing number cannot be used for RTP transactions is treated as a known error even when the API returns a null error code. Recipient and linked-account forms display: “The routing number provided is not valid for RTP transactions. Please provide a valid routing number or remove RTP from this request.” The raw routing number is not displayed in the friendly alert.
 
 - **Consistency**
   - Same known-error mapping and messaging approach across create, edit, and (where applicable) verification.

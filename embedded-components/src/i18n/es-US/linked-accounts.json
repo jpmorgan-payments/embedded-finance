@@ -29,6 +29,10 @@
         "title": "Real-Time Payments Not Available",
         "description": "The bank associated with this account does not support Real-Time Payments (RTP). This payment method cannot be used for this account.",
         "suggestion": "You can still link this account using ACH or Wire transfer instead."
+      },
+      "RTP_INVALID_ROUTING_NUMBER": {
+        "title": "Número de ruta no válido para RTP",
+        "description": "El número de ruta proporcionado no es válido para transacciones RTP. Proporcione un número de ruta válido o elimine RTP de esta solicitud."
       }
     }
   },
@@ -112,6 +116,12 @@
       },
       "description": "Update the bank account information and payment methods.",
       "descriptionSuccess": "Your linked account has been updated successfully.",
+      "routingNumberChange": {
+        "title": "¿Actualizar la cuenta vinculada?",
+        "description": "Actualizar el número de ruta ACH activará una nueva verificación de esta cuenta, incluida la verificación mediante microdepósitos si es necesaria.",
+        "cancel": "Cancelar",
+        "confirm": "Continuar actualización"
+      },
       "error": {
         "title": "Unable to update account"
       }

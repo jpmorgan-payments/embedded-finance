@@ -1,7 +1,7 @@
 import { server } from '@/msw/server';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, userEvent, waitFor } from '@test-utils';
+import { render, screen, userEvent, waitFor, within } from '@test-utils';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 import type { BankAccountFormConfig } from '@/core/RecipientWidgets/components/BankAccountForm';
@@ -120,8 +120,69 @@ describe('RecipientFormDialog internationalMode', () => {
 });
 
 describe('RecipientFormDialog linked-account payment methods', () => {
-  it('keeps existing ACH routing readonly while other rails remain editable', async () => {
+  const linkedAccount = {
+    id: 'linked-account-1',
+    type: 'LINKED_ACCOUNT',
+    status: 'ACTIVE',
+    clientId: 'client-1',
+    partyId: 'party-1',
+    partyDetails: {
+      type: 'ORGANIZATION',
+      businessName: 'Acme',
+      address: {
+        addressLine1: '1 Main Street',
+        city: 'New York',
+        state: 'NY',
+        postalCode: '10001',
+        countryCode: 'US',
+      },
+    },
+    account: {
+      number: '1234567890',
+      type: 'CHECKING',
+      countryCode: 'US',
+      routingInformation: [
+        {
+          routingNumber: '026009593',
+          transactionType: 'WIRE',
+          routingCodeType: 'USABA',
+        },
+        {
+          routingNumber: '021000021',
+          transactionType: 'ACH',
+          routingCodeType: 'USABA',
+        },
+      ],
+    },
+  } as unknown as Recipient;
+
+  it('confirms an ACH change before creating a replacement and deactivating the original', async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const requests: string[] = [];
+    const onRecipientSettled = vi.fn();
+    let createPayload: Record<string, unknown> | undefined;
+
+    server.use(
+      http.post('/recipients', async ({ request }) => {
+        requests.push('create');
+        createPayload = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({
+          ...linkedAccount,
+          id: 'linked-account-2',
+          status: 'MICRODEPOSITS_INITIATED',
+          account: createPayload.account,
+        });
+      }),
+      http.post('/recipients/:id', async ({ request, params }) => {
+        requests.push(`deactivate:${String(params.id)}`);
+        expect(await request.json()).toEqual({ status: 'INACTIVE' });
+        return HttpResponse.json({
+          ...linkedAccount,
+          id: String(params.id),
+          status: 'INACTIVE',
+        });
+      })
+    );
 
     render(
       <RecipientFormDialog
@@ -129,34 +190,8 @@ describe('RecipientFormDialog linked-account payment methods', () => {
         open
         recipientType="LINKED_ACCOUNT"
         i18nNamespace="linked-accounts"
-        recipient={
-          {
-            id: 'linked-account-1',
-            type: 'LINKED_ACCOUNT',
-            status: 'ACTIVE',
-            partyDetails: {
-              type: 'ORGANIZATION',
-              businessName: 'Acme',
-            },
-            account: {
-              number: '1234567890',
-              type: 'CHECKING',
-              countryCode: 'US',
-              routingInformation: [
-                {
-                  routingNumber: '026009593',
-                  transactionType: 'WIRE',
-                  routingCodeType: 'USABA',
-                },
-                {
-                  routingNumber: '021000021',
-                  transactionType: 'ACH',
-                  routingCodeType: 'USABA',
-                },
-              ],
-            },
-          } as unknown as Recipient
-        }
+        recipient={linkedAccount}
+        onRecipientSettled={onRecipientSettled}
       />
     );
 
@@ -164,25 +199,139 @@ describe('RecipientFormDialog linked-account payment methods', () => {
     const wireRoutingNumber = screen.getByLabelText(/Wire Routing Number/i);
 
     expect(achRoutingNumber).toHaveValue('021000021');
-    expect(achRoutingNumber).toHaveAttribute('readonly');
-    expect(achRoutingNumber).toHaveClass('eb-cursor-default', 'eb-bg-muted');
+    expect(achRoutingNumber).not.toHaveAttribute('readonly');
     expect(achRoutingNumber.compareDocumentPosition(wireRoutingNumber)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING
     );
-    expect(
-      screen.getByText(
-        'ACH routing number cannot be updated for linked accounts.'
-      )
-    ).toBeInTheDocument();
-    expect(wireRoutingNumber).not.toHaveAttribute('readonly');
-    expect(
-      screen.queryByRole('checkbox', { name: /Use same routing number/i })
-    ).not.toBeInTheDocument();
 
+    await user.clear(achRoutingNumber);
+    await user.type(achRoutingNumber, '031000503');
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    const confirmation = screen.getByRole('alertdialog');
+    expect(
+      within(confirmation).getByRole('heading', {
+        name: 'Update linked account?',
+      })
+    ).toBeInTheDocument();
+    expect(confirmation).toHaveTextContent(
+      'Updating the ACH routing number will trigger re-verification of this account, including microdeposit verification if required.'
+    );
+    expect(requests).toEqual([]);
+
+    await user.click(
+      within(confirmation).getByRole('button', {
+        name: 'Continue update',
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+    await waitFor(() => expect(onRecipientSettled).toHaveBeenCalledTimes(1));
+    expect(requests).toEqual(['create', 'deactivate:linked-account-1']);
+    expect(createPayload).toMatchObject({
+      type: 'LINKED_ACCOUNT',
+      clientId: 'client-1',
+      partyId: 'party-1',
+      account: {
+        routingInformation: [
+          { transactionType: 'ACH', routingNumber: '031000503' },
+          { transactionType: 'WIRE', routingNumber: '026009593' },
+        ],
+      },
+    });
+    expect(createPayload).not.toHaveProperty('partyDetails');
+  });
+
+  it('returns to the form and shows an error when replacement creation fails', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const amendRecipient = vi.fn();
+
+    server.use(
+      http.post('/recipients', () =>
+        HttpResponse.json(
+          { title: 'Unable to create replacement', httpStatus: 400 },
+          { status: 400 }
+        )
+      ),
+      http.post('/recipients/:id', () => {
+        amendRecipient();
+        return HttpResponse.json({});
+      })
+    );
+
+    render(
+      <RecipientFormDialog
+        mode="edit"
+        open
+        recipientType="LINKED_ACCOUNT"
+        i18nNamespace="linked-accounts"
+        recipient={linkedAccount}
+      />
+    );
+
+    const achRoutingNumber = screen.getByLabelText(/ACH Routing Number/i);
+    await user.clear(achRoutingNumber);
+    await user.type(achRoutingNumber, '031000503');
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Continue update',
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+    expect(
+      await screen.findByText('Unable to update account')
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/ACH Routing Number/i)).toHaveValue(
+      '031000503'
+    );
+    expect(amendRecipient).not.toHaveBeenCalled();
+  });
+
+  it('uses the normal amend flow when ACH routing is unchanged', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const requests: string[] = [];
+
+    server.use(
+      http.post('/recipients', () => {
+        requests.push('create');
+        return HttpResponse.json({});
+      }),
+      http.post('/recipients/:id', async ({ request, params }) => {
+        requests.push(`amend:${String(params.id)}`);
+        return HttpResponse.json({
+          ...linkedAccount,
+          account: ((await request.json()) as Record<string, unknown>).account,
+        });
+      })
+    );
+
+    render(
+      <RecipientFormDialog
+        mode="edit"
+        open
+        recipientType="LINKED_ACCOUNT"
+        i18nNamespace="linked-accounts"
+        recipient={linkedAccount}
+      />
+    );
+
+    const wireRoutingNumber = screen.getByLabelText(/Wire Routing Number/i);
     await user.clear(wireRoutingNumber);
     await user.type(wireRoutingNumber, '031000503');
-    expect(wireRoutingNumber).toHaveValue('031000503');
-    expect(achRoutingNumber).toHaveValue('021000021');
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => {
+      expect(requests).toEqual(['amend:linked-account-1']);
+    });
+    expect(
+      screen.queryByRole('heading', { name: 'Update linked account?' })
+    ).not.toBeInTheDocument();
   });
 
   it('submits every payment method selected through the widget create override', async () => {

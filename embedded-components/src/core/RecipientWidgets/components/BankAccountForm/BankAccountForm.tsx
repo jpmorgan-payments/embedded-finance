@@ -469,7 +469,6 @@ interface RoutingNumberFieldsProps {
   configs: BankAccountFormProps['config']['paymentMethods']['configs'];
   control: UseFormReturn<BankAccountFormData>['control'];
   disabled?: boolean;
-  readonlyTypes?: RoutingInformationTransactionType[];
   /** Cross-border (FX) overrides for the bank/routing code field. */
   internationalConfig?: BankAccountFormProps['config']['internationalFieldConfig'];
 }
@@ -481,14 +480,9 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
   configs,
   control,
   disabled = false,
-  readonlyTypes = [],
   internationalConfig,
 }) => {
   const { t, tString } = useTranslationWithTokens('bank-account-form');
-  const isReadonly = (method: RoutingInformationTransactionType) =>
-    readonlyTypes.includes(method);
-  const hasReadonlyMethod = paymentMethods.some(isReadonly);
-  const effectiveUseSameForAll = useSameForAll && !hasReadonlyMethod;
 
   // Single-page layout can render bank details before any rail is selected
   // (recipients default to no selected payment methods). Defer routing fields
@@ -569,19 +563,8 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                 placeholder={tString('routingNumbers.placeholder')}
                 maxLength={9}
                 disabled={disabled}
-                readOnly={isReadonly(singleMethod)}
-                className={
-                  isReadonly(singleMethod)
-                    ? 'eb-cursor-default eb-bg-muted'
-                    : undefined
-                }
               />
             </FormControl>
-            {isReadonly(singleMethod) ? (
-              <FormDescription>
-                {t('routingNumbers.readonlyLinkedAccountAchDescription')}
-              </FormDescription>
-            ) : null}
             <FormMessage>{fieldState.error?.message}</FormMessage>
           </FormItem>
         )}
@@ -596,26 +579,23 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
         {t('routingNumbers.legend')}
       </legend>
 
-      {/* A shared value could indirectly change a readonly routing number. */}
-      {!hasReadonlyMethod ? (
-        <label
-          htmlFor="useSameRoutingNumber"
-          className="eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-pb-2"
-        >
-          <Checkbox
-            id="useSameRoutingNumber"
-            checked={effectiveUseSameForAll}
-            onCheckedChange={onUseSameForAllChange}
-            disabled={disabled}
-          />
-          <span className="eb-text-sm eb-font-medium eb-leading-none">
-            {t('routingNumbers.useSameForAll')}
-          </span>
-        </label>
-      ) : null}
+      <label
+        htmlFor="useSameRoutingNumber"
+        className="eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-pb-2"
+      >
+        <Checkbox
+          id="useSameRoutingNumber"
+          checked={useSameForAll}
+          onCheckedChange={onUseSameForAllChange}
+          disabled={disabled}
+        />
+        <span className="eb-text-sm eb-font-medium eb-leading-none">
+          {t('routingNumbers.useSameForAll')}
+        </span>
+      </label>
 
       {/* Routing number fields */}
-      {effectiveUseSameForAll ? (
+      {useSameForAll ? (
         // Single field when using same for all
         <FormField
           control={control}
@@ -669,21 +649,8 @@ const RoutingNumberFields: FC<RoutingNumberFieldsProps> = ({
                         placeholder={tString('routingNumbers.placeholder')}
                         maxLength={9}
                         disabled={disabled}
-                        readOnly={isReadonly(method)}
-                        className={
-                          isReadonly(method)
-                            ? 'eb-cursor-default eb-bg-muted'
-                            : undefined
-                        }
                       />
                     </FormControl>
-                    {isReadonly(method) ? (
-                      <FormDescription>
-                        {t(
-                          'routingNumbers.readonlyLinkedAccountAchDescription'
-                        )}
-                      </FormDescription>
-                    ) : null}
                     <FormMessage>{fieldState.error?.message}</FormMessage>
                   </FormItem>
                 )}
@@ -1192,7 +1159,6 @@ const BankAccountFormStep2: FC<BankAccountFormStep2Props> = ({
           }}
           configs={effectiveConfig.paymentMethods.configs}
           disabled={isLoading}
-          readonlyTypes={effectiveConfig.readonlyFields?.routingNumberTypes}
           internationalConfig={effectiveConfig.internationalFieldConfig}
         />
       </fieldset>
@@ -1930,24 +1896,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
   );
   const useSameRoutingNumber = form.watch('useSameRoutingNumber');
   const firstRoutingNumber = form.watch('routingNumbers.0.routingNumber');
-  const hasReadonlyRoutingNumber = paymentTypes.some((paymentType) =>
-    effectiveConfig.readonlyFields?.routingNumberTypes?.includes(paymentType)
-  );
-
-  useEffect(() => {
-    if (
-      paymentTypes.length > 1 &&
-      hasReadonlyRoutingNumber &&
-      useSameRoutingNumber
-    ) {
-      form.setValue('useSameRoutingNumber', false);
-    }
-  }, [
-    form,
-    hasReadonlyRoutingNumber,
-    paymentTypes.length,
-    useSameRoutingNumber,
-  ]);
 
   // Clear routing number errors when toggling "use same" checkbox
   useEffect(() => {
@@ -1957,12 +1905,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
 
   // Sync all routing numbers when "use same" is checked and first routing number changes
   useEffect(() => {
-    if (
-      useSameRoutingNumber &&
-      !hasReadonlyRoutingNumber &&
-      paymentTypes.length > 1 &&
-      firstRoutingNumber
-    ) {
+    if (useSameRoutingNumber && paymentTypes.length > 1 && firstRoutingNumber) {
       const currentRoutingNumbers = form.getValues('routingNumbers') || [];
 
       // Check if any routing numbers are different from the first one
@@ -1980,13 +1923,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         });
       }
     }
-  }, [
-    useSameRoutingNumber,
-    hasReadonlyRoutingNumber,
-    firstRoutingNumber,
-    paymentTypes,
-    form,
-  ]);
+  }, [useSameRoutingNumber, firstRoutingNumber, paymentTypes, form]);
 
   // When payment types change, clean up routing numbers for removed methods
   // and update useSameRoutingNumber checkbox if needed
@@ -2017,8 +1954,6 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     if (paymentTypes.length <= 1) {
       // If only one payment method, always set to true
       form.setValue('useSameRoutingNumber', true);
-    } else if (hasReadonlyRoutingNumber) {
-      form.setValue('useSameRoutingNumber', false);
     } else if (hasNewPaymentMethod) {
       // If a new payment method was added, uncheck if any existing routing numbers have values
       // (because the new method will have empty routing number, creating inconsistency)
@@ -2045,7 +1980,7 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
         form.setValue('useSameRoutingNumber', allSame);
       }
     }
-  }, [paymentTypes, form, hasReadonlyRoutingNumber]);
+  }, [paymentTypes, form]);
 
   // Determine required fields based on selected payment methods
   const showAddressFields = useMemo(() => {
