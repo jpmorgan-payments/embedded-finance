@@ -1,10 +1,28 @@
-import { FC, ReactNode, useMemo, useState } from 'react';
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { TranslationResult, useTranslationWithTokens } from '@/i18n';
+import { AlertTriangleIcon } from 'lucide-react';
 
 import { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ApiError } from '@/api/generated/smbdo.schemas';
 import type { ErrorType } from '@/api/use-axios-instance';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,7 +39,11 @@ import { applyFxBankAccountFormOverrides } from '@/core/PaymentFlowFX/applyFxBan
 import { RecipientAccountCurrencySelect } from '@/core/PaymentFlowFX/components/RecipientAccountCurrencySelect';
 import { getFxRoutingCodeType } from '@/core/PaymentFlowFX/fxRecipientRequirements';
 
-import { useRecipientForm, type RecipientFormMode } from '../../hooks';
+import {
+  useLinkedAccountRoutingReplacement,
+  useRecipientForm,
+  type RecipientFormMode,
+} from '../../hooks';
 import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
 import {
   BankAccountForm,
@@ -58,6 +80,9 @@ export interface RecipientFormDialogProps {
 
   /** Callback when dialog open state changes (controlled mode) */
   onOpenChange?: (open: boolean) => void;
+
+  /** Called after the dialog's close animation finishes. */
+  onCloseAnimationComplete?: () => void;
 
   /** Callback when form submission is settled */
   onRecipientSettled?: (recipient?: Recipient, error?: any) => void;
@@ -146,6 +171,27 @@ function tagRecipientCurrency(
     },
   } as unknown as Recipient;
 }
+
+type RoutingEntry = {
+  routingNumber?: string;
+  transactionType?: string;
+  paymentType?: string;
+};
+
+const getAchRoutingNumber = (routingEntries?: RoutingEntry[]) =>
+  routingEntries
+    ?.find(
+      (routing) =>
+        routing.transactionType === 'ACH' || routing.paymentType === 'ACH'
+    )
+    ?.routingNumber?.trim() ?? '';
+
+const hasAchRoutingNumberChanged = (
+  recipient: Recipient,
+  formData: BankAccountFormData
+) =>
+  getAchRoutingNumber(recipient.account?.routingInformation) !==
+  getAchRoutingNumber(formData.routingNumbers);
 
 interface RecipientFormAlertOptions {
   fxCreateEnabled: boolean;
@@ -278,6 +324,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   recipient,
   open,
   onOpenChange,
+  onCloseAnimationComplete,
   onRecipientSettled,
   recipientType,
   i18nNamespace,
@@ -300,6 +347,9 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   const fxCreateEnabled =
     internationalMode && mode === 'create' && recipientType === 'RECIPIENT';
   const [accountCurrency, setAccountCurrency] = useState('USD');
+  const [pendingRoutingUpdate, setPendingRoutingUpdate] =
+    useState<BankAccountFormData>();
+  const previousOpenRef = useRef(open);
   const isInternational = fxCreateEnabled && accountCurrency !== 'USD';
   const shouldShowRecipientCurrency =
     showRecipientCurrency ?? internationalMode;
@@ -361,9 +411,9 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   // Use the recipient form hook
   const {
     submit,
-    reset,
-    status,
-    data: responseData,
+    reset: resetFormMutation,
+    status: formStatus,
+    data: formResponseData,
     error: formError,
   } = useRecipientForm({
     mode,
@@ -376,6 +426,21 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
     onSettled: handleSettled,
   });
 
+  const routingReplacement = useLinkedAccountRoutingReplacement({
+    recipient,
+    clientId,
+    onSettled: handleSettled,
+  });
+  const replacementSucceeded = routingReplacement.status === 'success';
+  const status = replacementSucceeded
+    ? 'success'
+    : routingReplacement.status === 'pending'
+      ? 'pending'
+      : formStatus;
+  const responseData = replacementSucceeded
+    ? routingReplacement.data
+    : formResponseData;
+
   const displayRecipient = useMemo(() => {
     if (!responseData) return undefined;
     if (isInternational) {
@@ -386,15 +451,58 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
 
   // Handle form submission - submit already transforms and adds the appropriate type
   const handleSubmit = (data: BankAccountFormData) => {
+    if (
+      mode === 'edit' &&
+      recipientType === 'LINKED_ACCOUNT' &&
+      recipient &&
+      hasAchRoutingNumberChanged(recipient, data)
+    ) {
+      routingReplacement.reset();
+      setPendingRoutingUpdate(data);
+      return;
+    }
+    routingReplacement.reset();
     submit(data);
   };
 
+  const confirmRoutingUpdate = async () => {
+    if (!pendingRoutingUpdate) return;
+    const routingUpdate = pendingRoutingUpdate;
+    setPendingRoutingUpdate(undefined);
+    try {
+      await routingReplacement.replace(routingUpdate);
+    } catch {
+      // The edit form remains open and renders the workflow-specific error.
+    }
+  };
+
+  const cancelRoutingUpdate = () => {
+    if (routingReplacement.isPending) return;
+    routingReplacement.reset();
+    setPendingRoutingUpdate(undefined);
+  };
+
+  const resetDialogState = useCallback(() => {
+    resetFormMutation();
+    routingReplacement.reset();
+    setPendingRoutingUpdate(undefined);
+    setAccountCurrency('USD');
+  }, [resetFormMutation, routingReplacement.reset]);
+
+  useEffect(() => {
+    if (open && previousOpenRef.current === false) {
+      resetDialogState();
+    }
+    previousOpenRef.current = open;
+  }, [open, resetDialogState]);
+
   // Handle dialog open/close
   const handleDialogChange = (isOpen: boolean) => {
-    // Reset when dialog closes to ensure clean state on next open
-    if (!isOpen) {
-      reset();
-      setAccountCurrency('USD');
+    if (isOpen) {
+      previousOpenRef.current = true;
+      resetDialogState();
+    } else {
+      previousOpenRef.current = false;
     }
     onOpenChange?.(isOpen);
   };
@@ -413,13 +521,17 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   const hasLinkAccountAcknowledgements = Boolean(
     linkAccountReviewAcknowledgements?.length
   );
+  const activeFormError =
+    routingReplacement.status === 'error'
+      ? routingReplacement.error
+      : formError;
   const formAlert = renderRecipientFormAlert({
     fxCreateEnabled,
     accountCurrency,
     onAccountCurrencyChange: setAccountCurrency,
     supportedCurrencies,
     currencyLabels,
-    formError,
+    formError: activeFormError,
     customErrorTitle: t(`forms.${translationKey}.error.title`),
     i18nNamespace,
   });
@@ -453,54 +565,108 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogChange}>
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[90vh]">
-        <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
-          <DialogTitle className="eb-font-header eb-text-xl">
-            {getTitle()}
-          </DialogTitle>
-          <DialogDescription>
-            {status === 'success'
-              ? responseData?.status
-                ? t(`status.messages.${responseData.status}`)
-                : t(`forms.${translationKey}.descriptionSuccess`)
-              : t(`forms.${translationKey}.description`)}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={handleDialogChange}>
+        {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+        <DialogContent
+          className="eb-max-h-full eb-max-w-2xl eb-overflow-hidden eb-p-0 sm:eb-max-h-[90vh]"
+          onAnimationEnd={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              event.currentTarget.dataset.state === 'closed'
+            ) {
+              resetDialogState();
+              onCloseAnimationComplete?.();
+            }
+          }}
+        >
+          <DialogHeader className="eb-shrink-0 eb-space-y-2 eb-border-b eb-p-6 eb-py-4">
+            <DialogTitle className="eb-font-header eb-text-xl">
+              {getTitle()}
+            </DialogTitle>
+            <DialogDescription>
+              {status === 'success'
+                ? responseData?.status
+                  ? t(`status.messages.${responseData.status}`)
+                  : t(`forms.${translationKey}.descriptionSuccess`)
+                : t(`forms.${translationKey}.description`)}
+            </DialogDescription>
+          </DialogHeader>
 
-        {/* Success State */}
-        {status === 'success' && displayRecipient && (
-          <div className="eb-space-y-6 eb-p-6">
-            <RecipientAccountDisplayCard
-              recipient={displayRecipient}
-              showRecipientCurrency={shouldShowRecipientCurrency}
+          {/* Success State */}
+          {status === 'success' && displayRecipient && (
+            <div className="eb-space-y-6 eb-p-6">
+              <RecipientAccountDisplayCard
+                recipient={displayRecipient}
+                showRecipientCurrency={shouldShowRecipientCurrency}
+              />
+
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button className="eb-w-full">Done</Button>
+                </DialogClose>
+              </DialogFooter>
+            </div>
+          )}
+
+          {/* Form State — FX currency select scrolls with the form body */}
+          {(status === 'idle' ||
+            status === 'error' ||
+            status === 'pending') && (
+            <BankAccountForm
+              key={fxCreateEnabled ? accountCurrency : 'domestic'}
+              config={config}
+              recipient={recipient}
+              client={clientData}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={status === 'pending'}
+              layout="singlePage"
+              alert={formAlert}
+              {...acknowledgementProps}
             />
+          )}
+        </DialogContent>
+      </Dialog>
 
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button className="eb-w-full">Done</Button>
-              </DialogClose>
-            </DialogFooter>
-          </div>
-        )}
+      <AlertDialog
+        open={Boolean(pendingRoutingUpdate)}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) cancelRoutingUpdate();
+        }}
+      >
+        <AlertDialogContent
+          onEscapeKeyDown={(event) => {
+            if (routingReplacement.isPending) event.preventDefault();
+          }}
+        >
+          <AlertDialogHeader>
+            <div className="eb-flex eb-items-center eb-gap-3">
+              <span className="eb-flex eb-size-10 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-warning-accent">
+                <AlertTriangleIcon className="eb-size-5 eb-text-warning" />
+              </span>
+              <AlertDialogTitle>
+                {t('forms.editAccount.routingNumberChange.title')}
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              {t('forms.editAccount.routingNumberChange.description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
 
-        {/* Form State — FX currency select scrolls with the form body */}
-        {(status === 'idle' || status === 'error' || status === 'pending') && (
-          <BankAccountForm
-            key={fxCreateEnabled ? accountCurrency : 'domestic'}
-            config={config}
-            recipient={recipient}
-            client={clientData}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={status === 'pending'}
-            layout="singlePage"
-            alert={formAlert}
-            {...acknowledgementProps}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={routingReplacement.isPending}>
+              {t('forms.editAccount.routingNumberChange.cancel')}
+            </AlertDialogCancel>
+            <Button
+              onClick={() => void confirmRoutingUpdate()}
+              disabled={routingReplacement.isPending}
+            >
+              {t('forms.editAccount.routingNumberChange.confirm')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };

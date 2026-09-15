@@ -67,7 +67,6 @@
     "placeholder": "Entrer le numéro d'acheminement à 9 chiffres",
     "internationalPlaceholder": "Entrer le code bancaire / d'acheminement",
     "optionalSuffix": "(facultatif)",
-    "readonlyLinkedAccountAchDescription": "Le numéro d'acheminement ACH ne peut pas être mis à jour pour les comptes liés.",
     "validation": {
       "required": "Le numéro d'acheminement est requis pour {{method}}",
       "digits": "Le numéro d'acheminement doit comporter 9 chiffres",

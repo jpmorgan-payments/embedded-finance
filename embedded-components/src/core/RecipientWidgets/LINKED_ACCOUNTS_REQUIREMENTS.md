@@ -354,8 +354,12 @@ The Linked Accounts functionality has the following constraints:
 
 **Core Requirements:**
 
-- Allow updates to linked account information using the amendRecipient API
-- Maintain account ID while allowing changes to account holder details
+- Allow supported updates to linked account information using the amendRecipient API
+- Maintain the account ID for ordinary supported edits
+- Allow users to edit the ACH routing number, but require confirmation that the account will undergo re-verification, including microdeposit verification when required
+- For an ACH routing-number change, create the updated linked account before deactivating the original account
+- If creation fails, keep the original linked account active and show the error on the edit form
+- If the original account cannot be deactivated after creation, make a best-effort attempt to deactivate the replacement and show a recovery error on the edit form
 - Apply same validation rules as creation
 - Display success/error notifications
 - Preserve account history and status
@@ -367,9 +371,11 @@ The Linked Accounts functionality has the following constraints:
 
 - Implement form pre-population logic
 - Create change tracking system
+- Detect ACH routing-number changes separately from ordinary amendments
+- Coordinate create-first replacement and deactivation as an ordered, compensating workflow
 - Build validation consistency between create/edit
 - Design undo/cancel functionality
-- Use generated `useAmendRecipient` hook
+- Use generated `useAmendRecipient` and `useCreateRecipient` hooks
 
 #### 3.1.5 Deactivate Linked Accounts
 
@@ -570,7 +576,10 @@ The Linked Accounts functionality has the following constraints:
 2. System displays dialog with pre-populated form
 3. User modifies desired fields
 4. System validates inputs on submission
-5. Upon successful update, system shows confirmation and refreshes list
+5. If the ACH routing number changed, system asks the user to confirm that account re-verification will be triggered
+6. After confirmation, system creates the updated linked account before deactivating the original account
+7. If the update fails, system returns the user to the populated edit form and displays the error there
+8. Upon successful update, system shows confirmation and refreshes the list
 
 ### 6.5 Deactivating a Linked Account
 

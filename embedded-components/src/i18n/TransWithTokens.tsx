@@ -16,9 +16,13 @@ const richTextComponents: Record<string, ReactElement> = {
 };
 
 const richTextTagPattern = /<\/?(?:p|br|strong|b|em|i|ul|ol|li)\s*\/?>/;
+const blockRichTextTagPattern = /<\/?(?:p|ul|ol)(?:\s|>|\/)/;
 
 export const hasRichTextMarkup = (content: string) =>
   richTextTagPattern.test(content);
+
+export const hasBlockRichTextMarkup = (content: string) =>
+  blockRichTextTagPattern.test(content);
 
 /**
  * A wrapper around react-i18next's Trans component that adds token ID annotations
@@ -72,13 +76,17 @@ export function TransWithTokens({
     children,
   } as unknown as ComponentProps<typeof Trans>;
 
-  if (!showTokenIds) {
-    return <Trans {...transProps} />;
-  }
+  const sourceContent =
+    defaults ?? (typeof children === 'string' ? children : '');
+  const isBlockContent = hasBlockRichTextMarkup(sourceContent);
+  const Wrapper = isBlockContent ? 'div' : 'span';
 
   return (
-    <span data-content-token={tokenId} className="eb-contents">
+    <Wrapper
+      {...(showTokenIds ? { 'data-content-token': tokenId } : {})}
+      className={isBlockContent ? 'eb-block' : 'eb-inline'}
+    >
       <Trans {...transProps} />
-    </span>
+    </Wrapper>
   );
 }

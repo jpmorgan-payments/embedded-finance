@@ -124,4 +124,24 @@ describe('RecipientFormDialog — FX create wiring', () => {
     const settled = onRecipientSettled.mock.calls[0]?.[0];
     expect(settled?.account?.currencyCode).toBeUndefined();
   });
+
+  it('does not reset visible state when the close animation begins', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const onOpenChange = vi.fn();
+
+    render(
+      <RecipientFormDialog
+        mode="create"
+        open
+        onOpenChange={onOpenChange}
+        recipientType="RECIPIENT"
+        i18nNamespace="recipients"
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(mockReset).not.toHaveBeenCalled();
+  });
 });

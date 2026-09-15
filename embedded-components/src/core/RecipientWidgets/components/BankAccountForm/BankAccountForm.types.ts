@@ -153,8 +153,6 @@ export interface BankAccountFormConfig {
     businessName?: boolean;
     accountNumber?: boolean;
     bankAccountType?: boolean;
-    /** Routing-number fields that the API does not allow this form to update. */
-    routingNumberTypes?: RoutingInformationTransactionType[];
   };
 
   /** Content/text configuration */

@@ -67,7 +67,6 @@
     "placeholder": "Enter 9-digit routing number",
     "internationalPlaceholder": "Enter the bank / routing code",
     "optionalSuffix": "(optional)",
-    "readonlyLinkedAccountAchDescription": "ACH routing number cannot be updated for linked accounts.",
     "validation": {
       "required": "Routing number is required for {{method}}",
       "digits": "Routing number must be 9 digits",

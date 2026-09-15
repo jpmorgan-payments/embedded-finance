@@ -19,6 +19,10 @@ vi.mock('react-i18next', async (importOriginal) => {
             "Real-Time Payments (RTP) is not supported by the recipient's bank.",
           'errors.known.RTP_UNAVAILABLE.suggestion':
             'You can still add this recipient using ACH or Wire transfer.',
+          'errors.known.RTP_INVALID_ROUTING_NUMBER.title':
+            'Routing number not valid for RTP',
+          'errors.known.RTP_INVALID_ROUTING_NUMBER.description':
+            'The routing number provided is not valid for <i>RTP transactions</i>. Please provide a valid routing number or remove RTP from this request.',
         };
         return translations[key] || key;
       },
@@ -94,6 +98,36 @@ describe('FriendlyErrorAlert', () => {
         /RTP \(Real-Time Payments\) is not available at this financial institution/
       )
     ).toBeInTheDocument();
+  });
+
+  it('should replace an invalid RTP routing response with actionable guidance', () => {
+    const rawMessage =
+      'The routing number provided 028000024 cannot be used for RTP transactions. Provide an alternative number that is valid for RTP.';
+    const error = {
+      response: {
+        data: {
+          httpStatus: 400,
+          title: 'Bad Request',
+          message: rawMessage,
+          context: [{ code: null, field: null, message: rawMessage }],
+        },
+        status: 400,
+      },
+      status: 400,
+    } as unknown as ErrorType<ApiError>;
+
+    render(<FriendlyErrorAlert error={error} />);
+
+    expect(
+      screen.getByText('Routing number not valid for RTP')
+    ).toBeInTheDocument();
+    const friendlyDescription = screen.getByText(
+      /The routing number provided is not valid for/
+    );
+    expect(friendlyDescription).toHaveClass('eb-inline');
+    expect(friendlyDescription).not.toHaveClass('eb-contents');
+    expect(screen.queryByText(rawMessage)).not.toBeInTheDocument();
+    expect(screen.queryByText(/028000024/)).not.toBeInTheDocument();
   });
 
   it('should fall back to ServerErrorAlert for unknown errors', () => {

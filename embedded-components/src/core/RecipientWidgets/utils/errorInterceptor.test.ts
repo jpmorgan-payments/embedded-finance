@@ -52,6 +52,65 @@ describe('errorInterceptor', () => {
       }
     });
 
+    it('should detect an invalid RTP routing number from a nullable-code API response', () => {
+      const apiMessage =
+        'The routing number provided 028000024 cannot be used for RTP transactions. Provide an alternative number that is valid for RTP.';
+      const error = {
+        response: {
+          data: {
+            httpStatus: 400,
+            title: 'Bad Request',
+            message: apiMessage,
+            context: [
+              {
+                code: null,
+                field: null,
+                message: apiMessage,
+              },
+            ],
+          },
+          status: 400,
+        },
+        status: 400,
+      } as unknown as ErrorType<ApiError>;
+
+      const result = interceptError(error);
+
+      expect(result?.isKnown).toBe(true);
+      if (result?.isKnown) {
+        expect(result.config.code).toBe('RTP_INVALID_ROUTING_NUMBER');
+        expect(result.config.showContext).toBe(false);
+        expect(result.context).toBeUndefined();
+      }
+    });
+
+    it('should detect invalid RTP routing when only context contains the message', () => {
+      const error = {
+        response: {
+          data: {
+            httpStatus: 400,
+            title: 'Bad Request',
+            context: [
+              {
+                code: null,
+                message:
+                  'The routing number provided 028000024 cannot be used for RTP transactions. Provide an alternative number that is valid for RTP.',
+              },
+            ],
+          },
+          status: 400,
+        },
+        status: 400,
+      } as unknown as ErrorType<ApiError>;
+
+      const result = interceptError(error);
+
+      expect(result?.isKnown).toBe(true);
+      if (result?.isKnown) {
+        expect(result.config.code).toBe('RTP_INVALID_ROUTING_NUMBER');
+      }
+    });
+
     it('should return unknown error for errors without known code', () => {
       const error = {
         response: {

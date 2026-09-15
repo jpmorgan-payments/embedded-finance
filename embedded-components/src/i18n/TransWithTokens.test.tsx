@@ -30,7 +30,7 @@ function renderTranslation(
 describe('TransWithTokens', () => {
   it('renders the supported structured content elements', () => {
     const { container } = renderTranslation(
-      '<p>Before you continue:<br/><strong>Required</strong></p><ul><li>First item</li></ul><ol><li><em>Second item</em></li></ol>'
+      '<p>Before you continue:<br/><strong>Required</strong></p><ul><li>First item</li></ul><ol><li><i>Second item</i></li></ol>'
     );
 
     expect(container.querySelector('p')).toHaveTextContent(
@@ -42,6 +42,26 @@ describe('TransWithTokens', () => {
     expect(container.querySelector('ol > li > em')).toHaveTextContent(
       'Second item'
     );
+    const contentBoundary = container.querySelector('.eb-block');
+    expect(contentBoundary).toBeInTheDocument();
+    expect(contentBoundary).toContainElement(container.querySelector('em'));
+    expect(contentBoundary).not.toHaveAttribute('data-content-token');
+  });
+
+  it('keeps inline rich content inside one inline wrapper', () => {
+    const { container } = renderTranslation(
+      'Contact <i>support@example.com</i> for help.'
+    );
+
+    const contentBoundary = container.querySelector('.eb-inline');
+    const emphasized = contentBoundary?.querySelector('em');
+
+    expect(contentBoundary).toHaveTextContent(
+      'Contact support@example.com for help.'
+    );
+    expect(emphasized).toHaveTextContent('support@example.com');
+    expect(emphasized?.parentElement).toBe(contentBoundary);
+    expect(contentBoundary).not.toHaveClass('eb-contents');
   });
 
   it('keeps unsupported markup inert', () => {

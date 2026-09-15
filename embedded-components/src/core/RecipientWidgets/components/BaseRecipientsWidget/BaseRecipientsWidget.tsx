@@ -915,6 +915,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   const [editingRecipient, setEditingRecipient] = useState<Recipient | null>(
     null
   );
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   // Create dialog - controls open state
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
@@ -1227,13 +1228,16 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
   // Handle opening the edit dialog (lifted to parent level)
   const handleEditRecipient = React.useCallback((recipient: Recipient) => {
     setEditingRecipient(recipient);
+    setIsEditDialogOpen(true);
   }, []);
 
   // Handle edit dialog state changes
   const handleEditDialogOpenChange = React.useCallback((open: boolean) => {
-    if (!open) {
-      setEditingRecipient(null);
-    }
+    setIsEditDialogOpen(open);
+  }, []);
+
+  const handleEditDialogClosed = React.useCallback(() => {
+    setEditingRecipient(null);
   }, []);
 
   // Handle edit settled - notify parent but don't close dialog (let user see success state)
@@ -1328,8 +1332,9 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
         <RecipientFormDialog
           mode="edit"
           recipient={editingRecipient}
-          open
+          open={isEditDialogOpen}
           onOpenChange={handleEditDialogOpenChange}
+          onCloseAnimationComplete={handleEditDialogClosed}
           onRecipientSettled={handleEditSettled}
           recipientType={recipientType}
           i18nNamespace={config.i18nNamespace}

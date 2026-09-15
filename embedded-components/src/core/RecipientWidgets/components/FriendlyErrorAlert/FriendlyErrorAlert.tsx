@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { useTranslationWithTokens } from '@/i18n';
+import { useTranslationWithTokens, type TranslationResult } from '@/i18n';
 import { AlertTriangleIcon, InfoIcon, XCircleIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -86,8 +86,7 @@ const KnownErrorAlert: FC<{
   i18nNamespace: 'recipients' | 'linked-accounts';
 }> = ({ interceptedError, className, i18nNamespace }) => {
   const { t } = useTranslationWithTokens(i18nNamespace);
-  // Type assertion to avoid TypeScript overload issues with dynamic keys
-  const translate = t as (key: string) => string;
+  const translate = t as (key: string) => TranslationResult;
   const { config, context } = interceptedError;
 
   const Icon = getIcon(config.variant);
@@ -111,7 +110,7 @@ const KnownErrorAlert: FC<{
         {suggestion && (
           <p className="eb-text-sm eb-font-medium">{suggestion}</p>
         )}
-        {context?.message && (
+        {config.showContext !== false && context?.message && (
           <p className="eb-mt-2 eb-text-xs eb-opacity-80">{context.message}</p>
         )}
       </AlertDescription>
