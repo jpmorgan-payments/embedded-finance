@@ -3,7 +3,8 @@
  *
  * Dedicated story group for the **Business → Industry** step:
  *
- * - **AI suggestions** (`NAICS_SUGGESTION_FEATURE_FLAG`): single match, multiple
+ * - **AI suggestions** (`enableIndustrySuggestions` prop, or the
+ *   `NAICS_SUGGESTION_FEATURE_FLAG` localStorage flag): single match, multiple
  *   matches, empty response (vague description), and API error.
  * - **Priority industry codes** (`priorityIndustryCodes` prop): host-curated
  *   subset pinned at the top of the industry combobox while the full catalog
@@ -105,7 +106,7 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
 /**
  * **AI — Single recommendation**
  *
- * Single AI-suggested NAICS code rendered as a chip above the combobox.
+ * Single AI-suggested NAICS code rendered below the combobox.
  */
 export const AISingleRecommendation: Story = {
   name: 'AI — single recommendation',
@@ -145,14 +146,16 @@ export const AISingleRecommendation: Story = {
 /**
  * **AI — Multiple recommendations**
  *
- * Three AI-suggested NAICS codes rendered as chips above the combobox.
+ * Four AI-suggested NAICS codes rendered below the combobox. Mixes short and
+ * long official NAICS titles so the multi-line wrapping of a suggestion row is
+ * exercised (the longest titles in the catalog run past 100 characters).
  */
 export const AIMultipleRecommendations: Story = {
   name: 'AI — multiple recommendations',
   loaders: [
     seedClientLoader(
       withOrgDescription(
-        'We provide custom software development services, web application development, and technology consulting.'
+        'We provide custom software development services, web application development, cloud hosting, and technology consulting.'
       )
     ),
   ],
@@ -170,12 +173,19 @@ export const AIMultipleRecommendations: Story = {
               naicsDescription: 'Custom Computer Programming Services',
             },
             {
-              naicsCode: '541512',
-              naicsDescription: 'Computer Systems Design Services',
+              naicsCode: '518210',
+              naicsDescription:
+                'Computing Infrastructure Providers, Data Processing, Web Hosting, and Related Services',
             },
             {
-              naicsCode: '541519',
-              naicsDescription: 'Other Computer Related Services',
+              naicsCode: '541715',
+              naicsDescription:
+                'Research and Development in the Physical, Engineering, and Life Sciences (except Nanotechnology and Biotechnology)',
+            },
+            {
+              naicsCode: '516210',
+              naicsDescription:
+                'Media Streaming Distribution Services, Social Networks, and Other Media Networks and Content Providers',
             },
           ],
           message: 'Recommended NAICS codes for software consulting business',
@@ -187,6 +197,60 @@ export const AIMultipleRecommendations: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     flowEntry: INDUSTRY_FLOW_ENTRY,
+  },
+};
+
+/**
+ * **AI — Enabled via prop**
+ *
+ * Same surface as the stories above, but enabled with the
+ * `enableIndustrySuggestions` prop instead of the `NAICS_SUGGESTION_FEATURE_FLAG`
+ * localStorage flag (which is explicitly cleared here to prove the prop alone
+ * drives the feature).
+ */
+export const AIEnabledViaProp: Story = {
+  name: 'AI — enabled via prop',
+  loaders: [
+    seedClientLoader(
+      withOrgDescription(
+        'We manufacture specialty food products and distribute them to grocery wholesalers.'
+      )
+    ),
+  ],
+  play: async () => {
+    localStorage.removeItem('NAICS_SUGGESTION_FEATURE_FLAG');
+  },
+  parameters: {
+    msw: {
+      handlers: createOnboardingFlowHandlers({
+        clientId: DEFAULT_CLIENT_ID,
+        naicsRecommendations: {
+          resource: [
+            {
+              naicsCode: '311999',
+              naicsDescription: 'All Other Miscellaneous Food Manufacturing',
+            },
+            {
+              naicsCode: '424490',
+              naicsDescription:
+                'Other Grocery and Related Products Merchant Wholesalers',
+            },
+            {
+              naicsCode: '811310',
+              naicsDescription:
+                'Commercial and Industrial Machinery and Equipment (except Automotive and Electronic) Repair and Maintenance',
+            },
+          ],
+          message: 'Recommended NAICS codes for specialty food manufacturing',
+        },
+      }),
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: INDUSTRY_FLOW_ENTRY,
+    enableIndustrySuggestions: true,
   },
 };
 
@@ -226,7 +290,7 @@ export const AINoRecommendations: Story = {
 /**
  * **AI — API error**
  *
- * Recommendation API returns 400 → recoverable error alert above the combobox.
+ * Recommendation API returns 400 → recoverable error alert below the description field.
  */
 export const AIAPIError: Story = {
   name: 'AI — API error',
@@ -339,7 +403,7 @@ export const PriorityCodesWithUnknown: Story = {
 /**
  * **Priority codes + AI suggestions**
  *
- * Both surfaces active. The AI chip group sits **above** the combobox; the
+ * Both surfaces active. The AI suggestion list sits **below** the combobox; the
  * pinned "Suggested for your platform" group sits **inside** the combobox.
  * The two are complementary and independent.
  */
@@ -368,6 +432,15 @@ export const PriorityCodesPlusAI: Story = {
             {
               naicsCode: '722515',
               naicsDescription: 'Snack and Nonalcoholic Beverage Bars',
+            },
+            {
+              naicsCode: '424490',
+              naicsDescription:
+                'Other Grocery and Related Products Merchant Wholesalers',
+            },
+            {
+              naicsCode: '311999',
+              naicsDescription: 'All Other Miscellaneous Food Manufacturing',
             },
           ],
           message: 'Recommended NAICS codes for bakery business',

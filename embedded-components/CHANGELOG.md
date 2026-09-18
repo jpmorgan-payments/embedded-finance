@@ -2,6 +2,14 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.14] - 2026-09-18
+
+### Changes
+
+#### Features
+
+- **industry-suggestions:** add enableIndustrySuggestions prop and improve UI for NAICS code suggestions
+
 ## [0.17.13] - 2026-09-15
 
 ### Changes
