@@ -467,6 +467,22 @@ export type OnboardingConfigUsedInContext = {
    */
   priorityIndustryCodes?: readonly string[];
   /**
+   * **Business → Industry** (`IndustryForm`): show the "Suggest" button that asks
+   * the recommendations API for NAICS codes matching the business description,
+   * and renders the returned codes as one-click suggestions under the industry
+   * combobox.
+   *
+   * - Composes with {@link priorityIndustryCodes} — the two surfaces are
+   *   independent and may both be active.
+   * - When this prop is omitted, the `NAICS_SUGGESTION_FEATURE_FLAG`
+   *   localStorage flag (`'true'`) still enables the feature, so demos and
+   *   Storybook can toggle it without a host code change. An explicit value
+   *   always wins over localStorage.
+   *
+   * @default false
+   */
+  enableIndustrySuggestions?: boolean;
+  /**
    * Render selected onboarding fields as read-only. Lets hosts protect data
    * that is authoritative in their own systems while still allowing users to
    * complete anything genuinely missing. See {@link OnboardingReadonlyFieldsConfig}.

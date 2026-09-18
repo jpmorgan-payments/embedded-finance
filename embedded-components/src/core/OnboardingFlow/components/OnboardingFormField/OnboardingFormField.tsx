@@ -411,17 +411,25 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                     );
                   case 'industrySelect':
                     return (
-                      <IndustryTypeSelect
-                        field={field}
-                        data-dtrum-tracking={field.name}
-                        placeholder={fieldPlaceholder}
-                        priorityCodes={priorityIndustryCodes}
-                        onChange={(value) => {
-                          onChangeProp?.(value);
-                          field.onChange(value);
-                          field.onBlur();
-                        }}
-                      />
+                      // Row wrapper so `inputButton` aligns with the combobox
+                      // itself rather than the whole field block (label +
+                      // description + message), whose height is theme-dependent.
+                      <div className="eb-flex eb-w-full eb-items-center eb-space-x-2">
+                        <div className="eb-min-w-0 eb-flex-1">
+                          <IndustryTypeSelect
+                            field={field}
+                            data-dtrum-tracking={field.name}
+                            placeholder={fieldPlaceholder}
+                            priorityCodes={priorityIndustryCodes}
+                            onChange={(value) => {
+                              onChangeProp?.(value);
+                              field.onChange(value);
+                              field.onBlur();
+                            }}
+                          />
+                        </div>
+                        {inputButton}
+                      </div>
                     );
                   case 'combobox':
                     return (

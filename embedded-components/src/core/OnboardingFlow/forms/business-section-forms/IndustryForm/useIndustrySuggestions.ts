@@ -5,6 +5,7 @@ import {
   useSmbdoPostRecommendations,
 } from '@/api/generated/smbdo';
 import { NaicsCodeResponse, ResourceType } from '@/api/generated/smbdo.schemas';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
 
 /**
  * Hook that provides AI-based industry suggestion functionality
@@ -12,8 +13,11 @@ import { NaicsCodeResponse, ResourceType } from '@/api/generated/smbdo.schemas';
  * @returns Object containing industry suggestion functionality and state
  */
 export const useIndustrySuggestions = (description: string) => {
+  const { enableIndustrySuggestions } = useOnboardingContext();
+
   // Feature flag management
-  const [isFeatureFlagEnabled, setIsFeatureFlagEnabled] = useState(false);
+  const [isLocalStorageFlagEnabled, setIsLocalStorageFlagEnabled] =
+    useState(false);
 
   // Recommendations state
   const [recommendations, setRecommendations] = useState<NaicsCodeResponse[]>(
@@ -35,8 +39,12 @@ export const useIndustrySuggestions = (description: string) => {
   // Check for feature flag in localStorage
   useEffect(() => {
     const featureFlag = localStorage.getItem('NAICS_SUGGESTION_FEATURE_FLAG');
-    setIsFeatureFlagEnabled(featureFlag === 'true');
+    setIsLocalStorageFlagEnabled(featureFlag === 'true');
   }, []);
+
+  // An explicit host prop wins; localStorage stays as the demo/dev toggle.
+  const isFeatureFlagEnabled =
+    enableIndustrySuggestions ?? isLocalStorageFlagEnabled;
 
   /**
    * Request industry recommendations based on the description

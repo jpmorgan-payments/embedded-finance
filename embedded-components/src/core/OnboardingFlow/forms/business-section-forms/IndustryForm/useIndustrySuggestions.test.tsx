@@ -6,6 +6,11 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { vi } from 'vitest';
 
+import {
+  OnboardingContext,
+  OnboardingContextType,
+} from '@/core/OnboardingFlow/contexts/OnboardingContext';
+
 import { useIndustrySuggestions } from './useIndustrySuggestions';
 
 /**
@@ -57,10 +62,25 @@ const mockLocalStorage = (() => {
 })();
 
 // Create a wrapper that provides all necessary contexts for tests
-const createWrapper = () => {
+const createWrapper = (
+  onboardingOverrides?: Partial<OnboardingContextType>
+) => {
+  const onboardingContext: OnboardingContextType = {
+    availableProducts: ['EMBEDDED_PAYMENTS'],
+    availableJurisdictions: ['US'],
+    clientData: undefined,
+    clientGetStatus: 'success',
+    setClientId: vi.fn(),
+    organizationType: 'LIMITED_LIABILITY_COMPANY',
+    ...onboardingOverrides,
+  };
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <EBComponentsProvider apiBaseUrl="https://api.test">
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <OnboardingContext.Provider value={onboardingContext}>
+          {children}
+        </OnboardingContext.Provider>
+      </QueryClientProvider>
     </EBComponentsProvider>
   );
   Wrapper.displayName = 'TestWrapper';
@@ -117,6 +137,24 @@ describe('useIndustrySuggestions', () => {
     });
 
     expect(result.current.isFeatureFlagEnabled).toBe(true);
+  });
+
+  test('enables feature flag via the enableIndustrySuggestions prop', () => {
+    const { result } = renderHook(() => useIndustrySuggestions(''), {
+      wrapper: createWrapper({ enableIndustrySuggestions: true }),
+    });
+
+    expect(result.current.isFeatureFlagEnabled).toBe(true);
+  });
+
+  test('enableIndustrySuggestions={false} overrides the localStorage flag', () => {
+    mockLocalStorage.setItem('NAICS_SUGGESTION_FEATURE_FLAG', 'true');
+
+    const { result } = renderHook(() => useIndustrySuggestions(''), {
+      wrapper: createWrapper({ enableIndustrySuggestions: false }),
+    });
+
+    expect(result.current.isFeatureFlagEnabled).toBe(false);
   });
 
   test('does not call API when handleSuggest is called with empty description', async () => {

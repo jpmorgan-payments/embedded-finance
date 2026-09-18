@@ -120,32 +120,28 @@ export const IndustryForm: FormStepComponent = () => {
         )}
       </div>
       <div className="eb-max-w-full eb-space-y-2">
-        <div className="eb-flex eb-max-w-full eb-flex-wrap eb-items-center eb-gap-2 md:eb-flex-nowrap">
-          <div className="eb-min-w-0 eb-max-w-full eb-flex-1">
-            <OnboardingFormField
-              control={form.control}
-              name="industry"
-              type="industrySelect"
-              popoutTooltip
-              tooltip={industryTooltip}
-            />
-          </div>
-          {isFeatureFlagEnabled && (
-            <Button
-              variant="outline"
-              size="sm"
-              type="button"
-              disabled={!description || isPending}
-              onClick={handleSuggest}
-              className="eb-shrink-0 eb-whitespace-nowrap"
-            >
-              <SparklesIcon className="eb-mr-2 eb-size-4 eb-shrink-0" />
-              <span className="eb-truncate">
+        <OnboardingFormField
+          control={form.control}
+          name="industry"
+          type="industrySelect"
+          popoutTooltip
+          tooltip={industryTooltip}
+          inputButton={
+            isFeatureFlagEnabled ? (
+              <Button
+                variant="outline"
+                size="input"
+                type="button"
+                disabled={!description || isPending}
+                onClick={handleSuggest}
+                className="eb-shrink-0 eb-whitespace-nowrap"
+              >
+                <SparklesIcon className="eb-size-4 eb-shrink-0" />
                 {t('screens.industryForm.suggestButtonLabel')}
-              </span>
-            </Button>
-          )}
-        </div>
+              </Button>
+            ) : undefined
+          }
+        />
         {isPending && (
           <div className="eb-mt-2 eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
             <div className="eb-size-3 eb-animate-spin eb-rounded-full eb-border-2 eb-border-current eb-border-t-transparent" />
@@ -166,7 +162,7 @@ export const IndustryForm: FormStepComponent = () => {
                 <span>{t('screens.industryForm.recommendationsInfo')}</span>
               </p>
             </div>
-            <div className="eb-flex eb-max-w-full eb-flex-col eb-gap-2 eb-overflow-hidden md:eb-flex-row md:eb-flex-wrap">
+            <div className="eb-flex eb-max-w-full eb-flex-col eb-gap-2">
               {recommendations.map((rec, index) => (
                 <Button
                   key={rec.naicsCode ?? `rec-${index}`}
@@ -176,17 +172,16 @@ export const IndustryForm: FormStepComponent = () => {
                   onClick={() =>
                     rec.naicsCode && handleRecommendationClick(rec.naicsCode)
                   }
-                  className="eb-h-auto eb-max-w-full eb-justify-start eb-px-3 eb-py-2 eb-text-left eb-text-xs hover:eb-bg-primary/5 active:eb-scale-[0.98] sm:eb-max-w-fit"
-                  title={`${rec.naicsCode ?? ''} - ${rec.naicsDescription ?? ''}`}
+                  className="eb-h-auto eb-w-full eb-justify-start eb-whitespace-normal eb-px-3 eb-py-2 eb-text-left eb-text-xs hover:eb-bg-primary/5 active:eb-scale-[0.98]"
                 >
-                  <div className="eb-flex eb-max-w-full eb-items-center eb-gap-2">
+                  <span className="eb-flex eb-w-full eb-items-start eb-gap-2">
                     <span className="eb-font-mono eb-shrink-0 eb-rounded-sm eb-bg-primary/10 eb-px-1.5 eb-py-0.5 eb-font-semibold eb-text-primary">
                       {rec.naicsCode ?? ''}
                     </span>
-                    <span className="eb-line-clamp-1 eb-truncate">
+                    <span className="eb-min-w-0 eb-flex-1 eb-break-words eb-py-0.5 eb-leading-snug">
                       {rec.naicsDescription ?? ''}
                     </span>
-                  </div>
+                  </span>
                 </Button>
               ))}
             </div>
