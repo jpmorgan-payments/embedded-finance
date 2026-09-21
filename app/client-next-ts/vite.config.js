@@ -38,6 +38,7 @@ export default defineConfig({
         '**/routeTree.gen.ts',
         '**/vitest.setup.ts',
         'src/components/year-in-review/**',
+        'src/components/prosperity-bay/**',
         'src/components/rum-dashboard/**',
         'src/components/embedded-payments-flow/**',
         'src/components/api-flow-explorer/**',

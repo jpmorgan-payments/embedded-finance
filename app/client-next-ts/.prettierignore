@@ -1,2 +1,11 @@
 # TanStack Router — generator recommends not formatting this file (see header in file).
 src/routeTree.gen.ts
+
+# Prosperity Bay engine is a compact port of the standalone visualization.
+src/components/prosperity-bay/content.ts
+src/components/prosperity-bay/timeline.ts
+src/components/prosperity-bay/operations.ts
+src/components/prosperity-bay/scene.ts
+src/components/prosperity-bay/app.ts
+src/components/prosperity-bay/markup.ts
+src/components/prosperity-bay/prosperity-bay.css
