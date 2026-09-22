@@ -22,7 +22,19 @@ function RootComponent() {
   const isSellsenseDemo = location.pathname === '/sellsense-demo';
   const isYearInReview = location.pathname === '/year-in-review';
   const isFortressGame = location.pathname === '/fortress-game';
+  const isProsperityBay = location.pathname === '/prosperity-bay';
   const isTestScenario = isTestScenarioPath(location.pathname);
+
+  if (isProsperityBay) {
+    return (
+      <>
+        <main>
+          <Outlet />
+        </main>
+        <TanStackRouterDevtools />
+      </>
+    );
+  }
 
   if (isSellsenseDemo || isTestScenario || isFortressGame) {
     return (

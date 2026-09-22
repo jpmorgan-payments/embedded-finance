@@ -19,6 +19,7 @@ import { Route as GithubRouteImport } from './routes/github'
 import { Route as MswTestRouteImport } from './routes/msw-test'
 import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
 import { Route as PaymentsFlowSimulatorRouteImport } from './routes/payments-flow-simulator'
+import { Route as ProsperityBayRouteImport } from './routes/prosperity-bay'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as StoriesRouteImport } from './routes/stories'
@@ -86,6 +87,11 @@ const PartiallyHostedDemoRoute = PartiallyHostedDemoRouteImport.update({
 const PaymentsFlowSimulatorRoute = PaymentsFlowSimulatorRouteImport.update({
   id: '/payments-flow-simulator',
   path: '/payments-flow-simulator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProsperityBayRoute = ProsperityBayRouteImport.update({
+  id: '/prosperity-bay',
+  path: '/prosperity-bay',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
@@ -190,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
+  '/prosperity-bay': typeof ProsperityBayRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
@@ -220,6 +227,7 @@ export interface FileRoutesByTo {
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
+  '/prosperity-bay': typeof ProsperityBayRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/test-scenario-2': typeof TestScenario2Route
@@ -249,6 +257,7 @@ export interface FileRoutesById {
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
+  '/prosperity-bay': typeof ProsperityBayRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
@@ -281,6 +290,7 @@ export interface FileRouteTypes {
     | '/msw-test'
     | '/partially-hosted-demo'
     | '/payments-flow-simulator'
+    | '/prosperity-bay'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/msw-test'
     | '/partially-hosted-demo'
     | '/payments-flow-simulator'
+    | '/prosperity-bay'
     | '/sellsense-demo'
     | '/solutions'
     | '/test-scenario-2'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '/msw-test'
     | '/partially-hosted-demo'
     | '/payments-flow-simulator'
+    | '/prosperity-bay'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
@@ -370,6 +382,7 @@ export interface RootRouteChildren {
   MswTestRoute: typeof MswTestRoute
   PartiallyHostedDemoRoute: typeof PartiallyHostedDemoRoute
   PaymentsFlowSimulatorRoute: typeof PaymentsFlowSimulatorRoute
+  ProsperityBayRoute: typeof ProsperityBayRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
@@ -455,6 +468,13 @@ declare module '@tanstack/react-router' {
       path: '/payments-flow-simulator'
       fullPath: '/payments-flow-simulator'
       preLoaderRoute: typeof PaymentsFlowSimulatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prosperity-bay': {
+      id: '/prosperity-bay'
+      path: '/prosperity-bay'
+      fullPath: '/prosperity-bay'
+      preLoaderRoute: typeof ProsperityBayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sellsense-demo': {
@@ -626,6 +646,7 @@ const rootRouteChildren: RootRouteChildren = {
   MswTestRoute: MswTestRoute,
   PartiallyHostedDemoRoute: PartiallyHostedDemoRoute,
   PaymentsFlowSimulatorRoute: PaymentsFlowSimulatorRoute,
+  ProsperityBayRoute: ProsperityBayRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,
