@@ -18,7 +18,7 @@ export function mountProsperityBay(
 ): () => void {
   root.innerHTML = PROSPERITY_BAY_MARKUP;
   const {chapters,sources,metaphor,objective,storyCallouts}=SGContent;
-  const {getState,advance,total}=SGTimeline;
+  const {getState,advance,adjacentStep,total}=SGTimeline;
   const $=id=>root.querySelector('#'+id);
   const scene=SGScene.create($('town'));
   const storyScene=SGScene.create($('story-town'));
@@ -114,8 +114,8 @@ export function mountProsperityBay(
   function touchIdle(){clearTimeout(idleTimer);if(exploring||$('chapter-detail').open||$('story-detail').open)idleTimer=setTimeout(()=>{exploring=false;if($('chapter-detail').open)$('chapter-detail').close();if($('story-detail').open)$('story-detail').close();updatePlayback();},30000);}
   function seek(i,t=0,pause=false){
     chapter=(i+chapters.length)%chapters.length;
-    // The opening fade needs playback; a manually paused jump must show the town.
-    time=chapter===0&&pause&&t<2?2:t;exploring=pause;lastKey='';
+    // Manual jumps skip the opening fade; the autoplay loop still uses it.
+    time=chapter===0&&t<2?2:t;exploring=pause;lastKey='';
     if(!pause){clearTimeout(idleTimer);if($('chapter-detail').open)$('chapter-detail').close();}
     if(pause)touchIdle();render(0,true);updatePlayback();
   }
@@ -141,11 +141,21 @@ export function mountProsperityBay(
   });
   const onCloseDetail=()=>$('chapter-detail').close();
   const onCloseStory=()=>$('story-detail').close();
+  const onStoryBackdropClick=e=>{
+    const dialog=$('story-detail');
+    if(e.target!==dialog)return;
+    const {left,right,top,bottom}=dialog.getBoundingClientRect();
+    if(e.clientX<left||e.clientX>right||e.clientY<top||e.clientY>bottom)dialog.close();
+  };
   $('close-detail').addEventListener('click',onCloseDetail);$('close-story').addEventListener('click',onCloseStory);
+  $('story-detail').addEventListener('click',onStoryBackdropClick);
   function resume(){manualPaused=false;exploring=false;clearTimeout(idleTimer);if($('chapter-detail').open)$('chapter-detail').close();if($('story-detail').open)$('story-detail').close();updatePlayback();}
   $('resume-detail').addEventListener('click',resume);$('resume-story').addEventListener('click',resume);
   const onPlayPause=()=>{if(isPaused())resume();else{manualPaused=true;updatePlayback();}};
   $('play-pause').addEventListener('click',onPlayPause);
+  const skipStep=direction=>{const target=adjacentStep(chapter,time,direction);seek(target.chapter,target.time,exploring);};
+  $('previous-step').addEventListener('click',()=>skipStep(-1));
+  $('next-step').addEventListener('click',()=>skipStep(1));
   const brand=root.querySelector('.sg-brand');
   const onBrand=e=>{e.preventDefault();resume();seek(0);};
   brand.addEventListener('click',onBrand);
@@ -226,6 +236,7 @@ export function mountProsperityBay(
     mobile.removeEventListener('change',onMobile);
     if($('chapter-detail')?.open)$('chapter-detail').close();
     if($('story-detail')?.open)$('story-detail').close();
+    $('story-detail').removeEventListener('click',onStoryBackdropClick);
     root.classList.remove('sg-paused');
   };
 }
