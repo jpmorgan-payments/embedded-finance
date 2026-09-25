@@ -36,6 +36,15 @@ const SGContent = (() => {
     ['Prosperity board','Reporting & reconciliation','Connect account balances, transaction activity, and reports.'],
     ['J.P. Morgan tower','Financial infrastructure','J.P. Morgan represents the financial infrastructure behind the scene.']
   ];
+  const storyCallouts=[
+    {point:[450,355,20],title:'Your marketplace',description:'The town is the platform you run.'},
+    {point:[207,138,125],title:'City Hall',description:'A permit stands for business verification.'},
+    {point:[215,425,115],title:'The shops',description:'Each shop is one business client.'},
+    {point:[230,525,55],title:'The vault',description:'An account gives a client a place to manage funds.'},
+    {point:[315,520,67],title:'The register',description:'Checkout lets customers pay.'},
+    {point:[760,570,40],title:'The routes',description:'Eligible payouts travel by RTP, ACH, or wire.'},
+    {point:[590,110,230],title:'J.P. Morgan tower',description:'Financial infrastructure supports the town.'}
+  ];
   const step=(at,key,label,summary,narration,callout,term,detail,refs,focus)=>({at,key,label,summary,narration,callout,term,detail,refs,focus});
   const chapters=[
     {name:'Welcome',title:'Build a thriving marketplace.',category:'THE OBJECTIVE',premise:'You run the town. You don’t have to build the bank.',era:'Quiet Square',duration:20,benefit:'Help every business join, hold funds, accept payments, and get paid.',note:'A three-minute story. No clicks needed.',steps:[
@@ -82,7 +91,7 @@ const SGContent = (() => {
       step(30,'recap','See the whole picture','One town. A connected ecosystem.','Your marketplace. Your businesses. Financial capabilities built into the journey.','From quiet square to thriving bazaar','Prosperity board → Reporting','The recap maps every town object to its real capability. Embedded Payments supports onboarding, accounts, money movement, payouts, and reporting; Checkout is an adjacent integration. Dusk returns the story to the opening objective.',['overview','reports','checkout'],'wide')
     ]}
   ];
-  return {sources,metaphor,chapters,reviewed:'2026-09-08',labels:{bakery:'ROSIE’S BAKERY',florist:'BLOOM & CO.',coffee:'DAILY BREW',books:'THE BOOK NOOK',gym:'GOOD FORM',hall:'CITY HALL',bank:'J.P. MORGAN',homebank:'HOME BANK'},
+  return {sources,metaphor,storyCallouts,chapters,reviewed:'2026-09-08',labels:{bakery:'ROSIE’S BAKERY',florist:'BLOOM & CO.',coffee:'DAILY BREW',books:'THE BOOK NOOK',gym:'GOOD FORM',hall:'CITY HALL',bank:'J.P. MORGAN',homebank:'HOME BANK'},
     objective:{title:'A small town. A shared ambition.',body:'Grow a quiet marketplace into a thriving bazaar by helping businesses join, manage their money, accept online payments, and get paid.',role:'You are the mayor — the platform operator.',rules:['The town runs itself. Watch the story, or choose a chapter.','Every business completes onboarding before its account opens.','Payment acceptance, account funding, and payout are separate steps.','Success means a connected marketplace with every business accounted for.']}};
 })();
 

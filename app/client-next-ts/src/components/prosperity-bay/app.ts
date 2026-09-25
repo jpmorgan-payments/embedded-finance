@@ -17,10 +17,27 @@ export function mountProsperityBay(
   options: ProsperityBayMountOptions = {},
 ): () => void {
   root.innerHTML = PROSPERITY_BAY_MARKUP;
-  const {chapters,sources,metaphor,objective}=SGContent;
+  const {chapters,sources,metaphor,objective,storyCallouts}=SGContent;
   const {getState,advance,total}=SGTimeline;
   const $=id=>root.querySelector('#'+id);
   const scene=SGScene.create($('town'));
+  const storyScene=SGScene.create($('story-town'));
+  storyScene.draw(SGTimeline.getState(5,20),true);
+  const markerLayer=document.createElementNS('http://www.w3.org/2000/svg','g');
+  markerLayer.setAttribute('class','sg-story-markers');
+  markerLayer.setAttribute('aria-hidden','true');
+  storyCallouts.forEach(({point},i)=>{
+    const [x,y]=storyScene.P(...point);
+    const marker=document.createElementNS('http://www.w3.org/2000/svg','g');
+    marker.setAttribute('transform',`translate(${x} ${y})`);
+    marker.innerHTML=`<circle r="20"/><text text-anchor="middle" dy=".35em">${i+1}</text>`;
+    markerLayer.append(marker);
+    const li=document.createElement('li');
+    const number=document.createElement('span'),body=document.createElement('div'),title=document.createElement('strong'),description=document.createElement('p');
+    number.textContent=String(i+1).padStart(2,'0');title.textContent=storyCallouts[i].title;description.textContent=storyCallouts[i].description;
+    body.append(title,description);li.append(number,body);$('story-callouts').append(li);
+  });
+  $('story-town').append(markerLayer);
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const mobile=matchMedia('(max-width: 900px)');
   let chapter=Math.max(0,Math.min(5,(Number(options.chapter)||1)-1));
@@ -96,7 +113,9 @@ export function mountProsperityBay(
   }
   function touchIdle(){clearTimeout(idleTimer);if(exploring||$('chapter-detail').open||$('story-detail').open)idleTimer=setTimeout(()=>{exploring=false;if($('chapter-detail').open)$('chapter-detail').close();if($('story-detail').open)$('story-detail').close();updatePlayback();},30000);}
   function seek(i,t=0,pause=false){
-    chapter=(i+chapters.length)%chapters.length;time=t;exploring=pause;lastKey='';
+    chapter=(i+chapters.length)%chapters.length;
+    // The opening fade needs playback; a manually paused jump must show the town.
+    time=chapter===0&&pause&&t<2?2:t;exploring=pause;lastKey='';
     if(!pause){clearTimeout(idleTimer);if($('chapter-detail').open)$('chapter-detail').close();}
     if(pause)touchIdle();render(0,true);updatePlayback();
   }
@@ -108,10 +127,8 @@ export function mountProsperityBay(
     $('detail-title').textContent=s.step.label;$('detail-copy').textContent=s.step.detail;$('detail-term').textContent=s.step.term;sourcesFor(s.step.refs);
     exploring=false;$('chapter-detail').showModal();updatePlayback();touchIdle();
   }
-  $('objective-title').textContent=objective.title;$('objective-body').textContent=objective.body;$('objective-role').textContent=objective.role;
-  objective.rules.forEach(rule=>{const li=document.createElement('li');li.textContent=rule;$('story-rules').append(li);});
-  metaphor.forEach(([town,real,explanation])=>{
-    const card=document.createElement('div');const name=document.createElement('strong'),term=document.createElement('span'),p=document.createElement('p');name.textContent=town;term.textContent='→ '+real;p.textContent=explanation;card.append(name,term,p);$('metaphor-map').append(card);
+  $('objective-title').textContent=objective.title;
+  metaphor.forEach(([town,real])=>{
     const recap=document.createElement('div'),a=document.createElement('strong'),b=document.createElement('span');a.textContent=town;b.textContent=real;recap.append(a,b);$('finale-map').append(recap);
   });
   const onStoryButton=()=>{exploring=false;$('story-detail').showModal();updatePlayback();touchIdle();};
