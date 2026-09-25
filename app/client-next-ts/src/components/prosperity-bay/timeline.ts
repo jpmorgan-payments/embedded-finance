@@ -38,7 +38,14 @@ const SGTimeline = ((content) => {
       bankActive:chapter>0||time>7};
   }
   function advance(chapter,time,delta){let next=(chapters.slice(0,chapter).reduce((n,c)=>n+c.duration,0)+time+Math.max(0,delta))%total;for(let i=0;i<chapters.length;i++){if(next<chapters[i].duration)return {chapter:i,time:next};next-=chapters[i].duration;}return {chapter:0,time:0};}
-  return {getState,advance,total,clamp,ease,orders,payouts,totalCents,money};
+  function adjacentStep(chapter,time,direction){
+    const state=getState(chapter,time);
+    let targetChapter=state.chapter,targetStep=state.stepIndex+(direction<0?-1:1);
+    if(targetStep<0){targetChapter=(targetChapter+chapters.length-1)%chapters.length;targetStep=chapters[targetChapter].steps.length-1;}
+    else if(targetStep>=chapters[targetChapter].steps.length){targetChapter=(targetChapter+1)%chapters.length;targetStep=0;}
+    return {chapter:targetChapter,time:chapters[targetChapter].steps[targetStep].at+.1};
+  }
+  return {getState,advance,adjacentStep,total,clamp,ease,orders,payouts,totalCents,money};
 })(SGContent);
 
 export default SGTimeline;

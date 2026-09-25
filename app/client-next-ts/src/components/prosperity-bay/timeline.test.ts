@@ -9,10 +9,26 @@ import { PROSPERITY_BAY_MARKUP } from './markup';
 import SGTimeline from './timeline';
 
 const { chapters, sources, metaphor } = SGContent;
-const { getState, advance, total, orders, payouts, totalCents, money } =
-  SGTimeline;
+const {
+  getState,
+  advance,
+  adjacentStep,
+  total,
+  orders,
+  payouts,
+  totalCents,
+  money,
+} = SGTimeline;
 
 describe('Prosperity Bay timeline', () => {
+  it('navigates story steps within chapters and across the loop', () => {
+    expect(adjacentStep(0, 9, 1)).toEqual({ chapter: 0, time: 14.1 });
+    expect(adjacentStep(0, 9, -1)).toEqual({ chapter: 0, time: 0.1 });
+    expect(adjacentStep(0, 0, -1)).toEqual({ chapter: 5, time: 30.1 });
+    expect(adjacentStep(0, 19, 1)).toEqual({ chapter: 1, time: 0.1 });
+    expect(adjacentStep(5, 34, 1)).toEqual({ chapter: 0, time: 0.1 });
+  });
+
   it('uses six complete chapters for an exact three-minute loop', () => {
     expect(chapters).toHaveLength(6);
     expect(total).toBe(180);
