@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Transactions API
-  version: 3.0.55
+  version: 3.0.58
   description: Create, track, and manage payments, such as ACH, wire, and real-time transfers, while easily filtering and retrieving transaction details by type, status, account, or date. This lets you automate fund movement and gain real-time visibility into your payment activity, all through a secure and flexible interface.
   contact:
     name: JPMC Technical Services Support
@@ -396,7 +396,7 @@ components:
       type: string
       minLength: 3
       maxLength: 3
-      description: "The creditor account / recipient currency for a foreign exchange transaction. This field is used in V3 APIs.\nSupported values \n| Code | Currency |\n|------|----------|\n| AED | United Arab Emirates Dirham |\n| AUD | Australian Dollar |\n| BGN | Bulgarian Lev |\n| BRL | Brazilian Real |\n| CAD | Canadian Dollar |\n| CHF | Swiss Franc |\n| CNY | Chinese Yuan |\n| CZK | Czech Koruna |\n| DKK | Danish Krone |\n| EUR | Euro |\n| GBP | British Pound Sterling |\n| HKD | Hong Kong Dollar |\n| HUF | Hungarian Forint |\n| ILS | Israeli New Shekel |\n| INR | Indian Rupee |\n| ISK | Icelandic Króna |\n| JPY | Japanese Yen |\n| KES | Kenyan Shilling |\n| KRW | South Korean Won |\n| MXN | Mexican Peso |\n| MYR | Malaysian Ringgit |\n| NOK | Norwegian Krone |\n| NZD | New Zealand Dollar |\n| PEN | Peruvian Sol |\n| PHP | Philippine Peso |\n| PLN | Polish Zloty |\n| RON | Romanian Leu |\n| SEK | Swedish Krona |\n| SGD | Singapore Dollar |\n| TWD | New Taiwan Dollar |\n| USD | United States Dollar |\n| VND | Vietnamese Dong |\n| ZAR | South African Rand |\n"
+      description: "The creditor account / recipient currency for a foreign exchange transaction. This field is used in V3 APIs.\nSupported values \n| Code | Currency |\n|------|----------|\n| AED | United Arab Emirates Dirham |\n| ARS | Argentine Peso |\n| AUD | Australian Dollar |\n| BGN | Bulgarian Lev |\n| BRL | Brazilian Real |\n| CAD | Canadian Dollar |\n| CHF | Swiss Franc |\n| CNY | Chinese Yuan |\n| COP | Colombian Peso |\n| CRC | Costa Rican Colon |\n| CZK | Czech Koruna |\n| DKK | Danish Krone |\n| EUR | Euro |\n| GBP | British Pound Sterling |\n| HKD | Hong Kong Dollar |\n| HUF | Hungarian Forint |\n| IDR | Indonesian Rupiah |\n| ILS | Israeli New Shekel |\n| INR | Indian Rupee |\n| ISK | Icelandic Króna |\n| JPY | Japanese Yen |\n| KES | Kenyan Shilling |\n| KRW | South Korean Won |\n| MAD | Moroccan Dirham |\n| MXN | Mexican Peso |\n| MYR | Malaysian Ringgit |\n| NOK | Norwegian Krone |\n| NZD | New Zealand Dollar |\n| PEN | Peruvian Sol |\n| PHP | Philippine Peso |\n| PKR | Pakistani Rupee |\n| PLN | Polish Zloty |\n| RON | Romanian Leu |\n| SAR | Saudi Riyal |\n| SEK | Swedish Krona |\n| SGD | Singapore Dollar |\n| THB | Thai Baht |\n| TRY | Turkish Lira |\n| TWD | New Taiwan Dollar |\n| USD | United States Dollar |\n| VND | Vietnamese Dong |\n| ZAR | South African Rand |\n"
       example: CAD
     PageMetaData:
       type: object
@@ -485,12 +485,12 @@ components:
           type: string
           description: Unique identifier for the foreign exchange rate
           example: R1C8E57DF6964F981D6DDB5EEf78D8
-          minLength: 1
+          minLength: 0
         clientSpread:
           type: string
           description: The rate at which you charge for an FX transfer. You must express this as a decimal figure. For example, if you take a commission of 10%, the spread is expressed as 0.1
           example: '0.5'
-          minLength: 1
+          minLength: 0
     GetTransactionFxInformationV3:
       description: Foreign exchange information for cross-border transactions.
       type: object
@@ -553,7 +553,7 @@ components:
             - TAX_ID
             - SSN
           description: Type of identification.
-          minLength: 1
+          minLength: 0
           example: TAX_ID
         idValue:
           type: string
@@ -614,6 +614,18 @@ components:
       type: string
       nullable: false
       enum:
+        - AUBSB
+        - BIC
+        - BRSTN
+        - CACPA
+        - CLABE
+        - CNAPS
+        - GBDSC
+        - HKNCC
+        - INFSC
+        - JPZGN
+        - NZNCC
+        - SGIBG
         - USABA
       description: Type of routing code.
       example: USABA
@@ -636,17 +648,17 @@ components:
         number:
           description: The number of the counterparty account.
           type: string
-          minLength: 1
+          minLength: 0
           example: '021009052'
         bankName:
           description: The bank name of the counterparty external account.
           type: string
-          minLength: 1
+          minLength: 0
           example: Bank of America
         branchCode:
           description: The branch code of the counterparty external account.
           type: string
-          minLength: 1
+          minLength: 0
           example: '123456789'
         routingInformation:
           type: array
@@ -657,17 +669,17 @@ components:
         currency:
           description: The currency of the counterparty external account in ISO 4217 Alpha-3 Currency Code format.
           type: string
-          minLength: 1
+          minLength: 0
           maxLength: 3
           example: USD
         country:
           description: The country of the counterparty external account. Two letter country code based on ISO 3166 standard
           type: string
-          minLength: 1
+          minLength: 0
           example: US
-    TransactionCounterPartyExternalAccountV3:
-      title: External Account
-      description: The external account of the counterparty
+    TransactionCounterPartyExternalAccountCheckingV3:
+      title: External Account - Checking
+      description: The external checking account of the counterparty
       type: object
       required:
         - type
@@ -676,6 +688,35 @@ components:
         type:
           description: The type of the counterparty account
           type: string
+          pattern: ^CHECKING$
+        externalAccount:
+          $ref: '#/components/schemas/TransactionCounterPartyExternalAccountDetailsV3'
+    TransactionCounterPartyExternalAccountSavingsV3:
+      title: External Account - Savings
+      description: The external savings account of the counterparty
+      type: object
+      required:
+        - type
+        - externalAccount
+      properties:
+        type:
+          description: The type of the counterparty account
+          type: string
+          pattern: ^SAVINGS$
+        externalAccount:
+          $ref: '#/components/schemas/TransactionCounterPartyExternalAccountDetailsV3'
+    TransactionCounterPartyExternalAccountIbanV3:
+      title: External Account - IBAN
+      description: The external IBAN account of the counterparty
+      type: object
+      required:
+        - type
+        - externalAccount
+      properties:
+        type:
+          description: The type of the counterparty account
+          type: string
+          pattern: ^IBAN$
         externalAccount:
           $ref: '#/components/schemas/TransactionCounterPartyExternalAccountDetailsV3'
     TransactionCounterPartyRegisteredAccountDetailsV3:
@@ -685,18 +726,22 @@ components:
         id:
           description: The id of the counterparty account.
           type: string
+          minLength: 0
           example: d3371713f14e423f82065c9486ebe15b
         name:
           description: The display name of the registered account.
           type: string
+          minLength: 0
           example: Primary Checking
         number:
           description: Masked registered account number.
           type: string
+          minLength: 0
           example: '...4567'
         ledgerBalance:
           description: Ledger balance of the registered account after this transaction.
           type: string
+          minLength: 0
           example: '1000'
         postingVersion:
           description: Posting version of the registered account at the time of this transaction.
@@ -714,6 +759,7 @@ components:
           description: The type of the counterparty account
           type: string
           default: REGISTERED_ACCOUNT
+          pattern: ^REGISTERED_ACCOUNT$
         registeredAccount:
           $ref: '#/components/schemas/TransactionCounterPartyRegisteredAccountDetailsV3'
     TransactionCounterPartyCardAccountDetailsV3:
@@ -723,14 +769,19 @@ components:
         name:
           description: The name of the counterparty card holder.
           type: string
+          minLength: 0
           example: M GELLAR
         number:
-          description: The number of the counterparty card holder.
+          description: A card Primary Account Number (PAN)
           type: string
-          example: '4137110019999999'
+          minLength: 13
+          maxLength: 19
+          example: '123456789123456'
+          pattern: ^\d{13,19}$
         expiryDate:
           description: The expiry date of the counterparty card holder.
           type: string
+          minLength: 0
           example: '2207'
     TransactionCounterPartyCardAccountV3:
       title: Card Account
@@ -744,20 +795,39 @@ components:
           description: The type of the counterparty account
           type: string
           default: CARD
+          pattern: ^CARD$
         card:
           $ref: '#/components/schemas/TransactionCounterPartyCardAccountDetailsV3'
+    TransactionCounterPartyExternalAccountV3:
+      title: External Account
+      description: The external account of the counterparty
+      type: object
+      required:
+        - type
+        - externalAccount
+      properties:
+        type:
+          description: The type of the counterparty account
+          type: string
+          default: NOT_APPLICABLE
+          pattern: ^NOT_APPLICABLE$
+        externalAccount:
+          $ref: '#/components/schemas/TransactionCounterPartyExternalAccountDetailsV3'
     TransactionCounterPartyAccountV3:
       description: The account details of the counterparty.
       oneOf:
         - $ref: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
+        - $ref: '#/components/schemas/TransactionCounterPartyExternalAccountCheckingV3'
+        - $ref: '#/components/schemas/TransactionCounterPartyExternalAccountSavingsV3'
+        - $ref: '#/components/schemas/TransactionCounterPartyExternalAccountIbanV3'
         - $ref: '#/components/schemas/TransactionCounterPartyRegisteredAccountV3'
         - $ref: '#/components/schemas/TransactionCounterPartyCardAccountV3'
       discriminator:
         propertyName: type
         mapping:
-          CHECKING: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
-          SAVINGS: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
-          IBAN: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
+          CHECKING: '#/components/schemas/TransactionCounterPartyExternalAccountCheckingV3'
+          SAVINGS: '#/components/schemas/TransactionCounterPartyExternalAccountSavingsV3'
+          IBAN: '#/components/schemas/TransactionCounterPartyExternalAccountIbanV3'
           REGISTERED_ACCOUNT: '#/components/schemas/TransactionCounterPartyRegisteredAccountV3'
           CARD: '#/components/schemas/TransactionCounterPartyCardAccountV3'
           NOT_APPLICABLE: '#/components/schemas/TransactionCounterPartyExternalAccountV3'
@@ -875,7 +945,7 @@ components:
           description: The date the client requested for execution.
           type: string
           format: date
-          minLength: 1
+          minLength: 0
           example: '2025-09-16'
         valueDate:
           description: The date funds are considered available to the creditor.
@@ -901,12 +971,14 @@ components:
         targetAmount:
           description: Transaction value in the target currency credited to the creditor.
           type: string
+          minLength: 1
           maxLength: 40
           pattern: ^\d+(\.\d+)?$
           example: '42.00'
         targetCurrency:
           description: Currency of the creditor account.
           type: string
+          minLength: 3
           maxLength: 3
           pattern: ^[A-Z]{3}$
           example: USD
@@ -999,7 +1071,7 @@ components:
             | `BUSINESS_ADDRESS` | Business addresses |
           type: string
           example: RESIDENTIAL_ADDRESS
-          minLength: 1
+          minLength: 0
         buildingNumber:
           $ref: '#/components/schemas/buildingNumber'
         streetName:
@@ -1028,7 +1100,7 @@ components:
           type: string
           nullable: false
           description: Type of identification
-          minLength: 1
+          minLength: 0
           example: USCC
         idValue:
           minLength: 1
@@ -1043,23 +1115,23 @@ components:
         alternateName:
           type: string
           description: The alternate name of the counterparty
-          minLength: 1
+          minLength: 0
         phoneNumber:
           description: The phone number of the counterparty
           type: string
           example: '+1234567890'
-          minLength: 1
+          minLength: 0
           maxLength: 30
         emailAddress:
           description: The email address of the counterparty
           type: string
           example: example@email.com
-          minLength: 1
+          minLength: 0
           maxLength: 256
         website:
           description: The website of the counterparty
           type: string
-          minLength: 1
+          minLength: 0
           example: https://www.example.com
     TransactionCounterPartyDetails:
       description: The party details of the counterparty
@@ -1073,27 +1145,27 @@ components:
             | `INDIVIDUAL` | For individual party types |
             | `ORGANIZATION` | For organization party types |
           type: string
-          minLength: 1
+          minLength: 0
           example: INDIVIDUAL
         firstName:
           description: The first name of the counterparty
           type: string
           example: John
-          minLength: 1
+          minLength: 0
           maxLength: 70
           pattern: ^(.|\s)*\S(.|\s)*$
         lastName:
           description: The last name of the counterparty
           type: string
           example: Doe
-          minLength: 1
+          minLength: 0
           maxLength: 70
           pattern: ^(.|\s)*\S(.|\s)*$
         businessName:
           description: The organization name of the counterparty
           type: string
           example: XYZ Corp
-          minLength: 1
+          minLength: 0
           maxLength: 140
           pattern: ^(.|\s)*\S(.|\s)*$
         address:
@@ -1129,7 +1201,7 @@ components:
           type: string
           nullable: false
           description: Type of routing code.
-          minLength: 1
+          minLength: 0
           example: USABA
     TransactionCounterPartyExternalAccountDetails:
       description: The external account details of the counterparty
@@ -1138,17 +1210,17 @@ components:
         number:
           description: The number of the counterparty account
           type: string
-          minLength: 1
+          minLength: 0
           example: '021009052'
         bankName:
           description: The bank name of the counterparty external account
           type: string
-          minLength: 1
+          minLength: 0
           example: Bank of America
         branchCode:
           description: The branch code of the counterparty external account
           type: string
-          minLength: 1
+          minLength: 0
           example: '123456789'
         routingInformation:
           type: array
@@ -1159,12 +1231,12 @@ components:
         currency:
           description: The currency of the counterparty external account
           type: string
-          minLength: 1
+          minLength: 0
           example: USD
         country:
           description: The country of the counterparty external account
           type: string
-          minLength: 1
+          minLength: 0
           example: US
     TransactionCounterPartyExternalAccount:
       title: External Account
@@ -1185,7 +1257,7 @@ components:
             | `IBAN` | For IBANs |
             | `NOT_APPLICABLE` | For when account type is not available |
           type: string
-          minLength: 1
+          minLength: 0
         externalAccount:
           $ref: '#/components/schemas/TransactionCounterPartyExternalAccountDetails'
     TransactionCounterPartyRegisteredAccountDetails:
@@ -1212,10 +1284,18 @@ components:
         type:
           description: The type of the counterparty account. Should be `REGISTERED_ACCOUNT` for accounts that are registered on JPMorgan's system and can be looked up via the /accounts API.
           type: string
-          minLength: 1
+          minLength: 0
           default: REGISTERED_ACCOUNT
+          pattern: ^REGISTERED_ACCOUNT$
         registeredAccount:
           $ref: '#/components/schemas/TransactionCounterPartyRegisteredAccountDetails'
+    CardNumberMasked:
+      type: string
+      minLength: 13
+      maxLength: 19
+      example: '123456789123456'
+      pattern: ^\d{13,19}$
+      description: A card Primary Account Number (PAN)
     TransactionCounterPartyCardAccountDetails:
       description: The routing information of the counterparty account
       type: object
@@ -1227,20 +1307,16 @@ components:
         name:
           description: The name of the counterparty card holder
           type: string
+          minLength: 0
           maxLength: 140
-          minLength: 1
           example: M GELLAR
         number:
-          description: The number of the counterparty card holder
-          type: string
-          example: '4137110019999999'
-          minLength: 1
-          maxLength: 35
+          $ref: '#/components/schemas/CardNumberMasked'
         expiryDate:
           description: The expiry date of the counterparty card holder in YYMM format
           type: string
           example: '2205'
-          minLength: 1
+          minLength: 0
           maxLength: 4
           pattern: ^(?:[0-9]{2})(0[1-9]|1[0-2])$
     TransactionCounterPartyCardAccount:
@@ -1254,8 +1330,9 @@ components:
         type:
           description: The type of the counterparty account. Should be `CARD` for card accounts that can be used for push to card transactions.
           type: string
-          minLength: 1
+          minLength: 0
           default: CARD
+          pattern: ^CARD$
         card:
           $ref: '#/components/schemas/TransactionCounterPartyCardAccountDetails'
     TransactionCounterPartyAccount:
@@ -1279,7 +1356,7 @@ components:
           description: The id of the counterparty
           type: string
           example: 8f4e2b3c-1d5a-4c3b-9f0a-123456789abc
-          minLength: 1
+          minLength: 0
           maxLength: 36
         type:
           description: |
@@ -1289,13 +1366,12 @@ components:
             | `ON_BEHALF_OF` | When performing TP3 (Third Party) Flows this field needs to be set |
           type: string
           example: ON_BEHALF_OF
-          minLength: 1
         partyDetails:
           $ref: '#/components/schemas/TransactionCounterPartyDetails'
         account:
           $ref: '#/components/schemas/TransactionCounterPartyAccount'
     TransactionPaymentPurpose:
-      description: The purpose of the payment
+      description: The purpose of the payment provided by the client at the time of transaction creation.
       type: object
       properties:
         code:
@@ -1303,12 +1379,14 @@ components:
           type: string
           minLength: 1
           maxLength: 4
+          pattern: ^[a-zA-Z0-9'_/,?().+\s\r\n][a-zA-Z0-9'_/:,\-?().+\s\r\n]*$
           example: CASH
         customCode:
           description: Purpose of the payment in proprietary form. Must be between 1 and 35 characters.
           type: string
           minLength: 1
           maxLength: 35
+          pattern: ^[a-zA-Z0-9'_/,?().+\s\r\n][a-zA-Z0-9'_/:,\-?().+\s\r\n]*$
           example: CASH INFLOW
     PostTransactionRequestBaseV3:
       type: object
@@ -1336,7 +1414,7 @@ components:
         currency:
           description: "This denotes the currency of the payment in ISO 4217 Alpha-3 Currency Code format\nSupported values \n| Code | Currency |\n|------|----------|\n| USD | United States Dollar |\n"
           type: string
-          minLength: 3
+          minLength: 0
           maxLength: 3
           nullable: false
           example: USD
@@ -1356,13 +1434,13 @@ components:
             | * `WEB`                  | WEB Initiated Entry - Used for authorizing payment over the internet   |
           type: string
           example: PPD
-          minLength: 1
+          minLength: 0
           maxLength: 35
         memo:
           description: Transaction information that states its purpose for easier tracking
           type: string
           pattern: ^(.|\s)*\S(.|\s)*$
-          minLength: 1
+          minLength: 0
           maxLength: 140
           example: Invoice 1234
         fxInformation:
@@ -1381,17 +1459,17 @@ components:
         id:
           description: The resource Id of your transaction to use when looking up details of this transaction.
           type: string
-          minLength: 1
+          minLength: 0
           example: '123434534'
         transactionReferenceId:
           description: Transaction reference ID provided by client
-          minLength: 1
+          minLength: 0
           nullable: false
           type: string
           example: inv-pay-1234
         requestedExecutionDate:
           description: ISO date format - yyyy-MM-dd
-          minLength: 1
+          minLength: 0
           type: string
           format: date
           example: '1970-01-01'

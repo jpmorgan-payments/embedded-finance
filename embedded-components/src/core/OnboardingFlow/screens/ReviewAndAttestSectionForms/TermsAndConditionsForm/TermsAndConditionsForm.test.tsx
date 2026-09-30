@@ -51,12 +51,12 @@ vi.mock('@/api/generated/smbdo', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/generated/smbdo')>();
   return {
     ...actual,
-    useSmbdoUpdateClientLegacy: () =>
+    useSmbdoUpdateClient: () =>
       ({
         mutateAsync: termsTestHooks.updateMutateAsync,
         error: null,
         status: 'idle',
-      }) as unknown as ReturnType<typeof actual.useSmbdoUpdateClientLegacy>,
+      }) as unknown as ReturnType<typeof actual.useSmbdoUpdateClient>,
     useSmbdoPostClientVerifications: () =>
       ({
         mutateAsync: termsTestHooks.kycMutateAsync,

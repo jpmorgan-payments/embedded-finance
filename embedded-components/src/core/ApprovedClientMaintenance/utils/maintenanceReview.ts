@@ -2,10 +2,7 @@ import { v5 as uuidv5 } from 'uuid';
 
 import type { DocumentRequestResponse } from '@/api/generated/smbdo.schemas';
 
-import type {
-  MaintenanceClient,
-  MaintenanceDocumentRequestSummary,
-} from '../models/maintenanceApi.types';
+import type { MaintenanceClient } from '../models/maintenanceApi.types';
 import type { MaintenanceProjection } from './buildMaintenanceProjection';
 import { buildMaintenanceProjection } from './buildMaintenanceProjection';
 
@@ -148,7 +145,7 @@ export const areMaintenanceReadsStable = (
 export type CompleteMaintenanceReviewRead = {
   client: MaintenanceClient;
   parties: Parameters<typeof buildMaintenanceProjection>[1];
-  documentRequests: MaintenanceDocumentRequestSummary[];
+  documentRequests: DocumentRequestResponse[];
 };
 
 export class MaintenanceSubmissionError extends Error {

@@ -37,16 +37,14 @@ import {
 import {
   isActiveMaintenanceStatus,
   type MaintenanceParty,
+  type MaintenancePartyUpdateRequest,
 } from './models/maintenanceApi.types';
 import { buildMaintenanceDiscardTargets } from './utils/buildMaintenanceDiscardTargets';
 import { buildMaintenanceEntityTasks } from './utils/buildMaintenanceEntityTasks';
 import { buildMaintenanceOwnershipPath } from './utils/buildMaintenanceOwnershipPath';
 import { buildMaintenanceProjection } from './utils/buildMaintenanceProjection';
 import { getOrganizationMaintenanceValues } from './utils/buildOrganizationPartyUpdate';
-import type {
-  IndividualMaintenanceValues,
-  PartyNameUpdateRequest,
-} from './utils/buildPartyNameUpdate';
+import type { IndividualMaintenanceValues } from './utils/buildPartyNameUpdate';
 import { isMaintenanceOperationEligible } from './utils/isMaintenanceOperationEligible';
 import { isProductUpgradeGateOpen } from './utils/isProductUpgradeGateOpen';
 import { getMaintenancePartyIdentity } from './utils/maintenanceDisplay';
@@ -550,7 +548,7 @@ export function ApprovedClientMaintenanceWorkspace({
 
   const saveName = async (
     values: IndividualMaintenanceValues,
-    request: PartyNameUpdateRequest
+    request: MaintenancePartyUpdateRequest
   ) => {
     if (!selectedPartyId) return;
     const shouldDiscoverDocuments = !selectedChange;

@@ -1,9 +1,14 @@
+import type {
+  KycUpdateRequestAction,
+  KycUpdateRequestStatus,
+  ProductDetailsUpdateAction,
+} from '@/api/generated/smbdo.schemas';
+
 import {
   isActiveMaintenanceStatus,
   type ActiveMaintenanceStatus,
   type MaintenanceClient,
   type MaintenanceParty,
-  type MaintenanceStatus,
 } from '../models/maintenanceApi.types';
 import {
   MAINTENANCE_FIELD_DESCRIPTORS,
@@ -29,7 +34,7 @@ export type PartyChange = {
   partyId: string;
   approvedParty?: MaintenanceParty;
   proposal: MaintenanceParty;
-  action: 'ADD' | 'MODIFY' | 'DELETE';
+  action: KycUpdateRequestAction;
   removesParty: boolean;
   fieldChanges: PartyFieldChange[];
 };
@@ -37,7 +42,7 @@ export type PartyChange = {
 export type ProductChange = {
   product: string;
   subProduct?: string;
-  requestedAction: 'ADD' | 'REMOVE';
+  requestedAction: ProductDetailsUpdateAction;
   onboardingStatus?: string;
   source: {
     requestId?: string;
@@ -166,7 +171,7 @@ export function buildMaintenanceProjection(
       (detail) =>
         detail.subProduct === 'LIMITED_DDA_PAYMENTS' &&
         isActiveMaintenanceStatus(
-          detail.onboardingStatus as MaintenanceStatus | undefined
+          detail.onboardingStatus as KycUpdateRequestStatus | undefined
         )
     )
     .forEach((detail) => {

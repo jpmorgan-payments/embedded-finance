@@ -244,17 +244,17 @@ same/next business day.
 FX debits: USD from the NY branch. Eligible debtor categories per the how-to:
 `TRANSACTION_ACCOUNT`, `LIMITED_DDA_PAYMENTS` (FX capability required). Not supported:
 `LIMITED_DDA`, `PROCESSING`, `MANAGEMENT`, `DEFAULT`, `OFFSET`.
-`LIMITED_DDA_PAYMENTS` is confirmed present in the local accounts 2.0.47 spec.
+`LIMITED_DDA_PAYMENTS` is confirmed present in the active accounts 1.0.27 spec.
 
 ### 3.6 Recipient requirements for FX (registered recipients)
 
 FX-capable payees need `account.currencyCode` (target currency), `account.countryCode`,
 international `routingInformation`, and `partyDetails.address.countryCode`.
 
-**Recipients spec status (updated — 1.0.55-latest adopted).** The generated client now
-targets recipients **1.0.55-latest**, which widens `RoutingCodeType` to 13 clearing
+**Recipients spec status (updated - 1.0.58 adopted).** The generated client now
+targets recipients **1.0.58**, which includes 13 `RoutingCodeType` clearing
 systems (AUBSB, BIC, BRSTN, CACPA, CLABE, CNAPS, GBDSC, HKNCC, INFSC, JPZGN, NZNCC,
-SGIBG, USABA) and `CurrencyCode` to 42 values. This unblocks typed international
+SGIBG, USABA) and widens `CurrencyCode` to 42 values. This unblocks typed international
 recipient persistence: the FX config map assigns each currency its canonical
 `routingCodeType`, and recipient creation writes it end-to-end (see FR-FX-10). Currency
 metadata is still tagged client-side on create (the `CurrencyCode` enum does not need to
@@ -263,36 +263,30 @@ follow-up (the config's region hints include non-ISO values such as `EU`).
 
 ---
 
-## 4. Codegen Work (Non-Breaking)
+## 4. Codegen Work
 
-Rules: **only add orval targets with new output files; never regenerate existing outputs**
-(D6). Changes to [orval.config.mjs](../../../orval.config.mjs):
+Current targets in [orval.config.mjs](../../../orval.config.mjs):
 
 1. **`ep-transactions-v3`** (new target)
-   - input: `./api-specs/embedded-finance-pub-ep-transactions-3.0.55.yaml`
-   - output: `./src/api/generated/ep-transactions-v3.ts` (split mode, react-query, axios,
-     `useEbInstance` mutator — same options as existing targets)
-   - Produces: `useCreateTransactionV3`, `useGetTransactionV3`, `useListTransactionsV3`,
-     `PostTransactionRequestBaseV3`, `TransactionResponseV3`, `TransactionGetResponseV3`,
-     `TargetCurrencyV3`, `TransactionFxInformation`, `TransactionCounterParty*`.
-   - The existing `ep-transactions` target (2.0.47 → `ep-transactions.ts`) is untouched;
-     `PaymentFlow` keeps importing V2 artifacts.
+
+- input: `./api-specs/embedded-finance-pub-ep-transactions-3.0.58.yaml`
+- output: `./src/api/generated/ep-transactions-v3.ts` (split mode, react-query, axios,
+  `useEbInstance` mutator — same options as existing targets)
+- Produces: `useCreateTransactionV3`, `useGetTransactionV3`, `useListTransactionsV3`,
+  `PostTransactionRequestBaseV3`, `TransactionResponseV3`, `TransactionGetResponseV3`,
+  `TargetCurrencyV3`, `TransactionFxInformation`, `TransactionCounterParty*`.
+- The existing `ep-transactions` target (2.0.47 → `ep-transactions.ts`) is untouched;
+  `PaymentFlow` keeps importing V2 artifacts.
+
 2. **`fx-rate-sheet`** (new target)
    - input: `./api-specs/fx-rate-sheet-1.0.2.yaml`
    - output: `./src/api/generated/fx-rate-sheet.ts`, same mutator (base-URL caveat §3.3).
    - Produces: `useGetCurrentRatesheet`, `RateSheetDetails`, `CurrencyPair`, `Rate`, …
-3. **Recipients spec — intentionally kept at 1.0.47** (see §3.6). Recipients 1.0.55 was
-   reviewed: its `account.currencyCode` addition is USD-enum-only, so it does not unlock
-   non-USD FX recipients and is **not** adopted (the shared `ep-recipients` target is left
-   at 1.0.47 to avoid destabilizing other recipient consumers for no FX gain). FX payee
-   metadata instead reads `recipient.account.currencyCode` via a tolerant accessor
-   (`(account as { currencyCode?: string }).currencyCode`), and `internationalMode`
-   recipient creation tags the currency client-side. Revisit adopting a recipients spec
-   once `CurrencyCode` is widened beyond USD and non-`USABA` routing is available.
-4. **Accounts**: do _not_ retarget `ep-accounts` in v1. The only need is the
-   `LIMITED_DDA_PAYMENTS` category string; `account.category` is compared through the
-   `FX_ELIGIBLE_ACCOUNT_CATEGORIES: string[]` constant, avoiding enum-union friction.
-   (Optional follow-up outside this scope: upgrade to 2.0.47 with diff verification.)
+3. **Recipients spec**: targets 1.0.58. FX payee metadata reads
+   `recipient.account.currencyCode` and `countryCode`, while international recipient
+   creation uses the generated routing and currency types.
+4. **Accounts**: remains on 1.0.27. Consumers continue using `useGetAccounts` and the
+   flat `balanceTypes` response from `useGetAccountBalance`.
 
 Run the repo's codegen script (see `SCRIPTS_REFERENCE.md`) and commit generated files per
 existing convention.
@@ -466,9 +460,8 @@ export interface FXPayee extends Payee {
 }
 ```
 
-Populated in the payee transformation via a tolerant `string` accessor. This stays
-decoupled from the recipients 1.0.55 `CurrencyCode` enum (USD-only), which cannot type
-non-USD FX currencies (§3.6, §4 step 3).
+Populated in the payee transformation via a tolerant `string` accessor so future
+currency additions do not require changing the local payment-flow model.
 
 ### 7.2 Form data extension
 
@@ -648,8 +641,8 @@ quotes); `paymentPurpose` from `fxConfig` when provided. Extras:
   while a non-USD currency is selected (D4).
 - **As-built scope note:** currency capture and international routing are implemented.
   The recipients spec that types non-`USABA` routing has landed (ep-recipients
-  1.0.55-latest widens `RoutingCodeType` to 13 clearing systems and `CurrencyCode` to
-  42), so international recipients are now persisted with the currency's canonical
+  1.0.58 includes 13 `RoutingCodeType` clearing systems and widens `CurrencyCode` to
+  42 values), so international recipients are now persisted with the currency's canonical
   routing code. The FX config map (`fxRecipientRequirements.ts`) carries a typed
   `routingCode.routingCodeType` per currency (e.g. `AUBSB`, `INFSC`, `SGIBG`, `BIC`),
   and `getFxRoutingCodeType(currency)` resolves it. `BankAccountFormWrapper` passes this

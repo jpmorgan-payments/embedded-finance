@@ -26,7 +26,7 @@ import {
   useSmbdoDownloadDocumentHook,
   useSmbdoGetDocumentDetailHook,
   useSmbdoPostClientVerifications,
-  useSmbdoUpdateClientLegacy,
+  useSmbdoUpdateClient,
 } from '@/api/generated/smbdo';
 import { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
 import type { DocumentTypeSmbdo } from '@/api/generated/smbdo.schemas';
@@ -351,7 +351,7 @@ export function useTermsAndConditions(options?: {
     mutateAsync: updateClientAsync,
     error: updateClientError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClientLegacy();
+  } = useSmbdoUpdateClient();
 
   const {
     mutateAsync: initiateKYCAsync,

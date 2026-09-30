@@ -1,15 +1,17 @@
 openapi: 3.0.1
 info:
   title: Recipients API
-  version: 1.0.35
+  version: 1.0.58
   description: Streamline how you set up, manage, and verify payees by creating, updating, listing, and validating recipients for your payment transactions. This helps keep your payment workflows organized and secure without manual tracking.
+  contact:
+    name: JPMC Technical Services Support
 servers:
   - url: https://api.payments.jpmorgan.com/embedded/v1
     description: PRODUCTION - MTLS
-  - url: https://api-sandbox.payments.jpmorgan.com/embedded/v1
-    description: CLIENT TESTING - MTLS
   - url: https://api-mock.payments.jpmorgan.com/embedded/v1
     description: MOCK
+  - url: https://api-sandbox.payments.jpmorgan.com/embedded/v1
+    description: CLIENT TESTING - MTLS
 tags:
   - name: Recipients
     description: Set up and manage who can be paid through transactions.
@@ -31,6 +33,18 @@ paths:
           example: RECIPIENT
           schema:
             $ref: '#/components/schemas/RecipientType'
+        - name: status
+          description: Recipient statuses to filter results by
+          in: query
+          required: false
+          example:
+            - ACTIVE
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/RecipientStatus'
+            minItems: 0
+            uniqueItems: true
         - $ref: '#/components/parameters/pageSize'
         - $ref: '#/components/parameters/pageNo'
       responses:
@@ -280,6 +294,7 @@ components:
         minimum: 1
         maximum: 25
         default: 25
+        format: int32
       required: false
     pageNo:
       name: page
@@ -289,6 +304,8 @@ components:
         type: integer
         default: 0
         minimum: 0
+        maximum: 1000000
+        format: int32
       required: false
   schemas:
     RecipientType:
@@ -299,29 +316,109 @@ components:
         - SETTLEMENT_ACCOUNT
       nullable: false
       example: RECIPIENT
+    RecipientStatus:
+      description: Callback event type needs to send to notsub for correct status.
+      type: string
+      enum:
+        - ACTIVE
+        - INACTIVE
+        - MICRODEPOSITS_INITIATED
+        - READY_FOR_VALIDATION
+        - REJECTED
+        - PENDING
+      nullable: false
+      example: ACTIVE
     PageMetaData:
       type: object
       properties:
         page:
           type: integer
+          minimum: 0
+          format: int32
           example: 1
           description: |
             Page Number.
         limit:
           type: integer
+          minimum: 0
+          format: int32
           example: 30
           description: |
             Number of records per page.
         total_items:
           type: integer
+          minimum: 0
+          format: int32
           example: 1
           description: |
             Total number of items.
     CountryCode:
       type: string
       enum:
+        - AD
+        - AE
+        - AL
+        - AT
+        - AU
+        - BE
+        - BG
+        - BR
+        - CA
+        - CH
+        - CN
+        - CY
+        - CZ
+        - DE
+        - DK
+        - EE
+        - ES
+        - FI
+        - FR
+        - GB
+        - GR
+        - HK
+        - HR
+        - HU
+        - IE
+        - IN
+        - IS
+        - IT
+        - JP
+        - KE
+        - KR
+        - LI
+        - LT
+        - LU
+        - LV
+        - MA
+        - MC
+        - ME
+        - MT
+        - MX
+        - MY
+        - NL
+        - 'NO'
+        - NZ
+        - PE
+        - PH
+        - PK
+        - PL
+        - PT
+        - RO
+        - SA
+        - SE
+        - SG
+        - SI
+        - SK
+        - SM
+        - TH
+        - TR
+        - TW
         - US
-      description: Two letter country code based on ISO 3166 standard
+        - VA
+        - VN
+        - ZA
+      description: Two letter country code based on ISO 3166 standard, includes SEPA regions
       example: US
     RecipientAddress:
       description: Address details for the recipient. Mandatory for payments using the RTP payment type.
@@ -337,10 +434,11 @@ components:
           description: Type of address e.g. 'Primary Residence' | 'Principal place of business'.
         addressLine1:
           type: string
-          minLength: 0
+          minLength: 1
           maxLength: 34
+          pattern: ^(.|\s)*\S(.|\s)*$
           example: 90 Bedford Street
-          description: First line of address; required and must begin with a number and must not be a PO Box.
+          description: First line of address; required and must not be a PO Box.
         addressLine2:
           type: string
           minLength: 0
@@ -351,11 +449,17 @@ components:
           type: string
           minLength: 0
           maxLength: 34
-          example: ''
           description: Third line of address; not required.
+        buildingNumber:
+          type: string
+          minLength: 0
+          maxLength: 16
+          description: Building name or number if address is in a building
         city:
           type: string
+          minLength: 1
           maxLength: 34
+          pattern: ^(.|\s)*\S(.|\s)*$
           example: New York
           description: Address city.
         state:
@@ -407,6 +511,29 @@ components:
           pattern: ^(.|\s)*\S(.|\s)*$
           description: "Contact information corresponding to contactType: \nPHONE - E.164-compliant telephone number (excluding country code).\nEMAIL - Email address (addr-spec in Section 3.4 of RFC 5322).\nWEBSITE - URL starting with http:// or https://.\n"
           example: '6316215110'
+    RecipientIdentity:
+      type: object
+      required:
+        - idType
+        - idValue
+      properties:
+        idType:
+          type: string
+          nullable: false
+          enum:
+            - USCC
+            - ORGANIZATION_ID
+            - NATIONAL_ID
+            - TAX_ID
+            - SSN
+          description: Type of identification
+          example: USCC
+        idValue:
+          minLength: 1
+          maxLength: 255
+          type: string
+          description: Identification value
+          example: 91310000717860841G
     RecipientPartyDetails:
       type: object
       required:
@@ -437,11 +564,26 @@ components:
           description: |
             Recipient company name. Mandatory for recipient type ORGANIZATION.
           example: Central Park Getaways
+        alternativeName:
+          type: string
+          nullable: true
+          minLength: 1
+          maxLength: 140
+          pattern: ^(.|\s)*\S(.|\s)*$
+          description: |
+            Recipient optional alternative name
+          example: Central Park
         contacts:
           type: array
           description: Contact details for the recipient.
           items:
             $ref: '#/components/schemas/RecipientContact'
+          minItems: 0
+        identities:
+          type: array
+          description: Identity details for the recipient.
+          items:
+            $ref: '#/components/schemas/RecipientIdentity'
           minItems: 0
     AccountNumber:
       type: string
@@ -479,6 +621,18 @@ components:
       type: string
       nullable: false
       enum:
+        - AUBSB
+        - BIC
+        - BRSTN
+        - CACPA
+        - CLABE
+        - CNAPS
+        - GBDSC
+        - HKNCC
+        - INFSC
+        - JPZGN
+        - NZNCC
+        - SGIBG
         - USABA
       description: Type of routing code.
       example: USABA
@@ -495,6 +649,53 @@ components:
           $ref: '#/components/schemas/RoutingInformationTransactionType'
         routingCodeType:
           $ref: '#/components/schemas/RoutingCodeType'
+    CurrencyCode:
+      type: string
+      enum:
+        - AED
+        - ARS
+        - AUD
+        - BGN
+        - BRL
+        - CAD
+        - CHF
+        - CNY
+        - COP
+        - CRC
+        - CZK
+        - DKK
+        - EUR
+        - GBP
+        - HKD
+        - HUF
+        - IDR
+        - ILS
+        - INR
+        - ISK
+        - JPY
+        - KES
+        - KRW
+        - MAD
+        - MXN
+        - MYR
+        - NOK
+        - NZD
+        - PEN
+        - PHP
+        - PKR
+        - PLN
+        - RON
+        - SAR
+        - SEK
+        - SGD
+        - THB
+        - TRY
+        - TWD
+        - USD
+        - VND
+        - ZAR
+      description: Three letter currency code based on ISO 4217 standard
+      example: USD
     RecipientAccount:
       type: object
       required:
@@ -513,20 +714,96 @@ components:
             $ref: '#/components/schemas/RoutingInformation'
           minItems: 1
           maxItems: 3
+        currencyCode:
+          $ref: '#/components/schemas/CurrencyCode'
         countryCode:
           $ref: '#/components/schemas/CountryCode'
-    RecipientStatus:
-      description: Callback event type needs to send to notsub for correct status.
-      type: string
-      enum:
-        - ACTIVE
-        - INACTIVE
-        - MICRODEPOSITS_INITIATED
-        - READY_FOR_VALIDATION
-        - REJECTED
-        - PENDING
-      nullable: false
-      example: ACTIVE
+    MicroDeposit:
+      type: object
+      required:
+        - transactionType
+      description: Microdeposit details of the recipient.
+      properties:
+        transactionType:
+          description: Payment rail used to validate micro deposit by Account Validation Services.
+          type: string
+          enum:
+            - RTP
+            - ACH
+          nullable: true
+          example: RTP
+    ApiErrorReasonV2:
+      type: object
+      description: Schema representing detailed reasons for an API error, including code, location, and message.
+      required:
+        - message
+      properties:
+        code:
+          type: string
+          example: '11000'
+          description: Short code that identifies the error - publicly cataloged and documented
+          minLength: 0
+          maxLength: 5
+          nullable: true
+        location:
+          type: string
+          enum:
+            - BODY
+            - QUERY
+            - PATH
+            - HEADER
+          example: BODY
+          description: Part of the request which is responsible for the reason
+          nullable: true
+        field:
+          type: string
+          description: The location of the property or parameter in error
+          minLength: 0
+          maxLength: 512
+          nullable: true
+        message:
+          type: string
+          example: Client with ID 0031234567 does not exist.
+          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+          minLength: 0
+          maxLength: 2048
+    ApiError:
+      type: object
+      required:
+        - title
+        - httpStatus
+        - error
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 512
+          description: Short humanly-readable title of the error
+          example: BAD REQUEST
+        httpStatus:
+          type: integer
+          minimum: 100
+          maximum: 599
+          format: int32
+          description: HTTP status code
+          example: 422
+        traceId:
+          type: string
+          minLength: 0
+          maxLength: 512
+          description: Internal assigned traced identifier
+        requestId:
+          type: string
+          minLength: 0
+          maxLength: 512
+          description: Client provided request identifier
+        context:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiErrorReasonV2'
+          description: Provides additional context and detail on the validation errors
+          minItems: 0
+          maxItems: 100
     Result:
       type: object
       properties:
@@ -546,6 +823,8 @@ components:
       type: object
       properties:
         error:
+          $ref: '#/components/schemas/Result'
+        accountScore:
           $ref: '#/components/schemas/Result'
         verification:
           $ref: '#/components/schemas/Result'
@@ -617,6 +896,13 @@ components:
           items:
             $ref: '#/components/schemas/Responses'
           minItems: 0
+    CardHolderName:
+      type: string
+      minLength: 1
+      maxLength: 30
+      example: M GELLAR
+      pattern: '^[A-Za-z]+(?: [A-Za-z]+)*$'
+      description: Name on the credit/debit card
     ExpiryDate:
       type: string
       description: Expiry date of card in the format MM-YY
@@ -624,14 +910,20 @@ components:
       pattern: ^(?:[0-9]{2})(0[1-9]|1[0-2])$
     RecipientCard:
       type: object
+      required:
+        - name
+        - pan
+        - expiryDate
       properties:
+        name:
+          $ref: '#/components/schemas/CardHolderName'
         pan:
           type: string
           minLength: 13
           maxLength: 19
-          example: '*********0123'
-          pattern: ^\*{9,15}\d{4}$
-          description: A tokenized and masked card Primary Account Number (PAN)
+          example: '123456789123456'
+          pattern: ^\d{13,19}$
+          description: A card Primary Account Number (PAN)
         expiryDate:
           $ref: '#/components/schemas/ExpiryDate'
     Recipient:
@@ -654,6 +946,8 @@ components:
           $ref: '#/components/schemas/RecipientType'
         status:
           $ref: '#/components/schemas/RecipientStatus'
+        microDeposit:
+          $ref: '#/components/schemas/MicroDeposit'
         clientId:
           type: string
           description: Client identifier
@@ -668,6 +962,8 @@ components:
           type: string
           format: date-time
           example: 2023-02-22T16:05:46.952+0000
+        error:
+          $ref: '#/components/schemas/ApiError'
         accountValidationResponse:
           type: array
           description: Account validation response
@@ -691,59 +987,13 @@ components:
               items:
                 $ref: '#/components/schemas/Recipient'
               minItems: 0
-    ApiErrorReasonV2:
-      type: object
-      required:
-        - message
-      properties:
-        code:
-          type: string
-          example: '11000'
-          description: Short code that identifies the error - publicly cataloged and documented
-        location:
-          type: string
-          enum:
-            - BODY
-            - QUERY
-            - PATH
-            - HEADER
-          example: BODY
-          description: Part of the request which is responsible for the reason
-        field:
-          type: string
-          description: The location of the property or parameter in error
-        message:
-          type: string
-          example: Client with ID 0031234567 does not exist.
-          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
-    ApiError:
-      type: object
-      required:
-        - title
-        - httpStatus
-        - error
-      properties:
-        title:
-          type: string
-          description: Short humanly-readable title of the error
-          example: BAD REQUEST
-        httpStatus:
-          type: integer
-          description: HTTP status code
-          example: 422
-        traceId:
-          type: string
-          description: Internal assigned traced identifier
-        requestId:
-          type: string
-          description: Client provided request identifier
-        context:
-          type: array
-          items:
-            $ref: '#/components/schemas/ApiErrorReasonV2'
-          description: Provides additional context and detail on the validation errors
-          minItems: 0
-          maxItems: 100
+    CardNumberMasked:
+      type: string
+      minLength: 13
+      maxLength: 19
+      example: '123456789123456'
+      pattern: ^\d{13,19}$
+      description: A card Primary Account Number (PAN)
     RecipientRequest:
       type: object
       properties:
@@ -762,21 +1012,25 @@ components:
           example: '0030000132'
         card:
           type: object
+          required:
+            - name
+            - pan
+            - expiryDate
           properties:
+            name:
+              $ref: '#/components/schemas/CardHolderName'
             pan:
-              type: string
-              minLength: 13
-              maxLength: 19
-              example: '123456789123456'
-              pattern: ^\d{13,19}$
-              description: A card Primary Account Number (PAN)
+              $ref: '#/components/schemas/CardNumberMasked'
             expiryDate:
               $ref: '#/components/schemas/ExpiryDate'
     RecipientCardUpdate:
       type: object
       properties:
+        name:
+          $ref: '#/components/schemas/CardHolderName'
         expiryDate:
           $ref: '#/components/schemas/ExpiryDate'
+      additionalProperties: false
     UpdateRecipientRequest:
       type: object
       properties:
@@ -999,6 +1253,13 @@ components:
           countryCode: US
         type: LINKED_ACCOUNT
         status: ACTIVE
+        error:
+          title: Bad Request
+          httpStatus: 400
+          error: BAD_REQUEST
+          message: ABA routing number 541798298 not found
+          context:
+            - message: ABA routing number 541798298 not found
     GetPaymentIntentRecipientRes:
       summary: Get Recipient By Id - Payment Intent
       description: Get Recipient By Id - Payment Intent

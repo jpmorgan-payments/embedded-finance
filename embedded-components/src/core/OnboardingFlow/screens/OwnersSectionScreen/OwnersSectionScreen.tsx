@@ -16,13 +16,14 @@ import { useForm, useFormState } from 'react-hook-form';
 import {
   getSmbdoGetClientQueryKey,
   usePostParty,
-  useSmbdoUpdateClientLegacy,
-  useUpdatePartyLegacy,
+  useSmbdoUpdateClient,
+  useUpdateParty,
 } from '@/api/generated/smbdo';
 import {
   ClientResponse,
   PartyResponse,
   Role,
+  UpdateClientRequestSmbdo,
 } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
@@ -491,7 +492,7 @@ export const OwnersSectionScreen = () => {
     mutate: updateController,
     error: controllerUpdateError,
     status: controllerUpdateStatus,
-  } = useUpdatePartyLegacy();
+  } = useUpdateParty();
 
   // Update controller roles on change
   useEffect(() => {
@@ -587,14 +588,14 @@ export const OwnersSectionScreen = () => {
     mutateAsync: updatePartyActiveAsync,
     error: partyActiveUpdateError,
     status: partyActiveUpdateStatus,
-  } = useUpdatePartyLegacy();
+  } = useUpdateParty();
 
   // For adding new parties (indirect ownership integration)
   const {
     mutateAsync: updateClientAsync,
     error: clientUpdateError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClientLegacy();
+  } = useSmbdoUpdateClient();
 
   // For creating intermediary chain parties and re-parenting indirect owners
   // via POST /parties (parentPartyId can only be set at creation).
@@ -652,7 +653,7 @@ export const OwnersSectionScreen = () => {
       const response = await updateClientAsync({
         id: clientData.id,
         data: {
-          addParties: [newParty] as unknown as ClientResponse['parties'],
+          addParties: [newParty] as UpdateClientRequestSmbdo['addParties'],
         },
       });
       const queryKey = getSmbdoGetClientQueryKey(clientData.id);

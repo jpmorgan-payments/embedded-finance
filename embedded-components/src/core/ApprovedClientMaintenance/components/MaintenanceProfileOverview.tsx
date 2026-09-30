@@ -15,12 +15,12 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import type { KycUpdateRequestStatus } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui';
 
 import type {
   MaintenanceClient,
   MaintenanceParty,
-  MaintenanceStatus,
 } from '../models/maintenanceApi.types';
 import type { MaintenanceEntityTasks } from '../utils/buildMaintenanceEntityTasks';
 import {
@@ -43,7 +43,7 @@ type MaintenanceProfileOverviewProps = {
   ownershipParties: MaintenanceParty[];
   hasActiveUpdate: boolean;
   updateScope: 'product' | 'maintenance' | 'combined';
-  activeRequestStatus?: MaintenanceStatus;
+  activeRequestStatus?: KycUpdateRequestStatus;
   isDocumentDiscoveryPending: boolean;
   isEligible: boolean;
   canAddProduct: boolean;

@@ -8,8 +8,6 @@ import type {
   MaintenancePhone,
 } from '../models/maintenanceApi.types';
 
-export type PartyNameUpdateRequest = MaintenancePartyUpdateRequest;
-
 export type IndividualAddressValues = {
   country: string;
   primaryAddressLine: string;
@@ -58,7 +56,7 @@ export type PartyNameUpdateResult =
       kind: 'unsupported-clear';
       fields: Array<keyof IndividualLegalNameValues>;
     }
-  | { kind: 'changed'; request: PartyNameUpdateRequest };
+  | { kind: 'changed'; request: MaintenancePartyUpdateRequest };
 
 const NAME_FIELDS: Array<keyof IndividualLegalNameValues> = [
   'firstName',
@@ -89,7 +87,7 @@ export type IndividualPartyUpdateResult =
       kind: 'unsupported-clear';
       fields: IndividualMaintenanceFieldPath[];
     }
-  | { kind: 'changed'; request: PartyNameUpdateRequest };
+  | { kind: 'changed'; request: MaintenancePartyUpdateRequest };
 
 export function buildIndividualPartyUpdate(
   baseline: IndividualMaintenanceValues,

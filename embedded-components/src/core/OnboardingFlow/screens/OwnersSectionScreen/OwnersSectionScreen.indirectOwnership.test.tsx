@@ -40,13 +40,13 @@ vi.mock('@/api/generated/smbdo', async (importOriginal) => {
       mutateAsync: api.postPartyAsync,
       error: undefined,
     }),
-    useUpdatePartyLegacy: () => ({
+    useUpdateParty: () => ({
       mutate: api.updatePartyMutate,
       mutateAsync: api.updatePartyActiveAsync,
       error: undefined,
       status: 'idle',
     }),
-    useSmbdoUpdateClientLegacy: () => ({
+    useSmbdoUpdateClient: () => ({
       mutate: api.updateClientMutate,
       mutateAsync: api.updateClientAsync,
       error: undefined,

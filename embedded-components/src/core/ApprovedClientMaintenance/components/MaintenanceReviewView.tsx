@@ -11,14 +11,12 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import type { KycUpdateRequestStatus } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Checkbox, Label } from '@/components/ui';
 
-import type {
-  MaintenanceParty,
-  MaintenanceStatus,
-} from '../models/maintenanceApi.types';
+import type { MaintenanceParty } from '../models/maintenanceApi.types';
 import type { MaintenanceEntityTasks } from '../utils/buildMaintenanceEntityTasks';
 import type { MaintenanceProjection } from '../utils/buildMaintenanceProjection';
 import {
@@ -48,7 +46,7 @@ type MaintenanceReviewViewProps = {
   mode: 'draft' | 'submitted';
   projection: MaintenanceProjection;
   entityTasks: MaintenanceEntityTasks;
-  requestStatus?: MaintenanceStatus;
+  requestStatus?: KycUpdateRequestStatus;
   isDocumentDiscoveryPending: boolean;
   documentError?: unknown;
   blockers: MaintenanceSubmissionBlocker[];

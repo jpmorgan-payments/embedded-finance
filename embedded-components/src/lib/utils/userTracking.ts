@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import type {
   UserEventContext,
@@ -70,6 +70,31 @@ function isDuplicateAction(actionName: string): boolean {
 }
 
 /**
+ * Runs the handler inside an onEnter/onLeave pair so lifecycle actions always close.
+ */
+function dispatchUserEvent(
+  context: UserEventContext,
+  userEventsHandler: (context: UserEventContext) => void | number,
+  userEventsLifecycle?: UserEventLifecycle
+): void {
+  if (!userEventsLifecycle?.onEnter) {
+    userEventsHandler(context);
+    return;
+  }
+
+  const actionId = userEventsLifecycle.onEnter(context);
+  try {
+    // Always call the main handler (lifecycle handlers are supplements, not replacements)
+    userEventsHandler(context);
+  } finally {
+    userEventsLifecycle.onLeave?.({
+      ...context,
+      actionId: typeof actionId === 'number' ? actionId : undefined,
+    });
+  }
+}
+
+/**
  * Track a user event programmatically
  */
 export function trackUserEvent({
@@ -101,13 +126,7 @@ export function trackUserEvent({
       metadata
     );
 
-    // Call lifecycle onEnter if provided (optional supplement)
-    if (userEventsLifecycle?.onEnter) {
-      userEventsLifecycle.onEnter(context);
-    }
-
-    // Always call the main handler (lifecycle handlers are supplements, not replacements)
-    userEventsHandler(context);
+    dispatchUserEvent(context, userEventsHandler, userEventsLifecycle);
   } catch (error) {
     // Silently handle errors to prevent breaking component functionality
     console.error('Error tracking user event:', error);
@@ -129,9 +148,6 @@ export function useUserEventTracking({
   userEventsLifecycle?: UserEventLifecycle;
   eventsToTrack?: string[];
 }): void {
-  // Store actionIds for lifecycle tracking
-  const actionIdsRef = useRef<Map<string, number>>(new Map());
-
   const eventHandler = useCallback(
     (e: Event) => {
       if (!userEventsHandler) return;
@@ -158,17 +174,7 @@ export function useUserEventTracking({
             Object.fromEntries(Object.entries(element.dataset))),
         });
 
-        // Call lifecycle onEnter if provided (optional supplement)
-        if (userEventsLifecycle?.onEnter) {
-          const actionId = userEventsLifecycle.onEnter(context);
-          if (typeof actionId === 'number') {
-            // Store actionId for this journey (for potential onLeave tracking)
-            actionIdsRef.current.set(journeyName, actionId);
-          }
-        }
-
-        // Always call the main handler (lifecycle handlers are supplements, not replacements)
-        userEventsHandler(context);
+        dispatchUserEvent(context, userEventsHandler, userEventsLifecycle);
       } catch (error) {
         // Silently handle errors to prevent breaking component functionality
         console.error('Error tracking user event:', error);
@@ -187,8 +193,6 @@ export function useUserEventTracking({
       return undefined;
     }
 
-    const actionIds = actionIdsRef.current;
-
     // Use event delegation - attach listeners to container
     eventsToTrack.forEach((eventType) => {
       container.addEventListener(eventType, eventHandler, true); // Use capture phase
@@ -198,8 +202,6 @@ export function useUserEventTracking({
       eventsToTrack.forEach((eventType) => {
         container.removeEventListener(eventType, eventHandler, true);
       });
-      // Clean up stored actionIds
-      actionIds.clear();
     };
   }, [
     containerId,

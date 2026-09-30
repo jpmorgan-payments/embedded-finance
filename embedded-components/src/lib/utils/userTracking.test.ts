@@ -106,6 +106,48 @@ describe('trackUserEvent deduplication', () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
+  it('closes lifecycle onEnter with onLeave carrying the returned actionId', () => {
+    const handler = vi.fn();
+    const onEnter = vi.fn(() => 7);
+    const onLeave = vi.fn();
+
+    trackUserEvent({
+      actionName: 'paired_action',
+      userEventsHandler: handler,
+      userEventsLifecycle: { onEnter, onLeave },
+    });
+
+    expect(onLeave).toHaveBeenCalledWith(
+      expect.objectContaining({ actionName: 'paired_action', actionId: 7 })
+    );
+    expect(onEnter.mock.invocationCallOrder[0]).toBeLessThan(
+      handler.mock.invocationCallOrder[0]
+    );
+    expect(handler.mock.invocationCallOrder[0]).toBeLessThan(
+      onLeave.mock.invocationCallOrder[0]
+    );
+  });
+
+  it('calls lifecycle onLeave even when userEventsHandler throws', () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const onLeave = vi.fn();
+
+    trackUserEvent({
+      actionName: 'throwing_paired_action',
+      userEventsHandler: () => {
+        throw new Error('handler boom');
+      },
+      userEventsLifecycle: { onEnter: () => 3, onLeave },
+    });
+
+    expect(onLeave).toHaveBeenCalledWith(
+      expect.objectContaining({ actionId: 3 })
+    );
+    consoleError.mockRestore();
+  });
+
   it('suppresses lifecycle onEnter on duplicate calls', () => {
     const handler = vi.fn();
     const onEnter = vi.fn();
@@ -314,6 +356,47 @@ describe('useUserEventTracking', () => {
 
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({ actionName: 'parent_event' })
+    );
+  });
+
+  it('closes every lifecycle action it opens for focus, click and blur', () => {
+    const container = document.createElement('div');
+    container.id = 'test-container-lifecycle';
+    document.body.appendChild(container);
+
+    let nextActionId = 0;
+    const onEnter = vi.fn(() => ++nextActionId);
+    const onLeave = vi.fn();
+
+    renderHook(() =>
+      useUserEventTracking({
+        containerId: 'test-container-lifecycle',
+        userEventsHandler: vi.fn(),
+        userEventsLifecycle: { onEnter, onLeave },
+      })
+    );
+
+    const button = document.createElement('button');
+    button.setAttribute('data-user-event', 'onboarding_screen_navigation');
+    button.setAttribute('data-section-id', 'operational-details');
+    container.appendChild(button);
+
+    button.dispatchEvent(new FocusEvent('focus'));
+    button.click();
+    button.dispatchEvent(new FocusEvent('blur'));
+
+    expect(onEnter).toHaveBeenCalledTimes(3);
+    expect(
+      onLeave.mock.calls.map(([ctx]) => [ctx.eventType, ctx.actionId])
+    ).toEqual([
+      ['focus', 1],
+      ['click', 2],
+      ['blur', 3],
+    ]);
+    expect(onLeave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({ sectionId: 'operational-details' }),
+      })
     );
   });
 

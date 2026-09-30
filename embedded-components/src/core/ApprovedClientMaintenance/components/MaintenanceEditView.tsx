@@ -4,11 +4,9 @@ import { useTranslationWithTokens } from '@/i18n';
 import type {
   MaintenanceAddress,
   MaintenanceIndividualId,
+  MaintenancePartyUpdateRequest,
 } from '../models/maintenanceApi.types';
-import type {
-  IndividualMaintenanceValues,
-  PartyNameUpdateRequest,
-} from '../utils/buildPartyNameUpdate';
+import type { IndividualMaintenanceValues } from '../utils/buildPartyNameUpdate';
 import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
@@ -27,7 +25,7 @@ type MaintenanceEditViewProps = {
   onBack: () => void;
   onSave: (
     values: IndividualMaintenanceValues,
-    request: PartyNameUpdateRequest
+    request: MaintenancePartyUpdateRequest
   ) => Promise<void>;
 };
 

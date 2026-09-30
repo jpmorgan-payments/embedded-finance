@@ -139,7 +139,7 @@ export const handlers = [
     });
   }),
 
-  http.post(`/clients/:clientId`, async ({ request, params }) => {
+  http.patch(`/clients/:clientId`, async ({ request, params }) => {
     const { clientId } = params;
     const data = await request.json();
 
@@ -344,47 +344,6 @@ export const handlers = [
     return HttpResponse.json(expandedClient, {
       headers: { 'Content-Type': 'application/json' },
     });
-  }),
-
-  http.post('/parties/:partyId', async ({ request, params }) => {
-    const { partyId } = params;
-    const data = await request.json();
-
-    // Check if party exists first
-    const existingParty = db.party.findFirst({
-      where: { id: { equals: partyId } },
-    });
-
-    if (!existingParty) {
-      return new HttpResponse(null, { status: 404 });
-    }
-
-    // First delete the existing party
-    db.party.delete({
-      where: { id: { equals: partyId } },
-    });
-
-    // Use lodash merge for deep merging, but handle roles separately
-    const { roles: newRoles, ...restData } = data;
-    const { roles: existingRoles, ...restExisting } = existingParty;
-
-    // Merge everything except roles
-    const mergedData = merge({}, restExisting, restData);
-
-    // Add roles back, preferring the new roles if provided
-    const finalData = {
-      ...mergedData,
-      roles: newRoles || existingRoles,
-    };
-
-    // Create a new party with the merged data
-    const updatedParty = db.party.create({
-      ...finalData,
-      id: partyId, // Ensure we keep the same ID
-    });
-
-    logDbState('Party Update');
-    return HttpResponse.json(updatedParty);
   }),
 
   http.get('/parties/:partyId', ({ params }) => {

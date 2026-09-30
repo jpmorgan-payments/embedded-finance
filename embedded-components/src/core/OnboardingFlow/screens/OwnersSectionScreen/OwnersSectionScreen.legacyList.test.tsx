@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { render, screen, userEvent, within } from '@test-utils';
 
-import { useUpdatePartyLegacy } from '@/api/generated/smbdo';
+import { useUpdateParty } from '@/api/generated/smbdo';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { flowConfig } from '@/core/OnboardingFlow/config/flowConfig';
 import {
@@ -19,7 +19,7 @@ vi.mock('@/api/generated/smbdo', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/api/generated/smbdo')>();
   return {
     ...actual,
-    useUpdatePartyLegacy: vi.fn(),
+    useUpdateParty: vi.fn(),
   };
 });
 
@@ -103,12 +103,12 @@ describe('OwnersSectionScreen — legacy owners list', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     queryClient.clear();
-    vi.mocked(useUpdatePartyLegacy).mockReturnValue({
+    vi.mocked(useUpdateParty).mockReturnValue({
       mutate: updateMutate,
       mutateAsync: vi.fn(),
       error: undefined,
       status: 'idle',
-    } as unknown as ReturnType<typeof useUpdatePartyLegacy>);
+    } as unknown as ReturnType<typeof useUpdateParty>);
   });
 
   test('shows the empty state when there are no owners', () => {

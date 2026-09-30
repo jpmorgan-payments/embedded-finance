@@ -24,7 +24,6 @@ import type {
   MaintenancePartyCreateRequest,
   MaintenancePartyUpdateRequest,
 } from '../models/maintenanceApi.types';
-import type { PartyNameUpdateRequest } from '../utils/buildPartyNameUpdate';
 import { validateStableMaintenanceSubmission } from '../utils/maintenanceReview';
 
 export const getMaintenanceClientQueryKey = (clientId: string) =>
@@ -112,7 +111,7 @@ export function useMaintenanceWorkspace(clientId: string) {
       idempotencyKey,
     }: {
       partyId: string;
-      requestBody: PartyNameUpdateRequest;
+      requestBody: MaintenancePartyUpdateRequest;
       idempotencyKey: string;
     }) =>
       patchMaintenancePartyName(request, partyId, requestBody, idempotencyKey),
@@ -204,7 +203,7 @@ export function useMaintenanceWorkspace(clientId: string) {
   });
 
   const updatePartyName = useCallback(
-    (partyId: string, requestBody: PartyNameUpdateRequest) =>
+    (partyId: string, requestBody: MaintenancePartyUpdateRequest) =>
       updatePartyNameMutation.mutateAsync({
         partyId,
         requestBody,

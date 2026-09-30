@@ -1,5 +1,11 @@
 import { isAxiosError, type AxiosRequestConfig } from 'axios';
 
+import type {
+  ClientVerificationResponse,
+  DocumentRequestResponse,
+  ProductDetailsUpdateAction,
+} from '@/api/generated/smbdo.schemas';
+
 import {
   maintenanceClientSchema,
   maintenanceDocumentRequestListSchema,
@@ -11,16 +17,13 @@ import {
 import type {
   MaintenanceClient,
   MaintenanceClientTaskUpdateRequest,
-  MaintenanceDocumentRequestSummary,
   MaintenancePage,
   MaintenanceParty,
   MaintenancePartyCreateRequest,
   MaintenancePartyUpdateRequest,
   MaintenanceProductUpdateRequest,
   MaintenanceQuestion,
-  MaintenanceVerificationResponse,
 } from './models/maintenanceApi.types';
-import type { PartyNameUpdateRequest } from './utils/buildPartyNameUpdate';
 
 export type MaintenanceRequest = (
   config: AxiosRequestConfig
@@ -129,14 +132,14 @@ export async function getMaintenanceClient(
 export async function getMaintenanceDocumentRequests(
   request: MaintenanceRequest,
   clientId: string
-): Promise<MaintenanceDocumentRequestSummary[]> {
+): Promise<DocumentRequestResponse[]> {
   const response = await request({
     url: '/document-requests',
     method: 'GET',
     params: { clientId, includeRelatedParty: true },
   });
   return maintenanceDocumentRequestListSchema.parse(response)
-    .documentRequests as MaintenanceDocumentRequestSummary[];
+    .documentRequests as DocumentRequestResponse[];
 }
 
 export async function getAllMaintenanceParties(
@@ -193,7 +196,7 @@ export async function getAllMaintenanceParties(
 export async function patchMaintenancePartyName(
   request: MaintenanceRequest,
   partyId: string,
-  partyNameUpdate: PartyNameUpdateRequest,
+  partyNameUpdate: MaintenancePartyUpdateRequest,
   idempotencyKey: string
 ): Promise<void> {
   return patchMaintenanceParty(
@@ -238,7 +241,7 @@ const updateLimitedDdaPaymentsProduct = async (
   request: MaintenanceRequest,
   clientId: string,
   idempotencyKey: string,
-  action: 'ADD' | 'REMOVE'
+  action: ProductDetailsUpdateAction
 ) => {
   const productUpdate: MaintenanceProductUpdateRequest = {
     productDetails: [
@@ -302,7 +305,7 @@ export async function submitMaintenanceVerification(
   request: MaintenanceRequest,
   clientId: string,
   idempotencyKey: string
-): Promise<MaintenanceVerificationResponse> {
+): Promise<ClientVerificationResponse> {
   const response = await request({
     url: `/clients/${clientId}/verifications`,
     method: 'POST',
@@ -315,7 +318,7 @@ export async function submitMaintenanceVerification(
   });
   return maintenanceVerificationResponseSchema.parse(
     response
-  ) as MaintenanceVerificationResponse;
+  ) as ClientVerificationResponse;
 }
 
 export async function getMaintenanceQuestions(

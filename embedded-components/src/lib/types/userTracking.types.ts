@@ -24,7 +24,7 @@ export type UserEventContext = {
 export type UserEventLifecycle = {
   /** Called when an action starts. Returns actionId for tracking lifecycle */
   onEnter?: (context: UserEventContext) => void | number;
-  /** Called when an action ends. Receives context with optional actionId */
+  /** Called after userEventsHandler for every onEnter. Receives the actionId onEnter returned */
   onLeave?: (context: UserEventContext & { actionId?: number }) => void;
 };
 

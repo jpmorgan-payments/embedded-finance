@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.17.14",
+  "version": "0.17.15",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -78,8 +78,8 @@
     "analyze": "vite build --mode analyze",
     "visualize": "vite-bundle-visualizer",
     "generate-api": "orval --config ./orval.config.mjs && npm run fix-generated-files && npm run prettify-generated-files",
-    "fix-generated-files": "npx replace '((?:\\s|\\<))(?!N)(\\d\\S*)Response' '$1N$2Response' ./src/api/generated/*",
-    "prettify-generated-files": "npx prettier --write './src/api/generated/*'",
+    "fix-generated-files": "node internal/fix-generated-files.mjs",
+    "prettify-generated-files": "prettier --write \"./src/api/generated/*\"",
     "prettier": "prettier --check \"**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "vitest": "vitest run",
@@ -207,7 +207,7 @@
     "vite": "^8.1.5",
     "vite-plugin-dts": "^5.0.3",
     "vite-plugin-lib-inject-css": "^2.2.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "optionalDependencies": {
     "@ast-grep/napi-linux-x64-gnu": "0.36.3",
@@ -238,11 +238,11 @@
     "tar": "^7.5.21",
     "lodash": "^4.18.1",
     "lodash-es": "^4.18.1",
-    "js-yaml": "^4.3.1",
+    "js-yaml": "^4.3.2",
     "uuid": "^14.0.1",
     "dompurify": "^3.4.13",
     "esbuild": "0.28.1",
-    "fast-uri": "3.1.5",
+    "fast-uri": "3.1.6",
     "linkify-it": "5.0.2",
     "markdown-it": "14.3.0",
     "postcss-selector-parser": "6.1.3",
