@@ -2,6 +2,14 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.15] - 2026-09-30
+
+### Changes
+
+#### Features
+
+- **userTracking:** enhance lifecycle management with dispatchUserEvent function
+
 ## [0.17.14] - 2026-09-18
 
 ### Changes

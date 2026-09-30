@@ -21,7 +21,7 @@ import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
-  useSmbdoUpdateClientLegacy,
+  useSmbdoUpdateClient,
 } from '@/api/generated/smbdo';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -164,7 +164,7 @@ export const OperationalDetailsForm = () => {
     mutate: updateClient,
     error: updateClientError,
     status: updateClientStatus,
-  } = useSmbdoUpdateClientLegacy({
+  } = useSmbdoUpdateClient({
     mutation: {
       onError: () => {
         // Mutation error occurred

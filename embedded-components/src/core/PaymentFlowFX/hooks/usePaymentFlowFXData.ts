@@ -2,9 +2,8 @@
  * usePaymentFlowFXData
  *
  * Self-contained reimplementation of PaymentFlow's account + balance + recipient
- * data plumbing (PaymentFlow keeps its private version — non-breaking mandate D6),
- * extended to enrich payees with FX metadata (currency / country) via a tolerant
- * accessor until the recipients spec upgrade lands (SPECIFICATION.md §4 step 3).
+ * data plumbing (PaymentFlow keeps its private version), extended to enrich payees
+ * with FX metadata (currency / country).
  */
 import { useCallback, useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
@@ -26,11 +25,8 @@ import type { FXPayee } from '../PaymentFlowFX.types';
 /**
  * Reads `account.currencyCode` with a tolerant `string` type.
  *
- * The FX recipients spec (`embedded-finance-pub-ep-recipients-1.0.55-fx.yaml`)
- * widens `RecipientAccount.currencyCode` to the 16 supported credit currencies
- * plus USD. Reading it as an open `string` keeps this hook decoupled from the
- * generated enum, so it stays safe against an older client that omits the field
- * and against future spec revisions that add currencies.
+ * Reading the generated `RecipientAccount.currencyCode` as an open string keeps
+ * this hook forward-compatible with future currency additions.
  */
 function readAccountCurrency(account: unknown): string | undefined {
   return (account as { currencyCode?: string } | undefined)?.currencyCode;

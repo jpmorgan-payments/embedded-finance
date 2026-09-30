@@ -1,21 +1,22 @@
 openapi: 3.0.1
 info:
-  title: Embedded Finance Digital Onboarding API
-  version: 1.0.10
-  description: Embedded Finance & Solutions APIs from J.P. Morgan.
+  title: Digital Onboarding API
+  version: 1.4.1
+  description: Streamline your client onboarding process to create, update, and manage clients, parties, documents, and due diligence requirements in a fully digital workflow so you can automate Know Your Customer (KYC), document collection, and compliance tasks directly from your own platform.
   contact:
     name: JPMC Technical Services Support
 servers:
-  - url: https://apigateway.jpmorgan.com/tsapi/ef/do/v1
-    description: JPM-PROD - Embedded Finance
-  - url: https://apigatewaycat.jpmorgan.com/tsapi/ef/do/v1
-    description: JPM-CAT Embedded Finance
-  - url: https://api-mock.payments.jpmorgan.com/tsapi/ef/do/v1
-    description: JPM-PROD - Embedded Finance Mock
+  - url: https://api.payments.jpmorgan.com/onboarding/v1
+    description: PRODUCTION - MTLS
+  - url: https://api-sandbox.payments.jpmorgan.com/onboarding/v1
+    description: CLIENT TESTING - MTLS
+  - url: https://api-mock.payments.jpmorgan.com/onboarding/v1
+    description: MOCK
 security:
   - Certs: []
     Token: []
   - Certs: []
+  - BearerAuth: []
 tags:
   - name: Clients
     description: Onboard and manage clients.
@@ -26,8 +27,14 @@ tags:
   - name: Party
     description: Create and manage legal parties.
   - name: Questions
-    description: View details about answering questions by id
+    description: View details about answering questions by id.
     x-displayName: Questions
+  - name: Session
+    description: Create session for clients or parties.
+  - name: Recommendations
+    description: Generates recommendations based on the provided input.
+  - name: Maintenance requests
+    description: Manage maintenance requests.
 paths:
   /clients:
     get:
@@ -65,6 +72,7 @@ paths:
     post:
       parameters:
         - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
       summary: Create client
       description: Creates a client.
       operationId: smbdo-postClients
@@ -80,6 +88,8 @@ paths:
                 $ref: '#/components/examples/CreateClient'
               CreateClientForCAMerchantServices:
                 $ref: '#/components/examples/CreateClientForCAMerchantServices'
+              CreateClientWithIntermediaryInformationAndTrust:
+                $ref: '#/components/examples/CreateClientWithIntermediaryInformationAndTrust'
       responses:
         '201':
           description: Created.
@@ -90,6 +100,8 @@ paths:
               examples:
                 CreateClientResponse:
                   $ref: '#/components/examples/CreateClientResponse'
+                CreateClientWithIntermediaryInformationAndTrustResponse:
+                  $ref: '#/components/examples/CreateClientWithIntermediaryInformationAndTrustResponse'
         '400':
           $ref: '#/components/responses/400'
         '401':
@@ -98,6 +110,10 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/500'
         '503':
@@ -145,6 +161,61 @@ paths:
     post:
       parameters:
         - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - name: id
+          in: path
+          description: Unique identifier for a client.
+          required: true
+          style: simple
+          schema:
+            type: string
+            maxLength: 10
+          example: '1000010400'
+      summary: Update client
+      description: Updates a client.
+      operationId: smbdo-updateClientLegacy
+      tags:
+        - Clients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClientRequestSmbdo'
+            examples:
+              UpdateClient:
+                $ref: '#/components/examples/UpdateClient'
+              UpdateClientCA:
+                $ref: '#/components/examples/UpdateClientCA'
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientUpdatedResponse'
+              examples:
+                UpdateClientResponse:
+                  $ref: '#/components/examples/UpdateClientResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    patch:
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
         - name: id
           in: path
           description: Unique identifier for a client.
@@ -187,6 +258,10 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/500'
         '503':
@@ -195,6 +270,7 @@ paths:
     post:
       parameters:
         - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
         - name: id
           in: path
           description: Unique identifier for a client.
@@ -230,6 +306,8 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
         '422':
           $ref: '#/components/responses/422'
         '500':
@@ -388,6 +466,7 @@ paths:
     post:
       parameters:
         - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
         - name: id
           in: path
           description: Unique identifier for a document request.
@@ -412,6 +491,8 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
         '422':
           $ref: '#/components/responses/422'
         '500':
@@ -422,6 +503,7 @@ paths:
     post:
       parameters:
         - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
       summary: Upload document
       description: |
         This section allows the user to attach the binary file upload and meta-data associated with the document.
@@ -430,30 +512,42 @@ paths:
         - Documents
       requestBody:
         description: |
-          This section allows the user to attach the binary file upload  and meta-data associated with the document.
+          This section allows the user to attach the binary file upload and meta-data associated with the document.
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PostUploadDocument'
-            examples:
-              PostDocumentsBody:
-                $ref: '#/components/examples/PostDocumentsBodyExample'
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                documentData:
+                  description: The document metadata.
+                  type: string
+                  example: '{"documentType":"DRIVERS_LICENSE","documentRequestId":"50002"}'
+              required:
+                - file
+                - documentData
       responses:
         '201':
           description: Upload Successful.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocumentUploadAccepted'
+                $ref: '#/components/schemas/DocumentResponse'
               examples:
-                DocumentUploadResponseExample:
-                  $ref: '#/components/examples/DocumentUploadResponseExample'
+                DocumentsRes:
+                  $ref: '#/components/examples/DocumentsResponse'
         '400':
           $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
         '403':
           $ref: '#/components/responses/403'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/500'
         '503':
@@ -625,6 +719,7 @@ paths:
     post:
       parameters:
         - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
       tags:
         - Party
       summary: Create party
@@ -668,6 +763,10 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/500'
         '503':
@@ -696,10 +795,127 @@ paths:
                   $ref: '#/components/examples/OrganizationPartyResponseForNetworkScreening'
                 IndividualPartyResponse:
                   $ref: '#/components/examples/IndividualPartyResponseForNetworkScreening'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
     post:
       parameters:
         - $ref: '#/components/parameters/TokenInHeader'
-        - $ref: '#/components/parameters/PartyIdInPath'
+        - name: partyId
+          in: path
+          description: Unique party identifier.
+          required: true
+          schema:
+            $ref: '#/components/schemas/PartyId'
+          examples:
+            UpdateOrganizationParty:
+              summary: Organization (US)
+              value: '2000000555'
+            UpdateOrganizationPartyCA:
+              summary: Organization (CA)
+              value: '2000000111'
+            UpdateOrganizationPartyPayfac:
+              summary: Organization Payfac (US)
+              value: '2000000666'
+            UpdateOrganizationPartyPayfacCA:
+              summary: Organization Payfac (CA)
+              value: '2000000777'
+            UpdateIndividualParty:
+              summary: Individual (US)
+              value: '2000000112'
+            UpdateIndividualPartyCA:
+              summary: Individual (CA)
+              value: '2000000556'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      tags:
+        - Party
+      summary: Update party
+      description: Updates a party.
+      operationId: updatePartyLegacy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePartyRequest'
+            examples:
+              UpdateOrganizationParty:
+                $ref: '#/components/examples/UpdateOrganizationPartyUS'
+              UpdateOrganizationPartyCA:
+                $ref: '#/components/examples/UpdateOrganizationPartyCA'
+              UpdateOrganizationPartyPayfac:
+                $ref: '#/components/examples/UpdateOrganizationPartyPayfacForNetworkScreening'
+              UpdateOrganizationPartyPayfacCA:
+                $ref: '#/components/examples/UpdateOrganizationPartyPayfacCAForNetworkScreening'
+              UpdateIndividualParty:
+                $ref: '#/components/examples/UpdateIndividualPartyUS'
+              UpdateIndividualPartyCA:
+                $ref: '#/components/examples/UpdateIndividualPartyCA'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartyResponse'
+              examples:
+                OrganizationPartyResponse:
+                  $ref: '#/components/examples/OrganizationPartyResponseForNetworkScreening'
+                IndividualPartyResponse:
+                  $ref: '#/components/examples/IndividualPartyResponseForNetworkScreening'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    patch:
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+        - name: partyId
+          in: path
+          description: Unique party identifier.
+          required: true
+          schema:
+            $ref: '#/components/schemas/PartyId'
+          examples:
+            UpdateOrganizationParty:
+              summary: Organization (US)
+              value: '2000000555'
+            UpdateOrganizationPartyCA:
+              summary: Organization (CA)
+              value: '2000000556'
+            UpdateOrganizationPartyPayfac:
+              summary: Organization Payfac (US)
+              value: '2000000557'
+            UpdateOrganizationPartyPayfacCA:
+              summary: Organization Payfac (CA)
+              value: '2000000558'
+            UpdateIndividualParty:
+              summary: Individual (US)
+              value: '2000000112'
+            UpdateIndividualPartyCA:
+              summary: Individual (CA)
+              value: '2000000113'
+        - $ref: '#/components/parameters/IdempotencyKey'
       tags:
         - Party
       summary: Update party
@@ -743,6 +959,10 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/500'
         '503':
@@ -754,6 +974,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/TokenInHeader'
         - $ref: '#/components/parameters/PartyIdInPath'
+        - $ref: '#/components/parameters/IdempotencyKey'
       tags:
         - Party
       summary: Start party validation
@@ -770,6 +991,243 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /sessions:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageNumber'
+        - name: targetId
+          in: query
+          required: true
+          description: Id of the party or client
+          example: '2000000001'
+          schema:
+            type: string
+            maxLength: 10
+      summary: List sessions
+      description: Returns a list of sessions for a client.
+      operationId: smbdo-listSessions
+      tags:
+        - Session
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSessionResponse'
+              examples:
+                ListSessionResponse:
+                  $ref: '#/components/examples/ListSessionResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    post:
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      tags:
+        - Session
+      summary: Create session.
+      description: Create session.
+      operationId: smbdo-postSessions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+            examples:
+              CreateSessionRequest:
+                $ref: '#/components/examples/CreateSessionRequest'
+      responses:
+        '201':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+              examples:
+                SessionResponse:
+                  $ref: '#/components/examples/SessionResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /recommendations:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      tags:
+        - Recommendations
+      summary: Generate Recommendations.
+      description: Generates recommendations based on the provided input.
+      operationId: smbdo-postRecommendations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecommendationsRequest'
+            examples:
+              RecommendationsRequest:
+                $ref: '#/components/examples/RecommendationsRequest'
+      responses:
+        '200':
+          description: Recommendation generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationsResponse'
+              examples:
+                RecommendationsResponse:
+                  $ref: '#/components/examples/RecommendationsResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /maintenance-requests:
+    get:
+      tags:
+        - Maintenance requests
+      summary: List maintenance requests by clientId or partyId
+      description: Retrieve all maintenance requests associated with all requests for a given client (`clientId`) or all requests for a given party (`partyId`). Exactly one of `clientId` or `partyId` must be supplied.
+      operationId: smbdo-getListOfMaintenanceRequests
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/ClientIdQuery'
+        - $ref: '#/components/parameters/PartyIdQuery'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListKycPartyUpdateRequests'
+              examples:
+                ListPartyUpdateRequests:
+                  $ref: '#/components/examples/GetPartyUpdateResponseList'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+  /maintenance-requests/{requestId}:
+    get:
+      tags:
+        - Maintenance requests
+      summary: Get all maintenance requests based on requestId.
+      description: Retrieves maintenance requests based on requestId.
+      operationId: smbdo-getAllMaintenanceRequestsByRequestId
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/RequestIdInPath'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListKycPartyUpdateRequests'
+              examples:
+                OrganizationListKycPartyUpdateResponse:
+                  $ref: '#/components/examples/OrganizationListKycPartyUpdateResponse'
+                IndividualListKycPartyUpdateResponse:
+                  $ref: '#/components/examples/IndividualListKycPartyUpdateResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+    delete:
+      tags:
+        - Maintenance requests
+      operationId: smbdo-terminateAllMaintenanceRequestsByRequestId
+      summary: Terminate all the related KYC maintenance request
+      description: Terminates all KYC maintenance requests for the given requestId, optionally scoped to a specific partyId.
+      parameters:
+        - $ref: '#/components/parameters/TokenInHeader'
+        - $ref: '#/components/parameters/RequestIdInPath'
+        - $ref: '#/components/parameters/PartyIdQuery'
+      responses:
+        '200':
+          description: Successfully terminated the maintenance request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListKycPartyUpdateRequests'
+              examples:
+                KycTerminatedPartyUpdateResponse:
+                  $ref: '#/components/examples/KycTerminatedPartyUpdateResponseList'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
         '422':
           $ref: '#/components/responses/422'
         '500':
@@ -777,7 +1235,36 @@ paths:
         '503':
           $ref: '#/components/responses/503'
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+    Certs:
+      type: http
+      scheme: mutual
+      description: Client certificate (mTLS) authentication
+    Token:
+      type: apiKey
+      in: header
+      name: token
+      description: JWT client token
   parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      description: |-
+        Client generated unique idempotency key used in recognizing consecutive retries of the same request
+        **Usage of V4 UUIDs is recommended.**
+      required: false
+      schema:
+        title: Idempotency Key
+        description: |-
+          A unique string that enables the API support idempotency by safely retrying requests without accidentally
+          performing the same operation twice.
+        type: string
+        minLength: 1
+        maxLength: 36
+        example: 1b036f9c-8c84-4ce6-b1dd-5979472945a1
     TokenInHeader:
       name: token
       in: header
@@ -835,7 +1322,7 @@ components:
       name: questionIds
       in: query
       description: Comma-separated list of Question IDs.
-      example: 30001,30002,30003
+      example: '30005'
       required: false
       schema:
         type: string
@@ -852,6 +1339,13 @@ components:
         minimum: 1
         maximum: 25
         default: 25
+    RequestIdInPath:
+      name: requestId
+      in: path
+      description: Unique request identifier.
+      required: true
+      schema:
+        $ref: '#/components/schemas/PartyUpdateRequestId'
   responses:
     '202':
       description: Request was accepted
@@ -919,7 +1413,7 @@ components:
             context:
               - message: Party with ID [2000000555] not found.
     '409':
-      description: Request could not be processed because of conflict
+      description: Conflict - Concurrent request detected
       content:
         application/json:
           schema:
@@ -928,7 +1422,7 @@ components:
             title: Conflict
             httpStatus: 409
             context:
-              - message: Rules in the contour service is not ready
+              - message: Concurrent request detected for clientId [3000005555]. Please try again later.
     '422':
       description: Request could not be processed due to semantic errors. Check error response.
       content:
@@ -1141,6 +1635,85 @@ components:
         $ref: '#/components/schemas/ClientProduct'
       minItems: 1
       maxItems: 50
+    SubProductType:
+      description: |
+        Sub-Product within the requested product.
+      type: string
+      enum:
+        - LIMITED_DDA
+        - LIMITED_DDA_PAYMENTS
+        - FX
+    ProductDetailsItem:
+      description: The details for a product.
+      type: object
+      properties:
+        product:
+          $ref: '#/components/schemas/ClientProduct'
+        subProduct:
+          $ref: '#/components/schemas/SubProductType'
+      required:
+        - product
+    ProductDetailsList:
+      description: |
+        A list of product selections.
+      type: array
+      items:
+        $ref: '#/components/schemas/ProductDetailsItem'
+      minItems: 0
+      maxItems: 100
+    ProductDetailsStatusItem:
+      description: The details for a product along with its status.
+      allOf:
+        - $ref: '#/components/schemas/ProductDetailsItem'
+        - type: object
+          properties:
+            onboardingStatus:
+              $ref: '#/components/schemas/ProductDetailsOnboardingStatus'
+      required:
+        - onboardingStatus
+    ProductDetailsOnboardingStatus:
+      description: Onboarding status of the requested Product/Sub-Product.
+      type: string
+      enum:
+        - APPROVED
+        - DECLINED
+        - INFORMATION_REQUESTED
+        - NEW
+        - REVIEW_IN_PROGRESS
+        - SUSPENDED
+        - TERMINATED
+    ProductDetailsStatusList:
+      description: |
+        A list of product details with their corresponding statuses.
+      type: array
+      items:
+        $ref: '#/components/schemas/ProductDetailsStatusItem'
+      minItems: 0
+      maxItems: 100
+    ProductDetailsUpdateAction:
+      description: Type of the update.
+      type: string
+      enum:
+        - ADD
+        - REMOVE
+    ProductDetailsUpdateItem:
+      description: The details for a product and the update action to apply.
+      allOf:
+        - $ref: '#/components/schemas/ProductDetailsItem'
+        - type: object
+          properties:
+            action:
+              $ref: '#/components/schemas/ProductDetailsUpdateAction'
+      required:
+        - action
+    ProductDetailsUpdateList:
+      description: |
+        A list of product updates to apply to the client.
+      type: array
+      items:
+        $ref: '#/components/schemas/ProductDetailsUpdateItem'
+      minItems: 0
+      maxItems: 100
     DocumentId:
       description: |
         The unique id generated by the system for the uploaded document,  which can be used for future retrieval.
@@ -1160,7 +1733,7 @@ components:
       items:
         example: '1000001'
         type: string
-        maxLength: 10
+        maxLength: 30
       minItems: 0
       maxItems: 10
     QuestionId:
@@ -1181,19 +1754,42 @@ components:
       items:
         $ref: '#/components/schemas/PartyId'
       minItems: 0
-      maxItems: 10
+      maxItems: 15
     Role:
       type: string
+      description: |
+        The party's role.
+        - `CLIENT`: A party that is the business entity. Only one party under a client may have this role. No other role can be specified alongside `CLIENT`.
+        - `CONTROLLER`: Individuals with significant responsibility to control, manage, or direct a legal entity customer, including an executive officer or senior manager or any other individual who regularly performs similar functions.
+        - `BENEFICIAL_OWNER`: Individual who either directly or indirectly holds ultimate ownership (>=25%) of the equity interest of the customer through all intermediary ownership layers.
+        - `DIRECTOR`: Key senior officers who, for corporations, are generally the CEO, CFO, COO, Chairman, President, or anyone performing a similar function. For privately held companies, these controllers are generally the senior management team.
+        - `PRIMARY_CONTACT`: The primary contact of the business entity.
+        - `DECISION_MAKER`: Deprecated.
+        - `AUTHORIZED_USER`: Individuals empowered to perform operational tasks, make decisions, and interact with the entity's systems on behalf of the organization.
+        - `INTERMEDIARY_OWNER`: The entities/organizations in the ownership chain.
+        - `TRUSTEE`: Individual who holds a position of trust with the customer, such as a trustee of a trust or a partner in a partnership.
       enum:
         - AUTHORIZED_USER
         - BENEFICIAL_OWNER
         - CLIENT
         - CONTROLLER
+        - INTERMEDIARY_OWNER
+        - TRUSTEE
         - DECISION_MAKER
         - PRIMARY_CONTACT
         - DIRECTOR
     PartyRoleList:
-      description: A list of party roles.
+      description: |
+        A list of party roles.
+        - `CLIENT`: A party that is the business entity. Only one party under a client may have this role. No other role can be specified alongside `CLIENT`.
+        - `CONTROLLER`: Individuals with significant responsibility to control, manage, or direct a legal entity customer, including an executive officer or senior manager or any other individual who regularly performs similar functions.
+        - `BENEFICIAL_OWNER`: Individual who either directly or indirectly holds ultimate ownership (>=25%) of the equity interest of the customer through all intermediary ownership layers.
+        - `DIRECTOR`: Key senior officers who, for corporations, are generally the CEO, CFO, COO, Chairman, President, or anyone performing a similar function. For privately held companies, these controllers are generally the senior management team.
+        - `PRIMARY_CONTACT`: The primary contact of the business entity.
+        - `DECISION_MAKER`: Deprecated.
+        - `AUTHORIZED_USER`: Individuals empowered to perform operational tasks, make decisions, and interact with the entity's systems on behalf of the organization.
+        - `INTERMEDIARY_OWNER`: The entities/organizations in the ownership chain.
+        - `TRUSTEE`: Individual who holds a position of trust with the customer, such as a trustee of a trust or a partner in a partnership.
       type: array
       items:
         $ref: '#/components/schemas/Role'
@@ -1279,8 +1875,8 @@ components:
           description: The location of the property or parameter in error
         message:
           type: string
-          example: Client with ID [3000005555] does not exist.
-          description: Message describing the reason. This message can typically be displayed to your platform's users, except in cases specified otherwise
+          example: The server can not find the requested resource.
+          description: Message describing the reason.
     schemas-ApiError:
       description: An API error.
       type: object
@@ -1349,6 +1945,7 @@ components:
         attester:
           $ref: '#/components/schemas/Attester'
         attesterFullName:
+          deprecated: true
           description: The full name of an individual.
           type: string
         attestationTime:
@@ -1375,7 +1972,7 @@ components:
           format: ipv4
         sessionId:
           description: |
-            The unique session identifier of the device that was created by the client. It can be up to 128 characters long and can contain only the following characters: uppercase and lowercase Roman letters, digits, underscore characters, and hyphens (a?z, A?Z, 0?9, _, -). The session ID should contain at least 16 bytes of randomly generated data.
+            The unique session identifier of the device that was created by the client. It can be up to 128 characters long and can contain only the following characters: uppercase and lowercase Roman letters, digits, underscore characters, and hyphens (a–z, A–Z, 0–9, _, -). The session ID should contain at least 16 bytes of randomly generated data.
           type: string
           pattern: ^[a-zA-Z0-9_-]+$
     AccessList:
@@ -1389,14 +1986,15 @@ components:
     Email:
       type: string
       example: client@company.com
-      description: Email of the party.
+      description: |
+        Email of the party. The email is validated against the [RFC 2822](https://datatracker.ietf.org/doc/html/rfc2822) format, which is 64 characters (local part) + 1 character (`@` symbol) + 255 characters (domain part), e.g.: "local@domain.com".
       minLength: 0
       maxLength: 320
     ExternalId:
       type: string
       minLength: 1
       maxLength: 50
-      description: Id in external system.
+      description: ID in external system.
     ParentPartyId:
       type: string
       minLength: 10
@@ -1428,13 +2026,15 @@ components:
           example: BUSINESS_ADDRESS
           description: Type of address. Organizations must use `LEGAL_ADDRESS` or `BUSINESS_ADDRESS`.
         addressLines:
-          description: The first line must not be a PO Box and must begin with a number. Each line has a maximum of 60 characters.
+          description: |
+            The address lines. Post-office boxes (PO Box), private mail boxes (PMB), virtual office and registered agent addresses are not allowed. The address has to be the be principal place of business. Each line has a maximum of 60 characters. The line format is enforced with the pattern `^[a-zA-Z0-9\(\)\-\/\.\,\&amp;\_\'\ \#]*$`.
           type: array
           minItems: 1
           maxItems: 5
           items:
             type: string
-            description: Address line items. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\-\/\.\,\&\_\?\ \#]*$`.
+            description: |
+              Address line items. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\-\/\.\,\&amp;\_\'\ \#]*$`.
             minLength: 1
             maxLength: 60
           example:
@@ -1443,17 +2043,19 @@ components:
             - Mini York
         city:
           type: string
-          maxLength: 34
+          maxLength: 40
           example: Anchorage
-          description: city has a maximum of 30 characters.
+          description: City has a maximum of 40 characters. City would serve as County in countries where applicable.
         state:
           type: string
           minLength: 1
           maxLength: 3
           example: AZ
-          description: State code in alpha-2 format. State is mandatory for countries like United States. Refer to subdivision codes in [ISO-3166-2](https://www.iso.org/obp/ui/#search/code/).
+          description: |
+            The 2-3 character length state code should be provided in alpha-2 format, adhering to ISO-3166-2. In Great Britain, for example, the City of London would be LND. State would serve as Province in countries where applicable. State is not required only if a country doesn’t have one.
         postalCode:
           type: string
+          minLength: 1
           maxLength: 10
           example: '99501'
           description: Postal/ZIP code.
@@ -1461,6 +2063,8 @@ components:
           type: string
           example: US
           description: Country code in alpha-2 format.
+          minLength: 2
+          maxLength: 2
     BirthDate:
       type: string
       format: date
@@ -1475,25 +2079,25 @@ components:
       maxLength: 2
     FirstName:
       type: string
-      minLength: 2
-      maxLength: 30
+      minLength: 1
+      maxLength: 40
       example: Lenna
       description: |
-        First name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `'^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$'`.
+        First name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `'^[a-zA-Z0-9\(\)\_\/\&amp;\+\%\@\#\;\,\.\:\ \-\']*$'`.
     MiddleName:
       type: string
-      minLength: 0
+      minLength: 1
       maxLength: 30
       example: More
       description: |
-        Middle name of the individual in case of party type being an individual. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
+        Middle name of the individual in case of party type being an individual. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&amp;\+\%\@\#\;\,\.\:\ \-\']*$`.
     LastName:
       type: string
-      minLength: 2
-      maxLength: 30
+      minLength: 1
+      maxLength: 40
       example: Paprocki
       description: |
-        Last name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
+        Last name of the individual in case of party type being an individual like Owners, Controllers and Decision Makers. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&amp;\+\%\@\#\;\,\.\:\ \-\']*$`.
     NameSuffix:
       type: string
       minLength: 1
@@ -1508,11 +2112,15 @@ components:
         - issuer
       properties:
         description:
+          deprecated: true
           description: Description of the ID.
           type: string
+          minLength: 1
+          maxLength: 255
         expiryDate:
           type: string
           format: date
+          deprecated: true
         idType:
           type: string
           example: SSN
@@ -1530,18 +2138,22 @@ components:
           type: string
           example: US
           description: Identification issuer country code e.g. US
+          minLength: 2
+          maxLength: 2
         value:
           type: string
-          example: '999999999'
-          description: Value of the identification type. EIN/SSN/ITIN must be of 9 digits.
+          pattern: ^[A-Za-z0-9\-\/\.\s\+&]*$
+          example: '100010001'
+          description: Please enter a valid Government ID value. SSN/EIN/ITIN must be of 9 digits for US. The length for other Government ID values >= 1 characters<= 20 characters
           minLength: 1
           maxLength: 20
     IndividualJobTitle:
       type: string
       example: CEO
       description: |
-        Job title in the case of party type being an `INDIVIDUAL`. Job title is a required field for Controllers. Also, If Privately Owned Business is selected as the business type, Job Title should be a required field for Decision Makers. e.g. CEO|CFO|COO|President|Chairman|Senior Branch Manager|Other
-      minLength: 0
+        Job title in the case of party type being an `INDIVIDUAL`. Job title is a required field for controllers, beneficial owners, and decision makers. Allowed values are: `CEO`, `CFO`, `COO`, `President`, `Chairman`, `Senior Branch Manager`, `Other`.
+      minLength: 1
+      maxLength: 40
     IndividualJobTitleDescription:
       type: string
       example: Acting CEO
@@ -1562,20 +2174,26 @@ components:
             - MOBILE_PHONE
             - ALTERNATE_PHONE
         countryCode:
-          description: The phone number dialing code prefix for the country.
+          description: |
+            The phone number dialing code prefix for the country. The `+` symbol is optional, maximum 3 digits (e.g. `+852`).
           type: string
           example: '+1'
+          minLength: 1
+          maxLength: 4
         phoneNumber:
           description: The phone number value.
           type: string
           example: '7785462944'
+          minLength: 7
+          maxLength: 14
       description: Phone number information of the party.
     NatureOfOwnership:
       type: string
       example: Direct
-      description: |
-        Nature of ownership e.g. Direct|Indirect
-      minLength: 0
+      description: Nature of ownership.
+      enum:
+        - Direct
+        - Indirect
     SocialMedia:
       type: object
       properties:
@@ -1603,11 +2221,19 @@ components:
         - username
     SocialMediaList:
       description: The entity's social media profiles.
+      deprecated: true
       type: array
       items:
         $ref: '#/components/schemas/SocialMedia'
-      minItems: 1
+      minItems: 0
       maxItems: 3
+    SocialMediaUrl:
+      description: Social media profile URL.
+      type: string
+      maxLength: 100
+      minLength: 1
+      pattern: ^[A-Za-z0-9-_:.,;!?~*'()/=+&%@#]+$
+      example: https://instagram.com/ericforemanmedical95
     SoleOwner:
       type: boolean
     IndividualDetails:
@@ -1649,8 +2275,11 @@ components:
           $ref: '#/components/schemas/NatureOfOwnership'
         socialMedia:
           $ref: '#/components/schemas/SocialMediaList'
+        socialMediaUrl:
+          $ref: '#/components/schemas/SocialMediaUrl'
         soleOwner:
           $ref: '#/components/schemas/SoleOwner'
+          deprecated: true
     IndividualDetailsRequired:
       allOf:
         - $ref: '#/components/schemas/IndividualDetails'
@@ -1659,25 +2288,25 @@ components:
         - lastName
     DbaName:
       description: |
-        An alternate name that the business is doing business under. Provide this if your business is registered with an alias. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&\+\%\@\#\;\,\.\:\ \-\?]*$`.
+        An alternate name that the business is doing business under. Provide this if your business is registered with an alias. The format is enforced with the pattern `^[a-zA-Z0-9\(\)\_\/\&amp;\+\%\@\#\;\,\.\:\ \-\']*$`.
       type: string
       minLength: 1
       maxLength: 100
     EntitiesInOwnership:
       description: |
-        Entities in ownership means that one or more businesses own part of the business connected to the client. Always required for a Privately Owned Business.
+        Entities in ownership means that one or more businesses own part of the business connected to the client.
       type: boolean
     OrganizationIndustryCategory:
       type: string
       example: Accommodation and Food Services
       description: |
-        The industry category of the business connected to the client. For example, Accommodation and Food Services. You can use the Reference Data resource to get a list of acceptable values.
+        The industry category of the business connected to the client. For example, `Accommodation and Food Services`. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/industry-descriptor-reference) to get a list of acceptable values.
       minLength: 0
     OrganizationIndustryType:
       type: string
       example: Bed And Breakfast Inns
       description: |
-        The industry type of the business connected to the client. You can use the Reference Data resource to get a list of acceptable values.
+        The industry type of the business connected to the client. You can use the [Industry Descriptor Reference](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/industry-descriptor-reference) to get a list of acceptable values.
       minLength: 0
     OrganizationIndustry:
       type: object
@@ -1704,13 +2333,17 @@ components:
       description: |
         The organization's legal name. It is the official name of the person or entity that owns a company. Must be the name used on the legal party's government forms and business paperwork
       minLength: 1
+      maxLength: 500
     OrganizationDescription:
       type: string
       example: Printing Service of New York
       description: The organization's description.
-      minLength: 0
+      minLength: 10
+      maxLength: 1000
     OrganizationType:
       type: string
+      description: |
+        This field specifies the legal structure or classification of the organization and identifies whether the entity is a Corporation, Sole Proprietorship, Non-Profit, or Government Body. Note: The values `PARTNERSHIP` and `PUBLICLY_TRADED_COMPANY` are deprecated and should not be used.
       enum:
         - LIMITED_LIABILITY_PARTNERSHIP
         - LIMITED_PARTNERSHIP
@@ -1729,8 +2362,11 @@ components:
       description: The tax ID of the organization.
       properties:
         description:
+          deprecated: true
           description: Description of the ID.
           type: string
+          minLength: 1
+          maxLength: 255
         idType:
           description: The ID type
           type: string
@@ -1739,19 +2375,23 @@ components:
             - BUSINESS_REGISTRATION_ID
             - BUSINESS_NUMBER
             - BUSINESS_REGISTRATION_NUMBER
+            - OTHER_GOVERNMENT_ID
         value:
-          description: ID value
+          description: Please enter a valid Government ID value. EIN must be of 9 numeric digits for US. The length for other Government ID values >= 1 characters<= 100 characters
           type: string
+          pattern: ^[A-Za-z0-9\-\/\.\s\+&]*$
           minLength: 1
           maxLength: 100
         issuer:
           type: string
           description: Issuing authority
-          minLength: 1
-          maxLength: 500
+          example: US
+          minLength: 2
+          maxLength: 2
         expiryDate:
           type: string
           format: date
+          deprecated: true
       required:
         - idType
         - value
@@ -1765,6 +2405,7 @@ components:
     WebsiteAvailable:
       description: Whether the party has a website. False if opted out.
       type: boolean
+      deprecated: true
     YearOfFormation:
       description: Year of company formation.
       type: string
@@ -1801,6 +2442,7 @@ components:
           $ref: '#/components/schemas/OrganizationIndustry'
         jurisdiction:
           $ref: '#/components/schemas/CountryCodeIsoAlpha2'
+          deprecated: true
         mcc:
           $ref: '#/components/schemas/MerchantCategoryCode'
         secondaryMccList:
@@ -1833,12 +2475,31 @@ components:
           $ref: '#/components/schemas/WebsiteAvailable'
         yearOfFormation:
           $ref: '#/components/schemas/YearOfFormation'
+        isSubsidiary:
+          type: boolean
+          description: |
+            Is your organization a subsidiary of a publicly traded company or not. This field is required when "publiclyTraded" block is provided in organization details. If this field is given in payload (true | false),  then the "publiclyTraded" will be required as well.
+        publiclyTraded:
+          $ref: '#/components/schemas/PubliclyTraded'
+        natureOfOwnership:
+          $ref: '#/components/schemas/NatureOfOwnership'
+        trustType:
+          $ref: '#/components/schemas/TrustType'
     OrganizationDetailsRequired:
       allOf:
         - $ref: '#/components/schemas/OrganizationDetails'
       required:
         - organizationName
         - organizationType
+    DefaultLanguagePreferenceEnum:
+      description: |
+        The default language preference of the party's user. It defines the initial language of user communications during client onboarding. Any changes to the user's language preference after the verifications process begins are not reflected in this field.
+      type: string
+      minLength: 5
+      maxLength: 5
+      enum:
+        - en-US
+        - fr-CA
     CreatePartyRequestInline:
       description: Create a party within the clients payload.
       type: object
@@ -1851,18 +2512,29 @@ components:
           $ref: '#/components/schemas/ExternalId'
         parentPartyId:
           $ref: '#/components/schemas/ParentPartyId'
+        parentExternalId:
+          $ref: '#/components/schemas/ExternalId'
         partyType:
           $ref: '#/components/schemas/PartyType'
         roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/Role'
-          minItems: 1
-          maxItems: 10
+          $ref: '#/components/schemas/PartyRoleList'
         individualDetails:
           $ref: '#/components/schemas/IndividualDetailsRequired'
         organizationDetails:
           $ref: '#/components/schemas/OrganizationDetailsRequired'
+        preferences:
+          description: The preferences of the party.
+          type: object
+          properties:
+            defaultLanguage:
+              $ref: '#/components/schemas/DefaultLanguagePreferenceEnum'
+        metadata:
+          description: A list of key-value metadata entries associated with the party.
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyMetadataEntry'
+          maxItems: 20
+          minItems: 0
     CreatePartyRequestInlineRequired:
       description: Create a party within the clients payload.
       allOf:
@@ -1891,6 +2563,8 @@ components:
           $ref: '#/components/schemas/PartyId'
         products:
           $ref: '#/components/schemas/ClientProductList'
+        productDetails:
+          $ref: '#/components/schemas/ProductDetailsList'
       required:
         - products
     ProfileStatus:
@@ -1963,6 +2637,7 @@ components:
           comments:
             type: string
             description: Comments/basic response related to the workflow step of validation response.
+            deprecated: true
           fields:
             type: array
             items:
@@ -1971,6 +2646,7 @@ components:
             maxItems: 100
           identities:
             type: array
+            deprecated: true
             items:
               type: string
             minItems: 0
@@ -1979,7 +2655,7 @@ components:
             type: array
             items:
               type: string
-              maxLength: 10
+              maxLength: 30
               description: The id of the document request.
             minItems: 0
             maxItems: 10
@@ -2039,7 +2715,7 @@ components:
     AmexOptBlueMarketing:
       type: boolean
       description: |
-        Indicates whether the merchant has opted-in to American Express OptBlue marketing. - `true` ? All Marketing (Merchant has not opted out of receiving marketing) - `false` ? No Marketing (Merchant has opted out of receiving marketing)
+        Indicates whether the merchant has opted-in to American Express OptBlue marketing. - `true` – All Marketing (Merchant has not opted out of receiving marketing) - `false` – No Marketing (Merchant has opted out of receiving marketing)
     JcbAccepted:
       description: |
         Indicates if the merchant will accept JCB cards. Required American Express OptBlue is selected in Australia, New Zealand, or Canada.
@@ -2052,17 +2728,25 @@ components:
       description: |
         The ID that identifies the merchant account when processing with Discover.
       type: string
+    AmexOptBlueServiceEstablishmentNumber:
+      description: |
+        Unique identifier assigned to a merchant/business that participates in the American Express OptBlue program
+      type: string
     NetworkRegistration:
       description: Network registration configuration.
       type: object
       properties:
+        networkScreeningRiskAccepted:
+          description: Indicates whether the merchant wants to bypass a Merchant Network Screening decline. If the 'networkScreeningRiskAccepted' flag is set to 'true', the sub-merchant party risk is accepted, and JPMC guidance on declining a party is overridden.
+          type: boolean
+          default: false
         settlementPaymentMethods:
           description: The selection of method of payments used in network registration.
           type: array
           items:
             $ref: '#/components/schemas/SettlementPaymentMethods'
           maxItems: 3
-          minItems: 1
+          minItems: 0
         settlementPaymentMethodsOptOut:
           description: |
             The opting out of settlement payment method selection. Required to specify true if the merchant is not selecting any settlement payment method.
@@ -2091,6 +2775,68 @@ components:
           $ref: '#/components/schemas/AmexSellerId'
         discoverMerchantId:
           $ref: '#/components/schemas/DiscoverMerchantId'
+        amexOptBlueServiceEstablishmentNumber:
+          $ref: '#/components/schemas/AmexOptBlueServiceEstablishmentNumber'
+    PartyMetadataEntry:
+      description: A key-value metadata entry associated with a party.
+      type: object
+      properties:
+        key:
+          type: string
+          description: The metadata key.
+        value:
+          description: The metadata value. Can be a String, Integer, Number, Boolean, Object, or Array.
+          anyOf:
+            - type: string
+            - type: integer
+            - type: number
+            - type: boolean
+            - type: object
+            - type: array
+              items:
+                anyOf:
+                  - type: string
+                  - type: integer
+                  - type: number
+                  - type: boolean
+                  - type: object
+                  - type: array
+      required:
+        - key
+        - value
+    KycUpdateRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/KycUpdateRequestStatus'
+        action:
+          $ref: '#/components/schemas/KycUpdateRequestAction'
+        requestId:
+          type: string
+          description: Unique identifier for the KYC update request
+        submittedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the KYC update request was submitted
+    KycUpdateRequestStatus:
+      description: |
+        Status of the KYC update request
+      type: string
+      enum:
+        - NEW
+        - REVIEW_IN_PROGRESS
+        - INFORMATION_REQUESTED
+        - APPROVED
+        - DECLINED
+        - TERMINATED
+    KycUpdateRequestAction:
+      description: |
+        Action to be performed for the KYC update request
+      type: string
+      enum:
+        - ADD
+        - MODIFY
+        - DELETE
     PartyResponse:
       type: object
       properties:
@@ -2112,14 +2858,16 @@ components:
           $ref: '#/components/schemas/ParentPartyId'
         parentExternalId:
           $ref: '#/components/schemas/ExternalId'
+        preferences:
+          description: The preferences of the party.
+          type: object
+          properties:
+            defaultLanguage:
+              $ref: '#/components/schemas/DefaultLanguagePreferenceEnum'
         profileStatus:
           $ref: '#/components/schemas/ProfileStatus'
         roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/Role'
-          minItems: 0
-          maxItems: 10
+          $ref: '#/components/schemas/PartyRoleList'
         status:
           $ref: '#/components/schemas/PartyStatus'
         active:
@@ -2132,6 +2880,15 @@ components:
           $ref: '#/components/schemas/OrganizationDetails'
         networkRegistration:
           $ref: '#/components/schemas/NetworkRegistration'
+        metadata:
+          description: A list of key-value metadata entries associated with the party.
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyMetadataEntry'
+          maxItems: 20
+          minItems: 0
+        updateRequest:
+          $ref: '#/components/schemas/KycUpdateRequest'
     ResponseValueList:
       description: |
         The values of a question response. Each item is a string that will be validated according to the question's responseSchema.
@@ -2169,10 +2926,13 @@ components:
       properties:
         attestations:
           type: array
+          deprecated: true
           items:
             $ref: '#/components/schemas/Attestation'
           minItems: 0
           maxItems: 10
+        consumerDevice:
+          $ref: '#/components/schemas/ConsumerDevice'
         createdAt:
           type: string
           format: date-time
@@ -2211,6 +2971,10 @@ components:
           $ref: '#/components/schemas/ClientResults'
         status:
           $ref: '#/components/schemas/ClientStatus'
+        updateRequest:
+          $ref: '#/components/schemas/KycUpdateRequest'
+        productDetails:
+          $ref: '#/components/schemas/ProductDetailsStatusList'
       required:
         - id
         - partyId
@@ -2235,15 +2999,24 @@ components:
         email:
           $ref: '#/components/schemas/Email'
         roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/Role'
-          minItems: 1
-          maxItems: 10
+          $ref: '#/components/schemas/PartyRoleList'
         individualDetails:
           $ref: '#/components/schemas/IndividualDetails'
         organizationDetails:
           $ref: '#/components/schemas/OrganizationDetails'
+        preferences:
+          description: The preferences of the party.
+          type: object
+          properties:
+            defaultLanguage:
+              $ref: '#/components/schemas/DefaultLanguagePreferenceEnum'
+        metadata:
+          description: A list of key-value metadata entries associated with the party.
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyMetadataEntry'
+          maxItems: 20
+          minItems: 0
     AttestationRemoval:
       description: Describes which attestation to remove. An existing attestation with a matching `documentId` will be removed.
       type: object
@@ -2257,6 +3030,7 @@ components:
       properties:
         addAttestations:
           type: array
+          deprecated: true
           items:
             $ref: '#/components/schemas/Attestation'
           minItems: 1
@@ -2265,7 +3039,7 @@ components:
           $ref: '#/components/schemas/ClientProductList'
         addParties:
           description: |
-            Update a party by specifying its ID in the object. Create a party by setting `parentPartyId` to the client's root party. `partyType` and `roles` are required when creating a new party.
+            Create a party by setting `parentPartyId` to the client's root party. `partyType` and `roles` are required when creating a new party.
           type: array
           items:
             allOf:
@@ -2284,10 +3058,13 @@ components:
           maxItems: 200
         removeAttestations:
           type: array
+          deprecated: true
           items:
             $ref: '#/components/schemas/AttestationRemoval'
           minItems: 1
           maxItems: 10
+        productDetails:
+          $ref: '#/components/schemas/ProductDetailsUpdateList'
     ClientVerificationRequest:
       type: object
       properties:
@@ -2368,7 +3145,7 @@ components:
           items:
             type: string
           minItems: 1
-          maxItems: 100
+          maxItems: 300
       required:
         - type
     ResponseSchema:
@@ -2448,7 +3225,7 @@ components:
         - BEARER_SHARES_ATTESTATION
         - BENEFICIAL_OWNER_INFORMATION
         - BRAND_LOGO
-        - BULK_PARTY
+        - BULK_MIGRATION
         - BUSINESS_LICENSE
         - BUSINESS_REGISTRATION_CERT
         - CERTIFICATE_OF_GOOD_STANDING
@@ -2493,7 +3270,7 @@ components:
     DocumentRequestId:
       description: Unique Document Request identifier.
       type: string
-      maxLength: 10
+      maxLength: 30
     DocumentRequestOutstanding:
       description: Outstanding items on the document request.
       type: object
@@ -2523,9 +3300,9 @@ components:
             - SECONDARY
         minRequired:
           type: integer
-          default: 1
+          default: 0
           maximum: 10
-          minimum: 1
+          minimum: 0
       required:
         - documentTypes
     DocumentRequestStatus:
@@ -2557,6 +3334,7 @@ components:
           format: date-time
           example: '2017-07-21T17:32:28.000Z'
         documentType:
+          deprecated: true
           $ref: '#/components/schemas/DocumentTypeSmbdo'
         id:
           $ref: '#/components/schemas/DocumentRequestId'
@@ -2663,9 +3441,14 @@ components:
           type: string
           maxLength: 100
         documentName:
-          description: The document filename including file extension.
+          description: |-
+            The document filename including file extension.
+            The supported file types are:
+            - `image/png`
+            - `image/jpeg`
+            - `application/pdf`
           type: string
-          example: IMG_212.jpg
+          example: IMG_212.jpeg
         documentContent:
           description: |
             The base64 encoded string of the file data. The maximum allowed file size is 2MB. Use the base64 content itself and omit headers like `data:image/png;base64`.
@@ -2728,6 +3511,8 @@ components:
           $ref: '#/components/schemas/PartyId'
         parentPartyId:
           $ref: '#/components/schemas/ParentPartyId'
+        parentExternalId:
+          $ref: '#/components/schemas/ExternalId'
         partyType:
           $ref: '#/components/schemas/PartyType'
         profileStatus:
@@ -2735,11 +3520,7 @@ components:
         name:
           $ref: '#/components/schemas/Name'
         roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/Role'
-          minItems: 0
-          maxItems: 10
+          $ref: '#/components/schemas/PartyRoleList'
         status:
           $ref: '#/components/schemas/PartyStatus'
         active:
@@ -2771,18 +3552,27 @@ components:
           $ref: '#/components/schemas/ExternalId'
         partyType:
           $ref: '#/components/schemas/PartyType'
+        preferences:
+          description: The preferences of the party.
+          type: object
+          properties:
+            defaultLanguage:
+              $ref: '#/components/schemas/DefaultLanguagePreferenceEnum'
         roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/Role'
-          minItems: 1
-          maxItems: 10
+          $ref: '#/components/schemas/PartyRoleList'
         individualDetails:
           $ref: '#/components/schemas/IndividualDetailsRequired'
         organizationDetails:
           $ref: '#/components/schemas/OrganizationDetailsRequired'
         networkRegistration:
           $ref: '#/components/schemas/NetworkRegistration'
+        metadata:
+          description: A list of key-value metadata entries associated with the party.
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyMetadataEntry'
+          maxItems: 20
+          minItems: 0
       required:
         - partyType
         - roles
@@ -2795,12 +3585,12 @@ components:
           $ref: '#/components/schemas/Email'
         externalId:
           $ref: '#/components/schemas/ExternalId'
+        parentPartyId:
+          $ref: '#/components/schemas/ParentPartyId'
+        parentExternalId:
+          $ref: '#/components/schemas/ExternalId'
         roles:
-          type: array
-          items:
-            $ref: '#/components/schemas/Role'
-          minItems: 1
-          maxItems: 10
+          $ref: '#/components/schemas/PartyRoleList'
         status:
           $ref: '#/components/schemas/PartyStatus'
         active:
@@ -2811,6 +3601,204 @@ components:
           $ref: '#/components/schemas/OrganizationDetails'
         networkRegistration:
           $ref: '#/components/schemas/NetworkRegistration'
+        metadata:
+          description: A list of key-value metadata entries associated with the party.
+          type: array
+          items:
+            $ref: '#/components/schemas/PartyMetadataEntry'
+          maxItems: 20
+          minItems: 0
+    ListSessionResponse:
+      type: object
+      properties:
+        metadata:
+          $ref: '#/components/schemas/PageMetaData'
+        sessions:
+          type: array
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/SessionResponse'
+    CreateSessionRequest:
+      type: object
+      required:
+        - type
+        - target
+      properties:
+        type:
+          $ref: '#/components/schemas/SessionsType'
+        target:
+          $ref: '#/components/schemas/SessionTarget'
+    SessionResponse:
+      description: List of sessions.
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/SessionId'
+        type:
+          $ref: '#/components/schemas/SessionsType'
+        target:
+          $ref: '#/components/schemas/SessionTarget'
+        url:
+          type: string
+          description: The URL to redirect to for the embedded UI session transfer.
+        token:
+          type: string
+          description: The token to be used for the session transfer.
+    SessionTarget:
+      type: object
+      required:
+        - id
+        - type
+      properties:
+        id:
+          $ref: '#/components/schemas/SessionTargetId'
+        type:
+          $ref: '#/components/schemas/SessionTargetType'
+    SessionTargetId:
+      type: string
+      maxLength: 10
+      example: '3000005555'
+      pattern: ^[0-9]*$
+      description: |
+        The ID of the client or party.
+    SessionTargetType:
+      description: |
+        Client or party type.
+      type: string
+      enum:
+        - CLIENT
+        - PARTY
+    SessionId:
+      type: string
+      maxLength: 10
+      example: '9000005555'
+      pattern: ^[0-9]*$
+      description: |
+        ID to uniquely identify the session
+    SessionsType:
+      type: string
+      enum:
+        - EMBEDDED_UI
+    PubliclyTraded:
+      title: Public Trading
+      description: |
+        Provide details for stock exchange and ticker symbol if your organization is a publicly traded company.
+        If your organization is a subsidiary use these fields to provide details of the parent organization. If
+        your organization is listed on multiple stock exchanges provide the highest priority listing by order:
+        - "XNYS" for the New York Stock Exchange or "XNAS" for NASDAQ.
+        - One of the exchanges listed in [Publicly Traded Companies](https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/publicly-traded-companies)
+        - Other
+      type: object
+      properties:
+        tickerSymbol:
+          description: The official ticker symbol assigned to the organization for the provided "stockExchange" field. This typically consists of 3 to 6 uppercase letters.
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[A-Z0-9]*$
+        stockExchange:
+          description: |
+            Supported options are "XNYS", "XNAS", one of the symbols listed on [Publicly Traded Companies](https://developer.payments.jpmorgan.com/docs/commerce/optimization-protection/capabilities/digital-onboarding/how-to/publicly-traded-companies) or "Other". The stock exchange symbol used by the organization which is registered with the provided "tickerSymbol". This field is case-sensitive.
+          type: string
+          minLength: 1
+          maxLength: 10
+          pattern: ^[A-Za-z]*$
+        stockExchangeName:
+          description: |
+            If "stockExchange" is "Other", use this field to provide the name of the stock exchange.
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^.*$
+      required:
+        - tickerSymbol
+        - stockExchange
+    RecommendationsRequest:
+      type: object
+      properties:
+        resourceType:
+          $ref: '#/components/schemas/ResourceType'
+        values:
+          $ref: '#/components/schemas/Values'
+      required:
+        - resourceType
+        - values
+    Values:
+      type: array
+      minItems: 0
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            description: Field names which help generate recommendations.
+            example: organizationName
+          value:
+            type: string
+            description: Represents the value associated with the key.
+            example: Clean Energy LLC
+      description: Contains key-value pairs providing additional context.
+    RecommendationsResponse:
+      type: object
+      properties:
+        resourceType:
+          $ref: '#/components/schemas/ResourceType'
+        message:
+          type: string
+          nullable: true
+          description: Optional message providing additional information.
+        resource:
+          $ref: '#/components/schemas/Resource'
+    Resource:
+      type: array
+      minItems: 0
+      items:
+        description: Represents a resource object, which can be any object.
+        $ref: '#/components/schemas/NaicsCodeResponse'
+    NaicsCodeResponse:
+      type: object
+      properties:
+        naicsCode:
+          type: string
+          description: NAICS code for the recommendation.
+        naicsDescription:
+          type: string
+          description: Description of the NAICS code.
+    RecommendationDocumentResponse:
+      type: object
+      properties:
+        documentId:
+          type: string
+          description: Unique identifier for the document.
+        documentName:
+          type: string
+          description: Name of the document.
+    ResourceType:
+      type: string
+      description: Represents an ENUM value that helps determine which recommendation needs to be performed.
+      enum:
+        - NAICS_CODE
+    TrustType:
+      type: string
+      description: The type of trust associated with the organization
+      enum:
+        - STATUTORY
+        - NON_STATUTORY
+    ListKycPartyUpdateRequests:
+      type: object
+      properties:
+        parties:
+          type: array
+          minItems: 0
+          items:
+            $ref: '#/components/schemas/PartyResponse'
+        metadata:
+          $ref: '#/components/schemas/PageMetaData'
+    PartyUpdateRequestId:
+      type: string
+      description: Unique party update request identifier.
+      maxLength: 10
+      pattern: ^[0-9]+$
   examples:
     ClientListResponse:
       summary: List of clients
@@ -2877,7 +3865,7 @@ components:
               phone:
                 phoneType: BUSINESS_PHONE
                 phoneNumber: '6316215110'
-                countryCode: US
+                countryCode: '+1'
               organizationIds:
                 - idType: EIN
                   value: '000000001'
@@ -2960,6 +3948,11 @@ components:
                 phoneNumber: '5553331234'
                 countryCode: '+1'
               website: https://ppthospital.com
+            metadata:
+              - key: salesChannel
+                value: direct
+              - key: onboardingTier
+                value: premium
           - roles:
               - CONTROLLER
             partyType: INDIVIDUAL
@@ -2988,6 +3981,243 @@ components:
                 phoneType: MOBILE_PHONE
                 phoneNumber: '5553332345'
                 countryCode: '+1'
+    CreateClientWithIntermediaryInformationAndTrust:
+      summary: Create Client with intermediary information and trust
+      description: Create Client with intermediary information and trust
+      value:
+        parties:
+          - partyType: ORGANIZATION
+            externalId: TCU1234
+            email: monica@cpgetaways.com
+            roles:
+              - CLIENT
+            organizationDetails:
+              organizationType: C_CORPORATION
+              organizationName: Central Park Coffees & Cookies
+              addresses:
+                - addressType: BUSINESS_ADDRESS
+                  addressLines:
+                    - 123 Central St
+                  city: Palo Alto
+                  state: CA
+                  postalCode: '94303'
+                  country: US
+              yearOfFormation: '1984'
+              countryOfFormation: US
+              dbaName: Central Park Coffee
+              industryCategory: Accommodation and Food Services
+              industryType: Full-Service Restaurants
+              organizationDescription: We bake fresh cookies and coffee for everyday breakfast needs.
+              phone:
+                phoneType: BUSINESS_PHONE
+                phoneNumber: '6502694433'
+                countryCode: '+1'
+              organizationIds:
+                - idType: EIN
+                  value: '184102294'
+                  issuer: US
+          - partyType: ORGANIZATION
+            roles:
+              - INTERMEDIARY_OWNER
+            organizationDetails:
+              organizationType: C_CORPORATION
+              organizationName: Central Park Cookie
+              natureOfOwnership: Direct
+              trustType: NON_STATUTORY
+              addresses:
+                - addressType: LEGAL_ADDRESS
+                  addressLines:
+                    - 124 Central Se
+                  city: Palo Alto
+                  state: CA
+                  postalCode: '94303'
+                  country: US
+              countryOfFormation: US
+              organizationIds:
+                - idType: EIN
+                  value: '050110294'
+                  issuer: US
+          - partyType: INDIVIDUAL
+            roles:
+              - CONTROLLER
+            email: foobar@example.com
+            individualDetails:
+              firstName: Chandler
+              lastName: Bing
+              birthDate: '2001-01-01'
+              addresses:
+                - addressType: RESIDENTIAL_ADDRESS
+                  addressLines:
+                    - 124 Candy St
+                  city: Palo Alto
+                  state: CA
+                  postalCode: '94303'
+                  country: US
+              countryOfResidence: US
+              individualIds:
+                - idType: SSN
+                  value: '437381498'
+                  issuer: US
+          - partyType: INDIVIDUAL
+            roles:
+              - BENEFICIAL_OWNER
+              - TRUSTEE
+            individualDetails:
+              firstName: Monica
+              lastName: Geller
+              birthDate: '2000-10-01'
+              addresses:
+                - addressType: RESIDENTIAL_ADDRESS
+                  addressLines:
+                    - 125 Candy St
+                  city: Palo Alto
+                  state: CA
+                  postalCode: '94303'
+                  country: US
+              countryOfResidence: US
+              natureOfOwnership: Direct
+              individualIds:
+                - idType: SSN
+                  value: '050110337'
+                  issuer: US
+        products:
+          - EMBEDDED_PAYMENTS
+    CreateClientWithIntermediaryInformationAndTrustResponse:
+      summary: Create Client with intermediary information and trust response
+      description: Create Client with intermediary information and trust response with outstanding attestations, party roles, and questions.
+      value:
+        id: '1000010400'
+        attestations: []
+        parties:
+          - id: '2000000111'
+            partyType: ORGANIZATION
+            externalId: TCU1234
+            email: monica@cpgetaways.com
+            roles:
+              - CLIENT
+            profileStatus: NEW
+            status: ACTIVE
+            createdAt: '2023-10-31T00:02:15.499Z'
+            organizationDetails:
+              organizationType: C_CORPORATION
+              organizationName: Central Park Coffees & Cookies
+              dbaName: Central Park Coffee
+              organizationDescription: We bake fresh cookies and coffee for everyday breakfast needs.
+              industryCategory: Accommodation and Food Services
+              industryType: Full-Service Restaurants
+              countryOfFormation: US
+              yearOfFormation: '1984'
+              addresses:
+                - addressType: BUSINESS_ADDRESS
+                  addressLines:
+                    - 123 Central St
+                  city: Palo Alto
+                  state: CA
+                  postalCode: '94303'
+                  country: US
+              phone:
+                phoneType: BUSINESS_PHONE
+                countryCode: '+1'
+                phoneNumber: '6502694433'
+              organizationIds:
+                - idType: EIN
+                  issuer: US
+                  value: '184102294'
+          - id: '2000000112'
+            parentPartyId: '2000000111'
+            partyType: ORGANIZATION
+            roles:
+              - INTERMEDIARY_OWNER
+            profileStatus: NEW
+            status: ACTIVE
+            createdAt: '2023-10-31T00:02:15.499Z'
+            organizationDetails:
+              organizationType: C_CORPORATION
+              organizationName: Central Park Cookie
+              countryOfFormation: US
+              natureOfOwnership: Direct
+              trustType: NON_STATUTORY
+              addresses:
+                - addressType: LEGAL_ADDRESS
+                  addressLines:
+                    - 124 Central Se
+                  city: Palo Alto
+                  state: CA
+                  postalCode: '94303'
+                  country: US
+              organizationIds:
+                - idType: EIN
+                  issuer: US
+                  value: '050110294'
+          - id: '2000000113'
+            parentPartyId: '2000000111'
+            partyType: INDIVIDUAL
+            email: foobar@example.com
+            roles:
+              - CONTROLLER
+            profileStatus: NEW
+            status: ACTIVE
+            createdAt: '2023-10-31T00:02:15.499Z'
+            individualDetails:
+              firstName: Chandler
+              lastName: Bing
+              birthDate: '2001-01-01'
+              countryOfResidence: US
+              addresses:
+                - addressType: RESIDENTIAL_ADDRESS
+                  addressLines:
+                    - 124 Candy St
+                  city: Palo Alto
+                  state: CA
+                  postalCode: '94303'
+                  country: US
+              individualIds:
+                - idType: SSN
+                  issuer: US
+                  value: '437381498'
+          - id: '2000000114'
+            parentPartyId: '2000000111'
+            partyType: INDIVIDUAL
+            roles:
+              - BENEFICIAL_OWNER
+              - TRUSTEE
+            profileStatus: NEW
+            status: ACTIVE
+            createdAt: '2023-10-31T00:02:15.499Z'
+            individualDetails:
+              firstName: Monica
+              lastName: Geller
+              birthDate: '2000-10-01'
+              countryOfResidence: US
+              natureOfOwnership: Direct
+              addresses:
+                - addressType: RESIDENTIAL_ADDRESS
+                  addressLines:
+                    - 125 Candy St
+                  city: Palo Alto
+                  state: CA
+                  postalCode: '94303'
+                  country: US
+              individualIds:
+                - idType: SSN
+                  issuer: US
+                  value: '050110337'
+        createdAt: '2023-10-31T00:02:15.499Z'
+        partyId: '2000000111'
+        products:
+          - EMBEDDED_PAYMENTS
+        outstanding:
+          attestationDocumentIds:
+            - 62d29548-f55a-458e-b9bb-ed32a6a05a1b
+          documentRequestIds: []
+          partyIds: []
+          partyRoles: []
+          questionIds:
+            - '300001'
+            - '300002'
+            - '300003'
+        questionResponses: []
+        status: NEW
     CreateClientResponse:
       summary: Create Client
       description: Create Client response with outstanding attestations, party roles, and questions.
@@ -3025,13 +4255,18 @@ components:
                   country: US
               phone:
                 phoneType: BUSINESS_PHONE
-                countryCode: US
+                countryCode: '+1'
                 phoneNumber: '6316215110'
               organizationIds:
                 - idType: EIN
                   issuer: US
                   value: '000000001'
               websiteAvailable: false
+            metadata:
+              - key: salesChannel
+                value: direct
+              - key: onboardingTier
+                value: premium
           - id: '2000000112'
             partyType: INDIVIDUAL
             parentPartyId: '2000000111'
@@ -3125,7 +4360,7 @@ components:
                   country: US
               phone:
                 phoneType: BUSINESS_PHONE
-                countryCode: US
+                countryCode: '+1'
                 phoneNumber: '6316215110'
               organizationIds:
                 - idType: EIN
@@ -3270,7 +4505,7 @@ components:
                   country: US
               phone:
                 phoneType: BUSINESS_PHONE
-                countryCode: US
+                countryCode: '+1'
                 phoneNumber: '6316215110'
               organizationIds:
                 - idType: EIN
@@ -3322,13 +4557,13 @@ components:
           questionIds: []
         questionResponses:
           - questionId: '300001'
-            value:
+            values:
               - US
           - questionId: '300002'
-            value:
+            values:
               - 'true'
           - questionId: '300003'
-            value:
+            values:
               - 'true'
         results:
           customerIdentityStatus: APPROVED
@@ -3538,11 +4773,19 @@ components:
       summary: Document details for given document upload
       description: Document details for document that was uploaded
       value:
-        id: 62d29548-f55a-458e-b9bb-ed32a6a05a1b
-        documentType: TERMS_CONDITIONS
+        id: cd03133b-21e6-4d60-85aa-3eee61939b2e
+        documentType: PASSPORT
         metadata:
+          - key: STATUS
+            value: ACTIVE
+          - key: UPLOADED_FILE_NAME
+            value: passport.png
+          - key: FILE_EXTENSION
+            value: png
           - key: DOCUMENT_REQUEST_ID
-            value: '50013'
+            value: '50000'
+          - key: UPLOAD_TIME
+            value: '2024-04-01T21:14:38.474Z'
     PartyListResponseForNetworkScreening:
       summary: List of root parties
       description: A list of root parties.
@@ -3592,12 +4835,10 @@ components:
       description: Organization Party
       value:
         partyType: ORGANIZATION
-        profileStatus: APPROVED
         roles:
           - CLIENT
         email: monica@cpgetaways.com
         externalId: TCU1234
-        active: true
         organizationDetails:
           organizationName: Central Park Getaways
           organizationType: SOLE_PROPRIETORSHIP
@@ -3620,23 +4861,30 @@ components:
           phone:
             phoneType: BUSINESS_PHONE
             phoneNumber: '6316215110'
-            countryCode: US
+            countryCode: '+1'
           organizationIds:
             - idType: EIN
               value: '000000001'
               issuer: US
           websiteAvailable: false
+        metadata:
+          - key: campaignId
+            value: summer-2026-promo
+          - key: partnerRef
+            value: PARTNER-00482
+          - key: internalNotes
+            value:
+              source: bank-branch
+              agentId: A-1042
     CreateOrganizationPartyCAForNetworkScreening:
       summary: Organization Party for CA
       description: Organization Party for CA
       value:
         partyType: ORGANIZATION
-        profileStatus: APPROVED
         roles:
           - CLIENT
         email: contact@ppthospital.gmail.com
         externalId: TCU1234
-        active: true
         organizationDetails:
           countryOfFormation: CA
           yearOfFormation: '1984'
@@ -3672,12 +4920,10 @@ components:
       description: Organization Party for Payfac
       value:
         partyType: ORGANIZATION
-        profileStatus: NEW
         roles:
           - CLIENT
         email: foremanmedical@example.com
         externalId: '394800000000555'
-        active: true
         organizationDetails:
           organizationType: C_CORPORATION
           organizationName: Foreman Medical Corporation
@@ -3710,6 +4956,7 @@ components:
               value: '100100122'
               issuer: GB
         networkRegistration:
+          networkScreeningRiskAccepted: false
           settlementPaymentMethods:
             - VISA
             - DISCOVER
@@ -3729,7 +4976,6 @@ components:
       description: Organization Party for Payfac CA use case
       value:
         partyType: ORGANIZATION
-        profileStatus: NEW
         roles:
           - CLIENT
         email: foremanmedical@example.com
@@ -3769,6 +5015,7 @@ components:
               value: '101803575124114'
               issuer: CA
         networkRegistration:
+          networkScreeningRiskAccepted: false
           settlementPaymentMethods:
             - VISA
             - DISCOVER
@@ -3789,10 +5036,8 @@ components:
       value:
         parentPartyId: '2000000111'
         partyType: INDIVIDUAL
-        profileStatus: NEW
         roles:
           - CONTROLLER
-        active: true
         individualDetails:
           countryOfResidence: GB
           firstName: Eric
@@ -3821,10 +5066,8 @@ components:
       value:
         parentPartyId: '2000000555'
         partyType: INDIVIDUAL
-        profileStatus: NEW
         roles:
           - CONTROLLER
-        active: true
         individualDetails:
           countryOfResidence: CA
           firstName: Eric
@@ -3892,6 +5135,7 @@ components:
               value: '100100122'
               issuer: GB
         networkRegistration:
+          networkScreeningRiskAccepted: false
           settlementPaymentMethods:
             - VISA
             - AMEX_OPT_BLUE
@@ -3906,6 +5150,17 @@ components:
           jcbAccepted: true
           amexSellerId: '123'
           discoverMerchantId: '123'
+        metadata:
+          - key: campaignId
+            value: summer-2026-promo
+          - key: conversionStatus
+            value: true
+          - key: retryCount
+            value: 3
+          - key: internalNotes
+            value:
+              source: bank-branch
+              agentId: A-1042
     IndividualPartyResponseForNetworkScreening:
       summary: Individual party
       description: Individual party
@@ -3946,6 +5201,13 @@ components:
         organizationDetails:
           organizationName: Central Park Getaways
           organizationType: SOLE_PROPRIETORSHIP
+        metadata:
+          - key: campaignId
+            value: summer-2026-promo
+          - key: conversionStatus
+            value: true
+          - key: retryCount
+            value: 3
     UpdateOrganizationPartyCA:
       summary: Update organization party for CA
       description: Updates organization party for CA
@@ -3959,6 +5221,7 @@ components:
       description: Updates organization party for network screening
       value:
         organizationDetails:
+          organizationType: LIMITED_LIABILITY_PARTNERSHIP
           organizationName: Foreman Medical Corporation
           dbaName: FM Corp
           associatedCountries:
@@ -3972,6 +5235,7 @@ components:
       description: Updates organization party in CA for network screening
       value:
         organizationDetails:
+          organizationType: LIMITED_LIABILITY_PARTNERSHIP
           organizationName: Foreman Medical Corporation
           dbaName: FM Corp
           associatedCountries:
@@ -4004,13 +5268,198 @@ components:
             - idType: SOCIAL_INSURANCE_NUMBER
               issuer: CA
               value: '777888111'
+    ListSessionResponse:
+      summary: List of sessions
+      description: Retrieve list of sessions.
+      value:
+        metadata:
+          page: 0
+          limit: 25
+          total: 2
+        sessions:
+          - id: '9000005555'
+            type: EMBEDDED_UI
+            target:
+              id: '3000000001'
+              type: CLIENT
+            url: https://url.jpmorgan.com/t/17465629080405AI41
+            token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2aXJ0dWFsY2FyZF9xYTAxX
+          - id: '9000005556'
+            type: EMBEDDED_UI
+            target:
+              id: '3000000001'
+              type: CLIENT
+            url: https://url.jpmorgan.com/t/22465629080405AI41
+            token: eyJfgGciOiJIUzUxMiJ9.eyJzdWIiOiJ2aXJ0dWFsY2FyZF9xrtDFG
+    SessionResponse:
+      summary: Create Session
+      description: Create session response.
+      value:
+        id: '9000005555'
+        type: EMBEDDED_UI
+        target:
+          id: '3000000001'
+          type: CLIENT
+        url: https://url.jpmorgan.com/t/17465629080405AI41
+        token: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ2aXJ0dWFsY2FyZF9xYTAxX
+    CreateSessionRequest:
+      summary: Create Session Request
+      description: Create session.
+      value:
+        type: EMBEDDED_UI
+        target:
+          id: '3000000001'
+          type: CLIENT
+    RecommendationsRequest:
+      summary: Generate Recommendations
+      description: Generates recommendations based on the provided input.
+      value:
+        resourceType: NAICS_CODE
+        values:
+          - key: organizationName
+            value: The Cosmetics Company
+          - key: organizationDescription
+            value: Ernie Enterprises provides cosmetics and personal grooming products to its customers.
+    RecommendationsResponse:
+      summary: Generated Recommendations
+      value:
+        resourceType: NAICS_CODE
+        message: ''
+        resource:
+          - naicsCode: '456120'
+            naicsDescription: |
+              Title - Cosmetics, Beauty Supplies and Perfume Retailers
+              Description - This industry comprises establishments primarily engaged in retailing cosmetics, perfumes, toiletries, and personal grooming products.
+              Cross-References.
+    GetPartyUpdateResponseList:
+      summary: Get the list of Party update requests with given requestId or clientId
+      description: Get the list of Party update requests with given requestId or clientId
+      value:
+        parties:
+          - id: '2000000555'
+            email: contact@example.com
+            organizationDetails:
+              organizationName: Top Cookies
+              dbaName: Top Cookies NYC
+              organizationDescription: Every morning, we freshly bake the hottest cookies that will warm your heart.
+            updateRequest:
+              status: NEW
+              action: ADD
+              requestId: '9890809809'
+              submittedAt: '2023-11-18T12:28:11.232Z'
+          - id: '2000000556'
+            email: contact@example.com
+            updateRequest:
+              status: NEW
+              action: MODIFY
+              requestId: '9890809809'
+              submittedAt: '2023-10-18T12:30:13.232Z'
+        metadata:
+          page: 0
+          limit: 25
+          total: 2
+    OrganizationListKycPartyUpdateResponse:
+      summary: List of Organization Parties
+      description: Retrieve list of Organization Parties.
+      value:
+        parties:
+          - email: contact@example.com
+            organizationDetails:
+              organizationName: Top Cookies
+              dbaName: Top Cookies NYC
+              organizationDescription: Every morning, we freshly bake the hottest cookies that will warm your heart.
+            updateRequest:
+              status: NEW
+              action: MODIFY
+              requestId: '4000000555'
+              submittedAt: '2023-11-18T12:28:11.232Z'
+          - organizationDetails:
+              organizationIds:
+                - idType: EIN
+                  issuer: US
+                  value: '000000001'
+            updateRequest:
+              status: APPROVED
+              action: MODIFY
+              requestId: '4000000554'
+              submittedAt: '2023-10-18T12:28:11.232Z'
+        metadata:
+          page: 0
+          limit: 25
+          total: 2
+    IndividualListKycPartyUpdateResponse:
+      summary: List of Individual Parties
+      description: Retrieve list of Individual Parties.
+      value:
+        parties:
+          - email: avery@example.com
+            roles:
+              - CONTROLLER
+            individualDetails:
+              firstName: Avery
+              lastName: Baker
+              addresses:
+                - addressType: RESIDENTIAL_ADDRESS
+                  addressLines:
+                    - 90 Bedford Street
+                    - Apt 2E
+                  city: New York
+                  state: NY
+                  postalCode: '10014'
+                  country: US
+            updateRequest:
+              status: APPROVED
+              action: MODIFY
+              requestId: '4000000155'
+              submittedAt: '2023-10-07T12:28:11.232Z'
+          - individualDetails:
+              individualIds:
+                - idType: SSN
+                  issuer: US
+                  value: '324441122'
+            updateRequest:
+              status: NEW
+              action: MODIFY
+              requestId: '4000000156'
+              submittedAt: '2023-10-10T12:28:11.232Z'
+        metadata:
+          page: 0
+          limit: 25
+          total: 2
+    KycTerminatedPartyUpdateResponseList:
+      summary: List of Party update requests with TERMINATED status
+      description: List of Party update requests with TERMINATED status
+      value:
+        parties:
+          - id: '2000000555'
+            email: contact@example.com
+            organizationDetails:
+              organizationName: Top Cookies
+              dbaName: Top Cookies NYC
+              organizationDescription: Every morning, we freshly bake the hottest cookies that will warm your heart.
+            updateRequest:
+              status: TERMINATED
+              action: ADD
+              requestId: '4000000556'
+              submittedAt: '2023-11-18T12:28:11.232Z'
+          - id: '2000000556'
+            email: contact@example.com
+            updateRequest:
+              status: TERMINATED
+              action: MODIFY
+              requestId: '4000000556'
+              submittedAt: '2023-10-18T12:30:13.232Z'
+        metadata:
+          page: 0
+          limit: 25
+          total: 2
 x-jpmc-securityDefinitions:
   JPMC-OAuth2:
     jpmc-claims:
       jpmc-roles:
-        - 109804_ONBOARDING_MERCH_ACCESS: API access role claim
+        - 111789_SMBDO_PAYFAC_ACCESS: API access role claim
 x-jpmc-security:
   - JPMC-OAuth2:
       jpmc-claims:
         jpmc-roles:
-          - 109804_ONBOARDING_MERCH_ACCESS: API access role claim
+          - 111789_SMBDO_CLIENT_ACCESS: API access role claim

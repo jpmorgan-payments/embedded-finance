@@ -33,7 +33,7 @@ import { formatCurrency } from '../utils/formatCurrency';
 
 /** Display info for the "From" account row. */
 interface AccountInfo {
-  displayName: string;
+  displayName: React.ReactNode;
   lastFour: string;
 }
 

@@ -11,8 +11,7 @@ import type { PaymentMethodType } from '../PaymentFlow/PaymentFlow.types';
  *
  * These are the 16 cross-border credit currencies offered by the Embedded
  * Payments FX product, per the PDP "Availability" documentation. They mirror the
- * non-USD values of the recipients `CurrencyCode` enum (see
- * `embedded-finance-pub-ep-recipients-1.0.55-fx.yaml`). The PDP table lists the
+ * supported subset of the recipients `CurrencyCode` enum. The PDP table lists the
  * Vietnam currency as "VDN", a typo for the ISO 4217 code `VND` used here.
  */
 export const SUPPORTED_TARGET_CURRENCIES: string[] = [

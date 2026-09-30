@@ -1,10 +1,10 @@
 import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon, CircleDashedIcon, Clock3Icon } from 'lucide-react';
 
-import type { MaintenanceStatus } from '../models/maintenanceApi.types';
+import type { KycUpdateRequestStatus } from '@/api/generated/smbdo.schemas';
 
 type MaintenanceStatusBadgeProps = {
-  status?: MaintenanceStatus;
+  status?: KycUpdateRequestStatus;
   requiresAction?: boolean;
   className?: string;
 };

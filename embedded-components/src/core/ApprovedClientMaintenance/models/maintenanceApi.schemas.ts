@@ -1,18 +1,17 @@
 import { z } from 'zod';
 
-const maintenanceStatusSchema = z.enum([
-  'NEW',
-  'REVIEW_IN_PROGRESS',
-  'INFORMATION_REQUESTED',
-  'APPROVED',
-  'DECLINED',
-  'TERMINATED',
-]);
+import {
+  DocumentRequestStatus,
+  KycUpdateRequestAction,
+  KycUpdateRequestStatus,
+} from '@/api/generated/smbdo.schemas';
+
+const maintenanceStatusSchema = z.nativeEnum(KycUpdateRequestStatus);
 
 const maintenanceUpdateRequestSchema = z
   .object({
     status: maintenanceStatusSchema.optional(),
-    action: z.enum(['ADD', 'MODIFY', 'DELETE']).optional(),
+    action: z.nativeEnum(KycUpdateRequestAction).optional(),
     requestId: z.string().optional(),
     submittedAt: z.string().datetime().optional(),
   })
@@ -180,7 +179,7 @@ const maintenanceDocumentRequestSummarySchema = z
   .object({
     id: z.string().optional(),
     partyId: z.string().optional(),
-    status: z.enum(['ACTIVE', 'CLOSED', 'EXPIRED']).optional(),
+    status: z.nativeEnum(DocumentRequestStatus).optional(),
   })
   .passthrough();
 

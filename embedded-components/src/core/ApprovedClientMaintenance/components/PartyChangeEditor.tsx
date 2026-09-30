@@ -38,11 +38,11 @@ import { useMaintenanceFormOptions } from '../hooks/useMaintenanceFormOptions';
 import type {
   MaintenanceAddress,
   MaintenanceIndividualId,
+  MaintenancePartyUpdateRequest,
 } from '../models/maintenanceApi.types';
 import {
   buildIndividualPartyUpdate,
   type IndividualMaintenanceValues,
-  type PartyNameUpdateRequest,
 } from '../utils/buildPartyNameUpdate';
 import { MaintenanceFormFooter } from './MaintenanceFormFooter';
 import { MaintenanceFormSection } from './MaintenanceFormSection';
@@ -58,7 +58,7 @@ type PartyChangeEditorProps = {
   onDiscard: () => void;
   onSave: (
     values: IndividualMaintenanceValues,
-    request: PartyNameUpdateRequest
+    request: MaintenancePartyUpdateRequest
   ) => Promise<void>;
 };
 

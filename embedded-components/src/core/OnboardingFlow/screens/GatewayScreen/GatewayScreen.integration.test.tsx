@@ -96,12 +96,12 @@ vi.mock('@/api/generated/smbdo', async (importOriginal) => {
       error: null,
       status: 'idle',
     }),
-    useSmbdoUpdateClientLegacy: () => ({
+    useSmbdoUpdateClient: () => ({
       mutate: gwCtx.updateClientMutate,
       error: null,
       status: 'idle',
     }),
-    useUpdatePartyLegacy: () => ({
+    useUpdateParty: () => ({
       mutate: gwCtx.updatePartyMutate,
       error: null,
       status: 'idle',

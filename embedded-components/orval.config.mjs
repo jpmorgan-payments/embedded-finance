@@ -32,13 +32,7 @@ export default defineConfig({
     },
   },
   'ep-recipients': {
-    // Targets recipients 1.0.55-latest: the team's published spec that supersedes
-    // the local FX variant. `CurrencyCode` is widened to USD + 41 currencies
-    // (superset of the FX variant's 16 cross-border credit currencies),
-    // `CountryCode` is widened from US-only to 70 countries, and `RoutingCodeType`
-    // now includes international codes (BIC, CLABE, CNAPS, INFSC, GBDSC, ...) in
-    // addition to USABA. Additive/non-breaking vs the FX variant.
-    input: './api-specs/embedded-finance-pub-ep-recipients-1.0.55-latest.yml',
+    input: './api-specs/embedded-finance-pub-ep-recipients-1.0.58.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/ep-recipients.ts',
@@ -46,7 +40,6 @@ export default defineConfig({
       httpClient: 'axios',
       override: {
         query: {
-          useQuery: true,
           useInfinite: true,
           useInfiniteQueryParam: 'page',
         },
@@ -76,7 +69,7 @@ export default defineConfig({
   // produces a NEW output file used only by PaymentFlowFX. The existing
   // `ep-transactions` (V2) target above is left untouched.
   'ep-transactions-v3': {
-    input: './api-specs/embedded-finance-pub-ep-transactions-3.0.55.yaml',
+    input: './api-specs/embedded-finance-pub-ep-transactions-3.0.58.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/ep-transactions-v3.ts',
@@ -122,7 +115,7 @@ export default defineConfig({
     },
   },
   smbdo: {
-    input: './api-specs/embedded-finance-pub-smbdo-1.0.18.yaml',
+    input: './api-specs/embedded-finance-pub-smbdo-1.4.1.yaml',
     output: {
       mode: 'split',
       target: './src/api/generated/smbdo.ts',

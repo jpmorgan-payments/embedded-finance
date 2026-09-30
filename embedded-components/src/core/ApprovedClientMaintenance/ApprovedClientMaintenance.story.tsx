@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
+import type { UpdateClientRequestSmbdo } from '@/api/generated/smbdo.schemas';
+
 import type { BaseStoryArgs } from '../../../.storybook/preview';
 import { ApprovedClientMaintenance } from './ApprovedClientMaintenance';
 import type { ApprovedClientMaintenanceProps } from './ApprovedClientMaintenance.types';
@@ -228,12 +230,7 @@ const createHandlers = ({
       return HttpResponse.json(nextProposal, { status: 201 });
     }),
     http.patch('/clients/:clientId', async ({ request }) => {
-      const body = (await request.json()) as {
-        productDetails?: Array<{
-          subProduct?: string;
-          action?: 'ADD' | 'REMOVE';
-        }>;
-      };
+      const body = (await request.json()) as UpdateClientRequestSmbdo;
       const limitedDdaPaymentsUpdate = body.productDetails?.find(
         (detail) => detail.subProduct === 'LIMITED_DDA_PAYMENTS'
       );

@@ -7,8 +7,8 @@ import { render, screen, userEvent, waitFor, within } from '@test-utils';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import {
   useSmbdoListDocumentRequests,
-  useSmbdoUpdateClientLegacy,
-  useUpdatePartyLegacy,
+  useSmbdoUpdateClient,
+  useUpdateParty,
 } from '@/api/generated/smbdo';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { flowConfig } from '@/core/OnboardingFlow/config/flowConfig';
@@ -24,8 +24,8 @@ vi.mock('@/api/generated/smbdo', async (importOriginal) => {
   return {
     ...actual,
     useSmbdoListDocumentRequests: vi.fn(),
-    useUpdatePartyLegacy: vi.fn(),
-    useSmbdoUpdateClientLegacy: vi.fn(),
+    useUpdateParty: vi.fn(),
+    useSmbdoUpdateClient: vi.fn(),
   };
 });
 
@@ -108,14 +108,14 @@ describe('delta Save & continue — Tinker owner SSN is PATCHed', () => {
       data: { recipients: [] },
       isLoading: false,
     } as unknown as ReturnType<typeof useGetAllRecipients>);
-    vi.mocked(useUpdatePartyLegacy).mockReturnValue({
+    vi.mocked(useUpdateParty).mockReturnValue({
       mutateAsync: updatePartyAsync,
       error: undefined,
-    } as unknown as ReturnType<typeof useUpdatePartyLegacy>);
-    vi.mocked(useSmbdoUpdateClientLegacy).mockReturnValue({
+    } as unknown as ReturnType<typeof useUpdateParty>);
+    vi.mocked(useSmbdoUpdateClient).mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue({}),
       error: undefined,
-    } as unknown as ReturnType<typeof useSmbdoUpdateClientLegacy>);
+    } as unknown as ReturnType<typeof useSmbdoUpdateClient>);
   });
 
   test("Tinker's SSN reaches her party PATCH after Save & continue", async () => {

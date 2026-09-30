@@ -1,30 +1,28 @@
+import { KycUpdateRequestStatus } from '@/api/generated/smbdo.schemas';
+import type {
+  Attester,
+  ClientResponseOutstanding,
+  KycUpdateRequest,
+  PageMetaData,
+  ProductDetailsUpdateAction,
+} from '@/api/generated/smbdo.schemas';
+
 export const ACTIVE_MAINTENANCE_STATUSES = [
-  'NEW',
-  'REVIEW_IN_PROGRESS',
-  'INFORMATION_REQUESTED',
+  KycUpdateRequestStatus.NEW,
+  KycUpdateRequestStatus.REVIEW_IN_PROGRESS,
+  KycUpdateRequestStatus.INFORMATION_REQUESTED,
 ] as const;
 
 export const TERMINAL_MAINTENANCE_STATUSES = [
-  'APPROVED',
-  'DECLINED',
-  'TERMINATED',
+  KycUpdateRequestStatus.APPROVED,
+  KycUpdateRequestStatus.DECLINED,
+  KycUpdateRequestStatus.TERMINATED,
 ] as const;
 
 export type ActiveMaintenanceStatus =
   (typeof ACTIVE_MAINTENANCE_STATUSES)[number];
 export type TerminalMaintenanceStatus =
   (typeof TERMINAL_MAINTENANCE_STATUSES)[number];
-export type MaintenanceStatus =
-  | ActiveMaintenanceStatus
-  | TerminalMaintenanceStatus;
-export type MaintenanceAction = 'ADD' | 'MODIFY' | 'DELETE';
-
-export type MaintenanceUpdateRequest = {
-  status?: MaintenanceStatus;
-  action?: MaintenanceAction;
-  requestId?: string;
-  submittedAt?: string;
-};
 
 export type MaintenanceIndividualDetails = {
   firstName?: string;
@@ -32,7 +30,7 @@ export type MaintenanceIndividualDetails = {
   lastName?: string;
   birthDate?: string;
   countryOfResidence?: string;
-  natureOfOwnership?: 'Direct' | 'Indirect' | string;
+  natureOfOwnership?: string;
   nameSuffix?: string;
   jobTitle?: string;
   jobTitleDescription?: string;
@@ -62,16 +60,14 @@ export type MaintenanceIndividualId = {
   issuer?: string;
 };
 
-export type MaintenanceOrganizationId = MaintenanceIndividualId;
-
 export type MaintenanceOrganizationDetails = {
   organizationName?: string;
   dbaName?: string;
   organizationType?: string;
   countryOfFormation?: string;
-  natureOfOwnership?: 'Direct' | 'Indirect' | string;
+  natureOfOwnership?: string;
   addresses?: MaintenanceAddress[];
-  organizationIds?: MaintenanceOrganizationId[];
+  organizationIds?: MaintenanceIndividualId[];
   organizationDescription?: string;
   yearOfFormation?: string;
   industryCategory?: string;
@@ -87,8 +83,8 @@ export type MaintenanceOrganizationDetails = {
 export type MaintenanceProductDetail = {
   product?: string;
   subProduct?: string;
-  action?: 'ADD' | 'REMOVE';
-  onboardingStatus?: MaintenanceStatus | string;
+  action?: ProductDetailsUpdateAction;
+  onboardingStatus?: string;
 };
 
 export type MaintenanceValidationResponse = {
@@ -103,7 +99,7 @@ export type MaintenanceValidationResponse = {
 export type MaintenanceParty = {
   id?: string;
   parentPartyId?: string;
-  partyType?: 'INDIVIDUAL' | 'ORGANIZATION' | string;
+  partyType?: string;
   roles?: string[];
   profileStatus?: string;
   status?: string;
@@ -113,7 +109,7 @@ export type MaintenanceParty = {
   individualDetails?: MaintenanceIndividualDetails;
   organizationDetails?: MaintenanceOrganizationDetails;
   validationResponse?: MaintenanceValidationResponse[];
-  updateRequest?: MaintenanceUpdateRequest;
+  updateRequest?: KycUpdateRequest;
 };
 
 export type MaintenancePartyUpdateRequest = {
@@ -142,16 +138,8 @@ export type MaintenanceProductUpdateRequest = {
   productDetails: Array<{
     product: 'EMBEDDED_PAYMENTS';
     subProduct: 'LIMITED_DDA_PAYMENTS';
-    action: 'ADD' | 'REMOVE';
+    action: ProductDetailsUpdateAction;
   }>;
-};
-
-export type MaintenanceOutstanding = {
-  attestationDocumentIds?: string[];
-  documentRequestIds?: string[];
-  questionIds?: string[];
-  partyIds?: string[];
-  partyRoles?: string[];
 };
 
 export type MaintenanceQuestion = {
@@ -167,18 +155,11 @@ export type MaintenanceQuestionResponse = {
   values: string[];
 };
 
-export type MaintenanceAttester = {
-  firstName: string;
-  middleName?: string;
-  lastName: string;
-  designation: string;
-};
-
 export type MaintenanceAttestation = {
   documentId: string;
   attestationTime: string;
   ipAddress: string;
-  attester: MaintenanceAttester;
+  attester: Attester;
 };
 
 export type MaintenanceClientTaskUpdateRequest = {
@@ -193,40 +174,24 @@ export type MaintenanceClient = {
   parties?: MaintenanceParty[];
   products?: unknown[];
   productDetails?: MaintenanceProductDetail[];
-  outstanding?: MaintenanceOutstanding;
+  outstanding?: ClientResponseOutstanding;
   questionResponses?: MaintenanceQuestionResponse[];
-  updateRequest?: MaintenanceUpdateRequest;
-};
-
-export type MaintenancePageMetadata = {
-  page?: number;
-  limit?: number;
-  total?: number;
+  updateRequest?: KycUpdateRequest;
 };
 
 export type MaintenancePage = {
   parties?: MaintenanceParty[];
-  metadata?: MaintenancePageMetadata;
-};
-
-export type MaintenanceVerificationResponse = {
-  acceptedAt?: string;
-};
-
-export type MaintenanceDocumentRequestSummary = {
-  id?: string;
-  partyId?: string;
-  status?: 'ACTIVE' | 'CLOSED' | 'EXPIRED';
+  metadata?: PageMetaData;
 };
 
 export const isActiveMaintenanceStatus = (
-  status: MaintenanceStatus | undefined
+  status: KycUpdateRequestStatus | undefined
 ): status is ActiveMaintenanceStatus =>
   status !== undefined &&
   ACTIVE_MAINTENANCE_STATUSES.some((activeStatus) => activeStatus === status);
 
 export const isTerminalMaintenanceStatus = (
-  status: MaintenanceStatus | undefined
+  status: KycUpdateRequestStatus | undefined
 ): status is TerminalMaintenanceStatus =>
   status !== undefined &&
   TERMINAL_MAINTENANCE_STATUSES.some(

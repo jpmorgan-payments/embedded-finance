@@ -361,12 +361,16 @@ function setValueByPath(
  * @returns Modified request object with mapped form values
  * Applies field transformations using toRequestFn if specified
  */
-export function generateClientRequestBody(
+export function generateClientRequestBody<
+  TRequest extends
+    | Partial<CreateClientRequestSmbdo>
+    | Partial<UpdateClientRequestSmbdo>,
+>(
   formValues: Partial<OnboardingFormValuesSubmit>,
   partyIndex: number,
   arrayName: 'parties' | 'addParties',
-  obj: Partial<CreateClientRequestSmbdo> | Partial<UpdateClientRequestSmbdo>
-) {
+  obj: TRequest
+): TRequest {
   objectEntries(formValues).forEach(([key, value]) => {
     const fieldConfig = getPartyFieldConfig(key);
     if (fieldConfig.excludeFromMapping) {

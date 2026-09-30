@@ -9,7 +9,10 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui';
 
-import type { MaintenanceParty } from '../models/maintenanceApi.types';
+import {
+  isActiveMaintenanceStatus,
+  type MaintenanceParty,
+} from '../models/maintenanceApi.types';
 
 const getPartyName = (party: MaintenanceParty, fallback: string) =>
   party.partyType === 'ORGANIZATION'
@@ -116,9 +119,7 @@ export function MaintenanceOwnershipTree({
           const isIntermediary = party.roles?.includes('INTERMEDIARY_OWNER');
           const isPendingAddition =
             party.updateRequest?.action === 'ADD' &&
-            ['NEW', 'REVIEW_IN_PROGRESS', 'INFORMATION_REQUESTED'].includes(
-              party.updateRequest.status ?? ''
-            );
+            isActiveMaintenanceStatus(party.updateRequest.status);
           const isDirectOwner = parentPartyId === clientPartyId;
           const isFirst = index === 0;
           const isLast = index === children.length - 1;

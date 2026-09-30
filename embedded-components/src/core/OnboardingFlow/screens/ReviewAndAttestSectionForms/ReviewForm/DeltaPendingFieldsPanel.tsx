@@ -26,8 +26,8 @@ import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import {
   getSmbdoGetClientQueryKey,
-  useSmbdoUpdateClientLegacy,
-  useUpdatePartyLegacy,
+  useSmbdoUpdateClient,
+  useUpdateParty,
 } from '@/api/generated/smbdo';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import {
@@ -2504,9 +2504,9 @@ export function useSaveDeltaPendingFields(
   const { setIsFormSubmitting } = useFlowContext();
   const queryClient = useQueryClient();
   const { mutateAsync: updatePartyAsync, error: partyUpdateError } =
-    useUpdatePartyLegacy();
+    useUpdateParty();
   const { mutateAsync: updateClientAsync, error: clientUpdateError } =
-    useSmbdoUpdateClientLegacy();
+    useSmbdoUpdateClient();
   const [saveError, setSaveError] = useState(false);
 
   const save = async (): Promise<boolean> => {

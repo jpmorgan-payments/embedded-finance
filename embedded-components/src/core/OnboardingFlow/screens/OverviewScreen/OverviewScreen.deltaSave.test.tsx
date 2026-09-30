@@ -5,8 +5,8 @@ import { render, screen, userEvent, waitFor } from '@test-utils';
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import {
   useSmbdoListDocumentRequests,
-  useSmbdoUpdateClientLegacy,
-  useUpdatePartyLegacy,
+  useSmbdoUpdateClient,
+  useUpdateParty,
 } from '@/api/generated/smbdo';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { flowConfig } from '@/core/OnboardingFlow/config/flowConfig';
@@ -22,8 +22,8 @@ vi.mock('@/api/generated/smbdo', async (importOriginal) => {
   return {
     ...actual,
     useSmbdoListDocumentRequests: vi.fn(),
-    useUpdatePartyLegacy: vi.fn(),
-    useSmbdoUpdateClientLegacy: vi.fn(),
+    useUpdateParty: vi.fn(),
+    useSmbdoUpdateClient: vi.fn(),
   };
 });
 
@@ -124,15 +124,15 @@ describe('OverviewScreen delta — Save & continue', () => {
       isLoading: false,
     } as unknown as ReturnType<typeof useGetAllRecipients>);
 
-    vi.mocked(useUpdatePartyLegacy).mockReturnValue({
+    vi.mocked(useUpdateParty).mockReturnValue({
       mutateAsync: updatePartyAsync,
       error: undefined,
-    } as unknown as ReturnType<typeof useUpdatePartyLegacy>);
+    } as unknown as ReturnType<typeof useUpdateParty>);
 
-    vi.mocked(useSmbdoUpdateClientLegacy).mockReturnValue({
+    vi.mocked(useSmbdoUpdateClient).mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue({}),
       error: undefined,
-    } as unknown as ReturnType<typeof useSmbdoUpdateClientLegacy>);
+    } as unknown as ReturnType<typeof useSmbdoUpdateClient>);
   });
 
   test('clicking Save & continue runs the gate without an invalid-hook crash', async () => {

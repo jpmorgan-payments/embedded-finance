@@ -1,12 +1,12 @@
 import { Clock3Icon, PencilLineIcon } from 'lucide-react';
 
-import type { MaintenanceStatus } from '../models/maintenanceApi.types';
+import type { KycUpdateRequestStatus } from '@/api/generated/smbdo.schemas';
 
 export function MaintenanceChangeStatusIcon({
   status,
   className,
 }: {
-  status?: MaintenanceStatus;
+  status?: KycUpdateRequestStatus;
   className?: string;
 }) {
   const Icon =

@@ -1,4 +1,4 @@
-import type { MaintenanceStatus } from './models/maintenanceApi.types';
+import type { KycUpdateRequestStatus } from '@/api/generated/smbdo.schemas';
 
 export type ApprovedClientMaintenanceOperation =
   | 'ADD_LIMITED_DDA_PAYMENTS'
@@ -23,5 +23,5 @@ export type ApprovedClientMaintenanceProps = {
   initialProductVerificationAcceptedAt?: string;
   onRequestLimitedDda?: () => void | Promise<void>;
   className?: string;
-  onStatusChange?: (status: MaintenanceStatus | undefined) => void;
+  onStatusChange?: (status: KycUpdateRequestStatus | undefined) => void;
 };

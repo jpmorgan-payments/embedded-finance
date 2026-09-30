@@ -7,8 +7,8 @@ import { useFormState } from 'react-hook-form';
 import {
   getSmbdoGetClientQueryKey,
   useSmbdoPostClients,
-  useSmbdoUpdateClientLegacy,
-  useUpdatePartyLegacy as useSmbdoUpdateParty,
+  useSmbdoUpdateClient,
+  useUpdateParty as useSmbdoUpdateParty,
 } from '@/api/generated/smbdo';
 import {
   ClientResponse,
@@ -195,7 +195,7 @@ export const GatewayScreen = () => {
     mutate: updateClient,
     error: clientUpdateError,
     status: clientUpdateStatus,
-  } = useSmbdoUpdateClientLegacy();
+  } = useSmbdoUpdateClient();
 
   const {
     mutate: updateParty,
