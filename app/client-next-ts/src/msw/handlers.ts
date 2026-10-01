@@ -588,148 +588,33 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
     });
   }),
 
-  http.post(
-    `${apiUrl}/ef/do/v1/clients/:clientId`,
-    async ({ request, params }) => {
-      const { clientId } = params as ClientIdParams;
-      const data = (await request.json()) as Record<string, unknown> | null;
+  // Components update clients with PATCH (`useSmbdoUpdateClient`). POST stays
+  // registered so older scenario callers still merge into the same MSW DB.
+  ...([http.patch, http.post] as const).map((register) =>
+    register(
+      `${apiUrl}/ef/do/v1/clients/:clientId`,
+      async ({ request, params }) => {
+        const { clientId } = params as ClientIdParams;
+        const data = (await request.json()) as Record<string, unknown> | null;
 
-      // Find the existing client
-      const existingClient = db.client.findFirst({
-        where: { id: { equals: clientId } },
-      });
-
-      if (!existingClient) {
-        return new HttpResponse(null, { status: 404 });
-      }
-
-      type ClientUpdateState = Record<string, unknown> & {
-        outstanding?: ClientOutstanding;
-        parties?: string[];
-        products?: unknown[];
-        questionResponses?: unknown[];
-        attestations?: unknown[];
-      };
-
-      let updatedClient: ClientUpdateState = { ...existingClient };
-
-      updatedClient.outstanding = (updatedClient.outstanding || {
-        documentRequestIds: [],
-        questionIds: [],
-        attestationDocumentIds: [],
-        partyIds: [],
-        partyRoles: [],
-      }) as ClientOutstanding;
-
-      // Handle adding new parties if present
-      if (data?.addParties && Array.isArray(data.addParties)) {
-        for (const partyData of data.addParties as Record<string, unknown>[]) {
-          // Generate a new party ID if not provided
-          const newPartyId =
-            '2' + Math.floor(100000000 + Math.random() * 900000000).toString();
-
-          // Create the new party with required fields
-          const newParty = {
-            id: newPartyId,
-            active: true,
-            ...partyData,
-            // Ensure partyType and roles are present as they are required
-            partyType: partyData.partyType || 'ORGANIZATION',
-            roles: partyData.roles || ['OWNER'],
-            // Set parent party ID to link to the client
-            parentPartyId: updatedClient.partyId,
-          };
-
-          // Create the party in the database
-          db.party.create(newParty);
-
-          updatedClient.parties = [
-            ...(updatedClient.parties ?? []),
-            newPartyId,
-          ];
-        }
-      }
-
-      // Handle adding new products if present
-      if (data?.addProducts) {
-        updatedClient.products = [
-          ...((updatedClient.products ?? []) as unknown[]),
-          ...(data.addProducts as string[]),
-        ];
-      }
-
-      // Handle question responses if present
-      if (data?.questionResponses && Array.isArray(data.questionResponses)) {
-        const questionResponses = data.questionResponses as Array<{
-          questionId: string;
-          [key: string]: unknown;
-        }>;
-        // Get existing responses without the ones we're updating
-        const existingResponses = (
-          (updatedClient.questionResponses ?? []) as Array<{
-            questionId: string;
-          }>
-        ).filter(
-          (existing: { questionId: string }) =>
-            !questionResponses.some(
-              (incoming) => incoming.questionId === existing.questionId
-            )
-        );
-
-        // Combine existing responses (minus the updated ones) with new responses
-        updatedClient.questionResponses = [
-          ...existingResponses,
-          ...questionResponses,
-        ];
-
-        updatedClient.outstanding = (updatedClient.outstanding || {
-          documentRequestIds: [],
-          questionIds: [],
-          attestationDocumentIds: [],
-          partyIds: [],
-          partyRoles: [],
-        }) as ClientOutstanding;
-
-        const answeredQuestionIds = questionResponses.map(
-          (response) => response.questionId
-        );
-        const questionIds = updatedClient.outstanding.questionIds ?? [];
-        updatedClient.outstanding.questionIds = questionIds.filter(
-          (id: string) => !answeredQuestionIds.includes(id)
-        );
-
-        syncOutstandingQuestionIdsFromConditionalLogic(
-          updatedClient.outstanding,
-          updatedClient.questionResponses as QuestionResponseEntry[]
-        );
-
-        maybeApproveTestScenario5AfterQuestions(
-          clientId,
-          updatedClient.questionResponses as Array<{ questionId?: string }>,
-          updatedClient.outstanding.questionIds
-        );
-
-        const refreshedAfterApproval = db.client.findFirst({
+        // Find the existing client
+        const existingClient = db.client.findFirst({
           where: { id: { equals: clientId } },
         });
-        if (refreshedAfterApproval) {
-          updatedClient.status = refreshedAfterApproval.status as string;
-          updatedClient.results = refreshedAfterApproval.results;
-          updatedClient.outstanding = (refreshedAfterApproval.outstanding ||
-            updatedClient.outstanding) as ClientOutstanding;
+
+        if (!existingClient) {
+          return new HttpResponse(null, { status: 404 });
         }
-      }
 
-      // Handle adding new attestations if present
-      if (data?.addAttestations && Array.isArray(data.addAttestations)) {
-        const addAttestations = data.addAttestations as Array<{
-          documentId: string;
-          [key: string]: unknown;
-        }>;
-        updatedClient.attestations = [
-          ...((updatedClient.attestations ?? []) as unknown[]),
-          ...addAttestations,
-        ];
+        type ClientUpdateState = Record<string, unknown> & {
+          outstanding?: ClientOutstanding;
+          parties?: string[];
+          products?: unknown[];
+          questionResponses?: unknown[];
+          attestations?: unknown[];
+        };
+
+        let updatedClient: ClientUpdateState = { ...existingClient };
 
         updatedClient.outstanding = (updatedClient.outstanding || {
           documentRequestIds: [],
@@ -739,124 +624,255 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
           partyRoles: [],
         }) as ClientOutstanding;
 
-        const attestedDocumentIds = addAttestations.map(
-          (attestation) => attestation.documentId
-        );
-        updatedClient.outstanding.attestationDocumentIds = (
-          updatedClient.outstanding.attestationDocumentIds ?? []
-        ).filter((id: string) => !attestedDocumentIds.includes(id));
+        // Handle adding new parties if present
+        if (data?.addParties && Array.isArray(data.addParties)) {
+          for (const partyData of data.addParties as Record<
+            string,
+            unknown
+          >[]) {
+            // Generate a new party ID if not provided
+            const newPartyId =
+              '2' +
+              Math.floor(100000000 + Math.random() * 900000000).toString();
+
+            // Create the new party with required fields
+            const newParty = {
+              id: newPartyId,
+              active: true,
+              ...partyData,
+              // Ensure partyType and roles are present as they are required
+              partyType: partyData.partyType || 'ORGANIZATION',
+              roles: partyData.roles || ['OWNER'],
+              // Keep a caller-supplied parent (ownership chain). Default to the
+              // client party only for top-level owners.
+              parentPartyId: partyData.parentPartyId || updatedClient.partyId,
+            };
+
+            // Create the party in the database
+            db.party.create(newParty);
+
+            updatedClient.parties = [
+              ...(updatedClient.parties ?? []),
+              newPartyId,
+            ];
+          }
+        }
+
+        // Handle adding new products if present
+        if (data?.addProducts) {
+          updatedClient.products = [
+            ...((updatedClient.products ?? []) as unknown[]),
+            ...(data.addProducts as string[]),
+          ];
+        }
+
+        // Handle question responses if present
+        if (data?.questionResponses && Array.isArray(data.questionResponses)) {
+          const questionResponses = data.questionResponses as Array<{
+            questionId: string;
+            [key: string]: unknown;
+          }>;
+          // Get existing responses without the ones we're updating
+          const existingResponses = (
+            (updatedClient.questionResponses ?? []) as Array<{
+              questionId: string;
+            }>
+          ).filter(
+            (existing: { questionId: string }) =>
+              !questionResponses.some(
+                (incoming) => incoming.questionId === existing.questionId
+              )
+          );
+
+          // Combine existing responses (minus the updated ones) with new responses
+          updatedClient.questionResponses = [
+            ...existingResponses,
+            ...questionResponses,
+          ];
+
+          updatedClient.outstanding = (updatedClient.outstanding || {
+            documentRequestIds: [],
+            questionIds: [],
+            attestationDocumentIds: [],
+            partyIds: [],
+            partyRoles: [],
+          }) as ClientOutstanding;
+
+          const answeredQuestionIds = questionResponses.map(
+            (response) => response.questionId
+          );
+          const questionIds = updatedClient.outstanding.questionIds ?? [];
+          updatedClient.outstanding.questionIds = questionIds.filter(
+            (id: string) => !answeredQuestionIds.includes(id)
+          );
+
+          syncOutstandingQuestionIdsFromConditionalLogic(
+            updatedClient.outstanding,
+            updatedClient.questionResponses as QuestionResponseEntry[]
+          );
+
+          maybeApproveTestScenario5AfterQuestions(
+            clientId,
+            updatedClient.questionResponses as Array<{ questionId?: string }>,
+            updatedClient.outstanding.questionIds
+          );
+
+          const refreshedAfterApproval = db.client.findFirst({
+            where: { id: { equals: clientId } },
+          });
+          if (refreshedAfterApproval) {
+            updatedClient.status = refreshedAfterApproval.status as string;
+            updatedClient.results = refreshedAfterApproval.results;
+            updatedClient.outstanding = (refreshedAfterApproval.outstanding ||
+              updatedClient.outstanding) as ClientOutstanding;
+          }
+        }
+
+        // Handle adding new attestations if present
+        if (data?.addAttestations && Array.isArray(data.addAttestations)) {
+          const addAttestations = data.addAttestations as Array<{
+            documentId: string;
+            [key: string]: unknown;
+          }>;
+          updatedClient.attestations = [
+            ...((updatedClient.attestations ?? []) as unknown[]),
+            ...addAttestations,
+          ];
+
+          updatedClient.outstanding = (updatedClient.outstanding || {
+            documentRequestIds: [],
+            questionIds: [],
+            attestationDocumentIds: [],
+            partyIds: [],
+            partyRoles: [],
+          }) as ClientOutstanding;
+
+          const attestedDocumentIds = addAttestations.map(
+            (attestation) => attestation.documentId
+          );
+          updatedClient.outstanding.attestationDocumentIds = (
+            updatedClient.outstanding.attestationDocumentIds ?? []
+          ).filter((id: string) => !attestedDocumentIds.includes(id));
+        }
+
+        // Handle removing attestations if present
+        if (
+          data?.removeAttestations &&
+          Array.isArray(data.removeAttestations)
+        ) {
+          const removeAttestations = data.removeAttestations as Array<{
+            documentId: string;
+          }>;
+          const attestationIdsToRemove = removeAttestations.map(
+            (a) => a.documentId
+          );
+          updatedClient.attestations = (
+            (updatedClient.attestations ?? []) as Array<{ documentId: string }>
+          ).filter((a) => !attestationIdsToRemove.includes(a.documentId));
+
+          updatedClient.outstanding = (updatedClient.outstanding || {
+            documentRequestIds: [],
+            questionIds: [],
+            attestationDocumentIds: [],
+            partyIds: [],
+            partyRoles: [],
+          }) as ClientOutstanding;
+
+          updatedClient.outstanding.attestationDocumentIds = [
+            ...(updatedClient.outstanding.attestationDocumentIds ?? []),
+            ...attestationIdsToRemove,
+          ];
+        }
+
+        // Update the client with the new data
+        const client = db.client.update({
+          where: { id: { equals: clientId } },
+          data: updatedClient,
+        });
+
+        // Expand parties before returning
+        const expandedClient = {
+          ...client,
+          parties: (client.parties as string[])
+            .map((partyId: string) => {
+              const party = db.party.findFirst({
+                where: { id: { equals: partyId } },
+              });
+              return party || null;
+            })
+            .filter(Boolean),
+        };
+
+        logDbState('Client PATCH Update');
+        return HttpResponse.json(expandedClient, {
+          headers: { 'Content-Type': 'application/json' },
+        });
       }
-
-      // Handle removing attestations if present
-      if (data?.removeAttestations && Array.isArray(data.removeAttestations)) {
-        const removeAttestations = data.removeAttestations as Array<{
-          documentId: string;
-        }>;
-        const attestationIdsToRemove = removeAttestations.map(
-          (a) => a.documentId
-        );
-        updatedClient.attestations = (
-          (updatedClient.attestations ?? []) as Array<{ documentId: string }>
-        ).filter((a) => !attestationIdsToRemove.includes(a.documentId));
-
-        updatedClient.outstanding = (updatedClient.outstanding || {
-          documentRequestIds: [],
-          questionIds: [],
-          attestationDocumentIds: [],
-          partyIds: [],
-          partyRoles: [],
-        }) as ClientOutstanding;
-
-        updatedClient.outstanding.attestationDocumentIds = [
-          ...(updatedClient.outstanding.attestationDocumentIds ?? []),
-          ...attestationIdsToRemove,
-        ];
-      }
-
-      // Update the client with the new data
-      const client = db.client.update({
-        where: { id: { equals: clientId } },
-        data: updatedClient,
-      });
-
-      // Expand parties before returning
-      const expandedClient = {
-        ...client,
-        parties: (client.parties as string[])
-          .map((partyId: string) => {
-            const party = db.party.findFirst({
-              where: { id: { equals: partyId } },
-            });
-            return party || null;
-          })
-          .filter(Boolean),
-      };
-
-      logDbState('Client Update');
-      return HttpResponse.json(expandedClient, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    )
   ),
 
-  http.post(
-    `${apiUrl}/ef/do/v1/parties/:partyId`,
-    async ({ request, params }) => {
-      const { partyId } = params as PartyIdParams;
-      const data = (await request.json()) as Record<string, unknown> | null;
+  // Components update parties with PATCH (`useUpdateParty`). POST stays
+  // registered so older scenario callers still merge into the same MSW DB.
+  ...([http.patch, http.post] as const).map((register) =>
+    register(
+      `${apiUrl}/ef/do/v1/parties/:partyId`,
+      async ({ request, params }) => {
+        const { partyId } = params as PartyIdParams;
+        const data = (await request.json()) as Record<string, unknown> | null;
 
-      // Check if party exists first
-      const existingParty = db.party.findFirst({
-        where: { id: { equals: partyId } },
-      });
+        // Check if party exists first
+        const existingParty = db.party.findFirst({
+          where: { id: { equals: partyId } },
+        });
 
-      if (!existingParty) {
-        return new HttpResponse(null, { status: 404 });
+        if (!existingParty) {
+          return new HttpResponse(null, { status: 404 });
+        }
+
+        // First delete the existing party
+        db.party.delete({
+          where: { id: { equals: partyId } },
+        });
+
+        // Use lodash merge for deep merging, but handle roles separately
+        const dataObj = data as Record<string, unknown>;
+        const { roles: newRoles, ...restData } = dataObj;
+        const existingPartyObj = existingParty as Record<string, unknown>;
+        const { roles: existingRoles, ...restExisting } = existingPartyObj;
+
+        // Merge everything except roles
+        const mergedData = merge({}, restExisting, restData);
+
+        // Add roles back, preferring the new roles if provided
+        const finalData = {
+          ...mergedData,
+          roles: newRoles || existingRoles,
+        };
+
+        // Create a new party with the merged data
+        const updatedParty = db.party.create({
+          ...finalData,
+          id: partyId, // Ensure we keep the same ID
+        } as Record<string, unknown>);
+
+        const owningClient = db.client
+          .getAll()
+          .find((client) =>
+            ((client.parties as string[]) || []).includes(partyId as string)
+          );
+        if (
+          owningClient?.id &&
+          isTestScenario5ClientId(owningClient.id as string)
+        ) {
+          syncTestScenario5NaicsCodeQuestionsFromIndustry(
+            owningClient.id as string
+          );
+        }
+
+        logDbState('Party PATCH Update');
+        return HttpResponse.json(updatedParty);
       }
-
-      // First delete the existing party
-      db.party.delete({
-        where: { id: { equals: partyId } },
-      });
-
-      // Use lodash merge for deep merging, but handle roles separately
-      const dataObj = data as Record<string, unknown>;
-      const { roles: newRoles, ...restData } = dataObj;
-      const existingPartyObj = existingParty as Record<string, unknown>;
-      const { roles: existingRoles, ...restExisting } = existingPartyObj;
-
-      // Merge everything except roles
-      const mergedData = merge({}, restExisting, restData);
-
-      // Add roles back, preferring the new roles if provided
-      const finalData = {
-        ...mergedData,
-        roles: newRoles || existingRoles,
-      };
-
-      // Create a new party with the merged data
-      const updatedParty = db.party.create({
-        ...finalData,
-        id: partyId, // Ensure we keep the same ID
-      } as Record<string, unknown>);
-
-      const owningClient = db.client
-        .getAll()
-        .find((client) =>
-          ((client.parties as string[]) || []).includes(partyId as string)
-        );
-      if (
-        owningClient?.id &&
-        isTestScenario5ClientId(owningClient.id as string)
-      ) {
-        syncTestScenario5NaicsCodeQuestionsFromIndustry(
-          owningClient.id as string
-        );
-      }
-
-      logDbState('Party Update');
-      return HttpResponse.json(updatedParty);
-    }
+    )
   ),
 
   http.get(`${apiUrl}/ef/do/v1/questions`, (req) => {

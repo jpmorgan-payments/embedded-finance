@@ -94,7 +94,7 @@ describe('MSW handlers (integration)', () => {
     expect(data.default).toBeDefined();
   });
 
-  it('POST /clients/:id merges questionResponses and prunes conditional outstanding IDs', async () => {
+  it('PATCH /clients/:id merges questionResponses and prunes conditional outstanding IDs', async () => {
     resetDb(DB_SCENARIOS.EMPTY);
     applyTestDemoScenario('happy-path', 'test-scenario');
 
@@ -131,7 +131,7 @@ describe('MSW handlers (integration)', () => {
     ).toContain('30198');
 
     const res = await fetch(`${API}/ef/do/v1/clients/${clientId}`, {
-      method: 'POST',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         questionResponses: [{ questionId: '30195', values: ['false'] }],
@@ -790,7 +790,7 @@ describe('MSW handlers (integration)', () => {
     expect(orgPartyId).toBeDefined();
 
     await fetch(`${API}/ef/do/v1/parties/${orgPartyId}`, {
-      method: 'POST',
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         organizationDetails: {
@@ -935,7 +935,7 @@ describe('MSW handlers (integration)', () => {
     const updateRes = await fetch(
       `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID}`,
       {
-        method: 'POST',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionResponses: naicsResponses }),
       }
