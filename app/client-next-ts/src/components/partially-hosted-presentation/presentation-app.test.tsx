@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_DWELL_MS, slidesForTrack } from './deck-state';
+import { DEFAULT_DWELL_MS } from './deck-state';
 import { PresentationApp, type PresentationState } from './presentation-app';
 import { SLIDE_VIEWS } from './slide-views';
 import { SLIDES } from './slides';
@@ -63,45 +63,20 @@ describe('PresentationApp', () => {
     });
   });
 
-  it('filters the deck by audience and keeps the current slide when it belongs', async () => {
+  it('jumps to the first slide of a chapter from the chapter rail', async () => {
     const user = userEvent.setup();
     const onStateChange = vi.fn();
-    render(
-      <PresentationApp
-        initial={{ slide: 'sequence' }}
-        onStateChange={onStateChange}
-      />
+    render(<PresentationApp onStateChange={onStateChange} />);
+
+    await user.click(
+      screen.getByRole('button', { name: 'Chapter 4: Utility library' })
     );
 
-    await user.selectOptions(screen.getByLabelText('Audience'), 'decision');
-
-    const decision = slidesForTrack(SLIDES, 'decision');
-    const index = decision.findIndex((s) => s.id === 'sequence') + 1;
     expect(lastState(onStateChange)).toMatchObject({
-      slide: 'sequence',
-      track: 'decision',
-    });
-    expect(
-      screen.getByText(`${index} / ${decision.length}`)
-    ).toBeInTheDocument();
-  });
-
-  it('moves to the next slide in the track when the current one is filtered out', async () => {
-    const user = userEvent.setup();
-    const onStateChange = vi.fn();
-    render(
-      <PresentationApp
-        initial={{ slide: 'session-api' }}
-        onStateChange={onStateChange}
-      />
-    );
-
-    await user.selectOptions(screen.getByLabelText('Audience'), 'decision');
-
-    expect(lastState(onStateChange)).toMatchObject({
-      slide: 'experiences',
+      slide: 'utility',
       step: 0,
     });
+    expect(screen.queryByLabelText('Audience')).not.toBeInTheDocument();
   });
 
   it('toggles dark theme from the keyboard and the toolbar', async () => {
@@ -151,13 +126,15 @@ describe('PresentationApp', () => {
   it('ignores navigation keys while a form control has focus', () => {
     const onStateChange = vi.fn();
     render(<PresentationApp onStateChange={onStateChange} />);
-    const select = screen.getByLabelText('Audience');
+    const input = document.createElement('input');
+    document.body.appendChild(input);
 
-    fireEvent.keyDown(select, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
     expect(lastState(onStateChange)).toMatchObject({
       slide: 'welcome',
       step: 0,
     });
+    input.remove();
   });
 
   it('auto-plays one step per dwell and stops at the end', () => {

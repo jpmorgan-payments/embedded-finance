@@ -17,7 +17,7 @@ import {
   SlideHeader,
   type SlideViewProps,
 } from './deck-ui';
-import { HostedOnboardingMock } from './intro-slides';
+import { FitToWidth, OnboardingFlowWireframe } from './onboarding-wireframe';
 
 function DocUploadMock() {
   return (
@@ -71,7 +71,11 @@ const EXPERIENCES = [
     name: 'Full onboarding',
     icon: Landmark,
     text: 'The complete KYC / KYB flow for new clients: business, people, questions, documents and review.',
-    mock: <HostedOnboardingMock />,
+    mock: (
+      <FitToWidth designWidth={800} className="h-full">
+        <OnboardingFlowWireframe />
+      </FitToWidth>
+    ),
   },
   {
     type: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',

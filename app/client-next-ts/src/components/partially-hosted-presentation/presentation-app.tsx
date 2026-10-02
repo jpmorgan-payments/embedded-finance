@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -27,23 +26,19 @@ import {
   deckProgress,
   DEFAULT_DWELL_MS,
   nextPosition,
-  positionForTrack,
   prevPosition,
-  slidesForTrack,
   type DeckPosition,
   type DeckTheme,
   type SlideMeta,
-  type TrackId,
 } from './deck-state';
 import { SLIDE_VIEWS } from './slide-views';
-import { CHAPTERS, SLIDES, TRACKS } from './slides';
+import { CHAPTERS, SLIDES } from './slides';
 
 import './presentation.css';
 
 export interface PresentationState {
   slide: string;
   step: number;
-  track: TrackId;
   theme: DeckTheme;
   autoplay: boolean;
 }
@@ -122,13 +117,8 @@ export function PresentationApp({
   initial,
   onStateChange,
 }: PresentationAppProps) {
-  const [track, setTrack] = useState<TrackId>(initial?.track ?? 'all');
   const [position, setPosition] = useState<DeckPosition>(() =>
-    positionForTrack(
-      SLIDES,
-      clampPosition(SLIDES, { slideId: initial?.slide, step: initial?.step }),
-      initial?.track ?? 'all'
-    )
+    clampPosition(SLIDES, { slideId: initial?.slide, step: initial?.step })
   );
   const [theme, setTheme] = useState<DeckTheme>(initial?.theme ?? 'light');
   const [autoplay, setAutoplay] = useState(Boolean(initial?.autoplay));
@@ -139,45 +129,36 @@ export function PresentationApp({
   const onStateChangeRef = useRef(onStateChange);
   const { ref: viewportRef, scale } = useStageScale();
 
-  const visible = useMemo(() => slidesForTrack(SLIDES, track), [track]);
   const index = Math.max(
-    visible.findIndex((s) => s.id === position.slideId),
+    SLIDES.findIndex((s) => s.id === position.slideId),
     0
   );
-  const slide = visible[index];
+  const slide = SLIDES[index];
   const SlideView = SLIDE_VIEWS[slide.id];
   const chapterIndex = CHAPTERS.findIndex((c) => c.id === slide.chapter);
-  const progress = deckProgress(visible, position);
+  const progress = deckProgress(SLIDES, position);
   const dwell = slide.dwellMs ?? DEFAULT_DWELL_MS;
-  const atStart = prevPosition(visible, position) === null;
-  const atEnd = nextPosition(visible, position) === null;
+  const atStart = prevPosition(SLIDES, position) === null;
+  const atEnd = nextPosition(SLIDES, position) === null;
 
-  const go = useCallback(
-    (direction: 1 | -1) => {
-      setPosition(
-        (current) =>
-          (direction === 1
-            ? nextPosition(visible, current)
-            : prevPosition(visible, current)) ?? current
-      );
-    },
-    [visible]
-  );
+  const go = useCallback((direction: 1 | -1) => {
+    setPosition(
+      (current) =>
+        (direction === 1
+          ? nextPosition(SLIDES, current)
+          : prevPosition(SLIDES, current)) ?? current
+    );
+  }, []);
 
   const jumpTo = useCallback((slideId: string, step = 0) => {
     setPosition({ slideId, step });
     setOverviewOpen(false);
   }, []);
 
-  const changeTrack = (next: TrackId) => {
-    setTrack(next);
-    setPosition((current) => positionForTrack(SLIDES, current, next));
-  };
-
   const toggleAutoplay = useCallback(() => {
-    if (!autoplay && atEnd) setPosition({ slideId: visible[0].id, step: 0 });
+    if (!autoplay && atEnd) setPosition({ slideId: SLIDES[0].id, step: 0 });
     setAutoplay(!autoplay);
-  }, [autoplay, atEnd, visible]);
+  }, [autoplay, atEnd]);
 
   const toggleFullscreen = useCallback(() => {
     if (document.fullscreenElement) {
@@ -195,22 +176,21 @@ export function PresentationApp({
     onStateChangeRef.current?.({
       slide: position.slideId,
       step: position.step,
-      track,
       theme,
       autoplay,
     });
-  }, [position, track, theme, autoplay]);
+  }, [position, theme, autoplay]);
 
   useEffect(() => {
     if (!autoplay) return undefined;
-    const next = nextPosition(visible, position);
+    const next = nextPosition(SLIDES, position);
     if (!next) {
       setAutoplay(false);
       return undefined;
     }
     const id = window.setTimeout(() => setPosition(next), dwell);
     return () => window.clearTimeout(id);
-  }, [autoplay, position, visible, dwell]);
+  }, [autoplay, position, dwell]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -244,10 +224,10 @@ export function PresentationApp({
           go(event.shiftKey ? -1 : 1);
           break;
         case 'Home':
-          jumpTo(visible[0].id);
+          jumpTo(SLIDES[0].id);
           break;
         case 'End': {
-          const last = visible[visible.length - 1];
+          const last = SLIDES[SLIDES.length - 1];
           jumpTo(last.id, last.builds);
           break;
         }
@@ -279,15 +259,7 @@ export function PresentationApp({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [
-    go,
-    jumpTo,
-    visible,
-    overviewOpen,
-    notesOpen,
-    toggleAutoplay,
-    toggleFullscreen,
-  ]);
+  }, [go, jumpTo, overviewOpen, notesOpen, toggleAutoplay, toggleFullscreen]);
 
   useEffect(() => {
     const onChange = () => setFullscreen(Boolean(document.fullscreenElement));
@@ -328,7 +300,7 @@ export function PresentationApp({
           className="flex min-w-0 flex-1 items-center justify-center gap-1 overflow-x-auto"
         >
           {CHAPTERS.map((chapter, i) => {
-            const first = visible.find((s) => s.chapter === chapter.id);
+            const first = SLIDES.find((s) => s.chapter === chapter.id);
             const isCurrent = i === chapterIndex;
             return (
               <button
@@ -339,7 +311,6 @@ export function PresentationApp({
                 aria-label={`Chapter ${i + 1}: ${chapter.label}`}
                 title={chapter.label}
                 data-done={i < chapterIndex}
-                disabled={!first}
                 onClick={() => first && jumpTo(first.id)}
               >
                 <span>{i + 1}</span>
@@ -350,21 +321,6 @@ export function PresentationApp({
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
-          <label className="sr-only" htmlFor="ph-track">
-            Audience
-          </label>
-          <select
-            id="ph-track"
-            className="ph-select"
-            value={track}
-            onChange={(e) => changeTrack(e.target.value as TrackId)}
-          >
-            {TRACKS.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
           <ChromeButton
             label="Dark theme"
             shortcut="T"
@@ -449,7 +405,7 @@ export function PresentationApp({
               key={slide.id}
               className="ph-slide"
               aria-roledescription="slide"
-              aria-label={`${index + 1} of ${visible.length}: ${slide.title}`}
+              aria-label={`${index + 1} of ${SLIDES.length}: ${slide.title}`}
             >
               <SlideView step={position.step} autoplay={autoplay} />
             </section>
@@ -515,7 +471,7 @@ export function PresentationApp({
           </div>
         </div>
         <span className="shrink-0 text-[13px] font-semibold tabular-nums">
-          {index + 1} / {visible.length}
+          {index + 1} / {SLIDES.length}
         </span>
         <ChromeButton label="Next" disabled={atEnd} onClick={() => go(1)}>
           <ChevronRight className="h-4 w-4" />
@@ -523,14 +479,13 @@ export function PresentationApp({
       </footer>
 
       <p className="sr-only" aria-live="polite">
-        {`Slide ${index + 1} of ${visible.length}: ${slide.title}`}
+        {`Slide ${index + 1} of ${SLIDES.length}: ${slide.title}`}
       </p>
 
       {overviewOpen ? (
         <Overview
-          slides={visible}
+          slides={SLIDES}
           currentId={slide.id}
-          trackLabel={TRACKS.find((t) => t.id === track)?.label ?? ''}
           onSelect={jumpTo}
           onClose={() => setOverviewOpen(false)}
         />
@@ -542,13 +497,11 @@ export function PresentationApp({
 function Overview({
   slides,
   currentId,
-  trackLabel,
   onSelect,
   onClose,
 }: {
-  slides: SlideMeta[];
+  slides: readonly SlideMeta[];
   currentId: string;
-  trackLabel: string;
   onSelect: (slideId: string) => void;
   onClose: () => void;
 }) {
@@ -572,9 +525,7 @@ function Overview({
         <div className="flex items-center justify-between border-b border-ph-border px-6 py-4">
           <div>
             <p className="ph-heading text-[22px] font-bold">Overview</p>
-            <p className="text-[14px] text-ph-muted">
-              {trackLabel} · {slides.length} slides
-            </p>
+            <p className="text-[14px] text-ph-muted">{slides.length} slides</p>
           </div>
           <button
             ref={closeRef}

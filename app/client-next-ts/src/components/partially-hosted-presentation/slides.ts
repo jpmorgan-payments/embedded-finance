@@ -1,4 +1,4 @@
-import type { ChapterMeta, SlideMeta, TrackMeta } from './deck-state';
+import type { ChapterMeta, SlideMeta } from './deck-state';
 
 export const GUIDE_URL =
   'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md';
@@ -12,29 +12,6 @@ export const ONBOARD_CLIENT_DOCS_URL =
   'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client';
 export const LIVE_ONBOARDING_DEMO_PATH =
   '/sellsense-demo?fullscreen=true&component=onboarding&theme=Empty&view=onboarding';
-
-export const TRACKS: readonly TrackMeta[] = [
-  {
-    id: 'all',
-    label: 'All audiences',
-    description: 'The full journey, every slide.',
-  },
-  {
-    id: 'decision',
-    label: 'Decision makers',
-    description: 'Why, what you get, who owns what, risk.',
-  },
-  {
-    id: 'platform',
-    label: 'Platform developers',
-    description: 'Sessions, backend, security, status handling.',
-  },
-  {
-    id: 'external',
-    label: 'External developers',
-    description: 'Embedding, utility library, theming, URL budget.',
-  },
-];
 
 export const CHAPTERS: readonly ChapterMeta[] = [
   { id: 'why', label: 'Why partially hosted' },
@@ -50,16 +27,14 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'welcome',
     chapter: 'why',
     title: 'Partially Hosted UI',
-    tracks: ['decision', 'platform', 'external'],
     builds: 0,
     notes:
-      'This deck mirrors the current Partially Hosted UI Integration Guide. Pick an audience from the top bar to tailor it to the room. Arrow keys or a clicker step through every build.',
+      'This deck mirrors the current Partially Hosted UI Integration Guide. Arrow keys or a clicker step through every build; G opens the overview, N the speaker notes.',
   },
   {
     id: 'split',
     chapter: 'why',
     title: 'Hosted by J.P. Morgan, framed by your platform',
-    tracks: ['decision', 'platform', 'external'],
     builds: 3,
     notes:
       'Your platform keeps the shell, navigation and the entry point. J.P. Morgan hosts the regulated UI inside an iframe and keeps it current, so KYC rules, document requests and API changes ship without a platform release.',
@@ -68,7 +43,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'options',
     chapter: 'why',
     title: 'Four ways to integrate',
-    tracks: ['decision', 'platform', 'external'],
     builds: 4,
     notes:
       'Walk left to right: more control on the left, faster time to market on the right. Partially hosted is the middle path: your brand and your page, our UI and our compliance updates.',
@@ -77,7 +51,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'prerequisites',
     chapter: 'journey',
     title: 'Before the first session',
-    tracks: ['platform', 'external'],
     builds: 2,
     notes:
       'A Client ID must exist before a session can start, created by POST /clients or by an Operations batch upload. The status check is optional but lets you flag INFORMATION_REQUESTED clients before they open the UI.',
@@ -86,7 +59,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'sequence',
     chapter: 'journey',
     title: 'The session-transfer journey',
-    tracks: ['decision', 'platform', 'external'],
     builds: 8,
     notes:
       'Nine hops. The key security property: the session token is short-lived (about 60 seconds) and travels inside the URL; the long-lived token that calls banking APIs is created inside the iframe and is never exposed to your frontend.',
@@ -96,7 +68,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'session-api',
     chapter: 'journey',
     title: 'Your backend: POST /sessions',
-    tracks: ['platform'],
     builds: 3,
     notes:
       'This is the one endpoint the platform must build. Authenticate your user first, call J.P. Morgan server-to-server, retry transient failures, and hand only the URL back to the browser.',
@@ -105,7 +76,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'iframe',
     chapter: 'journey',
     title: 'Your frontend: mount the iframe',
-    tracks: ['platform', 'external'],
     builds: 3,
     notes:
       'Use the URL exactly as returned. Everything else is good iframe hygiene: least-privilege sandbox, no referrer, an accessible title, loading and error states, and container-driven sizing.',
@@ -114,7 +84,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'experiences',
     chapter: 'experiences',
     title: 'Three hosted experiences',
-    tracks: ['decision', 'platform', 'external'],
     builds: 2,
     notes:
       'One integration, three experiences selected by hostedExperienceType. Without a value you get document upload, the most common re-entry point.',
@@ -123,7 +92,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'component-properties',
     chapter: 'experiences',
     title: 'Tune each experience with componentProperties',
-    tracks: ['platform', 'external'],
     builds: 2,
     notes:
       'Only JSON-serialisable props travel through the URL. Validation is strict: one unknown key or bad value rejects the whole object and the experience falls back to defaults.',
@@ -132,7 +100,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'utility',
     chapter: 'utility',
     title: 'The PartiallyHostedUIComponent utility',
-    tracks: ['decision', 'platform', 'external'],
     builds: 4,
     notes:
       'A zero-dependency reference implementation (ES module and UMD) that wraps everything on the previous slides: URL building, the gateway length check, sandboxed iframe, origin-checked events and runtime updates. It is work in progress; adapt and test before production.',
@@ -141,7 +108,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'playground',
     chapter: 'customize',
     title: 'Showcase themes, straight into the utility',
-    tracks: ['decision', 'platform', 'external'],
     builds: 0,
     notes:
       'These are the same theme presets the showcase site uses for its SellSense demo. Pick one: the preview restyles, the utility config regenerates, and the request-URI budget is measured live, including a real compressed cfg value.',
@@ -151,7 +117,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'url-budget',
     chapter: 'customize',
     title: 'The 2,047-character budget',
-    tracks: ['platform', 'external'],
     builds: 3,
     notes:
       'The gateway rejects any path plus query over 2,047 characters with a 403 before the request reaches the application, so there is no app log and no postMessage. Every parameter works alone; only the combination fails. The compact cfg parameter fixes it.',
@@ -160,16 +125,14 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'security',
     chapter: 'ship',
     title: 'Security at the iframe boundary',
-    tracks: ['decision', 'platform', 'external'],
     builds: 3,
     notes:
-      'Four layers. For decision makers: the platform never handles the long-lived banking token, and status changes are re-verified server-to-server, not trusted from the browser.',
+      'Four layers. The platform never handles the long-lived banking token, and status changes are re-verified server-to-server, not trusted from the browser.',
   },
   {
     id: 'results',
     chapter: 'ship',
     title: 'Handling results and re-entry',
-    tracks: ['platform', 'external'],
     builds: 2,
     notes:
       'postMessage is for real-time UI; webhooks are the definitive answer. Store status, IDs and timestamps, and send returning users back to where they left off.',
@@ -178,7 +141,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'responsibilities',
     chapter: 'ship',
     title: 'Who owns what',
-    tracks: ['decision', 'platform'],
     builds: 2,
     notes:
       'A clean split: two small surfaces on the platform side, and the regulated UI and its APIs on the J.P. Morgan side.',
@@ -187,7 +149,6 @@ export const SLIDES: readonly SlideMeta[] = [
     id: 'next-steps',
     chapter: 'ship',
     title: 'Go deeper',
-    tracks: ['decision', 'platform', 'external'],
     builds: 0,
     notes:
       'Everything here is open source. The interactive guide has full code for every step; the session-transfer sample runs end to end.',

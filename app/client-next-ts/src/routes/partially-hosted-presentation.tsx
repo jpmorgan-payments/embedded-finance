@@ -11,7 +11,6 @@ import {
 const presentationSearchSchema = z.object({
   slide: z.string().optional(),
   step: z.coerce.number().int().min(0).optional(),
-  track: z.enum(['all', 'decision', 'platform', 'external']).optional(),
   theme: z.enum(['light', 'dark']).optional(),
   autoplay: z.union([z.literal('1'), z.literal(1), z.boolean()]).optional(),
 });
@@ -22,7 +21,7 @@ export const Route = createFileRoute('/partially-hosted-presentation')({
 });
 
 function PartiallyHostedPresentationPage() {
-  const { slide, step, track, theme, autoplay } = Route.useSearch();
+  const { slide, step, theme, autoplay } = Route.useSearch();
   const navigate = useNavigate({ from: '/partially-hosted-presentation' });
 
   // autoplay is read but never written back, so a copied link never starts playing on its own.
@@ -32,7 +31,6 @@ function PartiallyHostedPresentationPage() {
         search: {
           slide: state.slide,
           step: state.step > 0 ? state.step : undefined,
-          track: state.track === 'all' ? undefined : state.track,
           theme: state.theme === 'light' ? undefined : state.theme,
         },
         replace: true,
@@ -47,7 +45,6 @@ function PartiallyHostedPresentationPage() {
       initial={{
         slide,
         step,
-        track,
         theme,
         autoplay: autoplay === true || autoplay === '1' || autoplay === 1,
       }}

@@ -2,11 +2,16 @@ import type { ReactNode } from 'react';
 import {
   Building2,
   Check,
-  Code,
-  Gauge,
   Landmark,
+  Layers,
+  LayoutDashboard,
+  Palette,
   Server,
+  Settings,
+  ShieldCheck,
+  ShoppingBag,
   Users,
+  Wallet,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -17,77 +22,49 @@ import {
   SlideHeader,
   type SlideViewProps,
 } from './deck-ui';
+import { FitToWidth, OnboardingFlowWireframe } from './onboarding-wireframe';
 
-const ONBOARDING_STEPS = [
-  'Overview',
-  'Business',
-  'People',
-  'Documents',
-  'Review',
+const PLATFORM_NAV = [
+  { label: 'Dashboard', icon: LayoutDashboard },
+  { label: 'Orders', icon: ShoppingBag },
+  { label: 'Wallet', icon: Wallet },
+  { label: 'Settings', icon: Settings },
 ];
 
-export function HostedOnboardingMock() {
-  return (
-    <div className="flex h-full flex-col gap-3 p-4">
-      <div className="flex flex-wrap gap-1.5">
-        {ONBOARDING_STEPS.map((label, i) => (
-          <span
-            key={label}
-            className={cn(
-              'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[13px] font-semibold',
-              i < 2 && 'bg-ph-good-soft text-ph-good',
-              i === 2 && 'bg-ph-brand text-ph-on-brand',
-              i > 2 && 'bg-ph-soft text-ph-muted'
-            )}
-          >
-            {i < 2 ? <Check className="h-3.5 w-3.5" /> : null}
-            {label}
-          </span>
-        ))}
-      </div>
-      <p className="ph-heading text-[18px] font-bold leading-snug">
-        Tell us about the people behind your business
-      </p>
-      {['Legal first name', 'Job title'].map((field) => (
-        <div key={field}>
-          <p className="mb-1 text-[12px] font-semibold text-ph-muted">
-            {field}
-          </p>
-          <div className="h-7 rounded-md border border-ph-border bg-ph-surface" />
-        </div>
-      ))}
-      <div className="mt-auto flex justify-end gap-2 text-[13px] font-semibold">
-        <span className="rounded-md border border-ph-border px-4 py-1 text-ph-muted">
-          Back
-        </span>
-        <span className="rounded-md bg-ph-brand px-4 py-1 text-ph-on-brand">
-          Continue
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function PlatformShell({ showHosted }: { showHosted: boolean }) {
+function PlatformShell({
+  showHosted,
+  compactNav = false,
+}: {
+  showHosted: boolean;
+  compactNav?: boolean;
+}) {
   return (
     <BrowserFrame
       address="https://your-platform.example/wallet"
       className="h-full"
     >
       <div className="flex h-full">
-        <nav className="flex w-[170px] shrink-0 flex-col gap-2 border-r border-ph-border bg-ph-soft p-4 text-[15px] font-semibold text-ph-muted">
+        <nav
+          className={cn(
+            'flex shrink-0 flex-col gap-2 border-r border-ph-border bg-ph-soft py-4 text-[15px] font-semibold text-ph-muted',
+            compactNav ? 'w-[60px] items-center px-2' : 'w-[170px] px-4'
+          )}
+        >
           <span className="ph-heading mb-3 text-[18px] text-ph-accent">
-            Your platform
+            {compactNav ? 'YP' : 'Your platform'}
           </span>
-          {['Dashboard', 'Orders', 'Wallet', 'Settings'].map((item) => (
+          {PLATFORM_NAV.map(({ label, icon: Icon }) => (
             <span
-              key={item}
+              key={label}
+              title={label}
               className={cn(
-                'rounded-md px-3 py-1.5',
-                item === 'Wallet' && 'bg-ph-accent-soft text-ph-accent'
+                'flex items-center gap-2 rounded-md py-1.5',
+                compactNav ? 'px-2' : 'px-3',
+                label === 'Wallet' && 'bg-ph-accent-soft text-ph-accent'
               )}
             >
-              {item}
+              <Icon className="h-4 w-4 shrink-0" />
+              {compactNav ? null : label}
             </span>
           ))}
         </nav>
@@ -98,17 +75,23 @@ function PlatformShell({ showHosted }: { showHosted: boolean }) {
               Complete onboarding
             </span>
           </div>
-          <div className="relative min-h-0 flex-1 rounded-xl border-2 border-dashed border-ph-border">
-            <Reveal shown={showHosted} className="absolute inset-0">
-              <div className="absolute inset-0 rounded-xl border-2 border-ph-brand bg-ph-surface">
-                <span className="absolute -top-4 left-4 rounded-full bg-ph-brand px-3 py-0.5 text-[13px] font-bold text-ph-on-brand">
-                  iframe · hosted by J.P. Morgan
-                </span>
-                <HostedOnboardingMock />
-              </div>
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            <Reveal
+              shown={showHosted}
+              className="flex min-h-0 flex-1 flex-col gap-3"
+            >
+              <span className="w-fit rounded-full bg-ph-brand px-3 py-1 text-[13px] font-bold text-ph-on-brand">
+                iframe · hosted by J.P. Morgan
+              </span>
+              <FitToWidth
+                designWidth={800}
+                className="min-h-0 flex-1 rounded-xl border-2 border-ph-brand"
+              >
+                <OnboardingFlowWireframe />
+              </FitToWidth>
             </Reveal>
             {!showHosted ? (
-              <p className="absolute inset-0 grid place-items-center text-[16px] font-semibold text-ph-muted">
+              <p className="absolute inset-0 grid place-items-center rounded-xl border-2 border-dashed border-ph-border text-[16px] font-semibold text-ph-muted">
                 Your page, your layout
               </p>
             ) : null}
@@ -119,42 +102,47 @@ function PlatformShell({ showHosted }: { showHosted: boolean }) {
   );
 }
 
-const AUDIENCES = [
-  {
-    icon: Gauge,
-    label: 'Decision makers',
-    text: 'Why it fits, effort, and who owns the risk',
-  },
+const AGENDA = [
   {
     icon: Server,
-    label: 'Platform developers',
-    text: 'Session transfer, security, status handling',
+    label: 'Session transfer',
+    text: 'POST /sessions and the iframe',
   },
   {
-    icon: Code,
-    label: 'External developers',
-    text: 'Iframe, utility library, theming, URL budget',
+    icon: Layers,
+    label: 'Hosted experiences',
+    text: 'onboarding, documents, linked accounts',
+  },
+  {
+    icon: Palette,
+    label: 'Utility library & theming',
+    text: 'config, events, URL budget',
+  },
+  {
+    icon: ShieldCheck,
+    label: 'Security & results',
+    text: 'iframe boundary, webhooks, status',
   },
 ];
 
 export function WelcomeSlide() {
   return (
-    <div className="grid h-full grid-cols-[1fr_640px] items-center gap-14">
+    <div className="grid h-full grid-cols-[1fr_680px] items-center gap-12">
       <div>
         <p className="text-[18px] font-bold uppercase tracking-[0.2em] text-ph-brand">
           Embedded Finance · Integration overview
         </p>
-        <h1 className="ph-heading mt-4 text-[92px] font-bold leading-[1.02]">
+        <h1 className="ph-heading mt-4 text-[88px] font-bold leading-[1.02]">
           Partially Hosted UI
         </h1>
-        <p className="mt-6 max-w-[720px] text-[28px] leading-[1.45] text-ph-muted">
+        <p className="mt-6 max-w-[700px] text-[28px] leading-[1.45] text-ph-muted">
           Embed J.P. Morgan-hosted onboarding and account experiences in your
           platform with{' '}
           <strong className="text-ph-ink">one backend endpoint</strong> and{' '}
           <strong className="text-ph-ink">one iframe</strong>.
         </p>
-        <ul className="mt-10 grid max-w-[760px] gap-3">
-          {AUDIENCES.map(({ icon: Icon, label, text }) => (
+        <ul className="mt-10 grid max-w-[700px] gap-3">
+          {AGENDA.map(({ icon: Icon, label, text }) => (
             <li
               key={label}
               className="flex items-center gap-4 rounded-2xl border border-ph-border bg-ph-soft px-5 py-3"
@@ -174,8 +162,8 @@ export function WelcomeSlide() {
           under review).
         </p>
       </div>
-      <div className="h-[600px]">
-        <PlatformShell showHosted />
+      <div className="h-[620px]">
+        <PlatformShell showHosted compactNav />
       </div>
     </div>
   );
@@ -202,7 +190,7 @@ export function SplitSlide({ step }: SlideViewProps) {
         kicker="Why partially hosted"
         title="Hosted by J.P. Morgan, framed by your platform"
       />
-      <div className="grid min-h-0 flex-1 grid-cols-[1fr_560px] gap-12">
+      <div className="grid min-h-0 flex-1 grid-cols-[1fr_480px] gap-10">
         <PlatformShell showHosted={step >= 1} />
         <div className="flex flex-col gap-6">
           <Reveal shown={step >= 2}>

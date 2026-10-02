@@ -121,17 +121,6 @@ html.ph-deck-active {
   cursor: default;
 }
 
-.ph-select {
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid var(--ph-border);
-  background: var(--ph-surface);
-  color: var(--ph-ink);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 0 8px;
-}
-
 .ph-rail-btn {
   display: inline-flex;
   align-items: center;
@@ -162,10 +151,6 @@ html.ph-deck-active {
   background: var(--ph-brand);
   border-color: var(--ph-brand);
   color: var(--ph-on-brand);
-}
-.ph-rail-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
 }
 
 .ph-progress {

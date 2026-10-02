@@ -4,55 +4,19 @@ import {
   clampPosition,
   deckProgress,
   nextPosition,
-  positionForTrack,
   prevPosition,
-  slidesForTrack,
   totalSteps,
   type SlideMeta,
 } from './deck-state';
-import { CHAPTERS, SLIDES, TRACKS } from './slides';
+import { CHAPTERS, SLIDES } from './slides';
 
 const deck: SlideMeta[] = [
-  {
-    id: 'a',
-    chapter: 'why',
-    title: 'A',
-    tracks: ['decision', 'platform'],
-    builds: 0,
-    notes: '',
-  },
-  {
-    id: 'b',
-    chapter: 'why',
-    title: 'B',
-    tracks: ['platform'],
-    builds: 2,
-    notes: '',
-  },
-  {
-    id: 'c',
-    chapter: 'ship',
-    title: 'C',
-    tracks: ['decision'],
-    builds: 1,
-    notes: '',
-  },
+  { id: 'a', chapter: 'why', title: 'A', builds: 0, notes: '' },
+  { id: 'b', chapter: 'why', title: 'B', builds: 2, notes: '' },
+  { id: 'c', chapter: 'ship', title: 'C', builds: 1, notes: '' },
 ];
 
 describe('deck-state', () => {
-  it('filters slides by audience track', () => {
-    expect(slidesForTrack(deck, 'all').map((s) => s.id)).toEqual([
-      'a',
-      'b',
-      'c',
-    ]);
-    expect(slidesForTrack(deck, 'decision').map((s) => s.id)).toEqual([
-      'a',
-      'c',
-    ]);
-    expect(slidesForTrack(deck, 'external')).toEqual([]);
-  });
-
   it('steps through builds before advancing to the next slide', () => {
     expect(nextPosition(deck, { slideId: 'a', step: 0 })).toEqual({
       slideId: 'b',
@@ -100,18 +64,6 @@ describe('deck-state', () => {
     });
   });
 
-  it('keeps or moves the position when the track changes', () => {
-    expect(
-      positionForTrack(deck, { slideId: 'a', step: 0 }, 'decision')
-    ).toEqual({ slideId: 'a', step: 0 });
-    expect(
-      positionForTrack(deck, { slideId: 'b', step: 1 }, 'decision')
-    ).toEqual({ slideId: 'c', step: 0 });
-    expect(
-      positionForTrack(deck, { slideId: 'c', step: 1 }, 'platform')
-    ).toEqual({ slideId: 'b', step: 0 });
-  });
-
   it('reports progress across every build step', () => {
     expect(totalSteps(deck)).toBe(6);
     expect(deckProgress(deck, { slideId: 'a', step: 0 })).toBe(0);
@@ -121,24 +73,18 @@ describe('deck-state', () => {
 });
 
 describe('presentation content', () => {
-  it('has unique slide ids that each belong to a known chapter and audience', () => {
+  it('has unique slide ids that each belong to a known chapter', () => {
     const ids = SLIDES.map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
     const chapterIds = CHAPTERS.map((c) => c.id);
-    const audienceIds = TRACKS.map((t) => t.id).filter((id) => id !== 'all');
     for (const slide of SLIDES) {
       expect(chapterIds).toContain(slide.chapter);
-      expect(slide.tracks.length).toBeGreaterThan(0);
-      slide.tracks.forEach((t) => expect(audienceIds).toContain(t));
       expect(slide.notes.length).toBeGreaterThan(0);
     }
   });
 
-  it('gives every audience its own opening and closing slide', () => {
-    for (const track of ['decision', 'platform', 'external'] as const) {
-      const visible = slidesForTrack(SLIDES, track);
-      expect(visible[0].id).toBe('welcome');
-      expect(visible[visible.length - 1].id).toBe('next-steps');
-    }
+  it('opens with the title slide and closes with next steps', () => {
+    expect(SLIDES[0].id).toBe('welcome');
+    expect(SLIDES[SLIDES.length - 1].id).toBe('next-steps');
   });
 });
