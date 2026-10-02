@@ -93,6 +93,27 @@ export default {
         'sp-accent': '#e6f3f7',
         'sp-bg': '#f6f7f8',
         'sp-border': '#0000004D',
+        // Partially hosted presentation: light/dark values live in presentation.css
+        ph: {
+          bg: 'var(--ph-bg)',
+          surface: 'var(--ph-surface)',
+          soft: 'var(--ph-soft)',
+          ink: 'var(--ph-ink)',
+          muted: 'var(--ph-muted)',
+          border: 'var(--ph-border)',
+          brand: 'var(--ph-brand)',
+          'brand-strong': 'var(--ph-brand-strong)',
+          'brand-soft': 'var(--ph-brand-soft)',
+          'on-brand': 'var(--ph-on-brand)',
+          accent: 'var(--ph-accent)',
+          'accent-soft': 'var(--ph-accent-soft)',
+          good: 'var(--ph-good)',
+          'good-soft': 'var(--ph-good-soft)',
+          bad: 'var(--ph-bad)',
+          'bad-soft': 'var(--ph-bad-soft)',
+          warn: 'var(--ph-warn)',
+          'warn-soft': 'var(--ph-warn-soft)',
+        },
         // JP Morgan Brand Colors with updated brown primary
         'jpm-blue': {
           DEFAULT: '#1c2752',

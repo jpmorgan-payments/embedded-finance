@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink, Play, RotateCcw } from 'lucide-react';
+import { ExternalLink, Play, Presentation, RotateCcw } from 'lucide-react';
+
+import { Link } from '@tanstack/react-router';
 
 import { Mermaid } from '@/components/mermaid';
 import { CodeBlock } from '@/components/partially-hosted/code-block';
@@ -108,6 +110,21 @@ sequenceDiagram
                       Auto Play
                     </>
                   )}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="border-sp-brand text-sp-brand hover:bg-sp-accent"
+                  asChild
+                >
+                  <Link
+                    to="/partially-hosted-presentation"
+                    className="inline-flex items-center gap-1"
+                  >
+                    <Presentation className="mr-1 h-4 w-4" />
+                    Presentation mode
+                  </Link>
                 </Button>
                 <Button
                   type="button"

@@ -23,9 +23,11 @@ function RootComponent() {
   const isYearInReview = location.pathname === '/year-in-review';
   const isFortressGame = location.pathname === '/fortress-game';
   const isProsperityBay = location.pathname === '/prosperity-bay';
+  const isPartiallyHostedPresentation =
+    location.pathname === '/partially-hosted-presentation';
   const isTestScenario = isTestScenarioPath(location.pathname);
 
-  if (isProsperityBay) {
+  if (isProsperityBay || isPartiallyHostedPresentation) {
     return (
       <>
         <main>
