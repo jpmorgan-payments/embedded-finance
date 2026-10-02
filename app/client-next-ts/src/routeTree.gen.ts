@@ -18,6 +18,7 @@ import { Route as GhTrafficStatsRouteImport } from './routes/gh-traffic-stats'
 import { Route as GithubRouteImport } from './routes/github'
 import { Route as MswTestRouteImport } from './routes/msw-test'
 import { Route as PartiallyHostedDemoRouteImport } from './routes/partially-hosted-demo'
+import { Route as PartiallyHostedPresentationRouteImport } from './routes/partially-hosted-presentation'
 import { Route as PaymentsFlowSimulatorRouteImport } from './routes/payments-flow-simulator'
 import { Route as ProsperityBayRouteImport } from './routes/prosperity-bay'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
@@ -82,6 +83,11 @@ const MswTestRoute = MswTestRouteImport.update({
 const PartiallyHostedDemoRoute = PartiallyHostedDemoRouteImport.update({
   id: '/partially-hosted-demo',
   path: '/partially-hosted-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartiallyHostedPresentationRoute = PartiallyHostedPresentationRouteImport.update({
+  id: '/partially-hosted-presentation',
+  path: '/partially-hosted-presentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaymentsFlowSimulatorRoute = PaymentsFlowSimulatorRouteImport.update({
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
+  '/partially-hosted-presentation': typeof PartiallyHostedPresentationRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/prosperity-bay': typeof ProsperityBayRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
@@ -226,6 +233,7 @@ export interface FileRoutesByTo {
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
+  '/partially-hosted-presentation': typeof PartiallyHostedPresentationRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/prosperity-bay': typeof ProsperityBayRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
@@ -256,6 +264,7 @@ export interface FileRoutesById {
   '/github': typeof GithubRoute
   '/msw-test': typeof MswTestRoute
   '/partially-hosted-demo': typeof PartiallyHostedDemoRoute
+  '/partially-hosted-presentation': typeof PartiallyHostedPresentationRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/prosperity-bay': typeof ProsperityBayRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
@@ -289,6 +298,7 @@ export interface FileRouteTypes {
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
+    | '/partially-hosted-presentation'
     | '/payments-flow-simulator'
     | '/prosperity-bay'
     | '/sellsense-demo'
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
+    | '/partially-hosted-presentation'
     | '/payments-flow-simulator'
     | '/prosperity-bay'
     | '/sellsense-demo'
@@ -349,6 +360,7 @@ export interface FileRouteTypes {
     | '/github'
     | '/msw-test'
     | '/partially-hosted-demo'
+    | '/partially-hosted-presentation'
     | '/payments-flow-simulator'
     | '/prosperity-bay'
     | '/sellsense-demo'
@@ -381,6 +393,7 @@ export interface RootRouteChildren {
   GithubRoute: typeof GithubRoute
   MswTestRoute: typeof MswTestRoute
   PartiallyHostedDemoRoute: typeof PartiallyHostedDemoRoute
+  PartiallyHostedPresentationRoute: typeof PartiallyHostedPresentationRoute
   PaymentsFlowSimulatorRoute: typeof PaymentsFlowSimulatorRoute
   ProsperityBayRoute: typeof ProsperityBayRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
@@ -461,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/partially-hosted-demo'
       fullPath: '/partially-hosted-demo'
       preLoaderRoute: typeof PartiallyHostedDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partially-hosted-presentation': {
+      id: '/partially-hosted-presentation'
+      path: '/partially-hosted-presentation'
+      fullPath: '/partially-hosted-presentation'
+      preLoaderRoute: typeof PartiallyHostedPresentationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/payments-flow-simulator': {
@@ -645,6 +665,7 @@ const rootRouteChildren: RootRouteChildren = {
   GithubRoute: GithubRoute,
   MswTestRoute: MswTestRoute,
   PartiallyHostedDemoRoute: PartiallyHostedDemoRoute,
+  PartiallyHostedPresentationRoute: PartiallyHostedPresentationRoute,
   PaymentsFlowSimulatorRoute: PaymentsFlowSimulatorRoute,
   ProsperityBayRoute: ProsperityBayRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
