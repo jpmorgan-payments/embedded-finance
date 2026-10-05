@@ -37,7 +37,7 @@ export const SLIDES: readonly SlideMeta[] = [
     title: 'Hosted by J.P. Morgan, framed by your platform',
     builds: 3,
     notes:
-      'Your platform keeps the shell, navigation and the entry point. J.P. Morgan hosts the regulated UI inside an iframe and keeps it current, so KYC rules, document requests and API changes ship without a platform release.',
+      'Your platform keeps the shell, navigation and the entry point, and owns who gets in: user identity and access management, with MFA. J.P. Morgan hosts the regulated UI inside an iframe and keeps it current, so KYC rules, document requests and API changes ship without a platform release.',
   },
   {
     id: 'options',
@@ -53,7 +53,7 @@ export const SLIDES: readonly SlideMeta[] = [
     title: 'Before the first session',
     builds: 2,
     notes:
-      'A Client ID must exist before a session can start, created by POST /clients or by an Operations batch upload. The status check is optional but lets you flag INFORMATION_REQUESTED clients before they open the UI.',
+      'A Client ID must exist before a session can start, created through POST /clients (batch CSV creation is not supported); sessions target the client, not an individual party. The status check is optional but lets you flag INFORMATION_REQUESTED clients before they open the UI.',
   },
   {
     id: 'sequence',
@@ -70,7 +70,7 @@ export const SLIDES: readonly SlideMeta[] = [
     title: 'Your backend: POST /sessions',
     builds: 3,
     notes:
-      'This is the one endpoint the platform must build. Authenticate your user first, call J.P. Morgan server-to-server, retry transient failures, and hand only the URL back to the browser.',
+      'This is the one endpoint the platform must build. Only users who signed in through your IAM with MFA, and are authorized for the client, may call it. Then call J.P. Morgan server-to-server with target type CLIENT, retry transient failures, and hand only the URL back to the browser.',
   },
   {
     id: 'iframe',
@@ -124,10 +124,10 @@ export const SLIDES: readonly SlideMeta[] = [
   {
     id: 'security',
     chapter: 'ship',
-    title: 'Security at the iframe boundary',
+    title: 'Security, from sign-in to the iframe',
     builds: 3,
     notes:
-      'Four layers. The platform never handles the long-lived banking token, and status changes are re-verified server-to-server, not trusted from the browser.',
+      'It starts with your IAM: every user who can open the hosted UI signs in with MFA and is authorized for the client. The platform never handles the long-lived banking token, and status changes are re-verified server-to-server, not trusted from the browser.',
   },
   {
     id: 'results',
@@ -143,7 +143,7 @@ export const SLIDES: readonly SlideMeta[] = [
     title: 'Who owns what',
     builds: 2,
     notes:
-      'A clean split: two small surfaces on the platform side, and the regulated UI and its APIs on the J.P. Morgan side.',
+      'Identity and access management, including MFA, is always the platform’s. Beyond that, a clean split: two small surfaces on the platform side, and the regulated UI and its APIs on the J.P. Morgan side.',
   },
   {
     id: 'next-steps',

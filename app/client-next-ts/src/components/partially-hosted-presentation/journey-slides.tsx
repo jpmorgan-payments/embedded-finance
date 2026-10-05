@@ -58,13 +58,10 @@ export function PrerequisitesSlide({ step }: SlideViewProps) {
               organization name.
             </p>
           </div>
-          <div className="rounded-xl bg-ph-soft p-4">
-            <p className="font-bold">Batch upload</p>
-            <p className="text-ph-muted">
-              J.P. Morgan Operations creates clients from a CSV, for bulk
-              provisioning or migrations.
-            </p>
-          </div>
+          <p className="text-[18px] leading-snug text-ph-muted">
+            Clients are created one at a time through the API; batch CSV
+            creation is not supported.
+          </p>
         </PrereqCard>
         <PrereqCard
           n={2}
@@ -143,7 +140,7 @@ function PrereqCard({
 }
 
 const LANES = [
-  { icon: UserRound, label: 'User', sub: 'Your customer', side: 'user' },
+  { icon: UserRound, label: 'User', sub: 'Signed in with MFA', side: 'user' },
   {
     icon: Monitor,
     label: 'Your frontend',
@@ -187,7 +184,7 @@ export const SEQUENCE: readonly SequenceMessage[] = [
     to: 2,
     label: 'POST /sessions { clientId }',
     title: 'Your frontend calls your backend',
-    text: 'An authenticated call to your own API. The browser never creates J.P. Morgan sessions directly.',
+    text: 'Authenticated by your IAM, with MFA, and authorized for this client. The browser never creates J.P. Morgan sessions directly.',
   },
   {
     from: 2,
@@ -393,15 +390,15 @@ export function SequenceSlide({ step }: SlideViewProps) {
   );
 }
 
-const SESSION_CODE = `app.post('/sessions', authenticateUser, async (req, res) => {
-  const { clientId } = req.body;
+const SESSION_CODE = `app.post('/sessions', requireMfaUser, async (req, res) => {
+  const { clientId } = req.body; // must belong to req.user
 
   const response = await fetchWithRetry(\`\${JPM_API}/sessions\`, {
     method: 'POST',
     headers: jpmHeaders, // J.P. Morgan credentials stay server-side
     body: JSON.stringify({
       type: 'EMBEDDED_UI',
-      target: { id: clientId, type: 'CLIENT' }, // or 'PARTY'
+      target: { id: clientId, type: 'CLIENT' },
     }),
   });
 
@@ -417,13 +414,13 @@ const SESSION_CODE = `app.post('/sessions', authenticateUser, async (req, res) =
 const SESSION_STEPS = [
   {
     lines: [1, 2],
-    title: 'Authenticate your user',
-    text: 'Only a logged-in platform user can start a session for their client.',
+    title: 'Your IAM, with MFA',
+    text: 'Only a user signed in with MFA, and authorized for this client, can start a session.',
   },
   {
     lines: [4, 5, 6, 7, 8, 9, 10, 11],
     title: 'Create the session',
-    text: 'Server-to-server: type EMBEDDED_UI, target CLIENT (or PARTY).',
+    text: 'Server-to-server: type EMBEDDED_UI, target type CLIENT.',
   },
   {
     lines: [13, 14, 15, 16],

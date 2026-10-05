@@ -169,14 +169,15 @@ export function WelcomeSlide() {
   );
 }
 
-const PLATFORM_OWNS = [
+const PLATFORM_OWNS: readonly ReactNode[] = [
+  <strong key="iam">User identity &amp; access management, with MFA</strong>,
+  'The POST /sessions endpoint, for authorized users',
   'Entry point, navigation and page layout',
-  'Your user’s login and the POST /sessions endpoint',
   'Brand: theme tokens, content tokens, component properties',
   'Status in your own records',
 ];
 
-const JPM_OWNS = [
+const JPM_OWNS: readonly ReactNode[] = [
   'Hosted onboarding, document and linked-account UI',
   'KYC / KYB questions, document requests and validation',
   'Banking API calls with a token that stays in the iframe',
@@ -192,7 +193,7 @@ export function SplitSlide({ step }: SlideViewProps) {
       />
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_480px] gap-10">
         <PlatformShell showHosted={step >= 1} />
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <Reveal shown={step >= 2}>
             <OwnershipCard
               icon={<Building2 className="h-6 w-6" />}
@@ -223,13 +224,13 @@ function OwnershipCard({
 }: {
   icon: ReactNode;
   title: string;
-  items: string[];
+  items: readonly ReactNode[];
   tone: 'accent' | 'brand';
 }) {
   return (
     <div
       className={cn(
-        'rounded-2xl border-l-[6px] bg-ph-soft p-6',
+        'rounded-2xl border-l-[6px] bg-ph-soft px-6 py-5',
         tone === 'accent' ? 'border-ph-accent' : 'border-ph-brand'
       )}
     >
@@ -242,9 +243,10 @@ function OwnershipCard({
         {icon}
         {title}
       </p>
-      <ul className="mt-3 grid gap-2 text-[20px] leading-snug">
-        {items.map((item) => (
-          <li key={item} className="flex gap-2">
+      <ul className="mt-3 grid gap-1.5 text-[19px] leading-snug">
+        {items.map((item, i) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <li key={i} className="flex gap-2">
             <Check className="mt-1 h-5 w-5 shrink-0 text-ph-good" />
             {item}
           </li>

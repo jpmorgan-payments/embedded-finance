@@ -36,6 +36,16 @@ import {
 
 const SECURITY_GROUPS = [
   {
+    icon: KeyRound,
+    title: 'Identity & access (yours)',
+    highlight: true,
+    items: [
+      'Your IAM signs users in, with MFA',
+      'Authorize the user for the client before POST /sessions',
+      'Session token is short-lived; never log it',
+    ],
+  },
+  {
     icon: Lock,
     title: 'Iframe boundary',
     items: [
@@ -54,21 +64,12 @@ const SECURITY_GROUPS = [
     ],
   },
   {
-    icon: KeyRound,
-    title: 'Tokens & APIs',
-    items: [
-      'HTTPS everywhere; credentials stay on your server',
-      'Session token is short-lived; never log it',
-      'Validate input and rate-limit POST /sessions',
-    ],
-  },
-  {
     icon: ShieldCheck,
     title: 'Trust the server',
     items: [
+      'HTTPS; J.P. Morgan credentials stay on your server',
       'Re-verify status server-to-server before “complete”',
       'Verify webhook authenticity (signatures, allow-lists)',
-      'Pen-test the iframe boundary and session handling',
     ],
   },
 ];
@@ -78,14 +79,19 @@ export function SecuritySlide({ step }: SlideViewProps) {
     <>
       <SlideHeader
         kicker="Ship it"
-        title="Security at the iframe boundary"
-        lead="Your platform never holds the token that calls banking APIs. Four habits keep the boundary tight."
+        title="Security, from sign-in to the iframe"
+        lead="Access starts with your IAM and MFA. Your platform never holds the token that calls banking APIs."
       />
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-6">
-        {SECURITY_GROUPS.map(({ icon: Icon, title, items }, i) => (
+        {SECURITY_GROUPS.map(({ icon: Icon, title, items, highlight }, i) => (
           <Reveal key={title} shown={step >= i}>
             <div
-              className="ph-dimmable h-full rounded-2xl border border-ph-border p-6"
+              className={cn(
+                'ph-dimmable h-full rounded-2xl p-6',
+                highlight
+                  ? 'border-2 border-ph-accent bg-ph-accent-soft'
+                  : 'border border-ph-border'
+              )}
               data-focus={step === i}
             >
               <p className="ph-heading flex items-center gap-3 text-[27px] font-bold">
@@ -222,7 +228,7 @@ const OWNERS = [
     title: 'Your backend',
     tone: 'accent',
     items: [
-      'POST /sessions, authenticated',
+      'POST /sessions for MFA-verified users',
       'J.P. Morgan credentials, stored securely',
       'Error handling and retries',
       'Webhook ingestion and verification',
@@ -259,6 +265,13 @@ export function ResponsibilitiesSlide({ step }: SlideViewProps) {
   return (
     <>
       <SlideHeader kicker="Ship it" title="Who owns what" />
+      <div className="mb-6 flex items-center gap-4 rounded-2xl border-2 border-ph-accent bg-ph-accent-soft px-6 py-4 text-[22px]">
+        <KeyRound className="h-8 w-8 shrink-0 text-ph-accent" />
+        <p>
+          <strong>Your platform owns identity &amp; access management</strong>{' '}
+          for every user who can open the hosted UI, including MFA.
+        </p>
+      </div>
       <div className="grid min-h-0 flex-1 grid-cols-3 gap-8">
         {OWNERS.map(({ icon: Icon, title, tone, items }, i) => (
           <Reveal key={title} shown={step >= i}>

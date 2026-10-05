@@ -31,10 +31,11 @@ your platform.
 
 ## Prerequisites: Client Creation
 
-The Hosted Onboarding UI requires a **Client ID** before a session can be initiated. You can create clients in two ways:
+The Hosted Onboarding UI requires a **Client ID** before a session can be initiated. Create the client through the API:
 
 - **API** — Call `POST /clients` with a minimal payload (`products`, `partyType`, `roles`, and organization name). The response returns the Client ID. See the [Onboard a Client](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client) documentation for details.
-- **Batch upload** — For bulk provisioning or migrations, the J.P. Morgan Operations team can create clients from a CSV file. Contact your account representative for the upload format and process.
+
+> **Note:** Batch creation of clients from a CSV file is not supported.
 
 ## Supported Experience Types
 
@@ -63,7 +64,8 @@ The integration involves the following key steps:
 3. **Backend Session Transfer:**
     - The frontend calls a secure backend endpoint on your platform (e.g.,
       `POST /sessions`).
-    - Your backend authenticates this request.
+    - Your backend authenticates this request against your own identity and
+      access management (IAM), with multi-factor authentication (MFA).
     - It then communicates with the Onboarding Service's API to create a session
       or obtain a session token. This might involve passing user identifiers.
     - The Onboarding Service responds with a short-lived JWT token (expected to
@@ -122,12 +124,13 @@ backend** to manage session transfer to the hosted Onboarding UI.
   ```
 
 - **Backend Logic (on your platform's backend):**
-  1. Authenticate the request from your frontend (ensure the user is logged in
-      on your platform).
+  1. Authenticate the request from your frontend (ensure the user is signed in
+      to your platform with MFA and is authorized for this client).
   2. Make a secure server-to-server call to the Onboarding Service's API
       endpoint (provided by the Onboarding Service) to create a session for the
       given `clientId`. This request requires specifying both the session type (`EMBEDDED_UI`)
-      and the target object with ID and type (`CLIENT` or `PARTY`).
+      and the target object with the client ID and type `CLIENT`. Party-level
+      targets are not supported.
       2.1. In case of error try to retry the request.
       Possible errors:
   - `400`: Bad Request - Invalid input parameters.
@@ -1047,12 +1050,19 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 
 ## 4. Platform Implementation Guidance (Your Responsibilities)
 
+> **Identity & Access Management (IAM):** Your platform is responsible for
+> authenticating and authorizing its users, including multi-factor
+> authentication (MFA). Access to the hosted experience comes from the session
+> your backend creates, so only request a session for a user who has passed
+> your MFA-protected sign-in and is authorized for that client.
+
 ### 4.1. Service Layer (Your Platform's Backend)
 
 - **Responsibilities:**
   - Implement the secure backend endpoint (e.g., `/sessions`) for your frontend
     to call.
-  - Authenticate requests from your frontend to this endpoint.
+  - Authenticate requests from your frontend to this endpoint (MFA-backed
+    sign-in, authorized for the target client).
   - Securely store and manage API keys or credentials needed to interact with
     the Onboarding Service's backend API.
   - Call the Onboarding Service's API to initiate a session and obtain a session
@@ -1138,6 +1148,7 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 
 - Use HTTPS for all communication.
 - Authenticate and authorize all API calls.
+- Enforce MFA for every user who can start a hosted session.
 - Securely manage and store API keys and secrets.
 - Implement input validation, rate limiting, and robust error handling.
 
