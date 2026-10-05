@@ -16,6 +16,7 @@ type MaintenanceOrganizationEditViewProps = {
   approvedValues: OrganizationMaintenanceValues;
   isSubmitting: boolean;
   mutationError?: unknown;
+  isPendingAddition?: boolean;
   onBack: () => void;
   onSave: (request: MaintenancePartyUpdateRequest) => Promise<void>;
 };
@@ -27,6 +28,7 @@ export function MaintenanceOrganizationEditView({
   approvedValues,
   isSubmitting,
   mutationError,
+  isPendingAddition,
   onBack,
   onSave,
 }: MaintenanceOrganizationEditViewProps) {
@@ -64,6 +66,7 @@ export function MaintenanceOrganizationEditView({
           approvedValues={approvedValues}
           isSubmitting={isSubmitting}
           mutationError={mutationError}
+          isPendingAddition={isPendingAddition}
           onCancel={onBack}
           onSave={onSave}
         />

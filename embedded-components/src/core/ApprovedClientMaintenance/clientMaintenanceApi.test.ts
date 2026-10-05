@@ -27,7 +27,7 @@ describe('clientMaintenanceApi', () => {
       context: [
         {
           message:
-            'The server can not find the requested resource. KYC Maintenance request with ID: [3002022212] not found',
+            'The server can not find the requested resource. KYC Maintenance request with ID: [3000005555] not found',
         },
       ],
     };
@@ -122,15 +122,15 @@ describe('clientMaintenanceApi', () => {
       metadata: { page: 0, total: 1 },
       parties: [
         {
-          id: '2001166633',
+          id: '2000000555',
           individualDetails: {
-            firstName: 'Embedded Payments',
-            lastName: 'EP UAT 1',
+            firstName: 'Jane',
+            lastName: 'Doe',
           },
           updateRequest: {
             status: 'NEW',
             action: 'MODIFY',
-            requestId: '400000320',
+            requestId: 'request-1',
             submittedAt: '2026-08-26T17:58:36.99Z',
           },
         },
@@ -341,6 +341,25 @@ describe('clientMaintenanceApi', () => {
       data: {
         roles: ['BENEFICIAL_OWNER'],
       },
+    });
+  });
+
+  test('updates a party ownership parent', async () => {
+    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({});
+
+    await patchMaintenanceParty(
+      request,
+      'person-1',
+      { parentPartyId: 'intermediary-2' },
+      'idempotency-reparent'
+    );
+
+    expect(request).toHaveBeenCalledWith({
+      url: '/parties/person-1',
+      method: 'PATCH',
+      skipClientIdBodyInjection: true,
+      headers: { 'Idempotency-Key': 'idempotency-reparent' },
+      data: { parentPartyId: 'intermediary-2' },
     });
   });
 

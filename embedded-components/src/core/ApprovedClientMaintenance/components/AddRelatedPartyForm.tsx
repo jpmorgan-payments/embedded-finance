@@ -262,7 +262,6 @@ type AddRelatedPartyFormProps = {
   natureOfOwnership?: 'Direct' | 'Indirect';
   allowedRoles: RelatedPartyRole[];
   isControllerReplacement?: boolean;
-  isOwnershipPathReplacement?: boolean;
   initialParty?: MaintenanceParty;
   isBeneficialOwnerOnly?: boolean;
   canAlsoBeBeneficialOwner?: boolean;
@@ -279,11 +278,10 @@ export function AddRelatedPartyForm({
   natureOfOwnership = 'Direct',
   allowedRoles,
   isControllerReplacement = false,
-  isOwnershipPathReplacement = false,
   initialParty,
   isBeneficialOwnerOnly = false,
   canAlsoBeBeneficialOwner = false,
-  isSubmitting,
+  isSubmitting: isMutationPending,
   mutationError,
   lockedCountry,
   onDirtyChange,
@@ -385,6 +383,8 @@ export function AddRelatedPartyForm({
   useEffect(() => {
     onDirtyChange?.(form.formState.isDirty);
   }, [form.formState.isDirty, onDirtyChange]);
+  // A save can span several calls; keep it pending until onSave resolves.
+  const isSubmitting = isMutationPending || form.formState.isSubmitting;
 
   const submit = form.handleSubmit(async (values) => {
     setSubmitError(undefined);
@@ -459,7 +459,7 @@ export function AddRelatedPartyForm({
         </div>
       ) : null}
       <Form {...form}>
-        <form onSubmit={submit} className="eb-space-y-6">
+        <form onSubmit={submit}>
           <div className="eb-mx-auto eb-w-full eb-max-w-3xl">
             {isControllerReplacement || allowedRoles.length > 1 ? (
               <fieldset className="eb-space-y-3">
@@ -515,7 +515,13 @@ export function AddRelatedPartyForm({
                                 />
                                 <span>
                                   <span className="eb-block eb-text-sm eb-font-medium">
-                                    {t(`addParty.roles.${role}`)}
+                                    {role === 'BENEFICIAL_OWNER'
+                                      ? t(
+                                          natureOfOwnership === 'Indirect'
+                                            ? 'ownership.indirectOwner'
+                                            : 'ownership.directOwner'
+                                        )
+                                      : t(`addParty.roles.${role}`)}
                                   </span>
                                   <span className="eb-mt-0.5 eb-block eb-text-xs eb-text-muted-foreground">
                                     {t(`addParty.roleDescriptions.${role}`)}
@@ -815,6 +821,7 @@ export function AddRelatedPartyForm({
                 variant="outlineSurface"
                 size="sm"
                 onClick={onCancel}
+                disabled={isSubmitting}
               >
                 <ArrowLeftIcon />
                 {t('form.back')}
@@ -828,11 +835,9 @@ export function AddRelatedPartyForm({
                 {t(
                   isControllerReplacement
                     ? 'addParty.saveReplacement'
-                    : isOwnershipPathReplacement
-                      ? 'addParty.saveOwnershipPath'
-                      : isBeneficialOwnerOnly
-                        ? 'addParty.saveBeneficialOwner'
-                        : 'addParty.save'
+                    : isBeneficialOwnerOnly
+                      ? 'addParty.saveBeneficialOwner'
+                      : 'addParty.save'
                 )}
               </Button>
             }

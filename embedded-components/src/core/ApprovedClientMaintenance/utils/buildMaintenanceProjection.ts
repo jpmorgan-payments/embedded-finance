@@ -10,13 +10,14 @@ import {
   type MaintenanceClient,
   type MaintenanceParty,
 } from '../models/maintenanceApi.types';
+import { getMaintenancePartyName } from './maintenanceDisplay';
 import {
   MAINTENANCE_FIELD_DESCRIPTORS,
   type EditablePartyField,
 } from './maintenanceFieldDescriptors';
 
 export type PartyFieldChange = {
-  field: EditablePartyField;
+  field: EditablePartyField | 'parentPartyId';
   labelKey: string;
   approvedValue: string;
   proposedValue: string;
@@ -56,6 +57,8 @@ export type PartyValidationTask = {
   party: MaintenanceParty;
   validationStatus?: string;
   validationType?: string;
+  /** Field names the API asks for, such as firstName. */
+  fields: string[];
   documentRequestIds: string[];
 };
 
@@ -71,6 +74,8 @@ export type MaintenanceProjection = {
   hasConflicts: boolean;
   activeRequestId?: string;
   canReview: boolean;
+  /** Parties the API created but never reviewed, such as after a failed discard; they can't be removed. */
+  unreviewedPartyIds: string[];
 };
 
 const hasRequiredCorrelation = (proposal: MaintenanceParty) => {
@@ -102,10 +107,33 @@ export function buildMaintenanceProjection(
 ): MaintenanceProjection {
   const approvedBaseline = structuredClone(approvedClient);
   const proposedClient = structuredClone(approvedClient);
+  const reviewableAdditionIds = new Set(
+    [...maintenanceParties, ...(approvedClient.parties ?? [])].flatMap(
+      (party) =>
+        party.id &&
+        party.updateRequest?.action === 'ADD' &&
+        (isActiveMaintenanceStatus(party.updateRequest.status) ||
+          party.updateRequest.status === 'APPROVED')
+          ? [party.id]
+          : []
+    )
+  );
+  const unreviewedPartyIds = new Set(
+    (approvedClient.parties ?? []).flatMap((party) =>
+      party.id &&
+      party.profileStatus === 'NEW' &&
+      party.active !== false &&
+      !party.roles?.includes('CLIENT') &&
+      !reviewableAdditionIds.has(party.id)
+        ? [party.id]
+        : []
+    )
+  );
   const nonApprovedEmbeddedAdditions = (approvedClient.parties ?? []).filter(
     (party) =>
       party.updateRequest?.action === 'ADD' &&
-      party.updateRequest.status !== 'APPROVED'
+      party.updateRequest.status !== 'APPROVED' &&
+      !unreviewedPartyIds.has(party.id ?? '')
   );
   const activeEmbeddedAdditionProposals = nonApprovedEmbeddedAdditions.filter(
     (party) => isActiveMaintenanceStatus(party.updateRequest?.status)
@@ -162,6 +190,15 @@ export function buildMaintenanceProjection(
     activeRequestIds.add(approvedClient.updateRequest.requestId);
   }
   const proposalsByPartyId = groupProposalsByPartyId(correlatedProposals);
+  const getPartyNameById = (partyId: string) => {
+    const party =
+      approvedClient.parties?.find((candidate) => candidate.id === partyId) ??
+      correlatedProposals.find(
+        (candidate) =>
+          candidate.id === partyId && candidate.updateRequest?.action === 'ADD'
+      );
+    return party ? getMaintenancePartyName(party) : '';
+  };
   const hasConflicts = activeRequestIds.size > 1;
   const partyChanges: PartyChange[] = [];
 
@@ -290,6 +327,44 @@ export function buildMaintenanceProjection(
       descriptor.write(proposedParty, proposedRawValue);
     });
 
+    const parentProposal = orderedProposals
+      .filter((candidate) => Boolean(candidate.parentPartyId))
+      .at(-1);
+    // An approved party without a parent is owned directly by the client.
+    const approvedParentPartyId = approvedParty
+      ? (approvedParty.parentPartyId ?? approvedClient.partyId)
+      : undefined;
+    if (parentProposal?.parentPartyId) {
+      proposedParty.parentPartyId = parentProposal.parentPartyId;
+    }
+    // A new owner's connection is part of what the request adds.
+    const isOwner =
+      effectiveRoles.includes('BENEFICIAL_OWNER') ||
+      effectiveRoles.includes('INTERMEDIARY_OWNER');
+    if (
+      (approvedParty || isOwner) &&
+      parentProposal?.parentPartyId &&
+      parentProposal.parentPartyId !== approvedParentPartyId
+    ) {
+      fieldChanges.push({
+        field: 'parentPartyId',
+        labelKey: 'changes.ownershipConnection',
+        approvedValue: approvedParentPartyId
+          ? getPartyNameById(approvedParentPartyId)
+          : '',
+        proposedValue: getPartyNameById(parentProposal.parentPartyId),
+        approvedRawValue: approvedParentPartyId,
+        proposedRawValue: parentProposal.parentPartyId,
+        sensitivity: 'public',
+        source: {
+          requestId: parentProposal.updateRequest!.requestId!,
+          submittedAt: parentProposal.updateRequest!.submittedAt!,
+          status: parentProposal.updateRequest!
+            .status as ActiveMaintenanceStatus,
+        },
+      });
+    }
+
     const removesParty = proposals.some(
       (proposal) => proposal.active === false
     );
@@ -331,6 +406,16 @@ export function buildMaintenanceProjection(
         party,
         validationStatus: validation.validationStatus,
         validationType: validation.validationType,
+        fields: (validation.fields ?? []).flatMap((field) =>
+          typeof field === 'string'
+            ? [field]
+            : field &&
+                typeof field === 'object' &&
+                'name' in field &&
+                typeof field.name === 'string'
+              ? [field.name]
+              : []
+        ),
         documentRequestIds: validation.documentRequestIds ?? [],
       }));
   });
@@ -357,5 +442,6 @@ export function buildMaintenanceProjection(
       unresolvedProposals.length === 0 &&
       !hasConflicts &&
       activeRequestIds.size <= 1,
+    unreviewedPartyIds: [...unreviewedPartyIds],
   };
 }

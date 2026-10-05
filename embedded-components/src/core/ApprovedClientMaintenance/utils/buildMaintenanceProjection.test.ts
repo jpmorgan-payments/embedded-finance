@@ -43,6 +43,117 @@ const proposal = (
 });
 
 describe('buildMaintenanceProjection', () => {
+  test('flags never-approved parties that have no open or approved addition', () => {
+    const business = (
+      id: string,
+      updateRequest?: MaintenanceParty['updateRequest']
+    ): MaintenanceParty => ({
+      id,
+      partyType: 'ORGANIZATION',
+      roles: ['INTERMEDIARY_OWNER'],
+      profileStatus: 'NEW',
+      parentPartyId: 'org-1',
+      updateRequest,
+    });
+    const addition = (status: string) =>
+      ({
+        action: 'ADD',
+        status,
+        requestId: 'request-1',
+        submittedAt: '2026-10-01T12:00:00.000Z',
+      }) as MaintenanceParty['updateRequest'];
+    const projection = buildMaintenanceProjection(
+      {
+        ...approvedClient,
+        parties: [
+          {
+            id: 'org-1',
+            partyType: 'ORGANIZATION',
+            roles: ['CLIENT'],
+            profileStatus: 'NEW',
+          },
+          business('after-next-request'),
+          business('discarded', addition('TERMINATED')),
+          business('pending', addition('NEW')),
+          business('approved-not-published', addition('APPROVED')),
+        ],
+      },
+      []
+    );
+
+    expect(projection.unreviewedPartyIds).toEqual([
+      'after-next-request',
+      'discarded',
+    ]);
+    // Leftovers stay visible as they are on the client, not hidden like a pending addition.
+    expect(projection.approvedClient.parties?.map((party) => party.id)).toEqual(
+      ['org-1', 'after-next-request', 'discarded', 'approved-not-published']
+    );
+  });
+
+  test('applies and records a change of ownership connection', () => {
+    const client: MaintenanceClient = {
+      ...approvedClient,
+      parties: [
+        {
+          id: 'org-1',
+          partyType: 'ORGANIZATION',
+          roles: ['CLIENT'],
+          organizationDetails: { organizationName: 'Marketplace Vendor LLC' },
+        },
+        {
+          id: 'holding-1',
+          parentPartyId: 'org-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: { organizationName: 'Darling Holdings LLC' },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'holding-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: { firstName: 'Wendy', lastName: 'Darling' },
+        },
+      ],
+    };
+    const projection = buildMaintenanceProjection(client, [
+      {
+        id: 'person-2',
+        parentPartyId: 'org-1',
+        updateRequest: {
+          status: 'NEW',
+          action: 'MODIFY',
+          requestId: 'request-1',
+          submittedAt: '2026-08-26T12:00:00.000Z',
+        },
+      },
+    ]);
+
+    expect(projection.partyChanges[0]?.fieldChanges).toEqual([
+      expect.objectContaining({
+        field: 'parentPartyId',
+        labelKey: 'changes.ownershipConnection',
+        approvedValue: 'Darling Holdings LLC',
+        proposedValue: 'Marketplace Vendor LLC',
+      }),
+    ]);
+    expect(
+      projection.proposedClient.parties?.find(
+        (party) => party.id === 'person-2'
+      )?.parentPartyId
+    ).toBe('org-1');
+  });
+
+  test('treats a missing approved parent as the client when comparing connections', () => {
+    const projection = buildMaintenanceProjection(approvedClient, [
+      proposal({ parentPartyId: 'org-1' }),
+    ]);
+
+    expect(
+      projection.partyChanges[0]?.fieldChanges.map((change) => change.field)
+    ).toEqual(['lastName']);
+  });
   test('builds a name change without mutating the approved client', () => {
     const before = structuredClone(approvedClient);
     const projection = buildMaintenanceProjection(approvedClient, [proposal()]);
@@ -98,9 +209,9 @@ describe('buildMaintenanceProjection', () => {
 
   test('composes multiple party proposals and validation tasks under one request', () => {
     const client: MaintenanceClient = {
-      id: '3002022212',
+      id: 'client-1',
       status: 'APPROVED',
-      updateRequest: { status: 'NEW', requestId: '400000320' },
+      updateRequest: { status: 'NEW', requestId: 'request-1' },
       outstanding: { partyIds: ['person-1', 'person-2'] },
       parties: [
         {
@@ -141,7 +252,7 @@ describe('buildMaintenanceProjection', () => {
         updateRequest: {
           status: 'NEW',
           action: 'MODIFY',
-          requestId: '400000320',
+          requestId: 'request-1',
           submittedAt: '2026-08-26T18:16:06.21Z',
         },
       },
@@ -154,7 +265,7 @@ describe('buildMaintenanceProjection', () => {
         updateRequest: {
           status: 'NEW',
           action: 'MODIFY',
-          requestId: '400000320',
+          requestId: 'request-1',
           submittedAt: '2026-08-26T18:15:00.535Z',
         },
       },
@@ -162,7 +273,7 @@ describe('buildMaintenanceProjection', () => {
 
     const projection = buildMaintenanceProjection(client, proposals);
 
-    expect(projection.activeRequestId).toBe('400000320');
+    expect(projection.activeRequestId).toBe('request-1');
     expect(projection.partyChanges).toHaveLength(2);
     expect(projection.hasConflicts).toBe(false);
     expect(projection.validationTasks).toHaveLength(2);

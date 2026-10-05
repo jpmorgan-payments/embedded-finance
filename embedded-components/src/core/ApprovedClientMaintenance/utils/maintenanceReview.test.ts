@@ -6,6 +6,7 @@ import {
   areMaintenanceReadsStable,
   createMaintenanceReviewFingerprint,
   getMaintenanceSubmissionBlockers,
+  getOutstandingPartyRequirements,
   MaintenanceSubmissionError,
   validateStableMaintenanceSubmission,
 } from './maintenanceReview';
@@ -219,6 +220,42 @@ describe('maintenanceReview', () => {
         false
       )
     ).toEqual([{ type: 'documents', count: 2 }]);
+  });
+
+  test('names the fields the API requests from a party without a document request', () => {
+    const clientNeedingNames: MaintenanceClient = {
+      ...client,
+      outstanding: { partyIds: ['person-1', 'person-1'] },
+      parties: [
+        {
+          id: 'person-1',
+          partyType: 'INDIVIDUAL',
+          validationResponse: [
+            {
+              validationStatus: 'NEEDS_INFO',
+              validationType: 'ENTITY_VALIDATION',
+              fields: [{ name: 'firstName' }, { name: 'lastName' }],
+              documentRequestIds: [],
+            },
+          ],
+        },
+      ],
+    };
+    const projection = buildMaintenanceProjection(clientNeedingNames, [
+      proposal,
+    ]);
+
+    expect(getOutstandingPartyRequirements(projection)).toEqual([
+      { partyId: 'person-1', fields: ['firstName', 'lastName'] },
+    ]);
+    expect(
+      getMaintenanceSubmissionBlockers(
+        clientNeedingNames,
+        projection,
+        [],
+        false
+      )
+    ).toEqual([{ type: 'parties', count: 1 }]);
   });
 
   test('allows submission only when all work is complete', () => {

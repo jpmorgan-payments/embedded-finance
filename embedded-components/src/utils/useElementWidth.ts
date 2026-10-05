@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 /**
  * React hook to observe and return the width of a DOM element.
@@ -8,24 +8,26 @@ import { useEffect, useRef, useState } from 'react';
  *   <div ref={ref}>{width}</div>
  */
 export function useElementWidth<T extends HTMLElement>(): [
-  React.RefObject<T>,
+  React.RefCallback<T>,
   number,
 ] {
-  const ref = useRef<T>(null);
+  const observerRef = useRef<ResizeObserver>();
   const [width, setWidth] = useState(0);
 
-  useEffect(() => {
-    if (!ref.current) return;
-    const handleResize = (entries: ResizeObserverEntry[]) => {
+  // Callback ref so the observer still attaches when the measured node mounts
+  // on a later render, e.g. after a loading state resolves.
+  const ref = useCallback((node: T | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = undefined;
+    if (!node) return;
+    const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         setWidth(entry.contentRect.width);
       }
-    };
-    const observer = new ResizeObserver(handleResize);
-    observer.observe(ref.current);
-    // Set initial width
-    setWidth(ref.current.offsetWidth);
-    return () => observer.disconnect();
+    });
+    observer.observe(node);
+    observerRef.current = observer;
+    setWidth(node.offsetWidth);
   }, []);
 
   return [ref, width];

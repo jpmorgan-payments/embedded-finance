@@ -7,7 +7,7 @@
  * - `hideAccountTypeSelect` + `hidePaymentMethodSelect` (Step 1 collapses when a
  *   single locked method is preselected — the linked-account ACH default).
  * - Selecting an ORGANIZATION party derives `accountType`/`businessName`.
- * - Auto-selection of the only available party.
+ * - Defaulting to the organization party, or the only available party.
  */
 import { useMemo } from 'react';
 import { describe, expect, test, vi } from 'vitest';
@@ -98,6 +98,13 @@ const singleIndividual = {
   ],
 } as unknown as ClientResponse;
 
+const individualsOnly = {
+  id: 'client-3',
+  parties: orgAndIndividuals.parties?.filter(
+    (party) => party.partyType === 'INDIVIDUAL'
+  ),
+} as unknown as ClientResponse;
+
 describe('BankAccountForm — single-page linked create', () => {
   test('renders unified party selector and hides account-type + payment-method controls', async () => {
     render(<LinkedAccountSinglePageHarness client={orgAndIndividuals} />);
@@ -168,7 +175,7 @@ describe('BankAccountForm — single-page linked create', () => {
 
     render(
       <LinkedAccountSinglePageHarness
-        client={orgAndIndividuals}
+        client={individualsOnly}
         onSubmit={onSubmit}
       />
     );
@@ -184,6 +191,17 @@ describe('BankAccountForm — single-page linked create', () => {
       screen.getByRole('combobox', { name: /Account Holder/i })
     ).toHaveAttribute('aria-invalid', 'true');
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  test('defaults to the organization party', async () => {
+    render(<LinkedAccountSinglePageHarness client={orgAndIndividuals} />);
+
+    const holder = await screen.findByRole('combobox', {
+      name: /Account Holder/i,
+    });
+    await waitFor(() => {
+      expect(holder).toHaveTextContent(/Globex LLC/i);
+    });
   });
 
   test('auto-selects the only available party', async () => {

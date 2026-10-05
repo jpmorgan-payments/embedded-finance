@@ -1,11 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import {
+  AlertTriangleIcon,
   ArrowRightIcon,
   CircleMinusIcon,
   CirclePlusIcon,
+  Loader2Icon,
   PencilIcon,
+  Trash2Icon,
   Undo2Icon,
+  UserRoundCheckIcon,
+  UserRoundCogIcon,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -13,6 +18,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Skeleton } from '@/components/ui';
 
+import { usePendingAction } from '../hooks/usePendingAction';
 import type { PartyMaintenanceEntityTask } from '../utils/buildMaintenanceEntityTasks';
 import { getMaintenancePartyIdentity } from '../utils/maintenanceDisplay';
 import {
@@ -33,7 +39,6 @@ type MaintenanceEntityViewProps = {
   canCancel: boolean;
   canRemove: boolean;
   canAddBeneficialOwnerRole: boolean;
-  canDiscardPendingOwnerChanges: boolean;
   canManageOwnership: boolean;
   isLoadingDocuments: boolean;
   documentError?: unknown;
@@ -45,9 +50,15 @@ type MaintenanceEntityViewProps = {
   onCancelChanges: () => void;
   onRemove: () => void;
   onAddBeneficialOwnerRole: () => void;
-  onManageOwnership: () => void;
+  /** Offered to a controller who was replaced and is pending removal. */
+  onKeepAsBeneficialOwner?: () => Promise<void>;
+  onManageOwnership?: () => void;
   onInsertIntermediary: () => void;
+  onChangeConnection?: () => void;
   ownershipPath: string[];
+  backLabel: string;
+  removeActionLabel: string;
+  requiresControllerReplacement: boolean;
 };
 
 export function MaintenanceEntityView({
@@ -56,7 +67,6 @@ export function MaintenanceEntityView({
   canCancel,
   canRemove,
   canAddBeneficialOwnerRole,
-  canDiscardPendingOwnerChanges,
   canManageOwnership,
   isLoadingDocuments,
   documentError,
@@ -68,14 +78,20 @@ export function MaintenanceEntityView({
   onCancelChanges,
   onRemove,
   onAddBeneficialOwnerRole,
+  onKeepAsBeneficialOwner,
   onManageOwnership,
   onInsertIntermediary,
+  onChangeConnection,
   ownershipPath,
+  backLabel,
+  removeActionLabel,
+  requiresControllerReplacement,
 }: MaintenanceEntityViewProps) {
   const { t, tString } = useTranslationWithTokens([
     'approved-client-maintenance',
     'common',
   ]);
+  const keepAsOwner = usePendingAction<'keep'>();
   const headingRef = useRef<HTMLHeadingElement>(null);
   const displayedParty = task.isPendingAddition
     ? task.proposedParty
@@ -235,7 +251,8 @@ export function MaintenanceEntityView({
       className={cn(
         'eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background',
         task.isPendingAddition && 'eb-border-informative/60',
-        isPendingRemoval && 'eb-border-warning/60'
+        isPendingRemoval && 'eb-border-destructive/50',
+        task.isUnreviewed && 'eb-border-warning/60'
       )}
     >
       <header
@@ -243,7 +260,9 @@ export function MaintenanceEntityView({
           'eb-border-b eb-px-4 eb-py-4',
           task.isPendingAddition &&
             'eb-border-informative/50 eb-bg-informative-accent/40',
-          isPendingRemoval && 'eb-border-warning/50 eb-bg-warning-accent/40'
+          isPendingRemoval &&
+            'eb-border-destructive/50 eb-bg-destructive-accent/40',
+          task.isUnreviewed && 'eb-border-warning/50 eb-bg-warning-accent/40'
         )}
       >
         <MaintenanceBreadcrumb
@@ -252,7 +271,12 @@ export function MaintenanceEntityView({
         />
         <div className="eb-flex eb-flex-wrap eb-items-start eb-justify-between eb-gap-4">
           <div className="eb-min-w-0">
-            {task.isPendingAddition ? (
+            {task.isUnreviewed ? (
+              <p className="eb-mb-1 eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-warning-foreground">
+                <AlertTriangleIcon className="eb-size-3.5" aria-hidden="true" />
+                {t('unreviewed.title')}
+              </p>
+            ) : task.isPendingAddition ? (
               <p className="eb-mb-1 eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-informative">
                 {isAdditionUnderReview ? (
                   <MaintenanceChangeStatusIcon
@@ -267,7 +291,7 @@ export function MaintenanceEntityView({
                   : t('status.PENDING_ADDITION')}
               </p>
             ) : isPendingRemoval ? (
-              <p className="eb-mb-1 eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-warning-foreground">
+              <p className="eb-mb-1 eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-destructive">
                 <CircleMinusIcon className="eb-size-3.5" aria-hidden="true" />
                 {t('status.PENDING_REMOVAL')}
               </p>
@@ -279,13 +303,61 @@ export function MaintenanceEntityView({
             >
               {identity.displayName}
             </h2>
-            {task.isPendingAddition ? (
+            {task.isUnreviewed ? (
+              <p className="eb-mt-1 eb-max-w-2xl eb-text-sm eb-leading-5 eb-text-muted-foreground">
+                {t('unreviewed.description')}
+              </p>
+            ) : task.isPendingAddition ? (
               <p className="eb-mt-1 eb-max-w-2xl eb-text-sm eb-leading-5 eb-text-muted-foreground">
                 {t('pendingAddition.personDescription')}
               </p>
+            ) : isPendingRemoval ? (
+              <p className="eb-mt-1 eb-max-w-2xl eb-text-sm eb-leading-5 eb-text-muted-foreground">
+                {t('removeParty.description')}
+              </p>
             ) : null}
           </div>
-          {task.isPendingAddition ? (
+          {isPendingRemoval ? (
+            <div className="eb-flex eb-w-full eb-flex-col eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-flex-row">
+              <Button
+                variant="outlineSurface"
+                size="sm"
+                onClick={onViewRequestDetails}
+                disabled={keepAsOwner.isPending}
+              >
+                {t('requestDetails.viewFullRequest')}
+                <ArrowRightIcon />
+              </Button>
+              {onKeepAsBeneficialOwner ? (
+                <Button
+                  variant="outlineSurface"
+                  size="sm"
+                  disabled={keepAsOwner.isPending}
+                  onClick={() =>
+                    void keepAsOwner.run('keep', onKeepAsBeneficialOwner)
+                  }
+                >
+                  {keepAsOwner.isPending ? (
+                    <Loader2Icon className="eb-animate-spin" />
+                  ) : (
+                    <UserRoundCheckIcon />
+                  )}
+                  {t('pendingRemoval.keepAsOwner')}
+                </Button>
+              ) : null}
+              {canCancel ? (
+                <Button
+                  variant="outlineSurface"
+                  size="sm"
+                  onClick={onCancelChanges}
+                  disabled={keepAsOwner.isPending}
+                >
+                  <Undo2Icon />
+                  {t('pendingRemoval.cancel')}
+                </Button>
+              ) : null}
+            </div>
+          ) : task.isPendingAddition ? (
             <div className="eb-flex eb-w-full eb-flex-col eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-flex-row">
               <Button
                 variant="outlineSurface"
@@ -313,11 +385,40 @@ export function MaintenanceEntityView({
                 </Button>
               ) : null}
             </div>
+          ) : (!task.change && canEdit) || canRemove ? (
+            <div className="eb-flex eb-w-full eb-flex-wrap eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-justify-end">
+              {!task.change && canEdit ? (
+                <Button variant="outlineSurface" size="sm" onClick={onEdit}>
+                  <PencilIcon />
+                  {t('entity.editDetails')}
+                </Button>
+              ) : null}
+              {canRemove ? (
+                <Button
+                  variant="outlineSurface"
+                  size="sm"
+                  className="eb-border-destructive/50 eb-text-destructive hover:eb-bg-destructive-accent hover:eb-text-destructive"
+                  onClick={onRemove}
+                >
+                  {requiresControllerReplacement ? (
+                    <UserRoundCogIcon />
+                  ) : (
+                    <Trash2Icon />
+                  )}
+                  {removeActionLabel}
+                </Button>
+              ) : null}
+            </div>
           ) : null}
         </div>
+        {keepAsOwner.error ? (
+          <div className="eb-mt-3">
+            <ServerErrorAlert error={keepAsOwner.error as never} />
+          </div>
+        ) : null}
       </header>
 
-      {task.change && !task.isPendingAddition ? (
+      {task.change && !task.isPendingAddition && !isPendingRemoval ? (
         <MaintenanceSection
           id="entity-updates-heading"
           title={updateHeading}
@@ -387,7 +488,7 @@ export function MaintenanceEntityView({
         </MaintenanceSection>
       ) : null}
 
-      {!task.change && hasRequirements ? (
+      {(!task.change || isPendingRemoval) && hasRequirements ? (
         <MaintenanceSection
           id="entity-requirements-heading"
           title={t('entity.documentRequest')}
@@ -415,14 +516,6 @@ export function MaintenanceEntityView({
               ? t('pendingAddition.personDetailsTitle')
               : t('entity.profileDetails')}
           </h3>
-          <div className="eb-flex eb-flex-wrap eb-gap-2">
-            {!task.isPendingAddition && !task.change && canEdit ? (
-              <Button variant="outlineSurface" size="sm" onClick={onEdit}>
-                <PencilIcon />
-                {t('entity.editDetails')}
-              </Button>
-            ) : null}
-          </div>
         </div>
         <div className="eb-mt-2">
           <MaintenanceDetailsGroup
@@ -460,24 +553,16 @@ export function MaintenanceEntityView({
       <MaintenanceOwnershipRolesSection
         task={task}
         mode={task.isPendingAddition ? 'pending-party' : 'approved-party'}
-        canRemove={task.isPendingAddition ? false : canRemove}
         canAddBeneficialOwnerRole={canAddBeneficialOwnerRole}
-        canDiscardPendingOwnerChanges={
-          task.isPendingAddition ? false : canDiscardPendingOwnerChanges
-        }
         canManageOwnership={canManageOwnership}
-        onRemove={onRemove}
         onAddBeneficialOwnerRole={onAddBeneficialOwnerRole}
-        onDiscardPartyChanges={onCancelChanges}
         onManageOwnership={onManageOwnership}
         onInsertIntermediary={onInsertIntermediary}
+        onChangeConnection={onChangeConnection}
         ownershipPath={ownershipPath}
       />
 
-      <MaintenanceViewNavigation
-        backLabel={tString('submission.backToProfile')}
-        onBack={onBack}
-      />
+      <MaintenanceViewNavigation backLabel={backLabel} onBack={onBack} />
     </div>
   );
 }

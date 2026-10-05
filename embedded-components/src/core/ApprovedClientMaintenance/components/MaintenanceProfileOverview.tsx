@@ -4,13 +4,9 @@ import {
   AlertTriangleIcon,
   ArrowRightIcon,
   ChevronRightIcon,
-  CircleMinusIcon,
-  CirclePlusIcon,
-  ClipboardListIcon,
   Clock3Icon,
   NetworkIcon,
   PackagePlusIcon,
-  PencilLineIcon,
   Undo2Icon,
 } from 'lucide-react';
 
@@ -18,23 +14,29 @@ import { cn } from '@/lib/utils';
 import type { KycUpdateRequestStatus } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui';
 
+import { useMaintenanceRequestSummary } from '../hooks/useMaintenanceRequestSummary';
 import type {
   MaintenanceClient,
   MaintenanceParty,
 } from '../models/maintenanceApi.types';
 import type { MaintenanceEntityTasks } from '../utils/buildMaintenanceEntityTasks';
 import {
+  getMaintenanceMedallionTone,
+  getMaintenancePartyStatus,
+} from '../utils/getMaintenancePartyStatus';
+import { getMaintenanceRequestSummaryState } from '../utils/getMaintenanceRequestSummaryState';
+import {
   formatMaintenanceRoles,
   getMaintenancePartyIdentity,
 } from '../utils/maintenanceDisplay';
-import { MaintenanceChangeStatusIcon } from './MaintenanceChangeStatusIcon';
+import { MaintenanceEntityMedallion } from './MaintenanceEntityMedallion';
+import { MaintenancePartyStatusLabel } from './MaintenancePartyStatusLabel';
 import {
   MaintenanceProductFamily,
   type MaintenanceProductState,
   type MaintenanceSubProductItem,
 } from './MaintenanceProductFamily';
 import { MaintenanceSection } from './MaintenanceSection';
-import { PartyAvatar } from './PartyAvatar';
 import { ProductCancellationDialog } from './ProductCancellationDialog';
 
 type MaintenanceProfileOverviewProps = {
@@ -45,7 +47,8 @@ type MaintenanceProfileOverviewProps = {
   updateScope: 'product' | 'maintenance' | 'combined';
   activeRequestStatus?: KycUpdateRequestStatus;
   isDocumentDiscoveryPending: boolean;
-  isEligible: boolean;
+  /** Whether the eligibility matrix allows the Limited DDA Payments upgrade at all. */
+  canOfferProductUpgrade: boolean;
   canAddProduct: boolean;
   offerLimitedDda: boolean;
   canRequestLimitedDda: boolean;
@@ -58,7 +61,8 @@ type MaintenanceProfileOverviewProps = {
   onSelectIntermediary: (partyId: string) => void;
   onAddProduct: () => void;
   onCancelProductAddition?: () => Promise<void>;
-  onManageOwnership: () => void;
+  /** Omitted when the business has no ownership structure, such as a sole proprietorship. */
+  onManageOwnership?: () => void;
   onReviewAndSubmit: () => void;
   onViewRequestDetails: () => void;
 };
@@ -78,7 +82,7 @@ export function MaintenanceProfileOverview({
   updateScope,
   activeRequestStatus,
   isDocumentDiscoveryPending,
-  isEligible,
+  canOfferProductUpgrade,
   canAddProduct,
   offerLimitedDda,
   canRequestLimitedDda,
@@ -276,60 +280,17 @@ export function MaintenanceProfileOverview({
   };
   const getProductEyebrow = (state: MaintenanceProductState) =>
     tString([`productNode.${state}`] as unknown as TemplateStringsArray);
-  const requiresAction =
-    isDocumentDiscoveryPending ||
-    entityTasks.organization.unresolvedDocumentRequestIds.length > 0 ||
-    entityTasks.organization.documentRequests.some(
-      (documentRequest) => documentRequest.status !== 'CLOSED'
-    ) ||
-    entityTasks.parties.some(
-      (task) =>
-        task.unresolvedDocumentRequestIds.length > 0 ||
-        task.documentRequests.some(
-          (documentRequest) => documentRequest.status !== 'CLOSED'
-        )
-    ) ||
-    entityTasks.intermediaryOrganizations.some(
-      (task) =>
-        task.unresolvedDocumentRequestIds.length > 0 ||
-        task.documentRequests.some(
-          (documentRequest) => documentRequest.status !== 'CLOSED'
-        )
-    );
-  const summaryState =
-    activeRequestStatus === 'INFORMATION_REQUESTED'
-      ? 'action'
-      : requiresAction && activeRequestStatus !== 'REVIEW_IN_PROGRESS'
-        ? 'draftRequirements'
-        : activeRequestStatus === 'REVIEW_IN_PROGRESS'
-          ? 'submitted'
-          : 'draft';
-  const SummaryIcon =
-    summaryState === 'action'
-      ? AlertTriangleIcon
-      : summaryState === 'draftRequirements'
-        ? ClipboardListIcon
-        : summaryState === 'submitted'
-          ? Clock3Icon
-          : PencilLineIcon;
-  const summaryTitle =
-    updateScope === 'maintenance'
-      ? t(`requestSummary.${summaryState}.title`)
-      : tString([
-          `updateSummary.${updateScope}.${summaryState}.title`,
-        ] as unknown as TemplateStringsArray);
-  const summaryDescription =
-    updateScope === 'maintenance'
-      ? t(`requestSummary.${summaryState}.description`)
-      : tString([
-          `updateSummary.${updateScope}.${summaryState}.description`,
-        ] as unknown as TemplateStringsArray);
-  const summaryActionLabel =
-    summaryState === 'draftRequirements'
-      ? t('requestSummary.completeRequirements')
-      : summaryState === 'action'
-        ? t('requestSummary.completeRequiredActions')
-        : t('requestSummary.viewSubmittedChanges');
+  const summaryState = getMaintenanceRequestSummaryState({
+    activeRequestStatus,
+    entityTasks,
+    isDocumentDiscoveryPending,
+  });
+  const {
+    Icon: SummaryIcon,
+    title: summaryTitle,
+    description: summaryDescription,
+    actionLabel: summaryActionLabel,
+  } = useMaintenanceRequestSummary(summaryState, updateScope);
   const relatedPartyTasks = [
     ...entityTasks.parties,
     ...entityTasks.intermediaryOrganizations,
@@ -357,80 +318,50 @@ export function MaintenanceProfileOverview({
               role
             )
           );
-          const roleText = formatMaintenanceRoles(
-            relevantRoles,
-            (role, fallback) =>
-              tString(
-                [
-                  `common:partyRoles.${role}`,
-                ] as unknown as TemplateStringsArray,
-                { defaultValue: fallback }
-              ),
-            tString('noRoles')
-          );
           const ownershipNature = displayedParty.roles?.includes(
             'BENEFICIAL_OWNER'
           )
-            ? displayedParty.individualDetails?.natureOfOwnership
+            ? (displayedParty.individualDetails?.natureOfOwnership ??
+              (displayedParty.parentPartyId &&
+              displayedParty.parentPartyId !== client.partyId
+                ? 'Indirect'
+                : 'Direct'))
             : undefined;
+          const roleText = formatMaintenanceRoles(
+            relevantRoles,
+            (role, fallback) =>
+              role === 'BENEFICIAL_OWNER' && ownershipNature
+                ? tString(
+                    ownershipNature === 'Indirect'
+                      ? 'ownership.indirectOwner'
+                      : 'ownership.directOwner'
+                  )
+                : tString(
+                    [
+                      `common:partyRoles.${role}`,
+                    ] as unknown as TemplateStringsArray,
+                    { defaultValue: fallback }
+                  ),
+            tString('noRoles')
+          );
           const parentBusiness = ownershipParties.find(
             (party) => party.id === displayedParty.parentPartyId
           );
           const parentBusinessName =
             parentBusiness?.organizationDetails?.organizationName;
-          const ownershipPath = ownershipNature
-            ? ownershipNature === 'Indirect' && parentBusinessName
+          const ownershipPath =
+            ownershipNature === 'Indirect' && parentBusinessName
               ? tString('ownership.throughBusiness', {
                   name: parentBusinessName,
                 })
-              : tString(
-                  [
-                    `ownership.${ownershipNature.toLowerCase()}`,
-                  ] as unknown as TemplateStringsArray,
-                  { defaultValue: ownershipNature }
-                )
-            : undefined;
+              : undefined;
           const secondaryText = [roleText, ownershipPath]
             .filter(Boolean)
             .join(' · ');
-          const hasUnresolvedDocuments =
-            task.unresolvedDocumentRequestIds.length > 0;
-          const hasOpenDocuments = task.documentRequests.some(
-            (documentRequest) => documentRequest.status !== 'CLOSED'
+          const partyStatus = getMaintenancePartyStatus(
+            task,
+            isDocumentDiscoveryPending
           );
-          const isPreparingDocuments =
-            isDocumentDiscoveryPending &&
-            task.validationTasks.some(
-              (validationTask) => validationTask.documentRequestIds.length > 0
-            );
-          const isPendingRemoval = task.change?.removesParty ?? false;
-          const changeStatus = task.change?.proposal.updateRequest?.status;
-          const isAdditionUnderReview =
-            task.isPendingAddition && changeStatus === 'REVIEW_IN_PROGRESS';
-          const rowStatus = isPendingRemoval
-            ? t('status.PENDING_REMOVAL')
-            : task.isPendingAddition && !isAdditionUnderReview
-              ? t('status.PENDING_ADDITION')
-              : isPreparingDocuments
-                ? t('flow.preparingDocuments')
-                : hasUnresolvedDocuments || hasOpenDocuments
-                  ? t('status.ACTION_REQUIRED')
-                  : task.change
-                    ? changeStatus === 'REVIEW_IN_PROGRESS'
-                      ? t(
-                          isAdditionUnderReview
-                            ? 'changes.additionReviewTitle'
-                            : 'changes.reviewTitle'
-                        )
-                      : tString([
-                          `status.${changeStatus ?? 'NEW'}`,
-                        ] as unknown as TemplateStringsArray)
-                    : undefined;
-          const isActionRequired =
-            (hasUnresolvedDocuments || hasOpenDocuments) &&
-            !isPreparingDocuments &&
-            !isPendingRemoval &&
-            !task.isPendingAddition;
 
           return (
             <li key={task.partyId}>
@@ -440,8 +371,8 @@ export function MaintenanceProfileOverview({
                   'eb-flex eb-w-full eb-items-center eb-gap-3 eb-border-l-2 eb-border-transparent eb-px-4 eb-py-3 eb-text-left hover:eb-bg-muted/40 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring',
                   task.isPendingAddition &&
                     'eb-border-informative/60 eb-bg-informative-accent/40 hover:eb-bg-informative-accent/40',
-                  isPendingRemoval &&
-                    'eb-border-warning/60 eb-bg-warning-accent/40 hover:eb-bg-warning-accent/40'
+                  task.change?.removesParty &&
+                    'eb-border-destructive/50 eb-bg-destructive-accent/40 hover:eb-bg-destructive-accent/40'
                 )}
                 onClick={() =>
                   isIntermediary
@@ -450,9 +381,10 @@ export function MaintenanceProfileOverview({
                 }
                 data-party-id={task.partyId}
               >
-                <PartyAvatar
-                  name={identity.displayName}
-                  className="eb-size-9 eb-text-xs"
+                <MaintenanceEntityMedallion
+                  kind={isIntermediary ? 'business' : 'person'}
+                  tone={getMaintenanceMedallionTone(partyStatus)}
+                  size="lg"
                 />
                 <span className="eb-min-w-0 eb-flex-1">
                   <span className="eb-block eb-truncate eb-text-sm eb-font-medium">
@@ -462,43 +394,11 @@ export function MaintenanceProfileOverview({
                     {secondaryText}
                   </span>
                 </span>
-                {rowStatus ? (
-                  <span
-                    className={cn(
-                      'eb-flex eb-max-w-36 eb-items-center eb-gap-1.5 eb-text-right eb-text-xs eb-font-medium',
-                      isActionRequired
-                        ? 'eb-text-warning-foreground'
-                        : isPendingRemoval
-                          ? 'eb-text-warning-foreground'
-                          : changeStatus === 'NEW' ||
-                              changeStatus === 'REVIEW_IN_PROGRESS'
-                            ? 'eb-text-informative'
-                            : 'eb-text-muted-foreground'
-                    )}
-                  >
-                    {isActionRequired ? (
-                      <AlertTriangleIcon
-                        className="eb-size-3.5 eb-shrink-0"
-                        aria-hidden="true"
-                      />
-                    ) : isPendingRemoval ? (
-                      <CircleMinusIcon
-                        className="eb-size-3.5 eb-shrink-0"
-                        aria-hidden="true"
-                      />
-                    ) : task.isPendingAddition && !isAdditionUnderReview ? (
-                      <CirclePlusIcon
-                        className="eb-size-3.5 eb-shrink-0"
-                        aria-hidden="true"
-                      />
-                    ) : task.change ? (
-                      <MaintenanceChangeStatusIcon
-                        status={changeStatus}
-                        className="eb-size-3.5 eb-shrink-0"
-                      />
-                    ) : null}
-                    {rowStatus}
-                  </span>
+                {partyStatus ? (
+                  <MaintenancePartyStatusLabel
+                    status={partyStatus}
+                    className="eb-max-w-36 eb-text-right"
+                  />
                 ) : null}
                 <ChevronRightIcon className="eb-size-4 eb-shrink-0 eb-text-muted-foreground" />
               </button>
@@ -637,6 +537,16 @@ export function MaintenanceProfileOverview({
           className="eb-flex eb-w-full eb-items-center eb-gap-3 eb-px-4 eb-py-3.5 eb-text-left hover:eb-bg-muted/40 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring"
           onClick={onSelectOrganization}
         >
+          <MaintenanceEntityMedallion
+            kind="business"
+            tone={getMaintenanceMedallionTone(
+              getMaintenancePartyStatus(
+                entityTasks.organization,
+                isDocumentDiscoveryPending
+              )
+            )}
+            size="lg"
+          />
           <div className="eb-min-w-0 eb-flex-1">
             <p className="eb-truncate eb-text-sm eb-font-medium">
               {organizationName}
@@ -679,9 +589,11 @@ export function MaintenanceProfileOverview({
                 (subProduct) =>
                   subProduct.subProductCode === 'LIMITED_DDA_PAYMENTS'
               );
+              // Limited DDA itself is a host action; Limited DDA Payments follows the matrix.
               const showAvailableUpgrade =
                 family.productCode === 'EMBEDDED_PAYMENTS' &&
-                !hasLimitedDdaPayments;
+                !hasLimitedDdaPayments &&
+                (offerLimitedDda || canOfferProductUpgrade);
               const subProducts: MaintenanceSubProductItem[] =
                 family.subProducts.map((subProduct) => {
                   const state = getProductState(subProduct.onboardingStatus);
@@ -767,22 +679,19 @@ export function MaintenanceProfileOverview({
         caption={t('peopleDescription')}
         divided
         footer={
-          <div className="eb-flex eb-justify-end">
-            <Button variant="ghost" size="sm" onClick={onManageOwnership}>
-              <NetworkIcon />
-              {t('ownership.viewStructure')}
-            </Button>
-          </div>
+          onManageOwnership ? (
+            <div className="eb-flex eb-justify-end">
+              <Button variant="ghost" size="sm" onClick={onManageOwnership}>
+                <NetworkIcon />
+                {t('ownership.viewStructure')}
+              </Button>
+            </div>
+          ) : undefined
         }
       >
         {renderPartyRows()}
       </MaintenanceSection>
 
-      {!isEligible && !hasActiveUpdate ? (
-        <p className="eb-border-t eb-px-4 eb-py-3 eb-text-xs eb-text-muted-foreground">
-          {t('errors.notEligibleDescription')}
-        </p>
-      ) : null}
       {onCancelProductAddition ? (
         <ProductCancellationDialog
           open={isProductCancellationOpen}

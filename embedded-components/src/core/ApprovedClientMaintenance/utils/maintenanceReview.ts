@@ -33,6 +33,39 @@ export type MaintenanceSubmissionBlocker = {
   count: number;
 };
 
+export type OutstandingPartyRequirement = {
+  partyId: string;
+  /** Requested field names; empty when the API names none. */
+  fields: string[];
+};
+
+/** Parties the API still needs information from that no document request covers. */
+export function getOutstandingPartyRequirements(
+  projection: MaintenanceProjection
+): OutstandingPartyRequirement[] {
+  const documentBackedPartyIds = new Set(
+    projection.validationTasks
+      .filter((validationTask) => validationTask.documentRequestIds.length > 0)
+      .map((validationTask) => validationTask.partyId)
+  );
+  return [...new Set(projection.outstandingPartyIds)]
+    .filter((partyId) => !documentBackedPartyIds.has(partyId))
+    .map((partyId) => ({
+      partyId,
+      fields: [
+        ...new Set(
+          projection.validationTasks
+            .filter(
+              (validationTask) =>
+                validationTask.partyId === partyId &&
+                validationTask.validationStatus === 'NEEDS_INFO'
+            )
+            .flatMap((validationTask) => validationTask.fields)
+        ),
+      ],
+    }));
+}
+
 export function createMaintenanceReviewFingerprint(
   client: MaintenanceClient,
   projection: MaintenanceProjection
@@ -95,15 +128,7 @@ export function getMaintenanceSubmissionBlockers(
   if (projection.hasConflicts) addBlocker('conflict', 1);
   addBlocker('unresolved', projection.unresolvedProposals.length);
   addBlocker('questions', outstanding?.questionIds?.length ?? 0);
-  const documentBackedPartyIds = new Set(
-    projection.validationTasks
-      .filter((validationTask) => validationTask.documentRequestIds.length > 0)
-      .map((validationTask) => validationTask.partyId)
-  );
-  const partyRequirementCount = (outstanding?.partyIds ?? []).filter(
-    (partyId) => !documentBackedPartyIds.has(partyId)
-  ).length;
-  addBlocker('parties', partyRequirementCount);
+  addBlocker('parties', getOutstandingPartyRequirements(projection).length);
   addBlocker('roles', outstanding?.partyRoles?.length ?? 0);
   addBlocker('attestations', outstanding?.attestationDocumentIds?.length ?? 0);
 

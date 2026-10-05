@@ -1,14 +1,15 @@
 import { useTranslationWithTokens } from '@/i18n';
 import {
+  ArrowRightLeftIcon,
   CircleDashedIcon,
   CircleMinusIcon,
   NetworkIcon,
-  Trash2Icon,
   UserRoundCogIcon,
+  UserRoundIcon,
   UserRoundPlusIcon,
+  WaypointsIcon,
 } from 'lucide-react';
 
-import { useLocale } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui';
 
@@ -17,6 +18,8 @@ import {
   getMaintenanceRoleState,
   type MaintenanceRoleState,
 } from '../utils/getMaintenanceRoleState';
+import { MaintenanceOwnershipChain } from './MaintenanceOwnershipChain';
+import { MaintenanceRoleCard } from './MaintenanceRoleCard';
 
 function RoleStatus({
   state,
@@ -35,8 +38,10 @@ function RoleStatus({
   return (
     <span
       className={cn(
-        'eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-medium',
-        isPendingAddition ? 'eb-text-informative' : 'eb-text-warning-foreground'
+        'eb-inline-flex eb-shrink-0 eb-items-center eb-gap-1.5 eb-rounded-full eb-px-2 eb-py-0.5 eb-text-xs eb-font-medium',
+        isPendingAddition
+          ? 'eb-bg-informative-accent eb-text-informative'
+          : 'eb-bg-destructive-accent eb-text-destructive'
       )}
     >
       <Icon className="eb-size-3.5" aria-hidden="true" />
@@ -47,28 +52,22 @@ function RoleStatus({
 
 export function MaintenanceOwnershipRolesSection({
   task,
-  canRemove,
   canAddBeneficialOwnerRole,
-  canDiscardPendingOwnerChanges,
   canManageOwnership,
-  onRemove,
   onAddBeneficialOwnerRole,
-  onDiscardPartyChanges,
   onManageOwnership,
   onInsertIntermediary,
+  onChangeConnection,
   ownershipPath,
   mode = 'approved-party',
 }: {
   task: PartyMaintenanceEntityTask;
-  canRemove: boolean;
   canAddBeneficialOwnerRole: boolean;
-  canDiscardPendingOwnerChanges: boolean;
   canManageOwnership: boolean;
-  onRemove: () => void;
   onAddBeneficialOwnerRole: () => void;
-  onDiscardPartyChanges: () => void;
-  onManageOwnership: () => void;
+  onManageOwnership?: () => void;
   onInsertIntermediary: () => void;
+  onChangeConnection?: () => void;
   ownershipPath: string[];
   mode?: 'approved-party' | 'pending-party';
 }) {
@@ -76,10 +75,11 @@ export function MaintenanceOwnershipRolesSection({
     'approved-client-maintenance',
     'common',
   ]);
-  const locale = useLocale();
   const isPendingParty = mode === 'pending-party';
-  const approvedRoles = isPendingParty ? [] : (task.party.roles ?? []);
   const proposedRoles = task.proposedParty.roles ?? task.party.roles ?? [];
+  const approvedRoles = isPendingParty
+    ? proposedRoles
+    : (task.party.roles ?? []);
   const controllerState = getMaintenanceRoleState(
     approvedRoles,
     proposedRoles,
@@ -92,13 +92,30 @@ export function MaintenanceOwnershipRolesSection({
   );
   const showsController = controllerState !== 'absent';
   const showsBeneficialOwner = ownerState !== 'absent';
-  const isController = controllerState === 'active';
   const hasIntermediaryInPath = ownershipPath.length > 2;
-  const intermediaryNames = ownershipPath.slice(1, -1);
-  const intermediaryList = new Intl.ListFormat(locale, {
-    style: 'long',
-    type: 'conjunction',
-  }).format(intermediaryNames);
+  const showChangeToIndirect =
+    canManageOwnership &&
+    ownerState !== 'pending-removal' &&
+    !hasIntermediaryInPath;
+  const showViewStructure =
+    Boolean(onManageOwnership) && ownershipPath.length > 1;
+  const roleStateNote = (state: MaintenanceRoleState) =>
+    state === 'active'
+      ? undefined
+      : t(
+          isPendingParty
+            ? 'roleChange.pendingPartyRoleDescription'
+            : state === 'pending-addition'
+              ? 'roleChange.pendingAdditionDescription'
+              : 'roleChange.pendingRemovalDescription'
+        );
+  const roleStatus = (state: MaintenanceRoleState) => (
+    <RoleStatus
+      state={state}
+      pendingAdditionLabel={tString('roleChange.pendingAddition')}
+      pendingRemovalLabel={tString('roleChange.pendingRemoval')}
+    />
+  );
 
   return (
     <section
@@ -110,210 +127,115 @@ export function MaintenanceOwnershipRolesSection({
           id="entity-ownership-roles-heading"
           className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider"
         >
-          {t(
-            isPendingParty
-              ? 'roleChange.pendingPartySectionTitle'
-              : 'roleChange.sectionTitle'
-          )}
+          {t('roleChange.sectionTitle')}
         </h3>
       </div>
       <div className="eb-space-y-3">
         {showsController ? (
-          <div
-            data-role="CONTROLLER"
-            data-role-state={controllerState}
-            className={cn(
-              'eb-overflow-hidden eb-rounded-md eb-border eb-bg-background',
-              controllerState === 'pending-addition' &&
-                'eb-border-informative/70 eb-bg-informative-accent/40',
-              controllerState === 'pending-removal' &&
-                'eb-border-warning/60 eb-bg-warning-accent/40'
-            )}
-          >
-            <div className="eb-px-4 eb-py-3">
-              <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-2">
-                <p className="eb-text-sm eb-font-medium">
-                  {tString([
-                    'common:partyRoles.CONTROLLER',
-                  ] as unknown as TemplateStringsArray)}
-                </p>
-                <RoleStatus
-                  state={controllerState}
-                  pendingAdditionLabel={tString('roleChange.pendingAddition')}
-                  pendingRemovalLabel={tString('roleChange.pendingRemoval')}
-                />
-              </div>
-              <p className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-                {t('roleChange.controllerDescription')}
-              </p>
-              {controllerState !== 'active' ? (
-                <p className="eb-mt-2 eb-text-xs eb-leading-5 eb-text-muted-foreground">
-                  {t(
-                    isPendingParty
-                      ? 'roleChange.pendingPartyRoleDescription'
-                      : controllerState === 'pending-addition'
-                        ? 'roleChange.pendingAdditionDescription'
-                        : 'roleChange.pendingRemovalDescription'
-                  )}
-                </p>
-              ) : null}
-            </div>
-            {canAddBeneficialOwnerRole || canRemove ? (
-              <div className="eb-flex eb-flex-col eb-gap-2 eb-border-t eb-bg-muted/10 eb-px-4 eb-py-3 @[40rem]:eb-flex-row @[40rem]:eb-justify-end">
-                {canAddBeneficialOwnerRole ? (
-                  <Button
-                    variant="outlineSurface"
-                    size="sm"
-                    className="eb-w-full @[40rem]:eb-w-auto"
-                    onClick={onAddBeneficialOwnerRole}
-                  >
-                    <UserRoundPlusIcon />
-                    {t('roleChange.addOwner')}
-                  </Button>
-                ) : null}
-                {canRemove ? (
-                  <Button
-                    variant="outlineSurface"
-                    size="sm"
-                    className="eb-w-full @[40rem]:eb-w-auto"
-                    onClick={onRemove}
-                  >
-                    <UserRoundCogIcon />
-                    {t('removeParty.replaceController')}
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+          <MaintenanceRoleCard
+            partyRole="CONTROLLER"
+            state={controllerState}
+            icon={<UserRoundCogIcon />}
+            title={tString([
+              'common:partyRoles.CONTROLLER',
+            ] as unknown as TemplateStringsArray)}
+            status={roleStatus(controllerState)}
+            description={t('roleChange.controllerDescription')}
+            stateNote={roleStateNote(controllerState)}
+            actions={
+              canAddBeneficialOwnerRole ? (
+                <Button
+                  variant="outlineSurface"
+                  size="sm"
+                  className="eb-w-full @[40rem]:eb-w-auto"
+                  onClick={onAddBeneficialOwnerRole}
+                >
+                  <UserRoundPlusIcon />
+                  {t('roleChange.addOwner')}
+                </Button>
+              ) : null
+            }
+          />
         ) : null}
         {showsBeneficialOwner ? (
-          <div
-            data-role="BENEFICIAL_OWNER"
-            data-role-state={ownerState}
-            className={cn(
-              'eb-overflow-hidden eb-rounded-md eb-border eb-bg-background',
-              ownerState === 'pending-addition' &&
-                'eb-border-informative/70 eb-bg-informative-accent/40',
-              ownerState === 'pending-removal' &&
-                'eb-border-warning/60 eb-bg-warning-accent/40'
+          <MaintenanceRoleCard
+            partyRole="BENEFICIAL_OWNER"
+            state={ownerState}
+            icon={<UserRoundIcon />}
+            title={t(
+              hasIntermediaryInPath
+                ? 'roleChange.indirectOwnerTitle'
+                : 'roleChange.directOwnerTitle'
             )}
-          >
-            <div className="eb-px-4 eb-py-3">
-              <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-2">
-                <p className="eb-text-sm eb-font-medium">
-                  {t(
-                    hasIntermediaryInPath
-                      ? 'roleChange.indirectOwnerTitle'
-                      : 'roleChange.directOwnerTitle'
-                  )}
-                </p>
-                <RoleStatus
-                  state={ownerState}
-                  pendingAdditionLabel={tString('roleChange.pendingAddition')}
-                  pendingRemovalLabel={tString('roleChange.pendingRemoval')}
-                />
-              </div>
-              <p className="eb-mt-1 eb-text-xs eb-leading-5 eb-text-muted-foreground">
-                {t(
-                  hasIntermediaryInPath
-                    ? 'roleChange.indirectOwnerDescription'
-                    : 'roleChange.directOwnerDescription'
-                )}
-              </p>
-              {ownerState !== 'active' ? (
-                <div className="eb-mt-3 eb-flex eb-flex-col eb-gap-3 @[40rem]:eb-flex-row @[40rem]:eb-items-end @[40rem]:eb-justify-between">
-                  <p className="eb-max-w-2xl eb-text-xs eb-leading-5 eb-text-muted-foreground">
-                    {t(
-                      isPendingParty
-                        ? 'roleChange.pendingPartyRoleDescription'
-                        : ownerState === 'pending-addition'
-                          ? 'roleChange.pendingAdditionDescription'
-                          : 'roleChange.pendingRemovalDescription'
-                    )}
+            status={roleStatus(ownerState)}
+            description={t(
+              hasIntermediaryInPath
+                ? 'roleChange.indirectOwnerDescription'
+                : 'roleChange.directOwnerDescription'
+            )}
+            stateNote={roleStateNote(ownerState)}
+            detail={
+              ownershipPath.length > 1 ? (
+                <>
+                  <p className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-muted-foreground">
+                    {t('ownership.connectionChainTitle')}
                   </p>
-                  {canDiscardPendingOwnerChanges ? (
+                  <div className="eb-mt-2.5">
+                    <MaintenanceOwnershipChain
+                      steps={ownershipPath}
+                      finalLabel={tString(
+                        'ownership.connectionChainThisPerson'
+                      )}
+                    />
+                  </div>
+                </>
+              ) : null
+            }
+            actions={
+              showChangeToIndirect ||
+              onChangeConnection ||
+              showViewStructure ? (
+                <>
+                  {showChangeToIndirect ? (
                     <Button
                       variant="outlineSurface"
                       size="sm"
-                      className="eb-w-full eb-shrink-0 eb-border-destructive/50 eb-text-destructive hover:eb-bg-destructive-accent hover:eb-text-destructive @[40rem]:eb-w-auto"
-                      onClick={onDiscardPartyChanges}
+                      className="eb-w-full @[40rem]:eb-w-auto"
+                      onClick={onInsertIntermediary}
                     >
-                      <Trash2Icon />
-                      {t('roleChange.discardPartyDraft')}
+                      <WaypointsIcon />
+                      {t('roleChange.changeToIndirect')}
                     </Button>
                   ) : null}
-                </div>
-              ) : null}
-            </div>
-            {ownerState !== 'pending-removal' &&
-            (hasIntermediaryInPath || canManageOwnership) ? (
-              <div className="eb-border-t eb-bg-muted/15 eb-px-4 eb-py-3">
-                <div className="eb-grid eb-gap-3 @[40rem]:eb-grid-cols-[minmax(0,1fr)_auto] @[40rem]:eb-items-end">
-                  <div>
-                    <p className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-muted-foreground">
-                      {t(
-                        hasIntermediaryInPath
-                          ? 'roleChange.indirectRelationshipTitle'
-                          : 'roleChange.directRelationshipTitle'
-                      )}
-                    </p>
-                    <p className="eb-mt-1 eb-max-w-2xl eb-text-xs eb-leading-5 eb-text-muted-foreground">
-                      {hasIntermediaryInPath
-                        ? t('roleChange.indirectRelationshipDescription', {
-                            businesses:
-                              intermediaryList ||
-                              tString('ownership.intermediaryOwner'),
-                          })
-                        : t('roleChange.directRelationshipDescription')}
-                    </p>
-                  </div>
-                  {canManageOwnership ? (
-                    <div>
-                      {hasIntermediaryInPath ? (
-                        <Button
-                          variant="outlineSurface"
-                          size="sm"
-                          className="eb-w-full @[40rem]:eb-w-auto"
-                          onClick={onManageOwnership}
-                        >
-                          <NetworkIcon />
-                          {t('roleChange.reviewOwnershipPath')}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outlineSurface"
-                          size="sm"
-                          className="eb-w-full @[40rem]:eb-w-auto"
-                          onClick={onInsertIntermediary}
-                        >
-                          <NetworkIcon />
-                          {t('roleChange.changeToIndirect')}
-                        </Button>
-                      )}
-                    </div>
+                  {onChangeConnection ? (
+                    <Button
+                      variant="outlineSurface"
+                      size="sm"
+                      className="eb-w-full @[40rem]:eb-w-auto"
+                      onClick={onChangeConnection}
+                    >
+                      <ArrowRightLeftIcon />
+                      {t('ownershipEditor.moveAction')}
+                    </Button>
                   ) : null}
-                </div>
-              </div>
-            ) : null}
-            {!isController && canRemove && ownerState === 'active' ? (
-              <div className="eb-flex eb-flex-col eb-gap-2 eb-border-t eb-bg-muted/10 eb-px-4 eb-py-3 @[40rem]:eb-flex-row @[40rem]:eb-justify-end">
-                {!isController && canRemove && ownerState === 'active' ? (
-                  <Button
-                    variant="outlineSurface"
-                    size="sm"
-                    className="eb-w-full eb-border-destructive/50 eb-text-destructive hover:eb-bg-destructive-accent hover:eb-text-destructive @[40rem]:eb-w-auto"
-                    onClick={onRemove}
-                  >
-                    <Trash2Icon />
-                    {t('removeParty.action')}
-                  </Button>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+                  {showViewStructure ? (
+                    <Button
+                      variant="outlineSurface"
+                      size="sm"
+                      className="eb-w-full @[40rem]:eb-w-auto"
+                      onClick={onManageOwnership}
+                    >
+                      <NetworkIcon />
+                      {t('ownership.viewStructure')}
+                    </Button>
+                  ) : null}
+                </>
+              ) : null
+            }
+          />
         ) : null}
         {!showsController && !showsBeneficialOwner ? (
-          <p className="eb-px-4 eb-py-3 eb-text-sm eb-text-muted-foreground">
+          <p className="eb-rounded-md eb-border eb-border-dashed eb-border-border eb-px-4 eb-py-3 eb-text-sm eb-text-muted-foreground">
             {t('noRoles')}
           </p>
         ) : null}

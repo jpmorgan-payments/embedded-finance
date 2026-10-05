@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.17.15",
+  "version": "0.17.16",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -78,13 +78,11 @@
     "analyze": "vite build --mode analyze",
     "visualize": "vite-bundle-visualizer",
     "generate-api": "orval --config ./orval.config.mjs && npm run fix-generated-files && npm run prettify-generated-files",
-    "fix-generated-files": "node internal/fix-generated-files.mjs",
     "prettify-generated-files": "prettier --write \"./src/api/generated/*\"",
     "prettier": "prettier --check \"**/*.{ts,tsx}\"",
     "prettier:write": "prettier --write \"**/*.{ts,tsx}\"",
     "vitest": "vitest run",
-    "vitest:watch": "vitest",
-    "sanitize-lock": "node internal/sanitize-lock.mjs"
+    "vitest:watch": "vitest"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -110,7 +108,7 @@
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.14.7",
-    "axios": "^1.18.1",
+    "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
@@ -242,9 +240,9 @@
     "uuid": "^14.0.1",
     "dompurify": "^3.4.13",
     "esbuild": "0.28.1",
-    "fast-uri": "3.1.6",
+    "fast-uri": "3.1.7",
     "linkify-it": "5.0.2",
-    "markdown-it": "14.3.0",
+    "markdown-it": "14.3.1",
     "postcss-selector-parser": "6.1.3",
     "@babel/core": "7.29.7",
     "yaml": "2.9.0",
@@ -262,7 +260,7 @@
     "nanoid@^3.3.11": "3.3.18",
     "brace-expansion@^1.1.7": "1.1.18",
     "brace-expansion@^2.0.2": "2.1.4",
-    "brace-expansion@^5.0.5": "5.0.9"
+    "brace-expansion@^5.0.5": "5.0.12"
   },
   "repository": {
     "type": "git",

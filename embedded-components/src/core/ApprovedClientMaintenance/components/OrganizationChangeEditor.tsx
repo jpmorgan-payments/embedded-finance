@@ -24,6 +24,7 @@ import {
   type ApiFieldPathMap,
 } from '@/core/ClientProfile/forms/apiFieldErrors';
 import { getProfileValidationMessage } from '@/core/ClientProfile/forms/getProfileValidationMessage';
+import { ProfileReadonlyValue } from '@/core/ClientProfile/forms/ProfileReadonlyValue';
 import { ProfileSelectField } from '@/core/ClientProfile/forms/ProfileSelectField';
 import { ProfileTextareaField } from '@/core/ClientProfile/forms/ProfileTextareaField';
 import { ProfileTextField } from '@/core/ClientProfile/forms/ProfileTextField';
@@ -50,6 +51,8 @@ type OrganizationChangeEditorProps = {
   approvedValues: OrganizationMaintenanceValues;
   isSubmitting: boolean;
   mutationError?: unknown;
+  /** A pending addition can still change the fields the API locks once a business is approved. */
+  isPendingAddition?: boolean;
   onCancel: () => void;
   onSave: (request: MaintenancePartyUpdateRequest) => Promise<void>;
 };
@@ -86,8 +89,9 @@ export function OrganizationChangeEditor({
   variant,
   initialValues,
   approvedValues,
-  isSubmitting,
+  isSubmitting: isMutationPending,
   mutationError,
+  isPendingAddition = false,
   onCancel,
   onSave,
 }: OrganizationChangeEditorProps) {
@@ -97,6 +101,8 @@ export function OrganizationChangeEditor({
     'common',
   ]);
   const [formError, setFormError] = useState<string>();
+  // The API rejects these fields for approved businesses (10105).
+  const locksRegistration = !isPendingAddition;
   const { countryOptions, getSubdivisionOptions, organizationTypeOptions } =
     useMaintenanceFormOptions();
   const fieldValidationMessage = (
@@ -170,26 +176,23 @@ export function OrganizationChangeEditor({
     })
     .superRefine((values, context) => {
       if (variant === 'client') {
-        if (!/^(19|20)\d{2}$/.test(values.yearOfFormation)) {
+        const yearIssue = locksRegistration
+          ? undefined
+          : !/^(19|20)\d{2}$/.test(values.yearOfFormation)
+            ? 'format'
+            : Number(values.yearOfFormation) < 1800
+              ? 'min'
+              : Number(values.yearOfFormation) > currentYear
+                ? 'future'
+                : undefined;
+        if (yearIssue) {
           context.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['yearOfFormation'],
-            message: fieldValidationMessage('yearOfFormation', 'format'),
-          });
-        } else if (Number(values.yearOfFormation) < 1800) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['yearOfFormation'],
-            message: fieldValidationMessage('yearOfFormation', 'min'),
-          });
-        } else if (Number(values.yearOfFormation) > currentYear) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['yearOfFormation'],
-            message: fieldValidationMessage('yearOfFormation', 'future'),
+            message: fieldValidationMessage('yearOfFormation', yearIssue),
           });
         }
-        if (values.countryOfFormation !== 'US') {
+        if (!locksRegistration && values.countryOfFormation !== 'US') {
           context.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['countryOfFormation'],
@@ -263,9 +266,10 @@ export function OrganizationChangeEditor({
         }
       }
       const requiresEin =
-        variant === 'intermediary' ||
-        values.organizationType !== 'SOLE_PROPRIETORSHIP' ||
-        values.solePropHasEin === 'yes';
+        !locksRegistration &&
+        (variant === 'intermediary' ||
+          values.organizationType !== 'SOLE_PROPRIETORSHIP' ||
+          values.solePropHasEin === 'yes');
       const einValidationIssue = getEinValidationIssue(
         values.organizationId.value
       );
@@ -422,6 +426,8 @@ export function OrganizationChangeEditor({
       : String(field);
   };
 
+  const isSubmitting = isMutationPending || form.formState.isSubmitting;
+
   const submit = form.handleSubmit(async (values) => {
     setFormError(undefined);
     const submittedValues =
@@ -474,10 +480,10 @@ export function OrganizationChangeEditor({
         </Alert>
       ) : null}
       <Form {...form}>
-        <form onSubmit={submit} className="eb-space-y-6">
+        <form onSubmit={submit}>
           <fieldset
             disabled={isSubmitting}
-            className="eb-mx-auto eb-w-full eb-max-w-3xl eb-space-y-6 eb-px-4"
+            className="eb-mx-auto eb-w-full eb-max-w-3xl"
           >
             <MaintenanceFormSection
               title={t('organizationDetails.identityGroup')}
@@ -543,10 +549,15 @@ export function OrganizationChangeEditor({
                     placeholder={tString(
                       'onboarding-overview:fields.yearOfFormation.placeholder'
                     )}
-                    description={t(
-                      'onboarding-overview:fields.yearOfFormation.description'
-                    )}
+                    description={
+                      locksRegistration
+                        ? t('editor.lockedField')
+                        : t(
+                            'onboarding-overview:fields.yearOfFormation.description'
+                          )
+                    }
                     inputProps={{ maxLength: 4, inputMode: 'numeric' }}
+                    readonly={locksRegistration}
                     restoreAction={getScalarRestoreAction('yearOfFormation')}
                     required
                   />
@@ -561,12 +572,33 @@ export function OrganizationChangeEditor({
                   placeholder={tString('form.selectCountry')}
                   searchPlaceholder={tString('form.searchCountries')}
                   noResultsLabel={tString('form.noResults')}
+                  description={
+                    locksRegistration ? t('editor.lockedField') : undefined
+                  }
                   searchable
                   readonly
                   required
                 />
               </div>
-              {variant === 'client' &&
+              {locksRegistration ? (
+                <div className="eb-space-y-2">
+                  <p className="eb-text-sm eb-font-medium">
+                    {t('onboarding-overview:fields.organizationIdEin.label')}
+                  </p>
+                  <ProfileReadonlyValue
+                    value={
+                      approvedValues.organizationId.value
+                        ? `••••${approvedValues.organizationId.value.slice(-4)}`
+                        : tString('notProvided')
+                    }
+                  />
+                  <p className="eb-text-xs eb-text-muted-foreground">
+                    {t('editor.lockedField')}
+                  </p>
+                </div>
+              ) : null}
+              {!locksRegistration &&
+              variant === 'client' &&
               form.watch('organizationType') === 'SOLE_PROPRIETORSHIP' ? (
                 <FormField
                   control={form.control}
@@ -611,9 +643,10 @@ export function OrganizationChangeEditor({
                   )}
                 />
               ) : null}
-              {variant === 'intermediary' ||
-              form.watch('organizationType') !== 'SOLE_PROPRIETORSHIP' ||
-              form.watch('solePropHasEin') === 'yes' ? (
+              {!locksRegistration &&
+              (variant === 'intermediary' ||
+                form.watch('organizationType') !== 'SOLE_PROPRIETORSHIP' ||
+                form.watch('solePropHasEin') === 'yes') ? (
                 <ProfileTextField
                   control={form.control}
                   name="organizationId.value"

@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { ChevronRightIcon } from 'lucide-react';
 
+import { useIsMaintenanceNavigatorVisible } from './MaintenanceNavigatorVisibleContext';
+
 export type MaintenanceBreadcrumbItem = {
   label: ReactNode;
   onSelect?: () => void;
@@ -15,6 +17,10 @@ export function MaintenanceBreadcrumb({
   items,
   ariaLabel,
 }: MaintenanceBreadcrumbProps) {
+  const isNavigatorVisible = useIsMaintenanceNavigatorVisible();
+  // The navigator sidebar already provides location and wayfinding.
+  if (isNavigatorVisible) return null;
+
   return (
     <nav
       aria-label={ariaLabel}
