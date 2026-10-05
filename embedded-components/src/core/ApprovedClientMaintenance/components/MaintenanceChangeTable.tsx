@@ -24,6 +24,24 @@ export function MaintenanceChangeTable({
 
   if (changes.length === 0) return null;
 
+  const formatValue = (
+    change: PartyFieldChange,
+    rawValue: unknown,
+    displayValue: string
+  ) =>
+    change.field === 'roles' && Array.isArray(rawValue)
+      ? rawValue
+          .map((role) =>
+            tString(
+              [
+                `common:partyRoles.${String(role)}`,
+              ] as unknown as TemplateStringsArray,
+              { defaultValue: String(role) }
+            )
+          )
+          .join(', ')
+      : displayValue;
+
   return (
     <div>
       <div className="eb-hidden eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] eb-gap-3 eb-border-b eb-bg-muted/30 eb-px-4 eb-py-2 @[40rem]:eb-grid">
@@ -42,24 +60,13 @@ export function MaintenanceChangeTable({
           const fieldLabel = tString([
             change.labelKey,
           ] as unknown as TemplateStringsArray);
-          const formatValue = (rawValue: unknown, displayValue: string) =>
-            change.field === 'roles' && Array.isArray(rawValue)
-              ? rawValue
-                  .map((role) =>
-                    tString(
-                      [
-                        `common:partyRoles.${String(role)}`,
-                      ] as unknown as TemplateStringsArray,
-                      { defaultValue: String(role) }
-                    )
-                  )
-                  .join(', ')
-              : displayValue;
           const approvedDisplayValue = formatValue(
+            change,
             change.approvedRawValue,
             change.approvedValue
           );
           const proposedDisplayValue = formatValue(
+            change,
             change.proposedRawValue,
             change.proposedValue
           );

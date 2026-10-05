@@ -240,6 +240,9 @@
     "optional": "(Facultatif)",
     "selectPlaceholder": "Sélectionner un type de document",
     "uploadDocument": "Téléverser un document",
+    "addAnotherDocument": "Ajouter un autre document",
+    "documentType": "Type de document",
+    "removeDocument": "Retirer le document {{number}}",
     "partyCard": {
       "statusLabels": {
         "pending": "En attente",

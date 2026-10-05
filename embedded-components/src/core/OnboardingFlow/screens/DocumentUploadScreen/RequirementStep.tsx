@@ -4,8 +4,14 @@ import {
   CheckCircleIcon,
   ChevronDownIcon,
   CircleDashedIcon,
+  PlusIcon,
 } from 'lucide-react';
-import { Control, FieldValues, UseFormWatch } from 'react-hook-form';
+import {
+  Control,
+  FieldValues,
+  useFormContext,
+  UseFormWatch,
+} from 'react-hook-form';
 
 import {
   DocumentRequestResponse,
@@ -17,7 +23,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Separator } from '@/components/ui';
+import { Button, Separator } from '@/components/ui';
 import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingFlow/config';
 
 import { DocumentUploadField } from './DocumentUploadField';
@@ -91,10 +97,17 @@ export const RequirementStep: FC<RequirementStepProps> = ({
   isOnlyRequirement = false,
 }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
+  const { unregister } = useFormContext();
 
   const [accordionValue, setAccordionValue] = useState<string | undefined>(
     isActive ? `req-${requirementIndex}` : undefined
   );
+  // Optional fields the user added beyond the required count.
+  const [addedFieldCount, setAddedFieldCount] = useState(0);
+
+  useEffect(() => {
+    setAddedFieldCount(0);
+  }, [resetKey]);
 
   // Effect to control accordion open state when isActive changes to true
   // but not force it to close when isActive changes to false
@@ -110,20 +123,42 @@ export const RequirementStep: FC<RequirementStepProps> = ({
     requirement as typeof requirement & { description?: string }
   ).description;
 
-  // Filter document types to only include ones not yet satisfied or currently selected
-  const availableDocTypes = requirement.documentTypes.filter((docType) => {
-    const docTypeStr = docType as DocumentTypeSmbdo;
+  const requiredFieldCount = requirement.minRequired || 1;
+  const fieldCount = Math.max(
+    numFieldsToShow,
+    requiredFieldCount + addedFieldCount
+  );
+  const getFieldName = (kind: 'docType' | 'files', uploadIndex: number) =>
+    `${documentRequest.id}.requirement_${requirementIndex}_${kind}${uploadIndex > 0 ? `_${uploadIndex}` : ''}`;
+  const selectedDocTypes = Array.from(
+    { length: fieldCount },
+    (_, uploadIndex) => watch(getFieldName('docType', uploadIndex))
+  );
 
-    // Check if this document type is currently selected in any field
-    const isSelectedInForm = Array.from({ length: numFieldsToShow }).some(
-      (_, idx) => {
-        const fieldName = `${documentRequest.id}.requirement_${requirementIndex}_docType${idx > 0 ? `_${idx}` : ''}`;
-        return watch(fieldName) === docTypeStr;
-      }
+  // Each field offers its own type plus types no other field has taken.
+  const getAvailableDocTypes = (uploadIndex: number) =>
+    (requirement.documentTypes as DocumentTypeSmbdo[]).filter(
+      (docType) =>
+        selectedDocTypes[uploadIndex] === docType ||
+        (!selectedDocTypes.includes(docType) &&
+          !satisfiedDocTypes.includes(docType))
+    );
+  const canAddField =
+    selectedDocTypes.every(Boolean) &&
+    (requirement.documentTypes as DocumentTypeSmbdo[]).some(
+      (docType) =>
+        !selectedDocTypes.includes(docType) &&
+        !satisfiedDocTypes.includes(docType)
     );
 
-    return !satisfiedDocTypes.includes(docTypeStr) || isSelectedInForm;
-  });
+  const removeLastField = () => {
+    const uploadIndex = fieldCount - 1;
+    unregister([
+      getFieldName('docType', uploadIndex),
+      getFieldName('files', uploadIndex),
+    ]);
+    setAddedFieldCount((count) => Math.max(count - 1, 0));
+  };
 
   // Calculate displayed document types list (specific to this requirement or fallback to all satisfied)
   const displayedDocTypes =
@@ -142,7 +177,7 @@ export const RequirementStep: FC<RequirementStepProps> = ({
           {requirementDescription}
         </h4>
       ) : null}
-      {Array.from({ length: numFieldsToShow }).map((_, uploadIndex) => (
+      {Array.from({ length: fieldCount }).map((_, uploadIndex) => (
         <Fragment
           key={`${documentRequest.id}-${requirementIndex}-${uploadIndex}-${resetKey}`}
         >
@@ -150,18 +185,37 @@ export const RequirementStep: FC<RequirementStepProps> = ({
             documentRequestId={documentRequest.id || ''}
             requirementIndex={requirementIndex}
             uploadIndex={uploadIndex}
-            availableDocTypes={availableDocTypes as DocumentTypeSmbdo[]}
+            availableDocTypes={getAvailableDocTypes(uploadIndex)}
             control={control}
-            isReadOnly={isPastRequirement}
-            isOptional={requirement.minRequired === 0}
+            isReadOnly={isPastRequirement && uploadIndex < requiredFieldCount}
+            isOptional={
+              requirement.minRequired === 0 || uploadIndex >= requiredFieldCount
+            }
             maxFileSizeBytes={maxFileSizeBytes}
-            isOnlyFieldShown={numFieldsToShow === 1}
+            isOnlyFieldShown={fieldCount === 1}
+            onRemove={
+              addedFieldCount > 0 &&
+              uploadIndex === fieldCount - 1 &&
+              uploadIndex >= requiredFieldCount
+                ? removeLastField
+                : undefined
+            }
           />
-          {uploadIndex < numFieldsToShow - 1 && (
-            <Separator className="eb-my-6" />
-          )}
+          {uploadIndex < fieldCount - 1 && <Separator className="eb-my-6" />}
         </Fragment>
       ))}
+      {canAddField ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="eb-mt-4"
+          onClick={() => setAddedFieldCount((count) => count + 1)}
+        >
+          <PlusIcon />
+          {t('onboarding-overview:documentUpload.addAnotherDocument')}
+        </Button>
+      ) : null}
     </>
   );
   if (isOnlyRequirement) {

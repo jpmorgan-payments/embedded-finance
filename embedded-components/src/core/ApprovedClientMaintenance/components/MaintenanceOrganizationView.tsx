@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import {
+  AlertTriangleIcon,
   ArrowRightIcon,
   CircleMinusIcon,
   CirclePlusIcon,
   PencilIcon,
+  Trash2Icon,
   Undo2Icon,
 } from 'lucide-react';
 
@@ -13,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Skeleton } from '@/components/ui';
 
+import type { MaintenanceParty } from '../models/maintenanceApi.types';
 import type {
   OrganizationMaintenanceEntityTask,
   PartyMaintenanceEntityTask,
@@ -25,6 +28,7 @@ import { MaintenanceChangeStatusIcon } from './MaintenanceChangeStatusIcon';
 import { MaintenanceChangeTable } from './MaintenanceChangeTable';
 import { MaintenanceDetailsGroup } from './MaintenanceDetailsGroup';
 import { MaintenanceDocumentRequestRow } from './MaintenanceDocumentRequestRow';
+import { MaintenanceIntermediaryOwnershipSection } from './MaintenanceIntermediaryOwnershipSection';
 import { MaintenanceSection } from './MaintenanceSection';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
 
@@ -36,11 +40,20 @@ type MaintenanceOrganizationViewProps = {
   breadcrumbs: MaintenanceBreadcrumbItem[];
   canEdit: boolean;
   canCancel: boolean;
+  clientPartyId?: string;
+  clientName?: string;
+  ownershipParties?: MaintenanceParty[];
+  canRemoveIntermediary?: boolean;
   onBack: () => void;
   onEdit: () => void;
   onViewRequestDetails: () => void;
   onCancelChanges: () => void;
+  onRemoveIntermediary?: () => void;
+  onViewOwnership?: () => void;
+  onChangeConnection?: () => void;
   onSelectDocument: (documentRequestId: string) => void;
+  ownershipPath?: string[];
+  backLabel: string;
 };
 
 const formatEnumLabel = (value: string) =>
@@ -61,11 +74,20 @@ export function MaintenanceOrganizationView({
   breadcrumbs,
   canEdit,
   canCancel,
+  clientPartyId,
+  clientName,
+  ownershipParties,
+  canRemoveIntermediary = false,
   onBack,
   onEdit,
   onViewRequestDetails,
   onCancelChanges,
+  onRemoveIntermediary,
+  onViewOwnership,
+  onChangeConnection,
   onSelectDocument,
+  ownershipPath = [],
+  backLabel,
 }: MaintenanceOrganizationViewProps) {
   const { t, tString } = useTranslationWithTokens([
     'approved-client-maintenance',
@@ -75,6 +97,7 @@ export function MaintenanceOrganizationView({
   const headingRef = useRef<HTMLHeadingElement>(null);
   const isPendingAddition =
     'isPendingAddition' in task && task.isPendingAddition;
+  const isUnreviewed = 'isUnreviewed' in task && task.isUnreviewed;
   const displayedParty = isPendingAddition ? task.proposedParty : task.party;
   const updateStatus = task.change?.proposal.updateRequest?.status;
   const isPendingRemoval = task.change?.removesParty ?? false;
@@ -99,21 +122,25 @@ export function MaintenanceOrganizationView({
   const organization = displayedParty?.organizationDetails;
   const organizationName =
     organization?.organizationName ?? tString('notProvided');
-  const address = organization?.addresses?.[0];
+  const address =
+    organization?.addresses?.find(
+      (candidate) => candidate.addressType === 'LEGAL_ADDRESS'
+    ) ?? organization?.addresses?.[0];
+  const addressCountryLabel = address?.country
+    ? tString(
+        [
+          `common:countries.${address.country}`,
+        ] as unknown as TemplateStringsArray,
+        { defaultValue: address.country }
+      )
+    : undefined;
   const addressValue = address
     ? [
         ...(address.addressLines ?? []),
         [address.city, address.state, address.postalCode]
           .filter(Boolean)
           .join(', '),
-        address.country
-          ? tString(
-              [
-                `common:countries.${address.country}`,
-              ] as unknown as TemplateStringsArray,
-              { defaultValue: address.country }
-            )
-          : undefined,
+        addressCountryLabel,
       ]
         .filter(Boolean)
         .join('\n')
@@ -206,6 +233,36 @@ export function MaintenanceOrganizationView({
       multiline: true,
     },
   ];
+  const legalAddressDetails = [
+    {
+      label: t('organizationDetails.addressLine1'),
+      value: address?.addressLines?.[0],
+    },
+    ...((address?.addressLines?.length ?? 0) > 1
+      ? [
+          {
+            label: t('organizationDetails.addressLine2'),
+            value: address!.addressLines!.slice(1).join(', '),
+          },
+        ]
+      : []),
+    {
+      label: t('organizationDetails.city'),
+      value: address?.city,
+    },
+    {
+      label: t('organizationDetails.state'),
+      value: address?.state,
+    },
+    {
+      label: t('organizationDetails.postalCode'),
+      value: address?.postalCode,
+    },
+    {
+      label: t('organizationDetails.country'),
+      value: addressCountryLabel,
+    },
+  ];
   const hasRequirements =
     task.documentRequests.length > 0 ||
     task.unresolvedDocumentRequestIds.length > 0 ||
@@ -255,7 +312,8 @@ export function MaintenanceOrganizationView({
       className={cn(
         'eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background',
         isPendingAddition && 'eb-border-informative/60',
-        isPendingRemoval && 'eb-border-warning/60'
+        isPendingRemoval && 'eb-border-destructive/50',
+        isUnreviewed && 'eb-border-warning/60'
       )}
     >
       <header
@@ -263,7 +321,9 @@ export function MaintenanceOrganizationView({
           'eb-border-b eb-px-4 eb-py-4',
           isPendingAddition &&
             'eb-border-informative/50 eb-bg-informative-accent/40',
-          isPendingRemoval && 'eb-border-warning/50 eb-bg-warning-accent/40'
+          isPendingRemoval &&
+            'eb-border-destructive/50 eb-bg-destructive-accent/40',
+          isUnreviewed && 'eb-border-warning/50 eb-bg-warning-accent/40'
         )}
       >
         <MaintenanceBreadcrumb
@@ -272,7 +332,12 @@ export function MaintenanceOrganizationView({
         />
         <div className="eb-flex eb-flex-wrap eb-items-start eb-justify-between eb-gap-4">
           <div className="eb-min-w-0">
-            {isPendingAddition ? (
+            {isUnreviewed ? (
+              <p className="eb-mb-1 eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-warning-foreground">
+                <AlertTriangleIcon className="eb-size-3.5" aria-hidden="true" />
+                {t('unreviewed.title')}
+              </p>
+            ) : isPendingAddition ? (
               <p className="eb-mb-1 eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-informative">
                 {isAdditionUnderReview ? (
                   <MaintenanceChangeStatusIcon
@@ -287,7 +352,7 @@ export function MaintenanceOrganizationView({
                   : t('status.PENDING_ADDITION')}
               </p>
             ) : isPendingRemoval ? (
-              <p className="eb-mb-1 eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-warning-foreground">
+              <p className="eb-mb-1 eb-inline-flex eb-items-center eb-gap-1.5 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-destructive">
                 <CircleMinusIcon className="eb-size-3.5" aria-hidden="true" />
                 {t('status.PENDING_REMOVAL')}
               </p>
@@ -300,14 +365,39 @@ export function MaintenanceOrganizationView({
               {organizationName}
             </h2>
             <p className="eb-mt-1 eb-max-w-2xl eb-text-sm eb-leading-5 eb-text-muted-foreground">
-              {isPendingAddition
-                ? t('pendingAddition.businessDescription')
-                : isIntermediary
-                  ? t('ownership.intermediaryOwner')
-                  : t('flow.businessInformation')}
+              {isUnreviewed
+                ? t('unreviewed.description')
+                : isPendingAddition
+                  ? t('pendingAddition.businessDescription')
+                  : isPendingRemoval
+                    ? t('removeIntermediary.description')
+                    : isIntermediary
+                      ? t('ownership.intermediaryOwner')
+                      : t('organization')}
             </p>
           </div>
-          {isPendingAddition ? (
+          {isPendingRemoval ? (
+            <div className="eb-flex eb-w-full eb-flex-col eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-flex-row">
+              <Button
+                variant="outlineSurface"
+                size="sm"
+                onClick={onViewRequestDetails}
+              >
+                {t('requestDetails.viewFullRequest')}
+                <ArrowRightIcon />
+              </Button>
+              {canCancel ? (
+                <Button
+                  variant="outlineSurface"
+                  size="sm"
+                  onClick={onCancelChanges}
+                >
+                  <Undo2Icon />
+                  {t('pendingRemoval.cancel')}
+                </Button>
+              ) : null}
+            </div>
+          ) : isPendingAddition ? (
             <div className="eb-flex eb-w-full eb-flex-col eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-flex-row">
               <Button
                 variant="outlineSurface"
@@ -335,11 +425,32 @@ export function MaintenanceOrganizationView({
                 </Button>
               ) : null}
             </div>
+          ) : !task.change &&
+            (canEdit || (isIntermediary && canRemoveIntermediary)) ? (
+            <div className="eb-flex eb-w-full eb-flex-wrap eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-justify-end">
+              {canEdit ? (
+                <Button variant="outlineSurface" size="sm" onClick={onEdit}>
+                  <PencilIcon />
+                  {t('placeholders.editBusiness')}
+                </Button>
+              ) : null}
+              {isIntermediary && canRemoveIntermediary ? (
+                <Button
+                  variant="outlineSurface"
+                  size="sm"
+                  className="eb-border-destructive/50 eb-text-destructive hover:eb-bg-destructive-accent hover:eb-text-destructive"
+                  onClick={onRemoveIntermediary}
+                >
+                  <Trash2Icon />
+                  {t('removeIntermediary.action')}
+                </Button>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </header>
 
-      {task.change && !isPendingAddition ? (
+      {task.change && !isPendingAddition && !isPendingRemoval ? (
         <MaintenanceSection
           id="organization-updates-heading"
           title={updateHeading}
@@ -409,7 +520,9 @@ export function MaintenanceOrganizationView({
         </MaintenanceSection>
       ) : null}
 
-      {!task.change && !isPendingAddition && hasRequirements ? (
+      {(!task.change || isPendingRemoval) &&
+      !isPendingAddition &&
+      hasRequirements ? (
         <MaintenanceSection
           id="organization-requirements-heading"
           title={t('entity.documentRequest')}
@@ -437,14 +550,6 @@ export function MaintenanceOrganizationView({
               ? t('pendingAddition.businessDetailsTitle')
               : t('organizationDetails.title')}
           </h3>
-          <div className="eb-flex eb-flex-wrap eb-gap-2">
-            {!isPendingAddition && !task.change && canEdit ? (
-              <Button variant="outlineSurface" size="sm" onClick={onEdit}>
-                <PencilIcon />
-                {t('placeholders.editBusiness')}
-              </Button>
-            ) : null}
-          </div>
         </div>
         <div className="eb-mt-2">
           <MaintenanceDetailsGroup
@@ -473,22 +578,26 @@ export function MaintenanceOrganizationView({
                 ? t('ownership.legalAddress')
                 : t('organizationDetails.contactGroup')
             }
-            details={
-              isIntermediary
-                ? contactDetails.filter(
-                    (detail) =>
-                      detail.label ===
-                      tString(
-                        'onboarding-overview:fields.organizationAddress.label.default'
-                      )
-                  )
-                : contactDetails
-            }
+            details={isIntermediary ? legalAddressDetails : contactDetails}
             notProvided={tString('notProvided')}
             unframed
           />
         </div>
       </section>
+      {isIntermediary &&
+      clientPartyId &&
+      clientName &&
+      displayedParty?.id &&
+      ownershipParties ? (
+        <MaintenanceIntermediaryOwnershipSection
+          clientName={clientName}
+          intermediaryPartyId={displayedParty.id}
+          parties={ownershipParties}
+          ownershipPath={ownershipPath}
+          onViewOwnership={onViewOwnership}
+          onChangeConnection={onChangeConnection}
+        />
+      ) : null}
       {isPendingAddition && hasRequirements ? (
         <MaintenanceSection
           id="organization-pending-requirements-heading"
@@ -499,10 +608,7 @@ export function MaintenanceOrganizationView({
           {requirementsContent}
         </MaintenanceSection>
       ) : null}
-      <MaintenanceViewNavigation
-        backLabel={tString('submission.backToProfile')}
-        onBack={onBack}
-      />
+      <MaintenanceViewNavigation backLabel={backLabel} onBack={onBack} />
     </div>
   );
 }

@@ -20,6 +20,7 @@ import {
 } from '@/core/ClientProfile/forms/apiFieldErrors';
 import { getProfileValidationMessage } from '@/core/ClientProfile/forms/getProfileValidationMessage';
 import { ProfileImportantDateField } from '@/core/ClientProfile/forms/ProfileImportantDateField';
+import { ProfileReadonlyValue } from '@/core/ClientProfile/forms/ProfileReadonlyValue';
 import { ProfileSelectField } from '@/core/ClientProfile/forms/ProfileSelectField';
 import { ProfileTextField } from '@/core/ClientProfile/forms/ProfileTextField';
 import type { IndividualLegalNameValues } from '@/core/ClientProfile/models/individualLegalName.types';
@@ -55,6 +56,8 @@ type PartyChangeEditorProps = {
   isSubmitting: boolean;
   mutationError?: unknown;
   lockedCountry?: string;
+  /** A pending addition can still change the fields the API locks once a person is approved. */
+  isPendingAddition?: boolean;
   onDiscard: () => void;
   onSave: (
     values: IndividualMaintenanceValues,
@@ -101,9 +104,10 @@ export function PartyChangeEditor({
   approvedValues,
   approvedAddresses,
   approvedIndividualIds,
-  isSubmitting,
+  isSubmitting: isMutationPending,
   mutationError,
   lockedCountry,
+  isPendingAddition = false,
   onDiscard,
   onSave,
 }: PartyChangeEditorProps) {
@@ -113,6 +117,8 @@ export function PartyChangeEditor({
     'common',
   ]);
   const [formError, setFormError] = useState<string>();
+  // The API rejects these fields for approved people (10105).
+  const locksIdentity = !isPendingAddition;
   const getValidationMessage = (
     field: string,
     messageKey: string,
@@ -138,29 +144,35 @@ export function PartyChangeEditor({
           );
         }
       ),
-      nameSuffix: z
-        .string()
-        .max(5, getValidationMessage('controllerNameSuffix', 'maxLength'))
-        .refine(
-          (value) => value === '' || SUFFIX_PATTERN.test(value),
-          getValidationMessage('controllerNameSuffix', 'pattern')
-        ),
+      nameSuffix: locksIdentity
+        ? z.string()
+        : z
+            .string()
+            .max(5, getValidationMessage('controllerNameSuffix', 'maxLength'))
+            .refine(
+              (value) => value === '' || SUFFIX_PATTERN.test(value),
+              getValidationMessage('controllerNameSuffix', 'pattern')
+            ),
       birthDate: z.string(),
-      countryOfResidence: z
-        .string()
-        .min(1, getValidationMessage('countryOfResidence', 'required'))
-        .length(
-          2,
-          getValidationMessage('countryOfResidence', 'exactlyTwoChars')
-        ),
-      individualId: z.object({
-        idType: z
-          .string()
-          .min(1, getValidationMessage('controllerIds.idType', 'required')),
-        value: z
-          .string()
-          .min(1, getValidationMessage('controllerIds.value', 'required')),
-      }),
+      countryOfResidence: locksIdentity
+        ? z.string()
+        : z
+            .string()
+            .min(1, getValidationMessage('countryOfResidence', 'required'))
+            .length(
+              2,
+              getValidationMessage('countryOfResidence', 'exactlyTwoChars')
+            ),
+      individualId: locksIdentity
+        ? z.object({ idType: z.string(), value: z.string() })
+        : z.object({
+            idType: z
+              .string()
+              .min(1, getValidationMessage('controllerIds.idType', 'required')),
+            value: z
+              .string()
+              .min(1, getValidationMessage('controllerIds.value', 'required')),
+          }),
       jobTitle: z
         .string()
         .min(1, getValidationMessage('controllerJobTitle', 'required')),
@@ -216,10 +228,12 @@ export function PartyChangeEditor({
           ),
         });
       }
-      const taxIdIssue = getIndividualTaxIdValidationIssue(
-        values.individualId.idType,
-        values.individualId.value
-      );
+      const taxIdIssue = locksIdentity
+        ? undefined
+        : getIndividualTaxIdValidationIssue(
+            values.individualId.idType,
+            values.individualId.value
+          );
       if (taxIdIssue) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
@@ -260,7 +274,10 @@ export function PartyChangeEditor({
   });
   useEffect(() => {
     if (!lockedCountry) return;
-    if (form.getValues('countryOfResidence') !== lockedCountry) {
+    if (
+      !locksIdentity &&
+      form.getValues('countryOfResidence') !== lockedCountry
+    ) {
       form.setValue('countryOfResidence', lockedCountry, {
         shouldDirty: true,
         shouldValidate: true,
@@ -272,7 +289,7 @@ export function PartyChangeEditor({
         shouldValidate: true,
       });
     }
-  }, [form, lockedCountry]);
+  }, [form, lockedCountry, locksIdentity]);
   useEffect(() => {
     if (mutationError) {
       applyApiFieldErrors(form, mutationError, PARTY_API_FIELD_PATHS);
@@ -411,6 +428,8 @@ export function PartyChangeEditor({
         }
       : undefined;
 
+  const isSubmitting = isMutationPending || form.formState.isSubmitting;
+
   const submit = form.handleSubmit(async (values) => {
     setFormError(undefined);
     const nextUpdate = buildIndividualPartyUpdate(
@@ -463,7 +482,7 @@ export function PartyChangeEditor({
       <Form {...form}>
         <form onSubmit={submit}>
           <fieldset
-            className="eb-mx-auto eb-w-full eb-max-w-3xl eb-px-4"
+            className="eb-mx-auto eb-w-full eb-max-w-3xl"
             disabled={isSubmitting}
           >
             <MaintenanceFormSection
@@ -526,10 +545,15 @@ export function PartyChangeEditor({
                 placeholder={tString(
                   'onboarding-overview:fields.controllerNameSuffix.placeholder'
                 )}
-                description={t(
-                  'onboarding-overview:fields.controllerNameSuffix.description'
-                )}
+                description={
+                  locksIdentity
+                    ? t('editor.lockedField')
+                    : t(
+                        'onboarding-overview:fields.controllerNameSuffix.description'
+                      )
+                }
                 optionalLabel={t('common:optional')}
+                readonly={locksIdentity}
                 restoreAction={getRestoreAction('nameSuffix')}
                 className="eb-max-w-48"
               />
@@ -555,20 +579,44 @@ export function PartyChangeEditor({
                 noResultsLabel={tString('form.noResults')}
                 searchable
                 required
-                readonly={Boolean(lockedCountry)}
-                description={t(
-                  'onboarding-overview:fields.countryOfResidence.description.owner'
-                )}
+                readonly={locksIdentity || Boolean(lockedCountry)}
+                description={
+                  locksIdentity
+                    ? t('editor.lockedField')
+                    : t(
+                        'onboarding-overview:fields.countryOfResidence.description.owner'
+                      )
+                }
                 restoreAction={countryRestoreAction}
               />
-              <ProfileIdentityFields
-                control={form.control}
-                countryName="countryOfResidence"
-                idTypeName="individualId.idType"
-                idValueName="individualId.value"
-                content={identityContent}
-                restoreAction={identityRestoreAction}
-              />
+              {locksIdentity ? (
+                <div className="eb-space-y-2">
+                  <p className="eb-text-sm eb-font-medium">
+                    {identityContent.idValue[
+                      approvedValues.individualId.idType
+                    ] ?? identityContent.idType}
+                  </p>
+                  <ProfileReadonlyValue
+                    value={
+                      approvedValues.individualId.value
+                        ? `••••${approvedValues.individualId.value.slice(-4)}`
+                        : tString('notProvided')
+                    }
+                  />
+                  <p className="eb-text-xs eb-text-muted-foreground">
+                    {t('editor.lockedField')}
+                  </p>
+                </div>
+              ) : (
+                <ProfileIdentityFields
+                  control={form.control}
+                  countryName="countryOfResidence"
+                  idTypeName="individualId.idType"
+                  idValueName="individualId.value"
+                  content={identityContent}
+                  restoreAction={identityRestoreAction}
+                />
+              )}
             </MaintenanceFormSection>
 
             <MaintenanceFormSection

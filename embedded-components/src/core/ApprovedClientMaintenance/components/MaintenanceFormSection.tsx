@@ -17,7 +17,7 @@ export function MaintenanceFormSection({
     <section
       role="group"
       aria-labelledby={headingId}
-      className={`eb-grid eb-gap-4 eb-py-6 @[48rem]:eb-grid-cols-[minmax(9rem,0.8fr)_minmax(0,2fr)] @[48rem]:eb-gap-8 ${
+      className={`eb-grid eb-gap-4 eb-py-6 first:eb-border-t-0 first:eb-pt-0 @[48rem]:eb-grid-cols-[minmax(9rem,0.8fr)_minmax(0,2fr)] @[48rem]:eb-gap-8 ${
         divided ? 'eb-border-t' : ''
       }`}
     >

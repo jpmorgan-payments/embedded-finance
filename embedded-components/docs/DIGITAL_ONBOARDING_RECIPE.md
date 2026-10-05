@@ -91,14 +91,14 @@ autonumber
         P->>+J: GET /document-requests/{id} from (3) outstanding/documentRequestIds
         P->>+J: GET /questions?id={id} from (3) outstanding/questionIds
         alt Creating/Updating Parties separately
-            P->>J: POST /parties, POST /parties/{id} with additional info
-            P->>J: POST /clients/{id} with addParties and questionResponses sections
+            P->>J: POST /parties, PATCH /parties/{id} with additional info
+            P->>J: PATCH /clients/{id} with addParties and questionResponses sections
         else Updating client inline
-            P->>J: POST /clients/{id} with addParties and questionResponses sections
+            P->>J: PATCH /clients/{id} with addParties and questionResponses sections
         end
 
     end
-    P->>J: POST /clients/{id} with addAttestations section
+    P->>J: PATCH /clients/{id} with addAttestations section
     P->>J: POST /clients/{id}/verifications initiate due diligence and verification checks to complete onboarding
     loop
         P->>J: Check onboarding status using GET /clients/{id}
@@ -168,7 +168,7 @@ In the case that a client ID is not provided, the above form will make a `POST /
 ### API Operations
 
 - Use `GET /clients/:id` to fetch existing client data.
-- Use `POST /clients/:id` to update client information.
+- Use `PATCH /clients/:id` to update client information.
 
 ### Hooks
 
@@ -389,7 +389,7 @@ export function setApiFormErrors(
 
 ### API Operations
 
-- Use `POST /clients/:id` to update client information with related parties.
+- Use `PATCH /clients/:id` to update client information with related parties.
 
 ### Hooks
 
@@ -410,7 +410,7 @@ const { mutate: updateClient } = useUpdateClient();
 
 - Use `GET /clients/:id` to fetch outstanding questions.
 - Use `GET /questions?questionIds=<comma-separated-question-ids>` to fetch question details.
-- Use `POST /clients/:id` to submit question responses.
+- Use `PATCH /clients/:id` to submit question responses.
 
 ### Hooks
 

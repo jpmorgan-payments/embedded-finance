@@ -14,6 +14,8 @@ import {
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button } from '@/components/ui';
 
+import { usePendingAction } from '../hooks/usePendingAction';
+
 export function RemoveRelatedPartyDialog({
   open,
   name,
@@ -21,7 +23,6 @@ export function RemoveRelatedPartyDialog({
   error,
   replacementRequired,
   controllerIsBeneficialOwner,
-  canAddReplacement,
   replacementAlreadyAdded,
   onOpenChange,
   onConfirm,
@@ -33,13 +34,14 @@ export function RemoveRelatedPartyDialog({
   error?: unknown;
   replacementRequired: boolean;
   controllerIsBeneficialOwner: boolean;
-  canAddReplacement: boolean;
   replacementAlreadyAdded: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void>;
   onAddReplacement: (remainsBeneficialOwner: boolean) => void | Promise<void>;
 }) {
   const { t } = useTranslationWithTokens('approved-client-maintenance');
+  const replacement = usePendingAction<'replace'>();
+  const { reset: resetReplacement } = replacement;
   const [remainsBeneficialOwner, setRemainsBeneficialOwner] = useState<
     boolean | undefined
   >();
@@ -47,7 +49,6 @@ export function RemoveRelatedPartyDialog({
     name,
     replacementRequired,
     controllerIsBeneficialOwner,
-    canAddReplacement,
     replacementAlreadyAdded,
   });
 
@@ -57,19 +58,34 @@ export function RemoveRelatedPartyDialog({
         name,
         replacementRequired,
         controllerIsBeneficialOwner,
-        canAddReplacement,
         replacementAlreadyAdded,
       });
+      // Only a current owner is asked whether they stay on.
+      setRemainsBeneficialOwner(
+        controllerIsBeneficialOwner ? undefined : false
+      );
     }
     // Freeze presentation through refetches and the exit animation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
-    if (!open) setRemainsBeneficialOwner(undefined);
-  }, [open]);
+    if (!open) {
+      setRemainsBeneficialOwner(undefined);
+      resetReplacement();
+    }
+  }, [open, resetReplacement]);
+  const isBusy = isPending || replacement.isPending;
+  const asksAboutOwnership =
+    presentation.replacementRequired &&
+    presentation.controllerIsBeneficialOwner;
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!isBusy) onOpenChange(nextOpen);
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
@@ -86,14 +102,8 @@ export function RemoveRelatedPartyDialog({
               : t('removeParty.description')}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {presentation.replacementRequired && !presentation.canAddReplacement ? (
-          <p className="eb-text-sm eb-font-medium eb-text-warning-foreground">
-            {t('removeParty.replacementUnavailable')}
-          </p>
-        ) : null}
-        {presentation.replacementRequired &&
-        presentation.controllerIsBeneficialOwner ? (
-          <fieldset className="eb-space-y-2">
+        {asksAboutOwnership ? (
+          <fieldset className="eb-space-y-2" disabled={isBusy}>
             <legend className="eb-text-sm eb-font-semibold">
               {t('removeParty.remainsOwnerQuestion')}
             </legend>
@@ -105,6 +115,7 @@ export function RemoveRelatedPartyDialog({
                   variant={
                     remainsBeneficialOwner === value ? 'default' : 'outline'
                   }
+                  aria-pressed={remainsBeneficialOwner === value}
                   onClick={() => setRemainsBeneficialOwner(value)}
                 >
                   {t(
@@ -117,23 +128,25 @@ export function RemoveRelatedPartyDialog({
             </div>
           </fieldset>
         ) : null}
-        {error ? <ServerErrorAlert error={error as never} /> : null}
+        {error || replacement.error ? (
+          <ServerErrorAlert error={(error ?? replacement.error) as never} />
+        ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>
+          <AlertDialogCancel disabled={isBusy}>
             {t('removeParty.keep')}
           </AlertDialogCancel>
           {presentation.replacementRequired ? (
             <Button
-              disabled={
-                isPending ||
-                !presentation.canAddReplacement ||
-                (presentation.controllerIsBeneficialOwner &&
-                  remainsBeneficialOwner === undefined)
-              }
+              disabled={isBusy || remainsBeneficialOwner === undefined}
               onClick={() =>
-                void onAddReplacement(remainsBeneficialOwner === true)
+                void replacement.run('replace', () =>
+                  onAddReplacement(remainsBeneficialOwner === true)
+                )
               }
             >
+              {replacement.isPending ? (
+                <Loader2Icon className="eb-animate-spin" />
+              ) : null}
               {t(
                 presentation.replacementAlreadyAdded
                   ? 'removeParty.finishReplacement'
@@ -141,11 +154,7 @@ export function RemoveRelatedPartyDialog({
               )}
             </Button>
           ) : (
-            <Button
-              variant="destructive"
-              disabled={isPending}
-              onClick={onConfirm}
-            >
+            <Button variant="destructive" disabled={isBusy} onClick={onConfirm}>
               {isPending ? <Loader2Icon className="eb-animate-spin" /> : null}
               {t('removeParty.confirm')}
             </Button>

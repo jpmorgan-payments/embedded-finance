@@ -1,11 +1,18 @@
 import { FC, useEffect, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { Control, FieldValues, useWatch } from 'react-hook-form';
+import { FileTextIcon, XIcon } from 'lucide-react';
+import {
+  Control,
+  FieldValues,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
 
 import { compressImage } from '@/lib/utils';
 import { DocumentTypeSmbdo } from '@/api/generated/smbdo.schemas';
 import Dropzone from '@/components/ui/dropzone';
 import {
+  Button,
   FormControl,
   FormField,
   FormItem,
@@ -58,6 +65,8 @@ interface DocumentUploadFieldProps {
    * Whether only this field is shown (for single upload scenarios)
    */
   isOnlyFieldShown?: boolean;
+  /** Removes a field the user added; omitted for required fields. */
+  onRemove?: () => void;
 }
 
 /**
@@ -73,8 +82,10 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   isOptional = false,
   maxFileSizeBytes,
   isOnlyFieldShown = false,
+  onRemove,
 }) => {
   const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
+  const { setValue } = useFormContext();
 
   // Camera detection state
   const [enableCameraCapture, setEnableCameraCapture] =
@@ -91,6 +102,24 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
     name: filesFieldName,
     defaultValue: [],
   });
+  const docTypeValue = useWatch({ control, name: docTypeFieldName });
+  const [autoSelectedDocType, setAutoSelectedDocType] =
+    useState<DocumentTypeSmbdo>();
+  const onlyDocType =
+    availableDocTypes.length === 1 ? availableDocTypes[0] : undefined;
+  // A type the user picked stays a picker even if later fields take the other options.
+  const fixedDocType =
+    onlyDocType && (!docTypeValue || docTypeValue === autoSelectedDocType)
+      ? onlyDocType
+      : undefined;
+
+  // No choice to make: preselect the only type without marking the form dirty.
+  useEffect(() => {
+    if (onlyDocType && !docTypeValue) {
+      setAutoSelectedDocType(onlyDocType);
+      setValue(docTypeFieldName, onlyDocType);
+    }
+  }, [docTypeFieldName, docTypeValue, onlyDocType, setValue]);
 
   // Utility functions for mobile and camera detection
   const isMobileDevice = (): boolean => {
@@ -162,56 +191,96 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   return (
     <div>
       {!isOnlyFieldShown && (
-        <h3 className="eb-mb-3 eb-font-header eb-text-lg eb-font-medium">
-          {t('documentUpload.documentNumber', 'Document {{number}}', {
-            number: uploadIndex + 1,
-          })}
-        </h3>
+        <div className="eb-mb-3 eb-flex eb-items-center eb-justify-between eb-gap-2">
+          <h3 className="eb-font-header eb-text-lg eb-font-medium">
+            {t('documentUpload.documentNumber', 'Document {{number}}', {
+              number: uploadIndex + 1,
+            })}
+          </h3>
+          {onRemove ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="eb-size-8"
+              aria-label={tString('documentUpload.removeDocument', {
+                number: uploadIndex + 1,
+              })}
+              onClick={onRemove}
+            >
+              <XIcon />
+            </Button>
+          ) : null}
+        </div>
       )}
       {/* Document Type Selection */}
-      <FormField
-        control={control}
-        name={docTypeFieldName}
-        render={({ field }) => (
-          <FormItem className="eb-mb-4">
-            <FormLabel
-              asterisk={!isOptional}
-              className="eb-text-sm eb-font-medium eb-text-gray-700"
-            >
-              {t('documentUpload.selectDocumentType', 'Select Document Type')}
-              {isOptional && (
-                <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
-                  {t('documentUpload.optional', '(Optional)')}
-                </span>
-              )}
-            </FormLabel>
-            <FormControl>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value || ''}
-                disabled={isReadOnly}
+      {fixedDocType ? (
+        <div className="eb-mb-4 eb-space-y-2" data-document-type-fixed>
+          <p className="eb-text-sm eb-font-medium eb-text-gray-700">
+            {t('documentUpload.documentType')}
+          </p>
+          <div className="eb-flex eb-items-start eb-gap-3 eb-rounded-md eb-border eb-bg-muted/40 eb-px-3 eb-py-2.5">
+            <FileTextIcon
+              aria-hidden
+              className="eb-mt-0.5 eb-size-4 eb-shrink-0 eb-text-primary"
+            />
+            <div className="eb-min-w-0">
+              <p className="eb-text-sm eb-font-medium eb-text-foreground">
+                {DOCUMENT_TYPE_MAPPING[fixedDocType]?.label || fixedDocType}
+              </p>
+              {DOCUMENT_TYPE_MAPPING[fixedDocType]?.description ? (
+                <p className="eb-text-xs eb-text-muted-foreground">
+                  {DOCUMENT_TYPE_MAPPING[fixedDocType].description}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <FormField
+          control={control}
+          name={docTypeFieldName}
+          render={({ field }) => (
+            <FormItem className="eb-mb-4">
+              <FormLabel
+                asterisk={!isOptional}
+                className="eb-text-sm eb-font-medium eb-text-gray-700"
               >
-                <SelectTrigger className="eb-w-full">
-                  <SelectValue
-                    placeholder={tString(
-                      'documentUpload.selectPlaceholder',
-                      'Select a document type'
-                    )}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableDocTypes.map((docType) => (
-                    <SelectItem key={docType} value={docType}>
-                      {DOCUMENT_TYPE_MAPPING[docType]?.label || docType}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage className="eb-text-xs" />
-          </FormItem>
-        )}
-      />
+                {t('documentUpload.selectDocumentType', 'Select Document Type')}
+                {isOptional && (
+                  <span className="eb-ml-2 eb-text-xs eb-font-normal eb-text-gray-500">
+                    {t('documentUpload.optional', '(Optional)')}
+                  </span>
+                )}
+              </FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || ''}
+                  disabled={isReadOnly}
+                >
+                  <SelectTrigger className="eb-w-full">
+                    <SelectValue
+                      placeholder={tString(
+                        'documentUpload.selectPlaceholder',
+                        'Select a document type'
+                      )}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableDocTypes.map((docType) => (
+                      <SelectItem key={docType} value={docType}>
+                        {DOCUMENT_TYPE_MAPPING[docType]?.label || docType}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage className="eb-text-xs" />
+            </FormItem>
+          )}
+        />
+      )}
 
       {/* File Upload */}
       <FormField

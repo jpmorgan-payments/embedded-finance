@@ -61,7 +61,7 @@ const INTERMEDIARY_API_FIELD_PATHS: ApiFieldPathMap<Values> = {
 export function AddIntermediaryOwnerForm({
   parentPartyId,
   parentIsClient,
-  isSubmitting,
+  isSubmitting: isMutationPending,
   error,
   onDirtyChange,
   onCancel,
@@ -164,6 +164,8 @@ export function AddIntermediaryOwnerForm({
   useEffect(() => {
     onDirtyChange?.(form.formState.isDirty);
   }, [form.formState.isDirty, onDirtyChange]);
+  // A save can span several calls; keep it pending until onSave resolves.
+  const isSubmitting = isMutationPending || form.formState.isSubmitting;
 
   const submit = form.handleSubmit(async (values) => {
     setSubmitError(undefined);
@@ -212,10 +214,12 @@ export function AddIntermediaryOwnerForm({
     <div className="eb-px-4 eb-pt-4">
       {effectiveError &&
       hasUnmappedApiErrors(effectiveError, INTERMEDIARY_API_FIELD_PATHS) ? (
-        <ServerErrorAlert error={effectiveError as never} />
+        <div className="eb-mb-4">
+          <ServerErrorAlert error={effectiveError as never} />
+        </div>
       ) : null}
       <Form {...form}>
-        <form onSubmit={submit} className="eb-space-y-6">
+        <form onSubmit={submit}>
           <div className="eb-mx-auto eb-w-full eb-max-w-3xl">
             <MaintenanceFormSection
               title={t('ownership.businessIdentity')}
@@ -364,6 +368,7 @@ export function AddIntermediaryOwnerForm({
                 variant="outlineSurface"
                 size="sm"
                 onClick={onCancel}
+                disabled={isSubmitting}
               >
                 <ArrowLeftIcon />
                 {t('form.back')}

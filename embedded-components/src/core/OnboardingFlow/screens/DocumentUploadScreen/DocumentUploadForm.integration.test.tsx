@@ -214,17 +214,19 @@ describe('DocumentUploadForm (integration)', () => {
     });
   });
 
-  test('select type, upload file, submit calls upload + submit mutations then navigates', async () => {
+  test('preselects the only type, upload file, submit calls upload + submit mutations then navigates', async () => {
     renderDocumentUploadForm();
 
     await screen.findByRole('heading', {
       name: /acme upload fixtures llc/i,
     });
 
-    await user.click(screen.getByRole('combobox'));
-
-    await screen.findByRole('listbox');
-    await user.click(screen.getByRole('option', { name: /business license/i }));
+    await waitFor(() =>
+      expect(
+        document.querySelector('[data-document-type-fixed]')
+      ).toHaveTextContent(/business license/i)
+    );
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
 
     const uploadHeading = screen.getAllByText(/upload document/i)[0];
     const fileInput = uploadHeading

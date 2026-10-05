@@ -15,6 +15,8 @@ export type PartyMaintenanceEntityTask = {
   party: MaintenanceParty;
   proposedParty: MaintenanceParty;
   isPendingAddition: boolean;
+  /** Created by the API without a reviewed addition; see MaintenanceProjection.unreviewedPartyIds. */
+  isUnreviewed: boolean;
   change?: PartyChange;
   validationTasks: PartyValidationTask[];
   documentRequests: DocumentRequestResponse[];
@@ -32,6 +34,11 @@ export type MaintenanceEntityTasks = {
   organization: OrganizationMaintenanceEntityTask;
   parties: PartyMaintenanceEntityTask[];
   intermediaryOrganizations: PartyMaintenanceEntityTask[];
+  /** Document work whose owning party is not on the profile; only expected from an API inconsistency. */
+  unassigned: {
+    documentRequests: DocumentRequestResponse[];
+    unresolvedDocumentRequestIds: string[];
+  };
 };
 
 const getOrganizationParty = (client: MaintenanceClient) =>
@@ -145,6 +152,7 @@ export function buildMaintenanceEntityTasks(
         change.action === 'ADD' &&
         !change.approvedParty
     ),
+    isUnreviewed: projection.unreviewedPartyIds.includes(party.id),
     validationTasks: projection.validationTasks.filter(
       (validationTask) => validationTask.partyId === party.id
     ),
@@ -166,6 +174,10 @@ export function buildMaintenanceEntityTasks(
     .map(createEntityTask);
 
   const organizationParty = getOrganizationParty(client);
+  const taskPartyIds = new Set(
+    [...parties, ...intermediaryOrganizations].map((task) => task.partyId)
+  );
+  const isUnassigned = (partyId: string) => !taskPartyIds.has(partyId);
 
   return {
     organization: {
@@ -178,5 +190,13 @@ export function buildMaintenanceEntityTasks(
     },
     parties,
     intermediaryOrganizations,
+    unassigned: {
+      documentRequests: [...partyDocuments]
+        .filter(([partyId]) => isUnassigned(partyId))
+        .flatMap(([, documents]) => documents),
+      unresolvedDocumentRequestIds: [...partyUnresolvedIds]
+        .filter(([partyId]) => isUnassigned(partyId))
+        .flatMap(([, documentRequestIds]) => documentRequestIds),
+    },
   };
 }

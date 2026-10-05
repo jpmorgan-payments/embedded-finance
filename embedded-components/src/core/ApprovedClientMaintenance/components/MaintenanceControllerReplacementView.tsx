@@ -1,28 +1,28 @@
 import { useTranslationWithTokens } from '@/i18n';
-import { ChevronRightIcon, UserPlusIcon } from 'lucide-react';
+import { ChevronRightIcon, Loader2Icon, UserPlusIcon } from 'lucide-react';
 
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button } from '@/components/ui';
 
+import { usePendingAction } from '../hooks/usePendingAction';
 import type { MaintenanceParty } from '../models/maintenanceApi.types';
 import { getMaintenancePartyIdentity } from '../utils/maintenanceDisplay';
 import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
+import { MaintenanceEntityMedallion } from './MaintenanceEntityMedallion';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
-import { PartyAvatar } from './PartyAvatar';
 
 export function MaintenanceControllerReplacementView({
   candidates,
   breadcrumbs,
-  isSubmitting,
   onSelectCandidate,
   onAddNew,
   onBack,
 }: {
   candidates: MaintenanceParty[];
   breadcrumbs: MaintenanceBreadcrumbItem[];
-  isSubmitting: boolean;
   onSelectCandidate: (partyId: string) => void | Promise<void>;
   onAddNew: () => void;
   onBack: () => void;
@@ -30,6 +30,7 @@ export function MaintenanceControllerReplacementView({
   const { t, tString } = useTranslationWithTokens(
     'approved-client-maintenance'
   );
+  const selection = usePendingAction();
 
   return (
     <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background">
@@ -46,7 +47,12 @@ export function MaintenanceControllerReplacementView({
         </p>
       </header>
 
-      <section className="eb-p-5">
+      <section className="eb-p-5" aria-busy={selection.isPending}>
+        {selection.error ? (
+          <div className="eb-mb-4">
+            <ServerErrorAlert error={selection.error as never} />
+          </div>
+        ) : null}
         {candidates.length > 0 ? (
           <>
             <h3 className="eb-text-sm eb-font-semibold">
@@ -66,16 +72,17 @@ export function MaintenanceControllerReplacementView({
                   <li key={candidate.id}>
                     <button
                       type="button"
-                      className="eb-flex eb-w-full eb-items-center eb-gap-3 eb-px-4 eb-py-3 eb-text-left hover:eb-bg-muted/40 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring"
-                      disabled={isSubmitting}
-                      onClick={() =>
-                        candidate.id && void onSelectCandidate(candidate.id)
-                      }
+                      className="eb-flex eb-w-full eb-items-center eb-gap-3 eb-px-4 eb-py-3 eb-text-left hover:eb-bg-muted/40 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring disabled:eb-cursor-not-allowed disabled:eb-opacity-60"
+                      disabled={selection.isPending}
+                      onClick={() => {
+                        const partyId = candidate.id;
+                        if (!partyId) return;
+                        void selection.run(partyId, () =>
+                          onSelectCandidate(partyId)
+                        );
+                      }}
                     >
-                      <PartyAvatar
-                        name={identity.displayName}
-                        className="eb-size-9 eb-text-xs"
-                      />
+                      <MaintenanceEntityMedallion kind="person" size="lg" />
                       <span className="eb-min-w-0 eb-flex-1">
                         <span className="eb-block eb-truncate eb-text-sm eb-font-medium">
                           {identity.displayName}
@@ -84,7 +91,14 @@ export function MaintenanceControllerReplacementView({
                           {t('controllerReplacement.selectDescription')}
                         </span>
                       </span>
-                      <ChevronRightIcon className="eb-size-4 eb-shrink-0" />
+                      {selection.pendingKey === candidate.id ? (
+                        <Loader2Icon
+                          aria-hidden
+                          className="eb-size-4 eb-shrink-0 eb-animate-spin"
+                        />
+                      ) : (
+                        <ChevronRightIcon className="eb-size-4 eb-shrink-0" />
+                      )}
                     </button>
                   </li>
                 );
@@ -103,7 +117,7 @@ export function MaintenanceControllerReplacementView({
         )}
 
         <div className="eb-mt-5 eb-border-t eb-pt-4">
-          <Button onClick={onAddNew} disabled={isSubmitting}>
+          <Button onClick={onAddNew} disabled={selection.isPending}>
             <UserPlusIcon />
             {t('controllerReplacement.addNew')}
           </Button>
@@ -113,6 +127,7 @@ export function MaintenanceControllerReplacementView({
       <MaintenanceViewNavigation
         backLabel={tString('form.back')}
         onBack={onBack}
+        disabled={selection.isPending}
       />
     </div>
   );

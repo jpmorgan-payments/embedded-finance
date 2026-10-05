@@ -7,19 +7,26 @@ type MaintenanceViewNavigationProps = {
   backLabel: string;
   onBack: () => void;
   action?: ReactNode;
+  disabled?: boolean;
 };
 
 export function MaintenanceViewNavigation({
   backLabel,
   onBack,
   action,
+  disabled = false,
 }: MaintenanceViewNavigationProps) {
   return (
     <nav
       aria-label={backLabel}
       className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-3 eb-border-t eb-bg-background eb-px-4 eb-py-4"
     >
-      <Button variant="outlineSurface" size="sm" onClick={onBack}>
+      <Button
+        variant="outlineSurface"
+        size="sm"
+        onClick={onBack}
+        disabled={disabled}
+      >
         <ArrowLeftIcon />
         {backLabel}
       </Button>

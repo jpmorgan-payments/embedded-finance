@@ -143,7 +143,7 @@ export const mockAccounts = {
  * export const MyStory: Story = {
  *   loaders: [
  *     async () => {
- *       await seedClientData({ clientId: '3002024303' });
+ *       await seedClientData({ clientId: '3000005555' });
  *       await seedRecipientData(mockData);
  *     }
  *   ]

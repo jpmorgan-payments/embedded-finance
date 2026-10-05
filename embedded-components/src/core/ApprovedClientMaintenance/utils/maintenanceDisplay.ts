@@ -17,6 +17,12 @@ const buildIndividualName = (party: MaintenanceParty) =>
     .filter(Boolean)
     .join(' ');
 
+const buildPartyName = (party: MaintenanceParty) =>
+  buildIndividualName(party) ||
+  (party.organizationDetails?.organizationName ?? '');
+
+export const getMaintenancePartyName = buildPartyName;
+
 export type MaintenancePartyIdentity = {
   displayName: string;
   previousName?: string;
@@ -27,7 +33,7 @@ export function getMaintenancePartyIdentity(
   change: PartyChange | undefined,
   notProvided: string
 ): MaintenancePartyIdentity {
-  const approvedName = buildIndividualName(party) || notProvided;
+  const approvedName = buildPartyName(party) || notProvided;
   if (!change) return { displayName: approvedName };
 
   const proposedParty: MaintenanceParty = {
@@ -36,8 +42,12 @@ export function getMaintenancePartyIdentity(
       ...party.individualDetails,
       ...change.proposal.individualDetails,
     },
+    organizationDetails: {
+      ...party.organizationDetails,
+      ...change.proposal.organizationDetails,
+    },
   };
-  const proposedName = buildIndividualName(proposedParty) || notProvided;
+  const proposedName = buildPartyName(proposedParty) || notProvided;
 
   return proposedName === approvedName
     ? { displayName: approvedName }

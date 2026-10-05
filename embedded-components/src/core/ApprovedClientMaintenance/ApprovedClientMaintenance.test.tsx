@@ -13,11 +13,14 @@ import type {
 const updatePartyName = vi.fn();
 const updateParty = vi.fn();
 const createParty = vi.fn();
+const applyOwnershipOperations = vi.fn();
+const resetOwnershipOperations = vi.fn();
 const updateClientTasks = vi.fn();
 const downloadAttestation = vi.fn();
 const addProduct = vi.fn();
 const cancelProductAddition = vi.fn();
 const cancelChanges = vi.fn();
+const applyPartySteps = vi.fn();
 const submitForReview = vi.fn();
 const resetMutation = vi.fn();
 const resetCancellation = vi.fn();
@@ -138,6 +141,13 @@ const workspace = {
     reset: vi.fn(),
   },
   createParty,
+  ownershipOperationsMutation: {
+    isPending: false,
+    error: null as unknown,
+    reset: vi.fn(),
+  },
+  applyOwnershipOperations,
+  resetOwnershipOperations,
   clientTaskMutation: {
     isPending: false,
     error: null as unknown,
@@ -163,6 +173,12 @@ const workspace = {
     reset: resetCancellation,
   },
   cancelChanges,
+  partyStepsMutation: {
+    isPending: false,
+    error: null as unknown,
+    reset: vi.fn(),
+  },
+  applyPartySteps,
   verificationMutation: {
     data: undefined as { acceptedAt?: string; receivedAt: string } | undefined,
     isPending: false,
@@ -199,7 +215,7 @@ const eligible = [
   {
     country: 'US',
     organizationType: 'LIMITED_LIABILITY_COMPANY',
-    operations: ['EDIT_PARTY_NAME'] as const,
+    operations: ['MANAGE_PROFILE'] as const,
   },
 ];
 
@@ -247,6 +263,35 @@ const fillRequiredAddPersonFields = async (
   await user.click(screen.getByLabelText('Job title'));
   await user.click(screen.getByRole('option', { name: 'CEO' }));
   await user.type(screen.getByLabelText('Email'), 'owner@example.com');
+};
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const getOwnershipAddRow = (parentPartyId: string) =>
+  document.querySelector<HTMLElement>(
+    `[data-ownership-placeholder="${parentPartyId}"]`
+  );
+
+const openOwnershipMenu = async (
+  user: ReturnType<typeof userEvent.setup>,
+  partyName: string
+) => {
+  await user.click(screen.getByRole('button', { name: `Update ${partyName}` }));
+};
+
+const ownershipMenuItem = (label: string) =>
+  screen.findByRole('menuitem', {
+    name: new RegExp(`^${escapeRegExp(label)}`),
+  });
+
+const clickOwnershipMenuItem = async (
+  user: ReturnType<typeof userEvent.setup>,
+  partyName: string,
+  label: string
+) => {
+  await openOwnershipMenu(user, partyName);
+  await user.click(await ownershipMenuItem(label));
 };
 
 describe('ApprovedClientMaintenance', () => {
@@ -319,11 +364,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: [
-              'EDIT_PARTY_NAME',
-              'ADD_BENEFICIAL_OWNER',
-              'DISCLOSE_INDIRECT_OWNERSHIP',
-            ],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -581,7 +622,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['EDIT_ORGANIZATION'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -603,6 +644,78 @@ describe('ApprovedClientMaintenance', () => {
     });
   });
 
+  test('shows registration details an approved business cannot change as read-only', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Edit business details' })
+    );
+
+    expect(screen.getAllByText('Contact support to change this.')).toHaveLength(
+      3
+    );
+    expect(
+      screen.queryByRole('textbox', { name: /Year of formation/ })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: /Employer Identification Number/ })
+    ).not.toBeInTheDocument();
+  });
+
+  test('shows identity details an approved person cannot change as read-only', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: (approvedClient.parties ?? []).map((party) =>
+        party.id === 'person-1'
+          ? {
+              ...party,
+              individualDetails: {
+                ...party.individualDetails,
+                countryOfResidence: 'US',
+                individualIds: [
+                  { idType: 'SSN', value: '555110000', issuer: 'US' },
+                ],
+              },
+            }
+          : party
+      ),
+    };
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    await user.click(screen.getByRole('button', { name: 'Edit details' }));
+
+    expect(screen.getAllByText('Contact support to change this.')).toHaveLength(
+      3
+    );
+    expect(
+      screen.queryByRole('textbox', { name: /Suffix/ })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/Social security number \(SSN\)/i)
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('••••0000')).toBeInTheDocument();
+    expect(screen.queryByText('555110000')).not.toBeInTheDocument();
+  });
+
   test('explains that clearing an optional DBA is not supported', async () => {
     const user = userEvent.setup();
     updateParty.mockResolvedValue(undefined);
@@ -613,7 +726,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['EDIT_ORGANIZATION'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -671,7 +784,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['EDIT_ORGANIZATION'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -699,16 +812,75 @@ describe('ApprovedClientMaintenance', () => {
     expect(addressLine2).toHaveAttribute('aria-invalid', 'false');
   });
 
-  test('denies new edits when no exact eligibility rule is configured', () => {
+  test('shows a view-only profile when no exact eligibility rule is configured', async () => {
+    const user = userEvent.setup();
     render(<ApprovedClientMaintenance clientId="client-1" eligibility={[]} />);
 
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    expect(
+      screen.queryByRole('button', { name: 'Edit details' })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/not configured/)).not.toBeInTheDocument();
+  });
+
+  test('has no ownership structure for a sole proprietorship', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: approvedClient.parties?.map((party) =>
+        party.id === 'organization-1'
+          ? {
+              ...party,
+              organizationDetails: {
+                ...party.organizationDetails,
+                organizationType: 'SOLE_PROPRIETORSHIP',
+              },
+            }
+          : party
+      ),
+    };
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'SOLE_PROPRIETORSHIP',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    expect(
+      screen.queryByRole('button', { name: 'View ownership structure' })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    expect(screen.getByRole('button', { name: 'Edit details' })).toBeEnabled();
+    expect(
+      screen.queryByRole('button', { name: 'Add beneficial owner role' })
+    ).not.toBeInTheDocument();
+  });
+
+  test('blocks submission with a contact-support message when the API requires a missing role', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      outstanding: { partyRoles: ['CONTROLLER'] },
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Diaz')],
+    };
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     expect(
       screen.getByText(
-        "This client's country, legal entity type, or lifecycle is not configured for name changes."
+        'This profile is missing a required role, such as a controller. Contact support to submit these changes.'
       )
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /Jane R Doe/ })
     ).toBeInTheDocument();
   });
 
@@ -724,11 +896,9 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(screen.getByText('Business profile')).toBeInTheDocument();
-    expect(
-      screen.queryByText('Maintenance request ID: request-1')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Request ID: request-1')).not.toBeInTheDocument();
     const pendingSummaryHeading = screen.getByRole('heading', {
-      name: 'Pending changes',
+      name: 'Draft maintenance request',
     });
     const pendingSummary = pendingSummaryHeading.closest('section');
     expect(pendingSummary).toHaveClass(
@@ -746,9 +916,7 @@ describe('ApprovedClientMaintenance', () => {
     expect(screen.queryByText(/field changed/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
-    expect(
-      screen.getByText('Maintenance request ID: request-1')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Request ID: request-1')).toBeInTheDocument();
   });
 
   test('locks editing and cancellation while the active request is in review', async () => {
@@ -762,12 +930,14 @@ describe('ApprovedClientMaintenance', () => {
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
 
-    expect(screen.getByText('Changes submitted')).toBeInTheDocument();
     expect(
-      screen.getByText('Changes submitted').closest('section')
+      screen.getByText('Maintenance request submitted')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Maintenance request submitted').closest('section')
     ).toHaveClass('eb-bg-informative-accent');
     expect(
-      screen.queryByRole('button', { name: 'Discard all pending changes' })
+      screen.queryByRole('button', { name: 'Discard all changes' })
     ).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Jane R Diaz/ }));
     expect(
@@ -819,7 +989,7 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByText('Maintenance service is temporarily unavailable')
     ).toBeInTheDocument();
     expect(
-      screen.queryByText("We couldn't load the complete maintenance record")
+      screen.queryByText("We couldn't load the complete business profile")
     ).not.toBeInTheDocument();
   });
 
@@ -851,7 +1021,7 @@ describe('ApprovedClientMaintenance', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('renders multiple party proposals under one maintenance request', () => {
+  test('renders multiple party proposals together as pending changes', () => {
     workspace.clientQuery.data = {
       ...approvedClient,
       parties: [
@@ -885,9 +1055,7 @@ describe('ApprovedClientMaintenance', () => {
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
 
-    expect(
-      screen.queryByText('Maintenance request ID: request-1')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Request ID: request-1')).not.toBeInTheDocument();
     expect(screen.getByText('Jane R Diaz')).toBeInTheDocument();
     expect(screen.getByText('Alexander Smith')).toBeInTheDocument();
     expect(screen.queryByText(/parties changed/)).not.toBeInTheDocument();
@@ -934,7 +1102,7 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(
-      screen.getByText('Pending requirements need attention')
+      screen.getByText('Maintenance request needs attention')
     ).toBeInTheDocument();
     expect(screen.getByText('Action required')).toBeInTheDocument();
     expect(screen.queryByText('Upload documents')).not.toBeInTheDocument();
@@ -1077,11 +1245,9 @@ describe('ApprovedClientMaintenance', () => {
 
     expect(screen.getByText('Business profile')).toBeInTheDocument();
     expect(screen.queryByText('Cancelled')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Request ID:/)).not.toBeInTheDocument();
     expect(
-      screen.queryByText(/Maintenance request ID:/)
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Discard all pending changes' })
+      screen.queryByRole('button', { name: 'Discard all changes' })
     ).not.toBeInTheDocument();
   });
 
@@ -1120,7 +1286,7 @@ describe('ApprovedClientMaintenance', () => {
     const viewFullMaintenanceRequest = within(draftSection!).getByRole(
       'button',
       {
-        name: 'View full maintenance request',
+        name: 'View maintenance request',
       }
     );
     expect(comparisonGroup).not.toContainElement(viewFullMaintenanceRequest);
@@ -1128,7 +1294,7 @@ describe('ApprovedClientMaintenance', () => {
     expect(viewFullMaintenanceRequest.parentElement).toHaveClass('eb-mt-3');
     expect(
       within(draftSection!).getByText(
-        'Saved in this request. You can edit or discard these changes before submission.'
+        'Saved as a pending change. You can keep correcting this information or discard it before you submit.'
       )
     ).toBeInTheDocument();
     expect(comparisonGroup).not.toContainElement(editChanges);
@@ -1145,9 +1311,13 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(screen.getByRole('button', { name: 'Discard changes' }));
 
     expect(cancelChanges).toHaveBeenCalledWith('request-1', 'person-1');
+    // Jane stays on the profile, so her page stays open.
+    expect(
+      screen.getByRole('heading', { name: 'Profile details' })
+    ).toBeInTheDocument();
   });
 
-  test('cancels the full change set from request details', async () => {
+  test('discards the maintenance request from the review page', async () => {
     const user = userEvent.setup();
     workspace.maintenanceQuery.data = {
       pages: [],
@@ -1160,11 +1330,11 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(
-      screen.queryByRole('button', { name: 'Discard all pending changes' })
+      screen.queryByRole('button', { name: 'Discard all changes' })
     ).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     const discardAll = screen.getByRole('button', {
-      name: 'Discard all pending changes',
+      name: 'Discard all changes',
     });
     const requestNavigation = discardAll.closest('nav');
     expect(requestNavigation).not.toBeNull();
@@ -1174,11 +1344,19 @@ describe('ApprovedClientMaintenance', () => {
       })
     ).toBeInTheDocument();
     await user.click(discardAll);
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(
-      'Changes for Jane R Doe'
-    );
+    const dialog = screen.getByRole('alertdialog');
+    expect(
+      within(dialog).getByRole('heading', {
+        name: 'Discard this maintenance request?',
+      })
+    ).toBeInTheDocument();
+    // The list mirrors the review: what kind of change, to whom, and which fields.
+    expect(
+      dialog.querySelector('[data-discard-group="updated"]')
+    ).toHaveTextContent(/Updated\s*1.*Jane R Diaz.*Last name/);
+    expect(dialog).not.toHaveTextContent(/document|Affected people/i);
     await user.click(
-      screen.getByRole('button', { name: 'Discard all pending changes' })
+      within(dialog).getByRole('button', { name: 'Discard all changes' })
     );
 
     expect(cancelChanges).toHaveBeenCalledWith('request-1', undefined);
@@ -1318,7 +1496,7 @@ describe('ApprovedClientMaintenance', () => {
     expect(pendingSubProduct!.querySelector('.lucide-clock-3')).toBeNull();
     expect(pendingSubProduct!.querySelector('.lucide-boxes')).toBeNull();
     expect(
-      screen.getByRole('heading', { name: 'Product update needs attention' })
+      screen.getByRole('heading', { name: 'Product upgrade needs attention' })
     ).toBeInTheDocument();
     expect(
       within(productFamily!).queryByRole('button', {
@@ -1358,7 +1536,7 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: 'Product update ready to review' })
+      screen.getByRole('heading', { name: 'Product upgrade ready to review' })
     ).toBeInTheDocument();
     const reviewAndSubmit = screen.getByRole('button', {
       name: 'Review and submit',
@@ -1375,7 +1553,7 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
   });
 
-  test('shows a product update banner beside terminated maintenance history', () => {
+  test('shows a product upgrade banner beside terminated maintenance history', () => {
     workspace.clientQuery.data = {
       ...approvedClient,
       updateRequest: {
@@ -1428,7 +1606,7 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: 'Product update ready to review' })
+      screen.getByRole('heading', { name: 'Product upgrade ready to review' })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Review and submit' })
@@ -1470,11 +1648,13 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: 'Updates need attention' })
+      screen.getByRole('heading', {
+        name: 'Product upgrade and maintenance request need attention',
+      })
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Complete the requirements before submitting your updates.'
+        'Complete the requirements before submitting the product upgrade and profile changes.'
       )
     ).toBeInTheDocument();
     const completeRequirements = screen.getByRole('button', {
@@ -1487,10 +1667,29 @@ describe('ApprovedClientMaintenance', () => {
       completeRequirements.querySelector('.lucide-clipboard-list')
     ).not.toBeInTheDocument();
     await user.click(completeRequirements);
-    expect(screen.queryByText('Product addition')).not.toBeInTheDocument();
     expect(
-      screen.getByText('Sub-product pending addition')
+      screen.getByText(
+        'Check the product upgrade and profile changes. They are submitted for review together.'
+      )
     ).toBeInTheDocument();
+    expect(screen.queryByText('Product addition')).not.toBeInTheDocument();
+    const productSection = screen
+      .getByRole('heading', { name: 'Product upgrade' })
+      .closest('section')!;
+    const productRow = productSection.querySelector(
+      '[data-review-change="product-LIMITED_DDA_PAYMENTS"]'
+    );
+    expect(productRow).toHaveTextContent(
+      /Limited DDA Payments.*Sub-product of Embedded Payments/
+    );
+    expect(
+      productRow?.querySelector('[data-party-status="pendingAddition"]')
+    ).toHaveTextContent('Pending addition');
+    expect(
+      document.querySelector(
+        '[data-review-group] [data-review-change^="product"]'
+      )
+    ).toBeNull();
     expect(screen.getByText('Diaz')).toBeInTheDocument();
   });
 
@@ -1522,7 +1721,7 @@ describe('ApprovedClientMaintenance', () => {
 
     const dialog = screen.getByRole('alertdialog');
     expect(dialog).toHaveTextContent(
-      'Limited DDA Payments will be removed from the updates being prepared for review.'
+      'Limited DDA Payments will be removed from your pending changes.'
     );
     await user.click(
       within(dialog).getByRole('button', {
@@ -1566,7 +1765,7 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(screen.getByRole('alertdialog')).toHaveTextContent(
-      'Your business and related-party maintenance changes will remain in progress.'
+      'Your business and related-party changes stay pending.'
     );
   });
 
@@ -1593,11 +1792,15 @@ describe('ApprovedClientMaintenance', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
 
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for Limited DDA Payments' })
+    );
     expect(
-      screen.getByRole('button', { name: 'Cancel product addition' })
+      screen.getByRole('menuitem', { name: /^Cancel product addition/ })
     ).toBeInTheDocument();
+    await user.keyboard('{Escape}');
     expect(
-      screen.getByRole('button', { name: 'Discard all pending changes' })
+      screen.getByRole('button', { name: 'Discard all changes' })
     ).toBeInTheDocument();
   });
 
@@ -1662,7 +1865,7 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Complete the requested items shown in the maintenance request so review can continue.'
+        'Complete the requested items so review of your submitted changes can continue.'
       )
     ).toBeInTheDocument();
   });
@@ -1750,7 +1953,8 @@ describe('ApprovedClientMaintenance', () => {
             organizationType: 'LIMITED_LIABILITY_COMPANY',
             operations: [
               'ADD_LIMITED_DDA_PAYMENTS',
-              'DISCLOSE_INDIRECT_OWNERSHIP',
+              'MANAGE_PROFILE',
+              'MANAGE_INDIRECT_OWNERSHIP',
             ],
           },
         ]}
@@ -1796,7 +2000,7 @@ describe('ApprovedClientMaintenance', () => {
       })
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Ownership structure', level: 3 })
+      document.querySelector('[data-review-ownership-link]')
     ).toBeInTheDocument();
     expect(
       screen.queryByText('All qualifying owners hold their interest directly')
@@ -1806,20 +2010,35 @@ describe('ApprovedClientMaintenance', () => {
         'One or more qualifying owners hold their interest through another company'
       )
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Update ownership' })
-    ).toBeInTheDocument();
     expect(screen.queryByText('Product addition')).not.toBeInTheDocument();
     expect(
-      screen.getByText('Sub-product pending addition')
-    ).toBeInTheDocument();
+      document.querySelector(
+        '[data-review-change="product-LIMITED_DDA_PAYMENTS"]'
+      )
+    ).toHaveTextContent('Pending addition');
+    // The business's document sits with the business; Submit only summarizes what is left.
+    const businessRow = document.querySelector<HTMLElement>(
+      '[data-review-group="documents"] [data-review-change="organization"]'
+    )!;
+    expect(businessRow).toHaveTextContent(
+      'Provide the required product upgrade document.'
+    );
+    const submission = screen
+      .getByRole('heading', { name: 'Submission' })
+      .closest('section')!;
+    expect(submission).toHaveTextContent(
+      'Upload the required documents for Marketplace Vendor LLC'
+    );
+    expect(submission).not.toHaveTextContent(
+      'Provide the required product upgrade document.'
+    );
+    expect(within(submission).queryByRole('checkbox')).not.toBeInTheDocument();
     expect(
-      screen.getByText('Pending requirements need attention')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Provide the required product upgrade document.')
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Update ownership' }));
+      within(submission).getByRole('button', { name: 'Submit for review' })
+    ).toBeDisabled();
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
     expect(
       screen.getAllByRole('heading', { name: 'Ownership structure' })
     ).toHaveLength(1);
@@ -1866,7 +2085,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -1875,16 +2094,19 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     expect(screen.queryByText('Product addition')).not.toBeInTheDocument();
     expect(
-      screen.getByText('Sub-product pending addition')
-    ).toBeInTheDocument();
+      document.querySelector(
+        '[data-review-change="product-LIMITED_DDA_PAYMENTS"]'
+      )
+    ).toHaveTextContent('Pending addition');
     expect(screen.getByText(/Limited DDA Payments/)).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Ownership structure', level: 3 })
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Update ownership' }));
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     await user.click(
-      screen.getByRole('button', { name: 'Add intermediary business' })
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add intermediary business',
+      })
     );
 
     expect(
@@ -1922,11 +2144,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: [
-              'EDIT_ORGANIZATION',
-              'ADD_CONTROLLER',
-              'DISCLOSE_INDIRECT_OWNERSHIP',
-            ],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -1937,13 +2155,13 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('heading', { name: 'Review your changes' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Ownership structure', level: 3 })
+      screen.getByRole('button', { name: 'View ownership structure' })
     ).toBeInTheDocument();
     const submitButton = screen.getByRole('button', {
       name: 'Submit for review',
     });
     const informationConfirmation = screen.getByLabelText(
-      'I reviewed the business and related-party information on file, including the updates shown here, and confirm no other changes are needed.'
+      'I reviewed the business and related-party information on file, including the changes shown here, and confirm no other changes are needed.'
     );
     const ownershipConfirmation = screen.getByLabelText(
       'I reviewed the ownership structure and confirm it includes every individual and intermediary business that owns 25% or more.'
@@ -1980,7 +2198,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['EDIT_ORGANIZATION', 'ADD_BENEFICIAL_OWNER'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -2012,12 +2230,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: [
-              'ADD_CONTROLLER',
-              'ADD_BENEFICIAL_OWNER',
-              'REMOVE_RELATED_PARTY',
-              'EDIT_PARTY_NAME',
-            ],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -2049,7 +2262,9 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('heading', { name: 'Add replacement controller' })
     ).toBeInTheDocument();
     expect(screen.getByText('Controller')).toBeInTheDocument();
-    await user.click(screen.getByText('This person also owns 25% or more'));
+    await user.click(
+      screen.getByText('This person is also a direct beneficial owner')
+    );
     await user.type(screen.getByLabelText('First name'), 'Wendy');
     await user.type(screen.getByLabelText('Last name'), 'Darling');
     await fillRequiredAddPersonFields(user, '1990-05-12');
@@ -2115,7 +2330,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_CONTROLLER', 'REMOVE_RELATED_PARTY'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -2132,15 +2347,219 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.getByRole('heading', { name: 'Choose a replacement controller' })
     ).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /Wendy Darling/ }));
+    let finishSteps: () => void = () => undefined;
+    applyPartySteps.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishSteps = resolve;
+        })
+    );
+    const candidate = screen.getByRole('button', { name: /Wendy Darling/ });
+    await user.click(candidate);
 
-    expect(updateParty).toHaveBeenNthCalledWith(1, 'person-2', {
-      roles: ['BENEFICIAL_OWNER', 'CONTROLLER'],
-    });
-    expect(updateParty).toHaveBeenNthCalledWith(2, 'person-1', {
-      active: false,
-    });
+    // Both sides go out as one action, so the page refreshes once, at the end.
+    expect(applyPartySteps).toHaveBeenCalledTimes(1);
+    expect(applyPartySteps).toHaveBeenCalledWith([
+      {
+        kind: 'update',
+        partyId: 'person-2',
+        requestBody: { roles: ['BENEFICIAL_OWNER', 'CONTROLLER'] },
+      },
+      { kind: 'update', partyId: 'person-1', requestBody: { active: false } },
+    ]);
+    expect(candidate).toBeDisabled();
+    expect(candidate.closest('section')).toHaveAttribute('aria-busy', 'true');
+    finishSteps();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', {
+          name: 'Choose a replacement controller',
+        })
+      ).not.toBeInTheDocument()
+    );
+    expect(updateParty).not.toHaveBeenCalled();
     expect(createParty).not.toHaveBeenCalled();
+  });
+
+  test("undoes a controller replacement in one step without discarding the new controller's other edits", async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'person-2',
+          parentPartyId: 'organization-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+    const pending = {
+      status: 'NEW' as const,
+      action: 'MODIFY' as const,
+      requestId: 'request-1',
+      submittedAt: '2026-09-03T10:00:00.000Z',
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        { id: 'person-1', active: false, updateRequest: pending },
+        {
+          id: 'person-2',
+          roles: ['BENEFICIAL_OWNER', 'CONTROLLER'],
+          individualDetails: { lastName: 'Darling-Smith' },
+          updateRequest: pending,
+        },
+      ],
+    };
+    applyPartySteps.mockResolvedValue(undefined);
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    await user.click(screen.getByRole('button', { name: 'Cancel removal' }));
+    const dialog = screen.getByRole('alertdialog');
+    expect(dialog).toHaveTextContent(
+      'Jane R Doe stays the controller, and Wendy Darling-Smith keeps their current roles. Their other pending changes stay.'
+    );
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Undo replacement' })
+    );
+
+    expect(applyPartySteps).toHaveBeenCalledTimes(1);
+    expect(applyPartySteps).toHaveBeenCalledWith([
+      { kind: 'discard', requestId: 'request-1', partyId: 'person-1' },
+      {
+        kind: 'update',
+        partyId: 'person-2',
+        requestBody: { roles: ['BENEFICIAL_OWNER'] },
+      },
+    ]);
+    expect(cancelChanges).not.toHaveBeenCalled();
+  });
+
+  test('keeps a replaced controller on as a direct beneficial owner in one step', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'person-2',
+          parentPartyId: 'organization-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+    const pending = {
+      status: 'NEW' as const,
+      action: 'MODIFY' as const,
+      requestId: 'request-1',
+      submittedAt: '2026-09-03T10:00:00.000Z',
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        { id: 'person-1', active: false, updateRequest: pending },
+        {
+          id: 'person-2',
+          roles: ['BENEFICIAL_OWNER', 'CONTROLLER'],
+          updateRequest: pending,
+        },
+      ],
+    };
+    applyPartySteps.mockResolvedValue(undefined);
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    await user.click(
+      screen.getByRole('button', { name: 'Keep as beneficial owner' })
+    );
+
+    expect(applyPartySteps).toHaveBeenCalledWith([
+      { kind: 'discard', requestId: 'request-1', partyId: 'person-1' },
+      {
+        kind: 'update',
+        partyId: 'person-1',
+        requestBody: {
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: { natureOfOwnership: 'Direct' },
+        },
+      },
+    ]);
+    expect(cancelChanges).not.toHaveBeenCalled();
+    expect(updateParty).not.toHaveBeenCalled();
+  });
+
+  test('does not offer to keep an ordinary removed person as an owner', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'person-2',
+          parentPartyId: 'organization-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-2',
+          active: false,
+          updateRequest: {
+            status: 'NEW',
+            action: 'MODIFY',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Wendy Darling/ }));
+    expect(
+      screen.getByRole('button', { name: 'Cancel removal' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Keep as beneficial owner' })
+    ).not.toBeInTheDocument();
   });
 
   test('finishes a server-returned partial controller replacement without creating another controller', async () => {
@@ -2171,7 +2590,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_CONTROLLER', 'REMOVE_RELATED_PARTY'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -2187,6 +2606,9 @@ describe('ApprovedClientMaintenance', () => {
 
     expect(createParty).not.toHaveBeenCalled();
     expect(updateParty).toHaveBeenCalledWith('person-1', { active: false });
+    expect(
+      screen.getByRole('heading', { name: 'Jane R Doe' })
+    ).toBeInTheDocument();
   });
 
   test('keeps an outgoing controller as a beneficial owner during replacement', async () => {
@@ -2225,7 +2647,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_CONTROLLER', 'REMOVE_RELATED_PARTY'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -2265,7 +2687,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -2279,10 +2701,10 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('heading', { name: 'Add beneficial owner role' })
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Choose how Jane R Doe holds their ownership interest/)
+      screen.getByText(/Choose how Jane R Doe owns part of the business/)
     ).toBeInTheDocument();
     await user.click(
-      screen.getByRole('button', { name: /Owns the client directly/ })
+      screen.getByRole('button', { name: /Owns your business directly/ })
     );
 
     expect(updateParty).toHaveBeenCalledWith('person-1', {
@@ -2344,7 +2766,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER', 'DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -2355,7 +2777,7 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'Add beneficial owner role' })
     );
     await user.click(
-      screen.getByRole('button', { name: /Darling Holdings LLC/ })
+      screen.getByRole('button', { name: /^Darling Holdings LLC/ })
     );
     expect(
       screen.getByRole('heading', { name: 'Add indirect beneficial owner' })
@@ -2425,16 +2847,20 @@ describe('ApprovedClientMaintenance', () => {
     expect(ownerRole).toHaveAttribute('data-role-state', 'pending-addition');
     expect(ownerRole).toHaveTextContent('Pending addition');
     expect(ownerRole).toHaveTextContent(
-      'Removing it requires discarding all pending changes for this person'
+      'This role is added once your changes are approved.'
     );
-    const discardPartyDraft = within(ownershipSection!).getByRole('button', {
-      name: 'Discard all pending changes for this person',
-    });
-    expect(discardPartyDraft).toHaveClass('eb-text-destructive');
-    await user.click(discardPartyDraft);
+    // Discard lives once, with the pending changes, not again on the role card.
+    expect(
+      within(ownershipSection!).queryByRole('button', { name: /Discard/ })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Discard changes' }));
     const dialog = screen.getByRole('alertdialog');
     expect(dialog).toHaveTextContent(
-      "This will discard this person's pending changes."
+      'Jane R Doe keeps the details on the approved profile.'
+    );
+    // Role edits show what is being dropped, from current to pending.
+    expect(dialog.querySelector('[data-discard-changes]')).toHaveTextContent(
+      /Roles.*Controller.*Controller, Beneficial owner/
     );
     await user.click(
       within(dialog).getByRole('button', {
@@ -2444,6 +2870,62 @@ describe('ApprovedClientMaintenance', () => {
 
     expect(cancelChanges).toHaveBeenCalledWith('request-1', 'person-1');
     expect(updateParty).not.toHaveBeenCalled();
+  });
+
+  test('replaces a controller who was just made an owner and keeps them on as an owner', async () => {
+    const user = userEvent.setup();
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-1',
+          roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+          individualDetails: { natureOfOwnership: 'Direct' },
+          updateRequest: {
+            status: 'NEW',
+            action: 'MODIFY',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    // An ownership-only pending change does not block replacing the controller.
+    await user.click(
+      screen.getByRole('button', { name: 'Replace controller' })
+    );
+    const dialog = screen.getByRole('alertdialog');
+    expect(dialog).toHaveTextContent(
+      'After the controller is replaced, will this person still own 25% or more?'
+    );
+    await user.click(
+      within(dialog).getByRole('button', {
+        name: 'Yes, keep as a beneficial owner',
+      })
+    );
+    await user.click(
+      within(dialog).getByRole('button', {
+        name: 'Choose replacement controller',
+      })
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Choose a replacement controller' })
+    ).toBeInTheDocument();
   });
 
   test('keeps an approved owner role visible while its removal is pending', async () => {
@@ -2559,8 +3041,12 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.getByRole('heading', { name: 'Proposed person details' })
     ).toBeInTheDocument();
+    const pendingRolesSection = screen
+      .getByRole('heading', { name: 'Ownership and roles' })
+      .closest('section');
+    expect(pendingRolesSection).toHaveTextContent('Direct beneficial owner');
     expect(
-      screen.queryByRole('heading', { name: 'Ownership and roles' })
+      within(pendingRolesSection!).queryByText('Pending addition')
     ).not.toBeInTheDocument();
     expect(
       within(pendingHeader!).getByRole('button', {
@@ -2573,7 +3059,7 @@ describe('ApprovedClientMaintenance', () => {
       })
     ).toBeInTheDocument();
     [
-      'View full maintenance request',
+      'View maintenance request',
       'Edit pending party',
       'Discard pending addition',
     ].forEach((buttonName) => {
@@ -2590,8 +3076,10 @@ describe('ApprovedClientMaintenance', () => {
     const dialog = screen.getByRole('alertdialog');
     expect(dialog).toHaveTextContent('Discard Wendy Darling?');
     expect(dialog).toHaveTextContent(
-      'This person will not be added to the business profile. Other changes in the request will be preserved.'
+      "Wendy Darling won't be added to the profile."
     );
+    // Nothing else is pending, so the dialog does not promise that other changes stay.
+    expect(dialog).not.toHaveTextContent('Your other pending changes stay.');
     await user.click(
       within(dialog).getByRole('button', {
         name: 'Discard pending addition',
@@ -2707,7 +3195,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['EDIT_PARTY_NAME', 'DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -2736,12 +3224,13 @@ describe('ApprovedClientMaintenance', () => {
     ).not.toBeInTheDocument();
     expect(screen.queryByText('Current value')).not.toBeInTheDocument();
     const rolesSection = screen
-      .getByRole('heading', { name: 'Pending roles' })
+      .getByRole('heading', { name: 'Ownership and roles' })
       .closest('section');
     const ownerRole = rolesSection!.querySelector(
       '[data-role="BENEFICIAL_OWNER"]'
     );
-    expect(ownerRole).toHaveAttribute('data-role-state', 'pending-addition');
+    expect(ownerRole).toHaveAttribute('data-role-state', 'active');
+    expect(ownerRole).not.toHaveTextContent('Pending addition');
     expect(ownerRole).toHaveTextContent('Direct beneficial owner');
     expect(
       within(ownerRole as HTMLElement).getByRole('button', {
@@ -2778,7 +3267,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -2788,15 +3277,13 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     const rolesSection = screen
-      .getByRole('heading', { name: 'Pending roles' })
+      .getByRole('heading', { name: 'Ownership and roles' })
       .closest('section');
     const controllerRole = rolesSection!.querySelector(
       '[data-role="CONTROLLER"]'
     );
-    expect(controllerRole).toHaveAttribute(
-      'data-role-state',
-      'pending-addition'
-    );
+    expect(controllerRole).toHaveAttribute('data-role-state', 'active');
+    expect(controllerRole).not.toHaveTextContent('Pending addition');
     await user.click(
       within(controllerRole as HTMLElement).getByRole('button', {
         name: 'Add beneficial owner role',
@@ -2839,7 +3326,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -2851,8 +3338,9 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     const rolesSection = screen
-      .getByRole('heading', { name: 'Pending roles' })
+      .getByRole('heading', { name: 'Ownership and roles' })
       .closest('section');
+    expect(rolesSection).not.toHaveTextContent('Pending addition');
     expect(
       within(rolesSection!).getByRole('button', {
         name: 'Change to indirect ownership',
@@ -2865,7 +3353,7 @@ describe('ApprovedClientMaintenance', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('changes a pending controller owner path without replacing the controller', async () => {
+  test('moves a pending controller owner beneath a business as one party', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -2943,7 +3431,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -2959,7 +3447,7 @@ describe('ApprovedClientMaintenance', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Choose an intermediary for Michael Darling',
+        name: 'Choose where Michael Darling connects',
       })
     ).toBeInTheDocument();
     expect(
@@ -2968,26 +3456,23 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(
       screen.getByRole('button', { name: /Existing Holdings LLC/ })
     );
-    await user.click(
-      screen.getByRole('button', { name: 'Create new ownership path' })
-    );
 
-    expect(createParty).toHaveBeenCalledWith(
-      expect.objectContaining({
-        parentPartyId: 'intermediary-existing',
-        roles: ['BENEFICIAL_OWNER'],
-      })
-    );
-    expect(updateParty).toHaveBeenCalledWith('pending-controller-owner', {
-      roles: ['CONTROLLER'],
-    });
-    expect(createParty.mock.invocationCallOrder[0]).toBeLessThan(
-      updateParty.mock.invocationCallOrder[0]!
-    );
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      {
+        partyId: 'pending-controller-owner',
+        request: { parentPartyId: 'intermediary-existing' },
+      },
+      {
+        partyId: 'pending-controller-owner',
+        request: { individualDetails: { natureOfOwnership: 'Indirect' } },
+      },
+    ]);
+    expect(createParty).not.toHaveBeenCalled();
+    expect(updateParty).not.toHaveBeenCalled();
     expect(cancelChanges).not.toHaveBeenCalled();
   });
 
-  test('rebuilds a pending owner beneath an existing intermediary before canceling the old draft', async () => {
+  test('moves a pending owner beneath an existing intermediary', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -3054,7 +3539,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -3068,20 +3553,19 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(
       screen.getByRole('button', { name: /Existing Holdings LLC/ })
     );
-    await user.click(
-      screen.getByRole('button', { name: 'Create new ownership path' })
-    );
 
-    expect(createParty).toHaveBeenCalledWith(
-      expect.objectContaining({
-        parentPartyId: 'intermediary-existing',
-        roles: ['BENEFICIAL_OWNER'],
-      })
-    );
-    expect(cancelChanges).toHaveBeenCalledWith('request-1', 'pending-owner');
-    expect(createParty.mock.invocationCallOrder[0]).toBeLessThan(
-      cancelChanges.mock.invocationCallOrder[0]!
-    );
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      {
+        partyId: 'pending-owner',
+        request: { parentPartyId: 'intermediary-existing' },
+      },
+      {
+        partyId: 'pending-owner',
+        request: { individualDetails: { natureOfOwnership: 'Indirect' } },
+      },
+    ]);
+    expect(createParty).not.toHaveBeenCalled();
+    expect(cancelChanges).not.toHaveBeenCalled();
     expect(updateParty).not.toHaveBeenCalled();
   });
 
@@ -3115,28 +3599,38 @@ describe('ApprovedClientMaintenance', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
 
-    const pendingParty = within(
-      screen.getByRole('region', { name: 'Changes in this request' })
-    )
-      .getByText('Wendy Darling')
-      .closest('li');
-    expect(pendingParty).toHaveTextContent(
-      'Pending addition · Beneficial owner'
-    );
+    const pendingParty = document.querySelector<HTMLElement>(
+      '[data-review-group="added"] [data-review-change="person-2"]'
+    )!;
+    expect(pendingParty).toHaveTextContent('Wendy Darling');
+    expect(pendingParty).toHaveTextContent('Direct beneficial owner');
+    // The row summarizes; the full proposed record lives on the details page.
+    expect(pendingParty.querySelector('[data-change-table]')).toBeNull();
     expect(
-      within(pendingParty!).getByText('Proposed party details')
-    ).toBeInTheDocument();
-    expect(
-      within(pendingParty!).queryByText('Current value')
+      within(pendingParty).queryByText('Current value')
     ).not.toBeInTheDocument();
     await user.click(
-      within(pendingParty!).getByRole('button', { name: 'More actions' })
+      within(pendingParty).getByRole('button', {
+        name: 'Actions for Wendy Darling',
+      })
     );
     expect(
-      screen.getByRole('menuitem', { name: 'Edit pending party' })
+      screen.getByRole('menuitem', { name: /^Edit pending party/ })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: 'Discard pending addition' })
+      screen.getByRole('menuitem', { name: /^Discard pending addition/ })
+    ).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+
+    await user.click(
+      within(pendingParty).getByRole('button', { name: /^Wendy Darling/ })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Wendy Darling' })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Back to review' }));
+    expect(
+      screen.getByRole('heading', { name: 'Review your changes' })
     ).toBeInTheDocument();
   });
 
@@ -3229,7 +3723,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -3239,11 +3733,14 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'View ownership structure' })
     );
     await user.click(
-      screen.getByRole('button', { name: 'Add beneficial owner' })
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add beneficial owner',
+      })
     );
-    await user.click(
-      screen.getByRole('button', { name: /Owns the client directly/ })
-    );
+    // Only direct ownership is allowed, so there is no direct-or-indirect choice to make.
+    expect(
+      screen.queryByRole('button', { name: /Owns your business directly/ })
+    ).not.toBeInTheDocument();
     await user.type(screen.getByLabelText('First name'), 'Wendy');
     await user.type(screen.getByLabelText(/Middle name/), 'Moira');
     await user.type(screen.getByLabelText('Last name'), 'Darling');
@@ -3305,7 +3802,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -3315,10 +3812,9 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'View ownership structure' })
     );
     await user.click(
-      screen.getByRole('button', { name: 'Add beneficial owner' })
-    );
-    await user.click(
-      screen.getByRole('button', { name: /Owns the client directly/ })
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add beneficial owner',
+      })
     );
     await user.type(screen.getByLabelText('First name'), 'Tinker');
     await user.type(screen.getByLabelText('Last name'), 'Bell');
@@ -3374,7 +3870,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -3384,7 +3880,9 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'View ownership structure' })
     );
     await user.click(
-      screen.getByRole('button', { name: 'Add intermediary business' })
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add intermediary business',
+      })
     );
     await user.type(
       screen.getByLabelText('Legal name of the company'),
@@ -3450,6 +3948,16 @@ describe('ApprovedClientMaintenance', () => {
             organizationType: 'C_CORPORATION',
             countryOfFormation: 'US',
             natureOfOwnership: 'Direct',
+            addresses: [
+              {
+                addressType: 'LEGAL_ADDRESS',
+                addressLines: ['200 Market Street'],
+                city: 'San Francisco',
+                state: 'CA',
+                postalCode: '94105',
+                country: 'US',
+              },
+            ],
           },
           updateRequest: {
             status: 'NEW',
@@ -3469,7 +3977,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -3498,26 +4006,1253 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.queryByRole('heading', { name: 'Pending changes' })
     ).not.toBeInTheDocument();
+    const legalAddressSection = screen
+      .getByText('Legal address')
+      .closest('section');
+    expect(legalAddressSection).toHaveTextContent('200 Market Street');
+    expect(legalAddressSection).toHaveTextContent('San Francisco');
+    expect(legalAddressSection).toHaveTextContent('94105');
+    expect(
+      screen.getByRole('button', { name: 'Back to ownership structure' })
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Business profile' }));
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
 
-    const requestCard = within(
-      screen.getByRole('region', { name: 'Changes in this request' })
-    )
-      .getByText('Central Park Cookie')
-      .closest('li');
-    expect(requestCard).toHaveTextContent(
-      'Intermediary owner · Pending addition'
+    const requestCard = document.querySelector<HTMLElement>(
+      '[data-review-group="added"] [data-review-change="intermediary-1"]'
+    )!;
+    expect(requestCard).toHaveTextContent('Central Park Cookie');
+    expect(requestCard).toHaveTextContent('Intermediary owner');
+    await user.click(
+      within(requestCard).getByRole('button', {
+        name: 'Actions for Central Park Cookie',
+      })
+    );
+    expect(
+      await screen.findByRole('menuitem', { name: /^Edit/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: /^Discard pending addition/ })
+    ).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+    expect(
+      screen.getByRole('button', { name: 'Discard all changes' })
+    ).toBeInTheDocument();
+  });
+
+  test('offers to discard a pending business from the ownership structure', async () => {
+    const user = userEvent.setup();
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+          },
+          updateRequest: {
+            status: 'NEW',
+            action: 'ADD',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+    cancelChanges.mockResolvedValue(undefined);
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await openOwnershipMenu(user, 'Darling Holdings LLC');
+    expect(
+      await ownershipMenuItem('Discard pending addition')
+    ).toBeInTheDocument();
+  });
+
+  test('asks what happens to the owners under a pending business before discarding it', async () => {
+    const user = userEvent.setup();
+    const pendingAddition = {
+      status: 'NEW' as const,
+      action: 'ADD' as const,
+      requestId: 'request-1',
+      submittedAt: '2026-09-03T10:00:00.000Z',
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: { organizationName: 'Darling Holdings LLC' },
+          updateRequest: pendingAddition,
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+          updateRequest: pendingAddition,
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await openOwnershipMenu(user, 'Darling Holdings LLC');
+    await user.click(await ownershipMenuItem('Discard pending addition'));
+
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog).toHaveTextContent('Discard Darling Holdings LLC?');
+    expect(dialog).toHaveTextContent(
+      'Wendy Darling will connect directly to Marketplace Vendor LLC'
     );
     await user.click(
-      within(requestCard!).getByRole('button', {
-        name: 'Discard pending addition',
+      within(dialog).getByRole('button', {
+        name: 'Keep owners and update profile',
+      })
+    );
+
+    expect(cancelChanges).not.toHaveBeenCalled();
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      { partyId: 'person-2', request: { parentPartyId: 'organization-1' } },
+      {
+        partyId: 'person-2',
+        request: { individualDetails: { natureOfOwnership: 'Direct' } },
+      },
+      { partyId: 'intermediary-1', withdrawFromRequestId: 'request-1' },
+    ]);
+  });
+
+  test('moves a pending ownership addition to a different business', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+          },
+        },
+      ],
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+          updateRequest: {
+            status: 'NEW',
+            action: 'ADD',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await openOwnershipMenu(user, 'Wendy Darling');
+    expect(
+      await ownershipMenuItem('Discard pending addition')
+    ).toBeInTheDocument();
+    await user.click(await ownershipMenuItem('Update connection'));
+    await user.click(screen.getByLabelText('Marketplace Vendor LLC'));
+    await user.click(screen.getByRole('button', { name: 'Update connection' }));
+
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      { partyId: 'person-2', request: { parentPartyId: 'organization-1' } },
+      {
+        partyId: 'person-2',
+        request: { individualDetails: { natureOfOwnership: 'Direct' } },
+      },
+    ]);
+  });
+
+  test('moves an approved owner who already has draft edits', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: { organizationName: 'Darling Holdings LLC' },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+      ],
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-2',
+          individualDetails: { jobTitle: 'CFO' },
+          updateRequest: {
+            status: 'NEW',
+            action: 'MODIFY',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await openOwnershipMenu(user, 'Wendy Darling');
+    expect(await ownershipMenuItem('Update connection')).toBeInTheDocument();
+    // Edits aren't visible here, so they're discarded from the review or the party's page.
+    expect(
+      screen.queryByRole('menuitem', { name: /^Discard changes/ })
+    ).not.toBeInTheDocument();
+    await user.keyboard('{Escape}');
+
+    await user.click(
+      within(
+        document.querySelector<HTMLElement>('[data-ownership-node="person-2"]')!
+      ).getAllByRole('button')[0]
+    );
+    await user.click(screen.getByRole('button', { name: 'Update connection' }));
+    await user.click(screen.getByLabelText('Marketplace Vendor LLC'));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Update connection',
+      })
+    );
+
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      { partyId: 'person-2', request: { parentPartyId: 'organization-1' } },
+      {
+        partyId: 'person-2',
+        request: { individualDetails: { natureOfOwnership: 'Direct' } },
+      },
+    ]);
+  });
+
+  test('marks a business that was never reviewed and offers nothing that would fail', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          profileStatus: 'NEW',
+          organizationDetails: { organizationName: 'Darling Holdings LLC' },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    const node = document.querySelector<HTMLElement>(
+      '[data-ownership-node="intermediary-1"]'
+    )!;
+    expect(node).toHaveTextContent('Not reviewed');
+    expect(
+      within(node).queryByRole('button', {
+        name: 'Actions for Darling Holdings LLC',
+      })
+    ).not.toBeInTheDocument();
+
+    await user.click(within(node).getAllByRole('button')[0]);
+    expect(screen.getByText('Added without review')).toBeInTheDocument();
+    expect(
+      screen.getByText(/isn't part of the approved profile/)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Edit/ })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Remove from ownership profile' })
+    ).not.toBeInTheDocument();
+  });
+
+  test('moves a pending intermediary to a different ownership level', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-existing',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Existing Holdings LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+          },
+        },
+      ],
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'intermediary-pending',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Pending Holdings LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+            natureOfOwnership: 'Direct',
+          },
+          updateRequest: {
+            status: 'NEW',
+            action: 'ADD',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await clickOwnershipMenuItem(
+      user,
+      'Pending Holdings LLC',
+      'Update connection'
+    );
+    await user.click(screen.getByLabelText('Existing Holdings LLC'));
+    await user.click(screen.getByRole('button', { name: 'Update connection' }));
+
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      {
+        partyId: 'intermediary-pending',
+        request: { parentPartyId: 'intermediary-existing' },
+      },
+      {
+        partyId: 'intermediary-pending',
+        request: { organizationDetails: { natureOfOwnership: 'Indirect' } },
+      },
+    ]);
+  });
+
+  test('keeps a pending-removal owner in their connection diagram and the ownership structure', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            natureOfOwnership: 'Direct',
+          },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+      ],
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-2',
+          active: false,
+          updateRequest: {
+            status: 'NEW',
+            action: 'MODIFY',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Wendy Darling.*Pending removal/ })
+    );
+
+    const steps = document
+      .querySelector('[data-ownership-chain]')!
+      .querySelectorAll('li');
+    expect(steps).toHaveLength(3);
+    expect(steps[1]).toHaveTextContent('Darling Holdings LLC');
+    expect(steps[2]).toHaveTextContent('Wendy Darling');
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+
+    const removedNode = document.querySelector<HTMLElement>(
+      '[data-ownership-node="person-2"]'
+    );
+    expect(removedNode).toBeInTheDocument();
+    expect(within(removedNode!).getByText('Pending removal')).toHaveClass(
+      'eb-text-destructive'
+    );
+    expect(removedNode!.querySelector('article')).toHaveClass(
+      'eb-border-destructive/50',
+      'eb-bg-destructive-accent/20'
+    );
+
+    await openOwnershipMenu(user, 'Wendy Darling');
+    const menuItems = await screen.findAllByRole('menuitem');
+    expect(menuItems).toHaveLength(1);
+    expect(menuItems[0]).toHaveTextContent('Cancel removal');
+
+    await user.click(menuItems[0]);
+    const dialog = await screen.findByRole('alertdialog');
+    expect(
+      within(dialog).getByRole('heading', {
+        name: 'Cancel removing Wendy Darling?',
+      })
+    ).toBeInTheDocument();
+    // A removal has no field delta; the dialog says what the person keeps instead.
+    expect(dialog).toHaveTextContent(/Wendy Darling stays on the profile as/);
+    expect(dialog).not.toHaveTextContent(/Pending changes|can't be undone/);
+    expect(
+      within(dialog).getByRole('button', { name: 'Cancel removal' })
+    ).not.toHaveClass('eb-bg-destructive');
+  });
+
+  test('reviews an owner edit as a change without repeating the ownership structure', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'person-2',
+          parentPartyId: 'organization-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-2',
+          individualDetails: { lastName: 'Pan' },
+          updateRequest: {
+            status: 'NEW',
+            action: 'MODIFY',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    await user.click(screen.getByRole('button', { name: 'Review and submit' }));
+
+    const editedCard = document.querySelector<HTMLElement>(
+      '[data-review-group="updated"] [data-review-change="person-2"]'
+    )!;
+    expect(editedCard).toHaveTextContent(/Last name.*Darling.*Pan/);
+    expect(document.querySelector('[data-ownership-node]')).toBeNull();
+    expect(
+      document.querySelector('[data-review-ownership-link]')
+    ).toHaveTextContent('View ownership structure');
+  });
+
+  test('groups changes as added, updated, and removed, with the structure on its own page', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: { organizationName: 'Darling Holdings LLC' },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+        {
+          id: 'person-3',
+          parentPartyId: 'organization-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Peter',
+            lastName: 'Pan',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+    const updateRequest = {
+      status: 'NEW' as const,
+      action: 'MODIFY' as const,
+      requestId: 'request-1',
+      submittedAt: '2026-09-03T10:00:00.000Z',
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-2',
+          parentPartyId: 'organization-1',
+          individualDetails: { natureOfOwnership: 'Direct' },
+          updateRequest,
+        },
+        { id: 'person-3', active: false, updateRequest },
+        createProposal('Diaz'),
+        {
+          id: 'person-4',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Tinker',
+            lastName: 'Bell',
+            natureOfOwnership: 'Indirect',
+          },
+          updateRequest: { ...updateRequest, action: 'ADD' },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+    await user.click(screen.getByRole('button', { name: 'Review and submit' }));
+
+    const groupRows = (group: string) =>
+      [
+        ...document.querySelectorAll(
+          `[data-review-group="${group}"] [data-review-change]`
+        ),
+      ].map((row) => row.getAttribute('data-review-change'));
+    expect(
+      [...document.querySelectorAll('[data-review-group]')].map((group) =>
+        group.getAttribute('data-review-group')
+      )
+    ).toEqual(['added', 'updated', 'removed']);
+    expect(groupRows('added')).toEqual(['person-4']);
+    expect(groupRows('updated')).toEqual(['person-1', 'person-2']);
+    expect(groupRows('removed')).toEqual(['person-3']);
+    expect(
+      screen.getByRole('heading', { name: /^Updated\s*2$/ })
+    ).toBeInTheDocument();
+    expect(document.querySelector('[data-ownership-node]')).toBeNull();
+    // Status pills would only repeat the group heading.
+    expect(
+      document.querySelector('[data-review-group] [data-party-status]')
+    ).toBeNull();
+
+    expect(
+      document.querySelector('[data-review-change="person-4"]')
+    ).toHaveTextContent(
+      'Indirect beneficial owner · Owned through Darling Holdings LLC'
+    );
+
+    // The move reads as one connection change, without a separate direct/indirect row.
+    const movedRow = document.querySelector<HTMLElement>(
+      '[data-review-change="person-2"]'
+    )!;
+    const movedChanges = movedRow.querySelectorAll('dl > div');
+    expect(movedChanges).toHaveLength(1);
+    expect(movedChanges[0]).toHaveTextContent(
+      /Owned through.*Darling Holdings LLC.*Marketplace Vendor LLC/
+    );
+
+    const removalRow = document.querySelector<HTMLElement>(
+      '[data-review-change="person-3"]'
+    )!;
+    expect(removalRow).toHaveTextContent('Direct beneficial owner');
+    await user.click(
+      within(removalRow).getByRole('button', { name: 'Actions for Peter Pan' })
+    );
+    const menuItems = await screen.findAllByRole('menuitem');
+    expect(menuItems).toHaveLength(1);
+    expect(menuItems[0]).toHaveTextContent('Cancel removal');
+    await user.keyboard('{Escape}');
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Ownership structure' })
+    ).toBeInTheDocument();
+    const movedNode = document.querySelector<HTMLElement>(
+      '[data-ownership-node="person-2"]'
+    )!;
+    expect(movedNode).toHaveTextContent('Moved from Darling Holdings LLC');
+    // The move marker sits beside the party's pending-change count, not instead of it.
+    expect(movedNode.querySelector('[data-party-status]')).toHaveTextContent(
+      /pending change/
+    );
+    expect(
+      document.querySelector('[data-ownership-node="person-3"]')
+    ).toHaveTextContent('Pending removal');
+    await user.click(screen.getByRole('button', { name: 'Back to review' }));
+    expect(
+      screen.getByRole('heading', { name: 'Review your changes' })
+    ).toBeInTheDocument();
+  });
+
+  test('shows an indirect owner their connection diagram and a route to the structure', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            natureOfOwnership: 'Direct',
+          },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Wendy Darling/ }));
+
+    const chain = document.querySelector('[data-ownership-chain]');
+    expect(chain).toBeInTheDocument();
+    const steps = chain!.querySelectorAll('li');
+    expect(steps).toHaveLength(3);
+    expect(steps[0]).toHaveTextContent('Marketplace Vendor LLC');
+    expect(steps[0]).toHaveTextContent('Your business');
+    expect(steps[1]).toHaveTextContent('Darling Holdings LLC');
+    expect(steps[1]).toHaveTextContent('Intermediary owner');
+    expect(steps[2]).toHaveTextContent('Wendy Darling');
+    expect(steps[2]).toHaveTextContent('This person');
+
+    expect(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Change to indirect ownership' })
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Ownership structure' })
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'View owner details' })
+    );
+    expect(
+      screen.getByRole('button', { name: 'Back to ownership structure' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'View ownership structure' })
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Back to ownership structure' })
+    );
+    // Viewing the structure was a lateral jump, so Back skips Wendy's page.
+    await user.click(
+      screen.getByRole('button', { name: 'Back to business profile' })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Business profile' })
+    ).toBeInTheDocument();
+  });
+
+  test('offers the ownership structure link even when ownership cannot be edited', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: (approvedClient.parties ?? []).map((party) =>
+        party.id === 'person-1'
+          ? {
+              ...party,
+              roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+              individualDetails: {
+                ...party.individualDetails,
+                natureOfOwnership: 'Direct',
+              },
+            }
+          : party
+      ),
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+
+    expect(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Change to indirect ownership' })
+    ).not.toBeInTheDocument();
+  });
+
+  test('keeps the intermediary ownership section when arriving from the structure', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    const intermediaryNode = document.querySelector<HTMLElement>(
+      '[data-ownership-node="intermediary-1"]'
+    );
+    await user.click(
+      within(intermediaryNode!).getByRole('button', {
+        name: 'View business details',
+      })
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Role and ownership' })
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-ownership-chain]')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'View ownership structure' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Back to ownership structure' })
+    ).toBeInTheDocument();
+  });
+
+  test('promotes an intermediary ownership chain before removing it', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+            addresses: [
+              {
+                addressType: 'LEGAL_ADDRESS',
+                addressLines: ['200 Market Street'],
+                city: 'San Francisco',
+                state: 'CA',
+                postalCode: '94105',
+                country: 'US',
+              },
+            ],
+          },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /^Darling Holdings LLC/ })
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Role and ownership' })
+    ).toBeInTheDocument();
+    const branchPreview = document.querySelector(
+      '[data-role="INTERMEDIARY_OWNER"]'
+    );
+    expect(branchPreview).toHaveTextContent('Marketplace Vendor LLC');
+    expect(branchPreview).toHaveTextContent('Darling Holdings LLC');
+    expect(branchPreview).toHaveTextContent('Wendy Darling');
+    const intermediaryHeader = screen
+      .getByRole('heading', { name: 'Darling Holdings LLC' })
+      .closest('header');
+    expect(
+      within(intermediaryHeader!).getByRole('button', {
+        name: 'Edit business details',
+      })
+    ).toBeInTheDocument();
+    expect(
+      within(intermediaryHeader!).getByRole('button', {
+        name: 'Remove from ownership profile',
+      })
+    ).toBeInTheDocument();
+
+    await user.click(
+      within(intermediaryHeader!).getByRole('button', {
+        name: 'Remove from ownership profile',
+      })
+    );
+
+    const removalDialog = screen.getByRole('alertdialog');
+    expect(removalDialog).toHaveTextContent('Keep them');
+    expect(removalDialog).toHaveTextContent(
+      'Wendy Darling will connect directly to Marketplace Vendor LLC'
+    );
+    expect(removalDialog).toHaveTextContent('Remove them too');
+
+    await user.click(
+      within(removalDialog).getByRole('button', {
+        name: 'Keep owners and update profile',
+      })
+    );
+
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      { partyId: 'person-2', request: { parentPartyId: 'organization-1' } },
+      {
+        partyId: 'person-2',
+        request: { individualDetails: { natureOfOwnership: 'Direct' } },
+      },
+      { partyId: 'intermediary-1', request: { active: false } },
+    ]);
+  });
+
+  test('removes an intermediary that has no dependent ownership chain', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+          },
+        },
+      ],
+    };
+    updateParty.mockResolvedValue(undefined);
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Darling Holdings LLC/ })
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Remove from ownership profile' })
+    );
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Remove from ownership profile',
+      })
+    );
+
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      { partyId: 'intermediary-1', request: { active: false } },
+    ]);
+  });
+
+  test('moves an indirect owner from the ownership edit workspace', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+          },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    expect(
+      screen.queryByRole('menuitem', { name: /^Update connection/ })
+    ).not.toBeInTheDocument();
+    await clickOwnershipMenuItem(user, 'Wendy Darling', 'Update connection');
+    await user.click(screen.getByLabelText('Marketplace Vendor LLC'));
+    await user.click(screen.getByRole('button', { name: 'Update connection' }));
+
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      { partyId: 'person-2', request: { parentPartyId: 'organization-1' } },
+      {
+        partyId: 'person-2',
+        request: { individualDetails: { natureOfOwnership: 'Direct' } },
+      },
+    ]);
+  });
+
+  test('removes an entire intermediary branch from the strategy chooser', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            countryOfFormation: 'US',
+          },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /^Darling Holdings LLC/ })
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Remove from ownership profile' })
+    );
+    await user.click(
+      screen.getByRole('radio', {
+        name: /Remove them too/,
       })
     );
     await user.click(
-      screen.getByRole('button', { name: 'Discard pending addition' })
+      screen.getByRole('button', {
+        name: 'Remove all from ownership profile',
+      })
     );
-    expect(cancelChanges).toHaveBeenCalledWith('request-1', 'intermediary-1');
+
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      { partyId: 'person-2', request: { active: false } },
+      { partyId: 'intermediary-1', request: { active: false } },
+    ]);
   });
 
   test('guards dirty add-form navigation before leaving ownership', async () => {
@@ -3529,7 +5264,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -3539,7 +5274,9 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'View ownership structure' })
     );
     await user.click(
-      screen.getByRole('button', { name: 'Add intermediary business' })
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add intermediary business',
+      })
     );
     await user.type(
       screen.getByLabelText('Legal name of the company'),
@@ -3578,7 +5315,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -3588,7 +5325,9 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'View ownership structure' })
     );
     await user.click(
-      screen.getByRole('button', { name: 'Add intermediary business' })
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add intermediary business',
+      })
     );
     await user.type(
       screen.getByLabelText('Legal name of the company'),
@@ -3642,7 +5381,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER', 'DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -3652,8 +5391,8 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'View ownership structure' })
     );
     await user.click(
-      screen.getByRole('button', {
-        name: 'Add owner through this business',
+      within(getOwnershipAddRow('intermediary-1')!).getByRole('button', {
+        name: 'Add beneficial owner',
       })
     );
     await user.type(screen.getByLabelText('First name'), 'Peter');
@@ -3702,7 +5441,7 @@ describe('ApprovedClientMaintenance', () => {
     });
   });
 
-  test('rebuilds an existing owner path through a new intermediary without removing their controller role', async () => {
+  test('moves a controller owner beneath a new intermediary as one party', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -3735,9 +5474,7 @@ describe('ApprovedClientMaintenance', () => {
           : party
       ),
     };
-    createParty
-      .mockResolvedValueOnce({ id: 'intermediary-1' })
-      .mockResolvedValueOnce({ id: 'indirect-owner-1' });
+    createParty.mockResolvedValueOnce({ id: 'intermediary-1' });
     updateParty.mockResolvedValue(undefined);
 
     render(
@@ -3747,7 +5484,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER', 'DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -3756,23 +5493,22 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(
       screen.getByRole('button', { name: 'View ownership structure' })
     );
-    const janeOwner = screen.getByText('Jane R Doe').closest('li');
-    await user.click(
-      within(janeOwner!).getByRole('button', {
-        name: 'Change to indirect ownership',
-      })
+    await clickOwnershipMenuItem(
+      user,
+      'Jane R Doe',
+      'Change to indirect ownership'
     );
     expect(
       screen.getByRole('heading', {
-        name: 'Choose an intermediary for Jane R Doe',
+        name: 'Choose where Jane R Doe connects',
       })
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /Owns the client directly/ })
+      screen.queryByRole('button', { name: /Owns your business directly/ })
     ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole('button', {
-        name: 'Add a new intermediary for this owner',
+        name: 'Add a new intermediary business',
       })
     );
     await user.type(
@@ -3799,39 +5535,21 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'Add intermediary owner' })
     );
 
+    expect(createParty).toHaveBeenCalledTimes(1);
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      { partyId: 'person-1', request: { parentPartyId: 'intermediary-1' } },
+      {
+        partyId: 'person-1',
+        request: { individualDetails: { natureOfOwnership: 'Indirect' } },
+      },
+    ]);
+    expect(updateParty).not.toHaveBeenCalled();
     expect(
-      screen.getByRole('heading', { name: 'Confirm owner details' })
+      screen.getByRole('heading', { name: 'Ownership structure' })
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('First name')).toHaveValue('Jane');
-    expect(screen.getByLabelText('Last name')).toHaveValue('Doe');
-    await user.click(screen.getByLabelText('Job title'));
-    await user.click(screen.getByRole('option', { name: 'CEO' }));
-    const email = screen.getByLabelText('Email');
-    await user.clear(email);
-    await user.type(email, 'owner@example.com');
-    await user.click(
-      screen.getByRole('button', { name: 'Create new ownership path' })
-    );
-
-    expect(createParty).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        parentPartyId: 'intermediary-1',
-        roles: ['BENEFICIAL_OWNER'],
-        individualDetails: expect.objectContaining({
-          natureOfOwnership: 'Indirect',
-        }),
-      })
-    );
-    expect(updateParty).toHaveBeenCalledWith('person-1', {
-      roles: ['CONTROLLER'],
-    });
-    expect(updateParty.mock.invocationCallOrder[0]).toBeLessThan(
-      createParty.mock.invocationCallOrder[1]!
-    );
   });
 
-  test('rebuilds a direct owner beneath an existing intermediary', async () => {
+  test('moves a direct owner beneath an existing intermediary', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -3888,7 +5606,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER', 'DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -3897,34 +5615,64 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(
       screen.getByRole('button', { name: 'View ownership structure' })
     );
-    const janeOwner = screen.getByText('Jane R Doe').closest('li');
-    await user.click(
-      within(janeOwner!).getByRole('button', {
-        name: 'Change to indirect ownership',
-      })
+    await clickOwnershipMenuItem(
+      user,
+      'Jane R Doe',
+      'Change to indirect ownership'
     );
     await user.click(
       screen.getByRole('button', { name: /Existing Holdings LLC/ })
     );
 
-    expect(
-      screen.getByRole('heading', { name: 'Confirm owner details' })
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText('First name')).toHaveValue('Jane');
-    await user.click(
-      screen.getByRole('button', { name: 'Create new ownership path' })
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      {
+        partyId: 'person-1',
+        request: { parentPartyId: 'intermediary-existing' },
+      },
+      {
+        partyId: 'person-1',
+        request: { individualDetails: { natureOfOwnership: 'Indirect' } },
+      },
+    ]);
+    expect(createParty).not.toHaveBeenCalled();
+    expect(updateParty).not.toHaveBeenCalled();
+  });
+
+  test('unlocks nothing when indirect ownership is configured without profile management', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
     );
 
-    expect(createParty).toHaveBeenCalledTimes(1);
-    expect(createParty).toHaveBeenCalledWith(
-      expect.objectContaining({
-        parentPartyId: 'intermediary-existing',
-        roles: ['BENEFICIAL_OWNER'],
-      })
+    expect(
+      screen.queryByRole('button', { name: 'Add Limited DDA Payments' })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    expect(
+      screen.queryByRole('button', { name: 'Edit details' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Replace controller' })
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Back to business profile' })
     );
-    expect(updateParty).toHaveBeenCalledWith('person-1', {
-      roles: ['CONTROLLER'],
-    });
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Add beneficial owner' })
+    ).not.toBeInTheDocument();
   });
 
   test('stops offering beneficial-owner addition once four owners are proposed', async () => {
@@ -3951,7 +5699,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_CONTROLLER', 'ADD_BENEFICIAL_OWNER'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
@@ -3961,15 +5709,19 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'View ownership structure' })
     );
 
+    // The limit is a state, not a permission, so the action stays visible and explains itself.
     expect(
       screen.getByRole('button', { name: 'Add beneficial owner' })
     ).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Add beneficial owner' })
+    ).toHaveAttribute('title', 'You can list up to 4 beneficial owners.');
     expect(
       screen.queryByRole('button', { name: 'Choose replacement controller' })
     ).not.toBeInTheDocument();
   });
 
-  test('returns an organization edit to maintenance request review after save', async () => {
+  test('returns an organization edit to the review page after save', async () => {
     const user = userEvent.setup();
     updateParty.mockResolvedValue(undefined);
     workspace.maintenanceQuery.data = {
@@ -4010,22 +5762,25 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['EDIT_ORGANIZATION'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
     );
 
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
-    const businessChange = within(
-      screen.getByRole('region', { name: 'Changes in this request' })
-    )
-      .getByText('Marketplace Vendor LLC')
-      .closest('li');
-    expect(within(businessChange!).getByText('Business')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'More actions' }));
+    const businessChange = document.querySelector<HTMLElement>(
+      '[data-review-change="organization"]'
+    )!;
+    expect(businessChange).toHaveTextContent('Marketplace Vendor LLC');
+    expect(businessChange).toHaveTextContent('Business details');
     await user.click(
-      screen.getByRole('menuitem', { name: 'Add or edit changes' })
+      within(businessChange).getByRole('button', {
+        name: 'Actions for Marketplace Vendor LLC',
+      })
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: /^Add or edit changes/ })
     );
     const dbaName = screen.getByLabelText(/Doing business as/);
     await user.clear(dbaName);
@@ -4062,20 +5817,36 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['REMOVE_RELATED_PARTY'],
+            operations: ['MANAGE_PROFILE'],
           },
         ]}
       />
     );
 
     await user.click(screen.getByRole('button', { name: /Wendy Darling/ }));
+    const partyHeader = screen
+      .getByRole('heading', { name: 'Wendy Darling' })
+      .closest('header');
+    expect(
+      within(partyHeader!).getByRole('button', { name: 'Edit details' })
+    ).toBeInTheDocument();
+    expect(
+      within(partyHeader!).getByRole('button', {
+        name: 'Remove from business profile',
+      })
+    ).toBeInTheDocument();
     await user.click(
-      screen.getByRole('button', { name: 'Remove related party' })
+      screen.getByRole('button', { name: 'Remove from business profile' })
     );
     await user.click(
-      screen.getByRole('button', { name: 'Remove related party' })
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Remove from business profile',
+      })
     );
     expect(updateParty).toHaveBeenCalledWith('person-2', { active: false });
+    expect(
+      screen.getByRole('heading', { name: 'Wendy Darling' })
+    ).toBeInTheDocument();
   });
 
   test('separates overview sections with a label gutter and bounded content groups', () => {
@@ -4112,12 +5883,395 @@ describe('ApprovedClientMaintenance', () => {
       ).toHaveClass('eb-border-t');
     });
 
-    expect(screen.getByText('Legal entity on file')).toBeInTheDocument();
+    expect(
+      screen.getByText('Current business information')
+    ).toBeInTheDocument();
     expect(screen.getByText('1 active product')).toBeInTheDocument();
     expect(
       screen.getByText('Key roles and intermediary businesses')
     ).toBeInTheDocument();
     expect(screen.getByText('Controller')).toBeInTheDocument();
+  });
+
+  test('matches the sidebar action to the state of the pending changes', async () => {
+    const user = userEvent.setup();
+    const widthSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockReturnValue(1200);
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      updateRequest: {
+        requestId: 'request-1',
+        status: 'REVIEW_IN_PROGRESS',
+      },
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['CONTROLLER'],
+          individualDetails: { lastName: 'Diaz' },
+          updateRequest: {
+            status: 'REVIEW_IN_PROGRESS',
+            action: 'MODIFY',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+
+    const sidebar = document.querySelector(
+      '[data-maintenance-navigator]'
+    ) as HTMLElement;
+    expect(
+      sidebar.querySelector('[data-navigator-request-state]')
+    ).toHaveAttribute('data-navigator-request-state', 'submitted');
+    expect(
+      within(sidebar).queryByRole('button', { name: /Review and submit/ })
+    ).not.toBeInTheDocument();
+    const requestGroup = sidebar.querySelector<HTMLElement>(
+      '[data-navigator-request-state]'
+    )!;
+    expect(requestGroup).toHaveTextContent('Maintenance request');
+    const requestRow = within(requestGroup).getByRole('button', {
+      name: /Request details.*Maintenance request submitted/,
+    });
+    // One control per row: no button nested inside the clickable row.
+    expect(
+      requestRow.querySelector('button, [class*="eb-bg-primary"]')
+    ).toBeNull();
+    // Neutral background so the shared active highlight reads the same as other rows.
+    expect(requestGroup.className).not.toMatch(/eb-bg-(informative|warning)/);
+    expect(requestRow.querySelector('.lucide-chevron-right')).not.toBeNull();
+    const janeRow = within(sidebar).getByRole('button', {
+      name: /Jane.*Diaz/,
+    });
+    expect(
+      janeRow.querySelector('[data-party-status="changeUnderReview"]')
+    ).toHaveTextContent('Changes under review');
+    expect(janeRow).toHaveTextContent('Controller');
+
+    await user.click(requestRow);
+    expect(
+      screen.getByRole('heading', { name: 'Maintenance request' })
+    ).toBeInTheDocument();
+    expect(
+      within(
+        document.querySelector<HTMLElement>(
+          '[data-maintenance-navigator] [data-navigator-request-state]'
+        )!
+      ).getByRole('button', { name: /Request details/ })
+    ).toHaveAttribute('aria-current', 'page');
+
+    widthSpy.mockRestore();
+  });
+
+  test('keeps the overview beside active detail content in a wide container', async () => {
+    const user = userEvent.setup();
+    const widthSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockReturnValue(1200);
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+
+    const splitLayout = document.querySelector(
+      '[data-maintenance-layout="split"]'
+    );
+    expect(splitLayout).toHaveClass(
+      'eb-grid',
+      'eb-grid-cols-[minmax(0,17rem)_minmax(0,1fr)]'
+    );
+    expect(splitLayout?.querySelector('aside')).toHaveClass(
+      'eb-sticky',
+      'eb-overflow-y-auto'
+    );
+    expect(splitLayout?.querySelector('main')).toHaveClass(
+      'eb-overflow-y-auto',
+      'eb-@container'
+    );
+    const sidebar = splitLayout?.querySelector(
+      '[data-maintenance-navigator]'
+    ) as HTMLElement;
+    expect(sidebar).toBeInTheDocument();
+    expect(
+      within(sidebar).queryByRole('heading', { name: 'Business profile' })
+    ).not.toBeInTheDocument();
+    expect(
+      within(sidebar).getByRole('button', { name: 'Business profile' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('navigation', { name: 'Business profile navigation' })
+    ).not.toBeInTheDocument();
+    const businessDetails = within(sidebar).getByRole('button', {
+      name: /Marketplace Vendor LLC.*Business details/,
+    });
+    expect(businessDetails).toHaveAttribute('aria-current', 'page');
+    expect(sidebar).toHaveTextContent('Related parties');
+    expect(sidebar).not.toHaveTextContent(/^People$|Businesses/);
+    expect(sidebar.querySelector('[data-pending-change]')).toBeNull();
+    expect(
+      within(sidebar).getByRole('button', { name: 'Ownership structure' })
+    ).not.toHaveAttribute('aria-current');
+    expect(
+      within(sidebar).getByRole('button', { name: /Jane R Doe/ })
+    ).toBeInTheDocument();
+    expect(
+      within(splitLayout?.querySelector('main') as HTMLElement).getByRole(
+        'heading',
+        { name: 'Marketplace Vendor LLC' }
+      )
+    ).toBeInTheDocument();
+
+    await user.click(
+      within(sidebar).getByRole('button', { name: /Jane R Doe/ })
+    );
+    expect(
+      within(splitLayout?.querySelector('main') as HTMLElement).getByRole(
+        'heading',
+        { name: 'Jane R Doe' }
+      )
+    ).toBeInTheDocument();
+    expect(
+      within(sidebar).getByRole('button', { name: /Jane R Doe/ })
+    ).toHaveAttribute('aria-current', 'page');
+
+    await user.click(
+      within(splitLayout?.querySelector('main') as HTMLElement).getByRole(
+        'button',
+        { name: 'Edit details' }
+      )
+    );
+    expect(
+      within(sidebar).getByRole('button', { name: /Jane R Doe/ })
+    ).toHaveAttribute('aria-current', 'page');
+
+    widthSpy.mockRestore();
+  });
+
+  test('shows breadcrumbs only when the navigator sidebar is hidden', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+
+    expect(
+      document.querySelector('[data-maintenance-navigator]')
+    ).not.toBeInTheDocument();
+    const breadcrumb = screen.getByRole('navigation', {
+      name: 'Business profile navigation',
+    });
+    expect(breadcrumb).toHaveTextContent('Business profile');
+    expect(breadcrumb).toHaveTextContent('Business details');
+  });
+
+  test('marks related parties with the same entity medallions as the ownership structure', async () => {
+    const user = userEvent.setup();
+    const widthSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockReturnValue(1200);
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-2',
+          parentPartyId: 'organization-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Direct',
+          },
+          updateRequest: {
+            status: 'NEW',
+            action: 'ADD',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    const personMedallion = document.querySelector(
+      '[data-party-id="person-1"] [data-entity-medallion]'
+    );
+    const intermediaryMedallion = document.querySelector(
+      '[data-party-id="intermediary-1"] [data-entity-medallion]'
+    );
+    const pendingMedallion = document.querySelector(
+      '[data-party-id="person-2"] [data-entity-medallion]'
+    );
+    expect(personMedallion).toHaveAttribute('data-entity-medallion', 'person');
+    expect(intermediaryMedallion).toHaveAttribute(
+      'data-entity-medallion',
+      'business'
+    );
+    expect(pendingMedallion).toHaveClass('eb-bg-informative-accent');
+    expect(personMedallion).toHaveClass('eb-bg-muted');
+
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+    const sidebar = document.querySelector(
+      '[data-maintenance-navigator]'
+    ) as HTMLElement;
+    expect(
+      within(sidebar)
+        .getByRole('button', { name: /Darling Holdings LLC/ })
+        .querySelector('[data-entity-medallion]')
+    ).toHaveAttribute('data-entity-medallion', 'business');
+    expect(
+      within(sidebar)
+        .getByRole('button', { name: /Wendy Darling/ })
+        .querySelector('[data-entity-medallion]')
+    ).toHaveClass('eb-bg-informative-accent');
+    expect(sidebar).toHaveTextContent(/Related parties\s*3/);
+
+    widthSpy.mockRestore();
+  });
+
+  test('distinguishes edits, additions, and removals in the sidebar without displacing roles', async () => {
+    const user = userEvent.setup();
+    const widthSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockReturnValue(1200);
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+    const newRequest = {
+      status: 'NEW' as const,
+      requestId: 'request-1',
+      submittedAt: '2026-09-03T10:00:00.000Z',
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-1',
+          partyType: 'INDIVIDUAL',
+          individualDetails: { lastName: 'Diaz' },
+          updateRequest: { ...newRequest, action: 'MODIFY' },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'organization-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Direct',
+          },
+          updateRequest: { ...newRequest, action: 'ADD' },
+        },
+        {
+          id: 'intermediary-1',
+          partyType: 'ORGANIZATION',
+          active: false,
+          updateRequest: { ...newRequest, action: 'MODIFY' },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+
+    const sidebar = document.querySelector(
+      '[data-maintenance-navigator]'
+    ) as HTMLElement;
+    const editedRow = within(sidebar).getByRole('button', {
+      name: /Jane R Diaz/,
+    });
+    const addedRow = within(sidebar).getByRole('button', {
+      name: /Wendy Darling/,
+    });
+    const removedRow = within(sidebar).getByRole('button', {
+      name: /Darling Holdings LLC/,
+    });
+
+    expect(editedRow).toHaveTextContent('Controller');
+    expect(
+      editedRow.querySelector('[data-party-status="changeStatus"]')
+    ).toHaveTextContent('1 pending change');
+    expect(addedRow).toHaveTextContent('Direct beneficial owner');
+    expect(
+      within(addedRow).getByText('Direct beneficial owner')
+    ).not.toHaveClass('eb-truncate');
+    const additionPill = addedRow.querySelector(
+      '[data-party-status="pendingAddition"]'
+    );
+    expect(additionPill).toHaveTextContent('Pending addition');
+    expect(additionPill).toHaveClass('eb-bg-informative-accent');
+    expect(removedRow).toHaveTextContent('Intermediary owner');
+    const removalPill = removedRow.querySelector(
+      '[data-party-status="pendingRemoval"]'
+    );
+    expect(removalPill).toHaveTextContent('Pending removal');
+    expect(removalPill).toHaveClass('eb-bg-destructive-accent');
+    expect(removalPill).not.toHaveClass('eb-bg-warning-accent');
+    expect(removedRow.querySelector('[data-entity-medallion]')).toHaveClass(
+      'eb-bg-destructive-accent'
+    );
+
+    widthSpy.mockRestore();
   });
 
   test('lists a controller who is also an owner once with both roles', () => {
@@ -4146,7 +6300,7 @@ describe('ApprovedClientMaintenance', () => {
       .closest('section');
     expect(within(peopleSection!).getAllByText('Jane R Doe')).toHaveLength(1);
     expect(
-      screen.getByText('Controller · Beneficial owner · Direct')
+      screen.getByText('Controller · Direct beneficial owner')
     ).toBeInTheDocument();
   });
 
@@ -4228,8 +6382,8 @@ describe('ApprovedClientMaintenance', () => {
       'eb-bg-informative-accent/40'
     );
     expect(pendingRemovalRow).toHaveClass(
-      'eb-border-warning/60',
-      'eb-bg-warning-accent/40'
+      'eb-border-destructive/50',
+      'eb-bg-destructive-accent/40'
     );
 
     await user.click(pendingRemovalRow);
@@ -4239,8 +6393,8 @@ describe('ApprovedClientMaintenance', () => {
     });
     const removedPartyHeader = removedPartyHeading.closest('header');
     expect(removedPartyHeader).toHaveClass(
-      'eb-border-warning/50',
-      'eb-bg-warning-accent/40'
+      'eb-border-destructive/50',
+      'eb-bg-destructive-accent/40'
     );
     expect(
       within(removedPartyHeader!).getByText('Pending removal')
@@ -4248,6 +6402,17 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       removedPartyHeader?.querySelector('.lucide-circle-minus')
     ).not.toBeNull();
+    expect(removedPartyHeader).toHaveTextContent(
+      "This is saved as a pending change. The person stays on the profile until you submit your changes and they're approved."
+    );
+    expect(
+      screen.queryByRole('heading', { name: 'Pending changes' })
+    ).not.toBeInTheDocument();
+    expect(
+      within(removedPartyHeader!).getByRole('button', {
+        name: 'View maintenance request',
+      })
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole('button', { name: 'Back to business profile' })
@@ -4293,7 +6458,7 @@ describe('ApprovedClientMaintenance', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('keeps ownership details compact and relationship actions explicit', async () => {
+  test('keeps ownership browsing compact and centralizes edit actions', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -4330,7 +6495,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER', 'DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -4340,11 +6505,8 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Add beneficial owner' })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Add intermediary business' })
-    ).toBeInTheDocument();
+      screen.queryByRole('button', { name: 'Edit ownership' })
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Edit business details' })
     ).not.toBeInTheDocument();
@@ -4355,15 +6517,21 @@ describe('ApprovedClientMaintenance', () => {
       name: 'View business details',
     });
     expect(ownerDetails).toHaveLength(1);
-    expect(businessDetails).toHaveLength(1);
-    expect(ownerDetails[0]).toHaveTextContent('View details');
-    expect(businessDetails[0]).toHaveTextContent('View details');
+    expect(businessDetails).toHaveLength(2);
+    expect(ownerDetails[0]).toHaveTextContent('Jane R Doe');
+    expect(businessDetails[0]).toHaveTextContent('Marketplace Vendor LLC');
+    expect(businessDetails[1]).toHaveTextContent('Darling Holdings LLC');
+    expect(ownerDetails[0].closest('article')).toHaveClass('eb-border-border');
+    expect(businessDetails[1].closest('article')).toHaveClass(
+      'eb-border-border'
+    );
+    const rootAddRow = getOwnershipAddRow('organization-1');
     expect(
-      screen.getByRole('button', { name: 'Change to indirect ownership' })
+      within(rootAddRow!).getByRole('button', { name: 'Add beneficial owner' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', {
-        name: 'Add owner through this business',
+      within(rootAddRow!).getByRole('button', {
+        name: 'Add intermediary business',
       })
     ).toBeInTheDocument();
     const rootOwnershipList = screen
@@ -4381,14 +6549,101 @@ describe('ApprovedClientMaintenance', () => {
     );
     expect(
       ownershipNodes?.[0].querySelector('[data-ownership-tree-spine]')
-    ).toHaveClass('eb--top-3');
+    ).toHaveClass('eb--top-3', 'eb-border-border');
     expect(ownershipNodes?.[1]).toHaveAttribute(
       'data-last-ownership-node',
-      'true'
+      'false'
     );
     expect(
-      ownershipNodes?.[1].querySelector('[data-ownership-tree-spine]')
-    ).toHaveClass('eb-bottom-1/2');
+      ownershipNodes?.[1].querySelector('[data-ownership-tree-junction]')
+    ).toHaveClass('eb-top-6', 'eb-bg-border');
+
+    await openOwnershipMenu(user, 'Jane R Doe');
+    expect(
+      await ownershipMenuItem('Change to indirect ownership')
+    ).toBeInTheDocument();
+    await user.keyboard('{Escape}');
+
+    const intermediaryAddRow = getOwnershipAddRow('intermediary-1');
+    expect(intermediaryAddRow).toBeInTheDocument();
+    expect(
+      within(intermediaryAddRow!).getByRole('button', {
+        name: 'Add beneficial owner',
+      })
+    ).toBeInTheDocument();
+    expect(
+      within(intermediaryAddRow!).getByRole('button', {
+        name: 'Add intermediary business',
+      })
+    ).toBeInTheDocument();
+  });
+
+  test('shows full ownership paths when choosing nested intermediary destinations', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            natureOfOwnership: 'Direct',
+          },
+        },
+        {
+          id: 'intermediary-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Neverland Holdings LLC',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+        {
+          id: 'person-2',
+          parentPartyId: 'intermediary-1',
+          partyType: 'INDIVIDUAL',
+          roles: ['BENEFICIAL_OWNER'],
+          individualDetails: {
+            firstName: 'Wendy',
+            lastName: 'Darling',
+            natureOfOwnership: 'Indirect',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await clickOwnershipMenuItem(user, 'Wendy Darling', 'Update connection');
+
+    expect(
+      screen.getByText(
+        'Marketplace Vendor LLC › Darling Holdings LLC › Neverland Holdings LLC'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: 'Neverland Holdings LLC' })
+    ).toBeInTheDocument();
   });
 
   test('asks how a new beneficial owner holds their interest before opening the form', async () => {
@@ -4417,7 +6672,7 @@ describe('ApprovedClientMaintenance', () => {
           {
             country: 'US',
             organizationType: 'LIMITED_LIABILITY_COMPANY',
-            operations: ['ADD_BENEFICIAL_OWNER', 'DISCLOSE_INDIRECT_OWNERSHIP'],
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
           },
         ]}
       />
@@ -4426,14 +6681,16 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'View ownership structure' })
     );
     await user.click(
-      screen.getByRole('button', { name: 'Add beneficial owner' })
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add beneficial owner',
+      })
     );
 
     expect(
       screen.getByRole('heading', { name: 'Add a beneficial owner' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /Owns the client directly/ })
+      screen.getByRole('button', { name: /Owns your business directly/ })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /Darling Holdings LLC/ })
@@ -4520,8 +6777,8 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Add Limited DDA Payments' })
-    ).toBeDisabled();
+      screen.queryByRole('button', { name: 'Add Limited DDA Payments' })
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Add related party' })
     ).not.toBeInTheDocument();
@@ -4552,12 +6809,14 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.queryByRole('button', { name: 'Add or edit changes' })
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'More actions' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for Jane R Diaz' })
+    );
     expect(
-      screen.getByRole('menuitem', { name: 'Add or edit changes' })
+      screen.getByRole('menuitem', { name: /^Add or edit changes/ })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitem', { name: 'Discard changes' })
+      screen.getByRole('menuitem', { name: /^Discard changes/ })
     ).toBeInTheDocument();
     await user.keyboard('{Escape}');
     const backToProfile = screen.getByRole('button', {
@@ -4573,31 +6832,21 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.getByText('1 attestation must be reviewed and accepted.')
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Submission blocked' })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        'Complete the required items shown above before submitting these updates.'
-      )
-    ).toBeInTheDocument();
+    const blockedSection = screen
+      .getByRole('heading', { name: 'Submission' })
+      .closest('section');
+    expect(blockedSection).toHaveTextContent(
+      'You can submit once these are done:'
+    );
     const blockedSubmit = screen.getByRole('button', {
       name: 'Submit for review',
     });
     expect(blockedSubmit).toBeDisabled();
-    expect(
-      screen.getByLabelText(
-        'I reviewed the business and related-party information on file, including the updates shown here, and confirm no other changes are needed.'
-      )
-    ).toBeDisabled();
-    expect(
-      screen
-        .getByRole('heading', { name: 'Submission blocked' })
-        .closest('section')
-    ).toHaveClass('eb-bg-warning-accent/40');
-    expect(
-      screen.getByRole('heading', { name: 'Before submission' })
-    ).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    // Not interactive, so it stays quiet: no warning fill or warning icons.
+    expect(blockedSection).not.toHaveClass('eb-bg-warning-accent/40');
+    expect(blockedSection?.querySelector('.eb-text-warning')).toBeNull();
+    expect(blockedSection).toHaveTextContent('1 question requires an answer.');
     expect(
       screen.getByRole('button', { name: 'Business profile' })
     ).toBeInTheDocument();
@@ -4709,9 +6958,11 @@ describe('ApprovedClientMaintenance', () => {
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
-    await user.click(screen.getByRole('button', { name: 'More actions' }));
     await user.click(
-      screen.getByRole('menuitem', { name: 'Add or edit changes' })
+      screen.getByRole('button', { name: 'Actions for Jane R Diaz' })
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: /^Add or edit changes/ })
     );
 
     expect(
@@ -4751,14 +7002,13 @@ describe('ApprovedClientMaintenance', () => {
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
+    // The structure has its own page; the review links to it in one fixed place.
+    expect(document.querySelector('[data-ownership-node]')).toBeNull();
     expect(
-      screen.getByRole('heading', { name: 'Ownership structure', level: 3 })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Update ownership' })
-    ).toBeInTheDocument();
+      document.querySelector('[data-review-ownership-link]')
+    ).toHaveTextContent('View ownership structure');
     const businessConfirmation = screen.getByLabelText(
-      'I reviewed the business and related-party information on file, including the updates shown here, and confirm no other changes are needed.'
+      'I reviewed the business and related-party information on file, including the changes shown here, and confirm no other changes are needed.'
     );
     const ownershipConfirmation = screen.getByLabelText(
       'I reviewed the ownership structure and confirm it includes every individual and intermediary business that owns 25% or more.'
@@ -4778,9 +7028,11 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(
       screen.getByRole('button', { name: 'Return to business profile' })
     );
-    expect(screen.getByText('Changes submitted')).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Discard all pending changes' })
+      screen.getByText('Maintenance request submitted')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Discard all changes' })
     ).not.toBeInTheDocument();
   });
 
@@ -4819,10 +7071,12 @@ describe('ApprovedClientMaintenance', () => {
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
 
-    expect(screen.getByText('Changes submitted')).toBeInTheDocument();
+    expect(
+      screen.getByText('Maintenance request submitted')
+    ).toBeInTheDocument();
     expect(screen.queryByText('Submitted change')).not.toBeInTheDocument();
     const viewSubmittedUpdates = screen.getByRole('button', {
-      name: 'View submitted updates',
+      name: 'View request details',
     });
     expect(
       viewSubmittedUpdates.querySelector('.lucide-arrow-right')
@@ -4833,13 +7087,16 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(viewSubmittedUpdates);
 
     expect(
-      screen.getByRole('heading', { name: 'Maintenance request details' })
+      screen.getByRole('heading', { name: 'Maintenance request' })
     ).toBeInTheDocument();
     expect(screen.getByText(/Submitted .*Aug.*26.*2026/)).toBeInTheDocument();
-    expect(screen.getByText('Jane R Doe')).toBeInTheDocument();
-    expect(screen.getByText('Alex Smith')).toBeInTheDocument();
+    const partyCards = ['person-1', 'person-2'].map((partyId) =>
+      document.querySelector<HTMLElement>(`[data-review-change="${partyId}"]`)
+    );
+    expect(partyCards[0]).toHaveTextContent('Jane R Diaz');
+    expect(partyCards[1]).toHaveTextContent('Alexander Smith');
     const profileUpdatesHeading = screen.getByRole('heading', {
-      name: 'Changes in this request',
+      name: 'Profile changes',
     });
     const profileUpdatesContent =
       profileUpdatesHeading.parentElement?.nextElementSibling;
@@ -4848,17 +7105,16 @@ describe('ApprovedClientMaintenance', () => {
       'eb-border',
       'eb-bg-background'
     );
-    const partyCards = ['Jane R Doe', 'Alex Smith'].map((name) =>
-      screen.getByText(name).closest('li')
-    );
     partyCards.forEach((partyCard) => {
-      expect(partyCard).toHaveClass(
+      expect(partyCard?.closest('[data-review-group]')).toHaveAttribute(
+        'data-review-group',
+        'updated'
+      );
+      expect(partyCard?.parentElement).toHaveClass(
+        'eb-divide-y',
         'eb-rounded-md',
         'eb-border',
         'eb-bg-background'
-      );
-      expect(partyCard?.parentElement).toBe(
-        profileUpdatesContent?.firstElementChild
       );
     });
     expect(screen.queryByText('Previously Jane R Doe')).not.toBeInTheDocument();
@@ -4887,8 +7143,8 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('heading', { name: 'Marketplace Vendor LLC' })
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Edit business details' })
-    ).not.toBeInTheDocument();
+      screen.getByRole('button', { name: 'Edit business details' })
+    ).toBeInTheDocument();
     expect(
       screen.getByText('Limited Liability Company (LLC)')
     ).toBeInTheDocument();
@@ -4963,7 +7219,72 @@ describe('ApprovedClientMaintenance', () => {
     expect(screen.queryByText('1990-01-01')).not.toBeInTheDocument();
   });
 
-  test('maintenance request details link directly to each document task without duplicate party blockers', async () => {
+  test('lists the fields the API still needs from a person and opens their edit form', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      outstanding: { partyIds: ['person-1'] },
+      parties: (approvedClient.parties ?? []).map((party) =>
+        party.id === 'person-1'
+          ? {
+              ...party,
+              individualDetails: {
+                ...party.individualDetails,
+                firstName: undefined,
+                middleName: undefined,
+                lastName: undefined,
+              },
+              validationResponse: [
+                {
+                  validationStatus: 'NEEDS_INFO',
+                  validationType: 'ENTITY_VALIDATION',
+                  fields: [{ name: 'firstName' }, { name: 'lastName' }],
+                  documentRequestIds: [],
+                },
+              ],
+            }
+          : party
+      ),
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'organization-1',
+          organizationDetails: { dbaName: 'Vendor Market' },
+          updateRequest: {
+            status: 'NEW',
+            action: 'MODIFY',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Review and submit' }));
+    // A count alone said neither who nor what; the unnamed person falls back to their role.
+    expect(
+      screen.queryByText('1 person requires additional information.')
+    ).not.toBeInTheDocument();
+    const requirement = document.querySelector<HTMLElement>(
+      '[data-review-requirement="party-information"]'
+    );
+    expect(requirement).toHaveTextContent(
+      'Provide First name and Last name for Controller'
+    );
+    await user.click(
+      within(requirement!).getByRole('button', { name: 'Complete' })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Edit details' })
+    ).toBeInTheDocument();
+  });
+
+  test('submitted changes link directly to each document task without duplicate party blockers', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -5016,7 +7337,9 @@ describe('ApprovedClientMaintenance', () => {
     );
     expect(
       screen
-        .getByRole('heading', { name: 'More information is required' })
+        .getByRole('heading', {
+          name: 'Maintenance request needs more information',
+        })
         .closest('section')
     ).toHaveClass('eb-border-warning/50', 'eb-bg-warning-accent');
     const completeRequiredActions = screen.getByRole('button', {
@@ -5031,15 +7354,23 @@ describe('ApprovedClientMaintenance', () => {
     ).not.toBeInTheDocument();
     await user.click(completeRequiredActions);
 
-    const partyUpdate = screen.getByText('Jane R Doe').closest('li');
-    expect(partyUpdate).not.toBeNull();
-    expect(screen.getByText('Jane R Doe')).toBeInTheDocument();
-    const partyHeader = within(partyUpdate!).getByText('Jane R Doe')
-      .parentElement?.parentElement;
-    expect(partyHeader).toHaveClass('eb-bg-muted/20', 'eb-px-4', 'eb-py-3');
-    expect(partyHeader?.nextElementSibling).toHaveClass('eb-border-t');
+    const partyUpdate = document.querySelector<HTMLElement>(
+      '[data-review-change="person-1"]'
+    );
+    expect(partyUpdate).toHaveTextContent('Jane R Diaz');
+    expect(partyUpdate).toHaveTextContent(/Last name.*Doe.*Diaz/);
     expect(screen.queryByText('Previously Jane R Doe')).not.toBeInTheDocument();
-    const documentAction = within(partyUpdate!).getByRole('button', {
+    // The document request sits with the party it is for.
+    const partyDocuments = partyUpdate!.querySelector<HTMLElement>(
+      '[data-review-documents]'
+    )!;
+    expect(
+      document.querySelector('[data-review-requirement="person-1"]')
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-review-requirement="documents"]')
+    ).toHaveTextContent('Upload the required documents for Jane R Diaz');
+    const documentAction = within(partyDocuments).getByRole('button', {
       name: /Required documents/,
     });
     expect(documentAction).toBeInTheDocument();
@@ -5071,14 +7402,14 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByText('Current profile name: Jane R Doe')
     ).toBeInTheDocument();
     await user.click(
-      screen.getByRole('button', { name: 'Maintenance request details' })
+      screen.getByRole('button', { name: 'Maintenance request' })
     );
     expect(
-      screen.getByRole('heading', { name: 'Maintenance request details' })
+      screen.getByRole('heading', { name: 'Maintenance request' })
     ).toBeInTheDocument();
   });
 
-  test('keeps a document-only party visible in request changes', async () => {
+  test('lists document-only parties under documents needed, and unowned documents with the remaining work', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -5122,7 +7453,18 @@ describe('ApprovedClientMaintenance', () => {
           status: 'ACTIVE',
           requirements: [],
         },
+        {
+          id: 'document-ghost',
+          partyId: 'party-missing-from-profile',
+          status: 'ACTIVE',
+          description: 'Provide proof of address.',
+          requirements: [],
+        },
       ],
+    };
+    workspace.clientQuery.data = {
+      ...workspace.clientQuery.data,
+      outstanding: { documentRequestIds: ['document-ghost'] },
     };
 
     render(
@@ -5132,20 +7474,25 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'Complete required actions' })
     );
 
-    const partyWorkUnit = within(
-      screen.getByRole('region', { name: 'Changes in this request' })
-    )
-      .getByText('Alex Smith')
-      .closest('li');
-    expect(partyWorkUnit).not.toBeNull();
+    const documentOnlyRow = document.querySelector<HTMLElement>(
+      '[data-review-group="documents"] [data-review-change="person-2"]'
+    )!;
+    expect(documentOnlyRow).toHaveTextContent('Alex Smith');
     expect(
-      within(partyWorkUnit!).getByRole('button', {
+      within(documentOnlyRow).getByRole('button', {
         name: /Required documents/,
       })
     ).toBeInTheDocument();
+
+    // An API inconsistency: the owning party is not on the profile.
+    const unassigned = document.querySelector<HTMLElement>(
+      '[data-review-requirement="unassigned"]'
+    )!;
+    expect(unassigned).toHaveTextContent('Other required documents');
+    expect(unassigned).toHaveTextContent('Provide proof of address.');
     expect(
-      within(partyWorkUnit!).queryByText('Current value')
-    ).not.toBeInTheDocument();
+      unassigned.closest('section')?.querySelector('h3')
+    ).toHaveTextContent('Action required');
   });
 
   test('keeps profile details visible beside a labeled submitted change section', async () => {

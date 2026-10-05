@@ -1841,11 +1841,15 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
     return () => onDirtyChange?.(false);
   }, [isDirty, acknowledgementDirty, onDirtyChange]);
 
-  // Auto-select the only available party on single-page linked create
+  // Default single-page linked create to the organization party, or the only party
   useEffect(() => {
-    if (!usePartySelector || selectableParties.length !== 1) return;
+    if (!usePartySelector) return;
     if (form.getValues('selectedPartyId')) return;
-    const party = selectableParties[0];
+    const party =
+      selectableParties.find(
+        (candidate) => candidate.partyType === 'ORGANIZATION'
+      ) ?? (selectableParties.length === 1 ? selectableParties[0] : undefined);
+    if (!party) return;
     form.setValue('accountType', party.partyType, { shouldValidate: true });
     form.setValue('selectedPartyId', party.id, { shouldValidate: true });
     if (party.partyType === 'INDIVIDUAL') {

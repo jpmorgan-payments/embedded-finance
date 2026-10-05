@@ -2,6 +2,18 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.16] - 2026-10-05
+
+### Changes
+
+#### Features
+
+- **linked-accounts:** default to org party in the form when creating a linked account
+- **client-maintenance:** adjust eligibility matrix, update recipe, refine complex flows
+- **client-maintenance:** updates to ownership structure and multi-step flows
+- **client-maintenanace:** enhance ui of ownership and roles
+- **client-maintenance:** ownership tree refinements
+
 ## [0.17.15] - 2026-09-30
 
 ### Changes

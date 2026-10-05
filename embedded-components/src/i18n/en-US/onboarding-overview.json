@@ -237,9 +237,12 @@
     "regulatoryRequirementsDescription": "To satisfy regulatory requirements, we need to obtain the following",
     "documentNumber": "Document {{number}}",
     "selectDocumentType": "Select Document Type",
+    "documentType": "Document type",
     "optional": "(Optional)",
     "selectPlaceholder": "Select a document type",
     "uploadDocument": "Upload Document",
+    "addAnotherDocument": "Add another document",
+    "removeDocument": "Remove document {{number}}",
     "partyCard": {
       "statusLabels": {
         "pending": "Pending",

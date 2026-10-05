@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import { useTranslationWithTokens } from '@/i18n';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
@@ -18,13 +19,20 @@ import {
   patchMaintenancePartyName,
   submitMaintenanceVerification,
   updateMaintenanceClientTasks,
+  type CompleteMaintenanceRead,
 } from '../clientMaintenanceApi';
-import type {
-  MaintenanceClientTaskUpdateRequest,
-  MaintenancePartyCreateRequest,
-  MaintenancePartyUpdateRequest,
+import {
+  isActiveMaintenanceStatus,
+  type MaintenanceClientTaskUpdateRequest,
+  type MaintenancePartyCreateRequest,
+  type MaintenancePartyUpdateRequest,
 } from '../models/maintenanceApi.types';
 import { validateStableMaintenanceSubmission } from '../utils/maintenanceReview';
+import {
+  executeOwnershipOperations,
+  type OwnershipOperation,
+  type OwnershipOperationProgress,
+} from '../utils/ownershipOperations';
 
 export const getMaintenanceClientQueryKey = (clientId: string) =>
   ['approved-client-maintenance', 'client', clientId] as const;
@@ -32,10 +40,22 @@ export const getMaintenanceClientQueryKey = (clientId: string) =>
 export const getMaintenancePartiesQueryKey = (clientId: string) =>
   ['approved-client-maintenance', 'parties', clientId] as const;
 
+export type MaintenancePartyStep =
+  | {
+      kind: 'update';
+      partyId: string;
+      requestBody: MaintenancePartyUpdateRequest;
+    }
+  | { kind: 'discard'; requestId: string; partyId: string };
+
 export function useMaintenanceWorkspace(clientId: string) {
+  const { tString } = useTranslationWithTokens('approved-client-maintenance');
   const request = useEbInstance<unknown>();
   const queryClient = useQueryClient();
   const verificationIdempotencyKeyRef = useRef<string>();
+  const ownershipOperationProgressRef = useRef(
+    new Map() as OwnershipOperationProgress
+  );
   const clientQuery = useQuery({
     queryKey: getMaintenanceClientQueryKey(clientId),
     queryFn: () => getMaintenanceClient(request, clientId),
@@ -115,7 +135,8 @@ export function useMaintenanceWorkspace(clientId: string) {
       idempotencyKey: string;
     }) =>
       patchMaintenancePartyName(request, partyId, requestBody, idempotencyKey),
-    onSuccess: refreshMaintenanceWorkspace,
+    // A rejected write can still be applied, so failures refresh too.
+    onSettled: refreshMaintenanceWorkspace,
   });
   const updatePartyMutation = useMutation({
     mutationFn: ({
@@ -126,17 +147,97 @@ export function useMaintenanceWorkspace(clientId: string) {
       requestBody: MaintenancePartyUpdateRequest;
     }) =>
       patchMaintenanceParty(request, partyId, requestBody, crypto.randomUUID()),
-    onSuccess: refreshMaintenanceWorkspace,
+    onSettled: refreshMaintenanceWorkspace,
   });
   const createPartyMutation = useMutation({
     mutationFn: (requestBody: MaintenancePartyCreateRequest) =>
       createMaintenanceParty(request, requestBody, crypto.randomUUID()),
-    onSuccess: refreshMaintenanceWorkspace,
+    onSettled: refreshMaintenanceWorkspace,
   });
+  // The API can accept a move without recording the new parent. A dropped move
+  // leaves an empty change, withdrawn here unless the party had other changes.
+  const confirmOwnershipMove = async (
+    partyId: string,
+    parentPartyId: string,
+    hadChanges: boolean
+  ) => {
+    const { parties } = await getAllMaintenanceParties(request, clientId);
+    const proposals = parties.filter(
+      (party) =>
+        party.id === partyId &&
+        isActiveMaintenanceStatus(party.updateRequest?.status)
+    );
+    if (proposals.some((party) => party.parentPartyId === parentPartyId)) {
+      return;
+    }
+    const requestId = proposals[0]?.updateRequest?.requestId;
+    if (requestId && !hadChanges) {
+      await cancelMaintenanceRequest(
+        request,
+        requestId,
+        crypto.randomUUID(),
+        partyId
+      );
+    }
+    throw new Error(tString('ownershipEditor.moveNotRecorded'));
+  };
+  const ownershipOperationsMutation = useMutation({
+    mutationFn: async (operations: OwnershipOperation[]) => {
+      const partyIdsWithChanges = new Set(
+        (
+          queryClient.getQueryData<CompleteMaintenanceRead>(
+            getMaintenancePartiesQueryKey(clientId)
+          )?.parties ?? []
+        )
+          .filter((party) =>
+            isActiveMaintenanceStatus(party.updateRequest?.status)
+          )
+          .map((party) => party.id)
+      );
+      await executeOwnershipOperations({
+        operations,
+        progress: ownershipOperationProgressRef.current,
+        createIdempotencyKey: () => crypto.randomUUID(),
+        applyOperation: async (operation, idempotencyKey) => {
+          if (!('request' in operation)) {
+            await cancelMaintenanceRequest(
+              request,
+              operation.withdrawFromRequestId,
+              idempotencyKey,
+              operation.partyId
+            );
+            return;
+          }
+          await patchMaintenanceParty(
+            request,
+            operation.partyId,
+            operation.request,
+            idempotencyKey
+          );
+          if (operation.request.parentPartyId) {
+            await confirmOwnershipMove(
+              operation.partyId,
+              operation.request.parentPartyId,
+              partyIdsWithChanges.has(operation.partyId)
+            );
+          }
+        },
+      });
+    },
+    onSuccess: async () => {
+      ownershipOperationProgressRef.current.clear();
+      await refreshMaintenanceWorkspace();
+    },
+    onError: refreshMaintenanceWorkspace,
+  });
+  const resetOwnershipOperations = useCallback(() => {
+    ownershipOperationProgressRef.current.clear();
+    ownershipOperationsMutation.reset();
+  }, [ownershipOperationsMutation]);
   const addProductMutation = useMutation({
     mutationFn: () =>
       addLimitedDdaPaymentsProduct(request, clientId, crypto.randomUUID()),
-    onSuccess: refreshMaintenanceWorkspace,
+    onSettled: refreshMaintenanceWorkspace,
   });
   const cancelProductAdditionMutation = useMutation({
     mutationFn: () =>
@@ -151,7 +252,7 @@ export function useMaintenanceWorkspace(clientId: string) {
         requestBody,
         crypto.randomUUID()
       ),
-    onSuccess: refreshMaintenanceWorkspace,
+    onSettled: refreshMaintenanceWorkspace,
   });
   const cancelMaintenanceMutation = useMutation({
     mutationFn: ({
@@ -163,6 +264,29 @@ export function useMaintenanceWorkspace(clientId: string) {
       partyId?: string;
       idempotencyKey: string;
     }) => cancelMaintenanceRequest(request, requestId, idempotencyKey, partyId),
+    onSettled: refreshMaintenanceWorkspace,
+  });
+  // One refresh after every step, so a multi-party action lands as one UI update.
+  const partyStepsMutation = useMutation({
+    mutationFn: async (steps: MaintenancePartyStep[]) => {
+      for (const step of steps) {
+        if (step.kind === 'update') {
+          await patchMaintenanceParty(
+            request,
+            step.partyId,
+            step.requestBody,
+            crypto.randomUUID()
+          );
+        } else {
+          await cancelMaintenanceRequest(
+            request,
+            step.requestId,
+            crypto.randomUUID(),
+            step.partyId
+          );
+        }
+      }
+    },
     onSettled: refreshMaintenanceWorkspace,
   });
   const verificationMutation = useMutation({
@@ -257,6 +381,9 @@ export function useMaintenanceWorkspace(clientId: string) {
     updateParty,
     createPartyMutation,
     createParty: createPartyMutation.mutateAsync,
+    ownershipOperationsMutation,
+    applyOwnershipOperations: ownershipOperationsMutation.mutateAsync,
+    resetOwnershipOperations,
     addProductMutation,
     addProduct: addProductMutation.mutateAsync,
     cancelProductAdditionMutation,
@@ -266,6 +393,8 @@ export function useMaintenanceWorkspace(clientId: string) {
     downloadAttestation,
     cancelMaintenanceMutation,
     cancelChanges,
+    partyStepsMutation,
+    applyPartySteps: partyStepsMutation.mutateAsync,
     verificationMutation,
     submitForReview,
     resetVerificationAttempt,

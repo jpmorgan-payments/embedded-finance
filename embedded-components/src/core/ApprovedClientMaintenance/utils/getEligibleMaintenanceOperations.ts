@@ -11,20 +11,22 @@ const getClientOrganization = (client: MaintenanceClient) =>
       (party.partyType === 'ORGANIZATION' && party.roles?.includes('CLIENT'))
   );
 
-export function isMaintenanceOperationEligible(
+/** Operations configured for the client's exact country and legal entity type. */
+export function getEligibleMaintenanceOperations(
   client: MaintenanceClient,
-  eligibility: readonly ApprovedClientMaintenanceEligibilityRule[],
-  operation: ApprovedClientMaintenanceOperation
-) {
+  eligibility: readonly ApprovedClientMaintenanceEligibilityRule[]
+): ReadonlySet<ApprovedClientMaintenanceOperation> {
   const organization = getClientOrganization(client);
   const country = organization?.organizationDetails?.countryOfFormation;
   const organizationType = organization?.organizationDetails?.organizationType;
-  if (!country || !organizationType) return false;
+  if (!country || !organizationType) return new Set();
 
-  return eligibility.some(
-    (rule) =>
-      rule.country === country &&
-      rule.organizationType === organizationType &&
-      rule.operations.includes(operation)
+  return new Set(
+    eligibility
+      .filter(
+        (rule) =>
+          rule.country === country && rule.organizationType === organizationType
+      )
+      .flatMap((rule) => rule.operations)
   );
 }

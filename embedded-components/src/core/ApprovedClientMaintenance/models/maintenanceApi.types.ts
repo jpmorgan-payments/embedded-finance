@@ -5,6 +5,7 @@ import type {
   KycUpdateRequest,
   PageMetaData,
   ProductDetailsUpdateAction,
+  UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 
 export const ACTIVE_MAINTENANCE_STATUSES = [
@@ -112,11 +113,11 @@ export type MaintenanceParty = {
   updateRequest?: KycUpdateRequest;
 };
 
-export type MaintenancePartyUpdateRequest = {
-  active?: false;
-  email?: string;
-  externalId?: string;
-  status?: string;
+export type MaintenancePartyUpdateRequest = Omit<
+  UpdatePartyRequest,
+  'roles' | 'individualDetails' | 'organizationDetails'
+> & {
+  parentPartyId?: string;
   roles?: string[];
   individualDetails?: MaintenanceIndividualDetails;
   organizationDetails?: MaintenanceOrganizationDetails;

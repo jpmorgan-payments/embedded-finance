@@ -20,7 +20,6 @@ type MaintenanceAddPartyViewProps = {
   parentPartyId: string;
   natureOfOwnership?: 'Direct' | 'Indirect';
   isControllerReplacement?: boolean;
-  isOwnershipPathReplacement?: boolean;
   initialParty?: MaintenanceParty;
   canAlsoBeBeneficialOwner?: boolean;
   allowedRoles: RelatedPartyRole[];
@@ -36,7 +35,6 @@ export function MaintenanceAddPartyView({
   parentPartyId,
   natureOfOwnership,
   isControllerReplacement,
-  isOwnershipPathReplacement,
   initialParty,
   canAlsoBeBeneficialOwner,
   allowedRoles,
@@ -59,22 +57,18 @@ export function MaintenanceAddPartyView({
     allowedRoles.length === 1 && allowedRoles[0] === 'BENEFICIAL_OWNER';
   const titleKey = isControllerReplacement
     ? 'addParty.replacementTitle'
-    : isOwnershipPathReplacement
-      ? 'addParty.ownershipPathTitle'
-      : natureOfOwnership === 'Indirect'
-        ? 'ownership.addIndirectOwner'
-        : isBeneficialOwnerOnly
-          ? 'ownership.addDirectOwner'
-          : 'addParty.title';
+    : natureOfOwnership === 'Indirect'
+      ? 'ownership.addIndirectOwner'
+      : isBeneficialOwnerOnly
+        ? 'ownership.addDirectOwner'
+        : 'addParty.title';
   const descriptionKey = isControllerReplacement
     ? 'addParty.replacementDescription'
-    : isOwnershipPathReplacement
-      ? 'addParty.ownershipPathDescription'
-      : natureOfOwnership === 'Indirect'
-        ? 'addParty.indirectOwnerDescription'
-        : isBeneficialOwnerOnly
-          ? 'addParty.beneficialOwnerDescription'
-          : 'addParty.description';
+    : natureOfOwnership === 'Indirect'
+      ? 'addParty.indirectOwnerDescription'
+      : isBeneficialOwnerOnly
+        ? 'addParty.beneficialOwnerDescription'
+        : 'addParty.description';
 
   return (
     <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background">
@@ -99,7 +93,6 @@ export function MaintenanceAddPartyView({
           parentPartyId={parentPartyId}
           natureOfOwnership={natureOfOwnership}
           isControllerReplacement={isControllerReplacement}
-          isOwnershipPathReplacement={isOwnershipPathReplacement}
           initialParty={initialParty}
           isBeneficialOwnerOnly={isBeneficialOwnerOnly}
           canAlsoBeBeneficialOwner={canAlsoBeBeneficialOwner}

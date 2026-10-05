@@ -22,6 +22,7 @@ type MaintenanceEditViewProps = {
   isSubmitting: boolean;
   mutationError?: unknown;
   lockedCountry?: string;
+  isPendingAddition?: boolean;
   onBack: () => void;
   onSave: (
     values: IndividualMaintenanceValues,
@@ -38,6 +39,7 @@ export function MaintenanceEditView({
   isSubmitting,
   mutationError,
   lockedCountry,
+  isPendingAddition,
   onBack,
   onSave,
 }: MaintenanceEditViewProps) {
@@ -77,6 +79,7 @@ export function MaintenanceEditView({
           isSubmitting={isSubmitting}
           mutationError={mutationError}
           lockedCountry={lockedCountry}
+          isPendingAddition={isPendingAddition}
           onDiscard={onBack}
           onSave={onSave}
         />
