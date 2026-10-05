@@ -1,15 +1,17 @@
 import { z } from 'zod';
 
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
-import { GhTrafficStatsDashboard } from '../components/rum-dashboard/GhTrafficStatsDashboard';
+import {
+  GhTrafficStatsDashboard,
+  type GhTrafficSearch,
+} from '@/components/gh-traffic-stats/gh-traffic-stats-dashboard';
+import { REPO_IDS } from '@/lib/gh-metrics/sources';
 
-// Define search param schema with validation
 const ghTrafficStatsSearchSchema = z.object({
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  metrics: z.string().optional(), // Comma-separated list of metrics
-  chartType: z.enum(['area', 'line', 'bar']).optional(),
+  repo: z.enum(REPO_IDS).optional(),
+  range: z.enum(['30d', '90d', '12m', 'all']).optional(),
+  metric: z.enum(['views', 'clones']).optional(),
 });
 
 export const Route = createFileRoute('/gh-traffic-stats')({
@@ -18,5 +20,15 @@ export const Route = createFileRoute('/gh-traffic-stats')({
 });
 
 function GhTrafficStatsPage() {
-  return <GhTrafficStatsDashboard />;
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+
+  return (
+    <GhTrafficStatsDashboard
+      search={search}
+      onSearchChange={(next: GhTrafficSearch) =>
+        navigate({ search: (prev) => ({ ...prev, ...next }), replace: true })
+      }
+    />
+  );
 }
