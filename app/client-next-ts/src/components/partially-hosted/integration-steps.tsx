@@ -41,8 +41,8 @@ export const integrationSteps: IntegrationStep[] = [
     description:
       'A backend endpoint that calls the Embedded Finance Service to create a short‑lived session for embedded components (Accounts, RecipientsWidget, PaymentFlow, TransactionsDisplay, OnboardingFlow, LinkedAccountWidget).',
     details: [
-      'Expose POST /sessions on your backend; authenticate the caller (your logged‑in user).',
-      'Call the Embedded Finance Service with type "EMBEDDED_UI" and the target client identifier.',
+      'Expose POST /sessions on your backend; authenticate the caller with your own IAM, including MFA.',
+      'Call the Embedded Finance Service with type "EMBEDDED_UI" and the target client identifier (target type CLIENT).',
       'Optionally specify the experienceType (e.g., "HOSTED_DOC_UPLOAD_ONBOARDING_UI" for onboarding) in the request.',
       'Handle error responses (such as 400, 404, 422, or 500) with retries or user‑friendly messages.',
       'Return the full URL and short‑lived session token to your frontend.',
@@ -63,7 +63,7 @@ app.post('/sessions', authenticateUser, async (req, res) => {
         type: 'EMBEDDED_UI',
         target: {
           id: clientId, // your client ID
-          type: 'CLIENT', // or 'PARTY'
+          type: 'CLIENT',
         },
         // Optional: specify which component experience (e.g., 'HOSTED_DOC_UPLOAD_ONBOARDING_UI')
         ...(experienceType && { experienceType }),
