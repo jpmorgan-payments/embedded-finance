@@ -39,7 +39,7 @@ export default defineConfig({
         '**/vitest.setup.ts',
         'src/components/year-in-review/**',
         'src/components/prosperity-bay/**',
-        'src/components/rum-dashboard/**',
+        'src/components/gh-traffic-stats/**',
         'src/components/embedded-payments-flow/**',
         'src/components/api-flow-explorer/**',
         'src/components/webhook-explorer/**',
