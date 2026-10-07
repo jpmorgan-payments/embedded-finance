@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.17.16",
+  "version": "0.17.17",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"

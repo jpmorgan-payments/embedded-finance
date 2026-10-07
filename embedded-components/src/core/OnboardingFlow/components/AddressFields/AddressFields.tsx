@@ -1,12 +1,14 @@
+import { useEffect } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon } from 'lucide-react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
+import { usesPlaceholderPostalCode } from '@/lib/addressCountryRules';
 import { useAddressCountryReset } from '@/core/ClientProfile/hooks/useAddressCountryReset';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components/OnboardingFormField/OnboardingFormField';
 import {
   COUNTRIES_OF_FORMATION,
-  getSubdivisionsForCountry,
+  getReferenceSubdivisionsForCountry,
 } from '@/core/OnboardingFlow/consts';
 import type { ScreenId } from '@/core/OnboardingFlow/types';
 import { useGetFieldContentToken } from '@/core/OnboardingFlow/utils/formUtils';
@@ -47,6 +49,7 @@ export function AddressFields({
   const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const form = useFormContext();
   const control = form.control;
+  const { setValue, getValues, clearErrors } = form;
   const getAddressContentToken = useGetFieldContentToken(
     addressName as Parameters<typeof useGetFieldContentToken>[0],
     contentScreenId
@@ -65,6 +68,21 @@ export function AddressFields({
     control: form.control,
     name: fieldName('country') as never,
   }) as unknown as string | undefined;
+  const currentState = useWatch({
+    control: form.control,
+    name: fieldName('state') as never,
+  }) as unknown as string | undefined;
+  const subdivisions = getReferenceSubdivisionsForCountry(addressCountry);
+  const soleCountryCode =
+    subdivisions?.length === 1 && subdivisions[0].value === addressCountry
+      ? addressCountry
+      : undefined;
+  const hasUnlistedState =
+    !!currentState &&
+    !!subdivisions?.length &&
+    !subdivisions.some(
+      (option) => option.value.toUpperCase() === currentState.toUpperCase()
+    );
 
   // City / state / postal-code labels are country-specific, so they come from
   // the shared `addressFields` tokens rather than each field's own label token.
@@ -89,9 +107,24 @@ export function AddressFields({
   const cityFieldName = fieldName('city');
   const postalCodeFieldName = fieldName('postalCode');
   useAddressCountryReset(addressCountry, () => {
-    form.setValue(stateFieldName, '');
-    form.clearErrors([cityFieldName, stateFieldName, postalCodeFieldName]);
+    setValue(stateFieldName, '');
+    if (getValues(postalCodeFieldName) === 'n/a') {
+      setValue(postalCodeFieldName, '');
+    }
+    clearErrors([cityFieldName, stateFieldName, postalCodeFieldName]);
   });
+
+  useEffect(() => {
+    if (usesPlaceholderPostalCode(addressCountry)) {
+      setValue(postalCodeFieldName, 'n/a');
+    }
+  }, [addressCountry, setValue, postalCodeFieldName]);
+
+  useEffect(() => {
+    if (soleCountryCode && currentState !== soleCountryCode) {
+      setValue(stateFieldName, soleCountryCode);
+    }
+  }, [soleCountryCode, currentState, setValue, stateFieldName]);
 
   const hasCountryMismatch =
     !!mismatchCountry && !!addressCountry && addressCountry !== mismatchCountry;
@@ -174,13 +207,13 @@ export function AddressFields({
         placeholder={addressPlaceholder('city')}
         required
       />
-      {getSubdivisionsForCountry(addressCountry) ? (
+      {soleCountryCode ? null : subdivisions?.length && !hasUnlistedState ? (
         <OnboardingFormField
           control={control}
           name={fieldName('state')}
           logicalName={logical('state')}
           type="combobox"
-          options={getSubdivisionsForCountry(addressCountry)!}
+          options={subdivisions}
           label={addressLabel('state')}
           placeholder={addressPlaceholder('state')}
           required
@@ -196,17 +229,19 @@ export function AddressFields({
           required
         />
       )}
-      <OnboardingFormField
-        control={control}
-        name={fieldName('postalCode')}
-        logicalName={logical('postalCode')}
-        type="text"
-        label={addressLabel('postalCode')}
-        placeholder={addressPlaceholder('postalCode')}
-        description={addressDescription('postalCode')}
-        className="eb-max-w-48"
-        required
-      />
+      {!usesPlaceholderPostalCode(addressCountry) && (
+        <OnboardingFormField
+          control={control}
+          name={fieldName('postalCode')}
+          logicalName={logical('postalCode')}
+          type="text"
+          label={addressLabel('postalCode')}
+          placeholder={addressPlaceholder('postalCode')}
+          description={addressDescription('postalCode')}
+          className="eb-max-w-48"
+          required
+        />
+      )}
     </fieldset>
   );
 }

@@ -110,7 +110,9 @@ export const useAddressSchemas = (
       country: CountrySchema,
     })
     .superRefine((data, ctx) => {
-      getAddressValidationIssues(data).forEach((issue) => {
+      getAddressValidationIssues(data, {
+        subdivisionSource: 'reference',
+      }).forEach((issue) => {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: v(

@@ -3,6 +3,50 @@ import { describe, expect, test } from 'vitest';
 import type { OrganizationType } from '@/api/generated/smbdo.schemas';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
 
+describe('Hong Kong address summaries', () => {
+  test.each(['individualAddress', 'organizationAddress'] as const)(
+    '%s omits synthetic state and postal code',
+    (fieldName) => {
+      const lines = partyFieldMap[fieldName].toStringFn!(
+        {
+          addressType: 'RESIDENTIAL_ADDRESS',
+          primaryAddressLine: '1 Harbour Road',
+          secondaryAddressLine: '',
+          tertiaryAddressLine: '',
+          city: 'Central',
+          state: 'HK',
+          postalCode: 'n/a',
+          country: 'HK',
+        },
+        {}
+      );
+
+      expect(lines).toEqual(['1 Harbour Road', 'Central', 'Hong Kong']);
+    }
+  );
+
+  test.each(['AE', 'QA'] as const)(
+    'omits synthetic postal code for %s without hiding state',
+    (country) => {
+      const lines = partyFieldMap.organizationAddress.toStringFn!(
+        {
+          addressType: 'BUSINESS_ADDRESS',
+          primaryAddressLine: '1 Probe Way',
+          secondaryAddressLine: '',
+          tertiaryAddressLine: '',
+          city: 'Test City',
+          state: country === 'AE' ? 'AZ' : 'DA',
+          postalCode: 'n/a',
+          country,
+        },
+        {}
+      );
+
+      expect(lines?.[1]).toBe(`Test City, ${country === 'AE' ? 'AZ' : 'DA'}`);
+    }
+  );
+});
+
 describe('partyFieldMap.organizationTypeHierarchy.fromResponseFn', () => {
   const mapOrgType = partyFieldMap.organizationTypeHierarchy.fromResponseFn!;
 

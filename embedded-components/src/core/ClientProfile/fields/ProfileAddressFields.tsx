@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import {
   useFormContext,
@@ -6,6 +7,8 @@ import {
   type FieldPathByValue,
   type FieldValues,
 } from 'react-hook-form';
+
+import { usesPlaceholderPostalCode } from '@/lib/addressCountryRules';
 
 import {
   ProfileSelectField,
@@ -96,6 +99,7 @@ export function ProfileAddressFields<TFieldValues extends FieldValues>({
 }: ProfileAddressFieldsProps<TFieldValues>) {
   const { tString } = useTranslationWithTokens('onboarding-overview');
   const form = useFormContext<TFieldValues>();
+  const { setValue, getValues, clearErrors } = form;
   const country = useWatch({ control, name: fieldNames.country });
   const subdivisionOptions = getSubdivisionOptions(country);
   const localizedAddressLabel = (
@@ -123,13 +127,21 @@ export function ProfileAddressFields<TFieldValues extends FieldValues>({
     );
 
   useAddressCountryReset(country, () => {
-    form.setValue(fieldNames.state, '' as never, { shouldDirty: true });
-    form.clearErrors([
-      fieldNames.city,
-      fieldNames.state,
-      fieldNames.postalCode,
-    ]);
+    setValue(fieldNames.state, '' as never, { shouldDirty: true });
+    if (getValues(fieldNames.postalCode) === 'n/a') {
+      setValue(fieldNames.postalCode, '' as never, { shouldDirty: true });
+    }
+    clearErrors([fieldNames.city, fieldNames.state, fieldNames.postalCode]);
   });
+
+  useEffect(() => {
+    if (country === 'HK') {
+      setValue(fieldNames.state, 'HK' as never, { shouldDirty: true });
+    }
+    if (usesPlaceholderPostalCode(country)) {
+      setValue(fieldNames.postalCode, 'n/a' as never, { shouldDirty: true });
+    }
+  }, [country, fieldNames.state, fieldNames.postalCode, setValue]);
 
   return (
     <div className="eb-space-y-4">
@@ -196,7 +208,7 @@ export function ProfileAddressFields<TFieldValues extends FieldValues>({
           required
           restoreAction={content.restoreActions?.city}
         />
-        {subdivisionOptions ? (
+        {country === 'HK' ? null : subdivisionOptions ? (
           <ProfileSelectField
             control={control}
             name={fieldNames.state}
@@ -237,24 +249,26 @@ export function ProfileAddressFields<TFieldValues extends FieldValues>({
             restoreAction={content.restoreActions?.state}
           />
         )}
-        <ProfileTextField
-          control={control}
-          name={fieldNames.postalCode}
-          label={localizedAddressLabel('postalCode', content.postalCode)}
-          placeholder={localizedAddressContent(
-            'postalCode',
-            'placeholder',
-            content.placeholders?.postalCode
-          )}
-          description={localizedAddressContent(
-            'postalCode',
-            'description',
-            content.descriptions?.postalCode
-          )}
-          required
-          className="eb-max-w-48"
-          restoreAction={content.restoreActions?.postalCode}
-        />
+        {!usesPlaceholderPostalCode(country) && (
+          <ProfileTextField
+            control={control}
+            name={fieldNames.postalCode}
+            label={localizedAddressLabel('postalCode', content.postalCode)}
+            placeholder={localizedAddressContent(
+              'postalCode',
+              'placeholder',
+              content.placeholders?.postalCode
+            )}
+            description={localizedAddressContent(
+              'postalCode',
+              'description',
+              content.descriptions?.postalCode
+            )}
+            required
+            className="eb-max-w-48"
+            restoreAction={content.restoreActions?.postalCode}
+          />
+        )}
       </div>
     </div>
   );

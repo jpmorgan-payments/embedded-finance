@@ -24,6 +24,7 @@ import {
   UpdatePartyRequest,
 } from '@/api/generated/smbdo.schemas';
 import { sanitizeServerErrorMessage } from '@/core/ClientProfile/forms/apiFieldErrors';
+import { resolveAddressLabelCountry } from '@/core/ClientProfile/forms/getProfileValidationMessage';
 import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
 import {
   useFlowContext,
@@ -1464,7 +1465,14 @@ export const useGetValidationMessage = <Field extends FieldKey>(): ((
       );
 
     // Return translation with optional count and extra interpolation params
-    return i18n.t(translationKey, { fieldName, count, ...extraParams });
+    return i18n.t(translationKey, {
+      fieldName,
+      count,
+      ...extraParams,
+      ...(extraParams.country && {
+        country: resolveAddressLabelCountry(i18n, field, extraParams.country),
+      }),
+    });
   };
   return getValidationMessage;
 };

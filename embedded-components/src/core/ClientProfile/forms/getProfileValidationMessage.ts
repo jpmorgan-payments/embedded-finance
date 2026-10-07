@@ -1,5 +1,23 @@
 import type { i18n as I18n } from 'i18next';
 
+export function resolveAddressLabelCountry(
+  i18n: I18n,
+  field: string,
+  country?: string
+): string | undefined {
+  const addressField = field.split('.').at(-1);
+  if (
+    !country ||
+    !['city', 'state', 'postalCode'].includes(addressField ?? '') ||
+    i18n.exists(
+      `onboarding-overview:addressFields.${addressField}.label.${country}`
+    )
+  ) {
+    return country;
+  }
+  return 'default';
+}
+
 export function getProfileValidationMessage(
   i18n: I18n,
   field: string,
@@ -26,5 +44,11 @@ export function getProfileValidationMessage(
   ];
   if (messageKey === 'required') validationKeys.push('validation:required');
 
-  return i18n.t(validationKeys, { fieldName, ...params });
+  return i18n.t(validationKeys, {
+    fieldName,
+    ...params,
+    ...(params?.country && {
+      country: resolveAddressLabelCountry(i18n, field, params.country),
+    }),
+  });
 }

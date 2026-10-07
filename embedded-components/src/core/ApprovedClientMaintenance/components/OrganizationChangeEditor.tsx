@@ -116,7 +116,6 @@ export function OrganizationChangeEditor({
       organizationName: z
         .string()
         .min(1, fieldValidationMessage('organizationName', 'required'))
-        .min(2, fieldValidationMessage('organizationName', 'minLength'))
         .max(100, fieldValidationMessage('organizationName', 'maxLength'))
         .refine(
           (value) => NAME_PATTERN.test(value),

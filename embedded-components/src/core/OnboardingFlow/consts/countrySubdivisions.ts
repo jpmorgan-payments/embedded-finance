@@ -1,5 +1,7 @@
 import { CountryCodeIsoAlpha2 } from '@/api/generated/smbdo.schemas';
 
+import referenceSubdivisions from './countrySubdivisions.reference.json';
+
 type SubdivisionOption = { label: string; value: string };
 
 /**
@@ -1039,28 +1041,6 @@ export const COUNTRY_SUBDIVISIONS: Partial<
     { label: 'Zamora Chinchipe', value: 'Z' },
   ],
 
-  // ── Hong Kong ────────────────────────────────────────────────────
-  HK: [
-    { label: 'Central and Western', value: 'HCW' },
-    { label: 'Eastern', value: 'HEA' },
-    { label: 'Islands', value: 'NIS' },
-    { label: 'Kowloon City', value: 'KKC' },
-    { label: 'Kwai Tsing', value: 'NKT' },
-    { label: 'Kwun Tong', value: 'KKT' },
-    { label: 'North', value: 'NNO' },
-    { label: 'Sai Kung', value: 'NSK' },
-    { label: 'Sha Tin', value: 'NST' },
-    { label: 'Sham Shui Po', value: 'KSS' },
-    { label: 'Southern', value: 'HSO' },
-    { label: 'Tai Po', value: 'NTP' },
-    { label: 'Tsuen Wan', value: 'NTW' },
-    { label: 'Tuen Mun', value: 'NTM' },
-    { label: 'Wan Chai', value: 'HWC' },
-    { label: 'Wong Tai Sin', value: 'KWT' },
-    { label: 'Yau Tsim Mong', value: 'KYT' },
-    { label: 'Yuen Long', value: 'NYL' },
-  ],
-
   // ── Singapore ────────────────────────────────────────────────────
   SG: [
     { label: 'Central Region', value: 'CR' },
@@ -1081,4 +1061,13 @@ export function getSubdivisionsForCountry(
 ): SubdivisionOption[] | undefined {
   if (!countryCode) return undefined;
   return COUNTRY_SUBDIVISIONS[countryCode as CountryCodeIsoAlpha2];
+}
+
+export function getReferenceSubdivisionsForCountry(
+  countryCode: string | undefined
+): SubdivisionOption[] | undefined {
+  if (!countryCode) return undefined;
+  return (
+    referenceSubdivisions as Partial<Record<string, SubdivisionOption[]>>
+  )[countryCode];
 }

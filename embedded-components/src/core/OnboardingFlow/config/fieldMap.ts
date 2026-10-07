@@ -4,6 +4,8 @@ import {
   parsePhoneNumber,
 } from 'react-phone-number-input';
 
+import { usesPlaceholderPostalCode } from '@/lib/addressCountryRules';
+import { getAddressDisplayLocationParts } from '@/lib/addressDisplay';
 import {
   AddressDto,
   IndividualIdentity,
@@ -13,6 +15,16 @@ import {
 } from '@/api/generated/smbdo.schemas';
 import naicsCodes from '@/core/OnboardingFlow/components/IndustryTypeSelect/naics-codes.json';
 import { PartyFieldMap } from '@/core/OnboardingFlow/types/form.types';
+
+const formatAddressLocality = (address: {
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}) =>
+  usesPlaceholderPostalCode(address.country)
+    ? getAddressDisplayLocationParts(address).join(', ')
+    : `${address.city}, ${address.state} ${address.postalCode}`;
 
 // Source of truth for mapping form fields to API fields
 // path is used for handling server errors and mapping values from/to the API
@@ -1047,7 +1059,7 @@ export const partyFieldMap: PartyFieldMap = {
         address.primaryAddressLine,
         address.secondaryAddressLine,
         address.tertiaryAddressLine,
-        `${address.city}, ${address.state} ${address.postalCode}`,
+        formatAddressLocality(address),
         i18n.t(`common:countries.${address.country}`),
       ].filter((line) => line && line.trim() !== '');
     },
@@ -1145,7 +1157,7 @@ export const partyFieldMap: PartyFieldMap = {
         address.primaryAddressLine,
         address.secondaryAddressLine,
         address.tertiaryAddressLine,
-        `${address.city}, ${address.state} ${address.postalCode}`,
+        formatAddressLocality(address),
         i18n.t(`common:countries.${address.country}`),
       ].filter((line) => line && line.trim() !== '');
     },

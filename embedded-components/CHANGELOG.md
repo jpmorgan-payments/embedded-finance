@@ -2,6 +2,18 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.17] - 2026-10-07
+
+### Changes
+
+#### Features
+
+- **onboarding:** use bundled subdivision list and country-aware address rules
+
+#### Bug Fixes
+
+- **onboarding:** add handling of hk state and postal code fields
+
 ## [0.17.16] - 2026-10-05
 
 ### Changes

@@ -3,6 +3,8 @@
  * Business-facing labels and formatted values only (no internal IDs).
  */
 
+import { getAddressDisplayLocationParts } from '@/lib/addressDisplay';
+
 import { formatJobTitleDisplay } from './formatClientFacing';
 
 export interface PartyFieldConfig {
@@ -25,9 +27,7 @@ const formatAddresses = (addresses: unknown): string[] | undefined => {
       const lines = addr.addressLines?.join(' ') ?? '';
       const parts = [
         lines,
-        addr.city,
-        addr.state,
-        addr.postalCode,
+        ...getAddressDisplayLocationParts(addr),
         addr.country,
       ].filter(Boolean);
       return parts.join(', ');

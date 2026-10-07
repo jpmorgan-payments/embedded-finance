@@ -123,7 +123,6 @@ export const useBusinessIdentityFormSchema = () => {
     organizationName: z
       .string()
       .min(1, v('organizationName', 'required'))
-      .min(2, v('organizationName', 'minLength'))
       .max(100, v('organizationName', 'maxLength'))
       .refine((val) => NAME_PATTERN.test(val), v('organizationName', 'pattern'))
       .refine(
