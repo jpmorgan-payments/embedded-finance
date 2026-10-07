@@ -35,13 +35,20 @@ describe('createIndividualLegalNameSchemaShape', () => {
     expect(parsed.error?.issues[0]?.message).toBe('firstName.required');
   });
 
-  test('uses consumer-provided field names in errors', () => {
+  test('accepts one-character first and last names', () => {
+    expect(
+      schema.safeParse({ firstName: 'A', middleName: '', lastName: 'L' })
+        .success
+    ).toBe(true);
+  });
+
+  test('uses consumer-provided field names in required errors', () => {
     const parsed = schema.safeParse({
       firstName: 'Sam',
       middleName: '',
-      lastName: 'L',
+      lastName: '',
     });
 
-    expect(parsed.error?.issues[0]?.message).toBe('lastName.minLength');
+    expect(parsed.error?.issues[0]?.message).toBe('lastName.required');
   });
 });

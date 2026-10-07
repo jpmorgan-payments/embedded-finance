@@ -27,7 +27,6 @@ const createRequiredNameSchema = <TFieldName extends string>(
   z
     .string()
     .min(1, getValidationMessage(fieldName, 'required'))
-    .min(2, getValidationMessage(fieldName, 'minLength'))
     .max(30, getValidationMessage(fieldName, 'maxLength'))
     .refine(
       (name) => NAME_PATTERN.test(name),

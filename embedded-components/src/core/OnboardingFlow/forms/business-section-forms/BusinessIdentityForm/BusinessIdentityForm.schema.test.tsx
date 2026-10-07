@@ -36,6 +36,14 @@ function validBase() {
 }
 
 describe('BusinessIdentityForm schema (website superRefine & EIN)', () => {
+  test('accepts a one-character organization name', () => {
+    const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
+    expect(
+      result.current.safeParse({ ...validBase(), organizationName: 'A' })
+        .success
+    ).toBe(true);
+  });
+
   test('no longer validates website when field is hidden (websiteAvailable deprecated)', () => {
     const { result } = renderHook(() => useRefinedBusinessIdentitySchema());
     // Empty website with websiteNotAvailable false should still pass (field hidden)

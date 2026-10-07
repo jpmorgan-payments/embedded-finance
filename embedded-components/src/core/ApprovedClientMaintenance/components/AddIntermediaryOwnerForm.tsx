@@ -92,7 +92,6 @@ export function AddIntermediaryOwnerForm({
     organizationName: z
       .string()
       .min(1, getValidationMessage('organizationName', 'required'))
-      .min(2, getValidationMessage('organizationName', 'minLength'))
       .max(100, getValidationMessage('organizationName', 'maxLength'))
       .refine(
         (value) => NAME_PATTERN.test(value),

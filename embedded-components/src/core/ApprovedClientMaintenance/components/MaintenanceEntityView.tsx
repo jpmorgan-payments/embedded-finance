@@ -13,6 +13,7 @@ import {
   UserRoundCogIcon,
 } from 'lucide-react';
 
+import { getAddressDisplayLocationParts } from '@/lib/addressDisplay';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
@@ -126,9 +127,7 @@ export function MaintenanceEntityView({
   const addressValue = address
     ? [
         ...(address.addressLines ?? []),
-        [address.city, address.state, address.postalCode]
-          .filter(Boolean)
-          .join(', '),
+        getAddressDisplayLocationParts(address).join(', '),
         address.country
           ? tString(
               [

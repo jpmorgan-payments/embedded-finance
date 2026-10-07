@@ -31,6 +31,7 @@ This document describes the implementation and design decisions behind the `Onbo
       - [`review-attest-section`](#review-attest-section)
       - [`upload-documents-section`](#upload-documents-section)
   - [Data Flow and State Management](#data-flow-and-state-management)
+    - [Address Reference Data](#address-reference-data)
     - [Client Data Fetching](#client-data-fetching)
     - [Navigation State](#navigation-state)
     - [Session Data](#session-data)
@@ -192,6 +193,34 @@ These represent the core data collection areas, displayed on the `OverviewScreen
   - **Rationale**: Handles conditional document upload requirements. The `statusResolver` makes this section available based on `clientData.status` or specific session flags.
 
 ## Data Flow and State Management
+
+### Address Reference Data
+
+The shared `AddressFields` editor uses the bundled
+`countrySubdivisions.reference.json` list. It
+displays each subdivision's `label` and submits its exact `value` code.
+Countries absent from the
+list use a free-text state field and are not blocked client-side, although
+SMBDO currently rejects every state value for them. Changing country clears the previous
+state. A prefilled state absent from the local list stays visible as text;
+clearing it reveals the picker. HK, AE, and QA submit `postalCode: n/a` without
+displaying that input. Hong Kong's single `HK` subdivision code is auto-filled as
+state with no state picker. The same self-code state rule applies to other
+countries (for example, SG), without inferring postal rules from subdivision
+data. AE and QA retain their state choice.
+
+The OnboardingFlow address schema validates state against this list,
+case-insensitively, matching SMBDO. Countries without a list skip
+this check. Maintenance retains its existing validator against the
+older `COUNTRY_SUBDIVISIONS` table. `COUNTRIES_OF_FORMATION` and its business rules are
+unchanged.
+
+A country whose only subdivision code equals its country code (for example,
+HK or SG) has no state choice in this UI; that does not mean it lacks postal
+codes. The postal override is limited to HK, AE and QA, which SMBDO accepted
+with `postalCode: n/a`. SMBDO also accepts `n/a` for most other countries (US
+and CA reject it), so `n/a` acceptance does not identify countries without
+postal codes.
 
 ### Client Data Fetching
 

@@ -95,4 +95,34 @@ describe('RecipientDetailsDialog FX labels', () => {
     expect(screen.getByText('021000021')).toBeInTheDocument();
     expect(screen.queryByText('FX Low-value')).not.toBeInTheDocument();
   });
+
+  it('hides synthetic Hong Kong state and postal code in the address', async () => {
+    const user = userEvent.setup();
+    const recipient = {
+      ...gbpRecipient,
+      partyDetails: {
+        ...gbpRecipient.partyDetails,
+        address: {
+          addressLine1: '1 Harbour Road',
+          city: 'Central',
+          state: 'HK',
+          postalCode: 'n/a',
+          countryCode: 'HK',
+        },
+      },
+    } as unknown as Recipient;
+
+    render(
+      <RecipientDetailsDialog recipient={recipient}>
+        <button type="button">Open details</button>
+      </RecipientDetailsDialog>
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Open details' }));
+
+    expect(screen.getByText('Central')).toBeInTheDocument();
+    expect(screen.getByText('HK')).toBeInTheDocument();
+    expect(screen.queryByText('Central, HK, n/a')).not.toBeInTheDocument();
+    expect(screen.queryByText('n/a')).not.toBeInTheDocument();
+  });
 });

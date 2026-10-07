@@ -1,4 +1,7 @@
-import { getSubdivisionsForCountry } from '@/core/OnboardingFlow/consts';
+import {
+  getReferenceSubdivisionsForCountry,
+  getSubdivisionsForCountry,
+} from '@/core/OnboardingFlow/consts';
 
 export type ProfileAddressValidationField =
   | 'city'
@@ -76,7 +79,8 @@ const POSTAL_CODE_FORMATS: Record<
 const PO_BOX_REGEX = /\b(?:p\.?\s*o\.?\s*box|post\s*office\s*box|pmb)\b/i;
 
 export function getAddressValidationIssues(
-  values: ProfileAddressValidationValues
+  values: ProfileAddressValidationValues,
+  options?: { subdivisionSource?: 'legacy' | 'reference' }
 ): ProfileAddressValidationIssue[] {
   const issues: ProfileAddressValidationIssue[] = [];
   const params = { country: values.country };
@@ -89,13 +93,29 @@ export function getAddressValidationIssues(
     issues.push({ field: 'postalCode', messageKey: 'required', params });
   }
 
-  const subdivisions = getSubdivisionsForCountry(values.country);
-  if (
-    subdivisions &&
-    values.state &&
-    !subdivisions.some((subdivision) => subdivision.value === values.state)
-  ) {
-    issues.push({ field: 'state', messageKey: 'invalid', params });
+  // The SMBDO API matches state case-insensitively against its reference
+  // subdivisions; countries without a list are left to the API to judge.
+  if (options?.subdivisionSource === 'reference') {
+    const state = values.state?.toUpperCase();
+    const subdivisions = getReferenceSubdivisionsForCountry(values.country);
+    if (
+      state &&
+      subdivisions?.length &&
+      !subdivisions.some(
+        (subdivision) => subdivision.value.toUpperCase() === state
+      )
+    ) {
+      issues.push({ field: 'state', messageKey: 'invalid', params });
+    }
+  } else {
+    const subdivisions = getSubdivisionsForCountry(values.country);
+    if (
+      subdivisions &&
+      values.state &&
+      !subdivisions.some((subdivision) => subdivision.value === values.state)
+    ) {
+      issues.push({ field: 'state', messageKey: 'invalid', params });
+    }
   }
 
   const postalCodeFormat = POSTAL_CODE_FORMATS[values.country];

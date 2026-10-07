@@ -15,6 +15,7 @@ import {
   UserIcon,
 } from 'lucide-react';
 
+import { getAddressDisplayLocationParts } from '@/lib/addressDisplay';
 import {
   getMaskedAccountNumber,
   getSupportedPaymentMethods,
@@ -107,9 +108,10 @@ export const RecipientDetailsDialog: React.FC<RecipientDetailsDialogProps> = ({
     const parts = [
       address.addressLine1,
       address.addressLine2,
-      [address.city, address.state, address.postalCode]
-        .filter(Boolean)
-        .join(', '),
+      getAddressDisplayLocationParts({
+        ...address,
+        country: address.countryCode,
+      }).join(', '),
       address.countryCode,
     ].filter(Boolean);
 

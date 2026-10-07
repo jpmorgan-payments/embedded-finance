@@ -42,6 +42,15 @@ A: For the api-sandbox.payments.jpmorgan.com endpoints, encryption is not needed
 
 ### API Endpoints
 
+#### UAT Address Validation
+
+On SMBDO address writes, state must match a supported subdivision code
+(case-insensitively), and some countries currently have no accepted state.
+In UAT, `postalCode: n/a` was accepted on draft-party addresses for most
+countries, but US and CA reject it, so accepting `n/a` does not mean a country
+has no postal codes. Behavior in approved-client maintenance or other gateways
+has not been verified.
+
 #### Q: What is the base URL for the sandbox environment?
 
 A: Sandbox: `https://api-sandbox.payments.jpmorgan.com/onboarding/v1`

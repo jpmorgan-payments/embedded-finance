@@ -18,6 +18,7 @@ import {
   PhoneIcon,
 } from 'lucide-react';
 
+import { getAddressDisplayLocationParts } from '@/lib/addressDisplay';
 import { cn } from '@/lib/utils';
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { Button } from '@/components/ui/button';
@@ -218,9 +219,7 @@ export function BusinessDetailsContent({
   const addressLines = address
     ? [
         address.addressLines?.join(' '),
-        [address.city, address.state, address.postalCode]
-          .filter(Boolean)
-          .join(', '),
+        getAddressDisplayLocationParts(address).join(', '),
         address.country,
       ].filter(Boolean)
     : null;

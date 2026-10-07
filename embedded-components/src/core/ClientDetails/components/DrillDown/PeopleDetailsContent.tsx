@@ -14,6 +14,7 @@ import {
   UserIcon,
 } from 'lucide-react';
 
+import { getAddressDisplayLocationParts } from '@/lib/addressDisplay';
 import { cn } from '@/lib/utils';
 import type {
   ClientResponse,
@@ -152,9 +153,7 @@ function PersonDetails({ party, roleLabel }: PersonDetailsProps) {
   const addressLines = address
     ? [
         address.addressLines?.join(' '),
-        [address.city, address.state, address.postalCode]
-          .filter(Boolean)
-          .join(', '),
+        getAddressDisplayLocationParts(address).join(', '),
         address.country,
       ].filter(Boolean)
     : null;

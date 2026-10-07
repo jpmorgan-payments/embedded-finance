@@ -1,3 +1,5 @@
+import { getAddressDisplayLocationParts } from '@/lib/addressDisplay';
+
 import type {
   MaintenanceAddress,
   MaintenanceIndividualId,
@@ -54,9 +56,7 @@ const hasOwn = (value: object | undefined, key: string) =>
 const formatAddress = (address: MaintenanceAddress) =>
   [
     ...(address.addressLines ?? []),
-    address.city,
-    address.state,
-    address.postalCode,
+    ...getAddressDisplayLocationParts(address),
     address.country,
   ]
     .filter(Boolean)
