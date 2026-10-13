@@ -61,7 +61,37 @@ For a subsidiary, set `isSubsidiary` to `true` and put the **parent's** ticker a
 
 The listing influences the journey, but the customer's answer does not itself grant an exemption. A direct PTC and a subsidiary can have different business-identification requirements even on the same exchange. Do not promise that CIP, beneficial-owner collection, documents, or attestations have been waived simply because a ticker was entered.
 
-**Recommended:** keep a controller in the journey. For an `XNYS` or `XNAS` listing, your integration may be able to omit some identity-document and beneficial-owner collection; for other listings, keep those steps available. Do not treat this distinction as an exhaustive policy matrix: whether a listing is recognized, the type of listing, subsidiary status, and later validation can affect the actual requirements. Confirm the supported journey for your integration and keep a way to collect additional information if requested.
+**Recommended:** always collect a controller. For an `XNYS` or `XNAS` listing, follow [NYSE and NASDAQ: what you can skip](#nyse-and-nasdaq-what-you-can-skip). For every other listing, collect everything. Later validation can still add requirements, so keep a way to collect more information if the API asks for it.
+
+### NYSE and NASDAQ: what you can skip
+
+These rules match the `OnboardingFlow` component in this repository when `enablePubliclyTradedCompanies` is on.
+
+**When the rules apply:** the saved organization party has `organizationDetails.publiclyTraded.stockExchange` set to exactly `XNYS` (New York Stock Exchange) or `XNAS` (NASDAQ). The rules are the same for a directly traded company and a subsidiary. For a subsidiary, this is the parent's exchange.
+
+| Details                                                | US PTC<br>(trading on NYSE, NASDAQ)                         | US subsidiary of PTC<br>(trading on NYSE, NASDAQ)           | PTC<br>(trading elsewhere) | Subsidiary of PTC<br>(trading elsewhere) |
+| ------------------------------------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------- | -------------------------- | ---------------------------------------- |
+| Collect business information                           | **Yes**                                                     | **Yes**                                                     | **Yes**                    | **Yes**                                  |
+| Collect beneficial owner information (ownership ≥ 25%) | No                                                          | No                                                          | **Yes**                    | **Yes**                                  |
+| Collect controller information                         | **Yes**<br>(government ID and date of birth not required)   | **Yes**<br>(government ID and date of birth not required)   | **Yes**                    | **Yes**                                  |
+
+"US" in this table refers to the NYSE or NASDAQ listing. The rules do not depend on the business's country of formation.
+
+**You do not need to collect:**
+
+- Beneficial owners. Do not show an owners step, and do not create `BENEFICIAL_OWNER` parties, either direct or indirect.
+- The controller's date of birth.
+- The controller's government ID (SSN, ITIN, or any other ID type).
+
+**You must still collect:**
+
+- One controller with the `CONTROLLER` role, including legal name, job title, country of residence, email, phone, and residential address. Do not also give the controller the `BENEFICIAL_OWNER` role.
+- All business details: business identity (including EIN), industry, and business contact details.
+- Every question, document request, and attestation in the API's `outstanding` response. Do not hide any of these because of the exchange. The API is expected not to request the FinCEN attestation for `XNYS` or `XNAS`, but if it is returned, show it.
+
+**For every other exchange, collect everything.** This includes other US exchanges such as NYSE Arca (`ARCX`), NYSE Chicago (`XCHI`), and Cboe (`XCBO`), all non-US exchanges, and `Other`. Collect beneficial owners (25% or more ownership) and the controller's date of birth and government ID, the same as for a company that is not publicly traded.
+
+**When to switch:** apply these rules only after the organization party has been saved with the listing and you have reread the client. Do not skip steps based on unsaved form values.
 
 **Must:** follow the API's returned outstanding question IDs, document requests, and attestation document IDs. Do not hardcode a PTC-specific list or discard additional questions because the customer selected PTC. A PTC can also have another business classification that requires additional due diligence.
 
@@ -79,9 +109,9 @@ See the [Digital Onboarding Flow recipe](./DIGITAL_ONBOARDING_FLOW_RECIPE.md) fo
 
 | Scenario                                | Check                                                                                                          |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Direct PTC on NYSE or NASDAQ            | Save `isSubsidiary: false` with the correct exchange code; retain the controller and refresh outstanding work. |
-| Subsidiary of a listed PTC              | Save `isSubsidiary: true` with the parent's ticker and exchange; show that relationship accurately in review.  |
-| Other supported exchange                | Keep appropriate owner/identity collection available and follow the returned requirements.                     |
+| Direct PTC on NYSE or NASDAQ            | Save `isSubsidiary: false` with `XNYS`/`XNAS`; collect the controller's name, job title, and contact details; skip beneficial owners and the controller's date of birth and government ID; refresh outstanding work. |
+| Subsidiary of a listed PTC              | Save `isSubsidiary: true` with the parent's ticker and exchange; apply the same NYSE/NASDAQ relaxation when the parent's exchange is `XNYS`/`XNAS`; show the relationship accurately in review. |
+| Other supported exchange                | Collect beneficial owners and the controller's date of birth and government ID, including for other US exchanges such as `ARCX` or `XCBO`; follow the returned requirements. |
 | Exchange not in the list                | Require the exchange name with `stockExchange: "Other"`.                                                       |
 | Neither / ineligible legal form         | Omit both `isSubsidiary` and `publiclyTraded`; do not show PTC-only fields.                                    |
 | Returning client with saved PTC data    | Restore the classification from `publiclyTraded` plus `isSubsidiary`; prevent an unsupported removal.          |
@@ -91,6 +121,7 @@ See the [Digital Onboarding Flow recipe](./DIGITAL_ONBOARDING_FLOW_RECIPE.md) fo
 ## Known Limitations
 
 - `XNYS` and `XNAS` alone do not define every eligible listing or due diligence path. Check current product guidance before applying a streamlined journey to other exchanges.
+- In `OnboardingFlow`, the relaxation depends only on the exchange code. The owners section and controller identity-document step stay hidden for `XNYS`/`XNAS` even if the API later asks for owner or controller identity information, so those requests need another completion path.
 - The current organization-party response has `isSubsidiary` and `publiclyTraded` but no persisted three-way PTC answer. A “neither” choice may need host-side session state on a return visit.
 - The party update API does not support removal of previously saved PTC data. Resolve a mistaken classification through a supported process with your J.P. Morgan representative rather than sending an empty block or implying a customer can undo it in the UI.
 - Policy and API guidance can evolve independently of a static exchange picker. Reconfirm the available exchanges, legal forms, and due diligence paths when integrating or updating this journey.
