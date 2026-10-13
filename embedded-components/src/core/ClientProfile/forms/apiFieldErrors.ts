@@ -31,10 +31,10 @@ function removeBracketDelimiters(message: string): string {
 
 export function sanitizeServerErrorMessage(message: string): string {
   let sanitized = message.replace(
-    /^Field\s+\/[^/]*(?:\/[^/]*)*\/\s+value must have the expected value\.\s*/i,
+    /^Field\s+\/(?:[^/\s]*\/)+\s+value must have the expected value\.\s*/i,
     ''
   );
-  sanitized = sanitized.replace(/Field\s+\/[^/]*(?:\/[^/]*)*\/\s*/g, '');
+  sanitized = sanitized.replace(/Field\s+\/(?:[^/\s]*\/)+\s*/g, '');
   sanitized = removeBracketDelimiters(sanitized);
 
   if (sanitized && sanitized !== message) {

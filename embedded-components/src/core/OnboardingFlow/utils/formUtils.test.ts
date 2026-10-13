@@ -63,6 +63,14 @@ describe('formUtils', () => {
       expect(result).toBe('Is required');
     });
 
+    it('keeps slashes in the message after the field path', () => {
+      const msg =
+        "Field /individualDetails/addresses[0]/addressLines[0]/ value must be in the expected format. Only English characters, Numbers and ()-/.,&_'# are supported";
+      expect(sanitizeServerErrorMessage(msg)).toBe(
+        "Value must be in the expected format. Only English characters, Numbers and ()-/.,&_'# are supported"
+      );
+    });
+
     it('cleans bracket notation', () => {
       const msg = 'Value [INVALID] is not allowed for field [status]';
       const result = sanitizeServerErrorMessage(msg);

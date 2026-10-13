@@ -107,8 +107,15 @@ export const ImportantDateSelector = forwardRef<
     const [isValid, setIsValid] = useState(true);
     const [isTouched, setIsTouched] = useState(false);
     const [isPrepopulated, setIsPrepopulated] = useState(!!value);
+    const [isDayFocused, setIsDayFocused] = useState(false);
 
     const { tString } = useTranslationWithTokens('common');
+
+    const ariaInvalid = props['aria-invalid'];
+    const errorBorder =
+      !isValid || ariaInvalid === true || ariaInvalid === 'true'
+        ? 'eb-border-red-500'
+        : '';
 
     const updateDate = useCallback(
       (newDay: string, newMonth: string, newYear: string) => {
@@ -135,7 +142,15 @@ export const ImportantDateSelector = forwardRef<
     );
 
     useEffect(() => {
-      if (day && month && year && (isTouched || isPrepopulated)) {
+      // "3" may be the start of "30"; wait for the second digit or blur
+      const isDayPending =
+        isDayFocused && day.length === 1 && Number.parseInt(day, 10) <= 3;
+      if (isDayPending) {
+        return;
+      }
+      // Wait for a 4-digit year so typing "19" isn't reported as an invalid date
+      const isComplete = Boolean(day && month && year.length === 4);
+      if (isComplete && (isTouched || isPrepopulated)) {
         updateDate(day, month, year);
         setIsPrepopulated(false);
       } else {
@@ -143,7 +158,7 @@ export const ImportantDateSelector = forwardRef<
         isTouched && onChange?.(null);
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps -- validate only when date inputs / touched flags change; onChange & updateDate excluded to avoid re-validating every render
-    }, [day, month, year, isTouched, isPrepopulated]);
+    }, [day, month, year, isTouched, isPrepopulated, isDayFocused]);
 
     useEffect(() => {
       if (!value) {
@@ -214,8 +229,10 @@ export const ImportantDateSelector = forwardRef<
                 onChange={(e) =>
                   handleDayChange(e.target.value.replace(/\D/g, ''))
                 }
+                onFocus={() => setIsDayFocused(true)}
+                onBlur={() => setIsDayFocused(false)}
                 disabled={disabled}
-                className={`eb-w-full ${!isValid || (!day && isTouched) ? 'eb-border-red-500' : ''}`}
+                className={`eb-w-full ${errorBorder}`}
                 aria-label="Day"
               />
             </div>
@@ -235,7 +252,7 @@ export const ImportantDateSelector = forwardRef<
               >
                 <SelectTrigger
                   id="birth-month"
-                  className={`eb-w-full ${!isValid || (!month && isTouched) ? 'eb-border-red-500' : ''}`}
+                  className={`eb-w-full ${errorBorder}`}
                 >
                   <SelectValue placeholder="Month" />
                 </SelectTrigger>
@@ -269,7 +286,7 @@ export const ImportantDateSelector = forwardRef<
                   handleYearChange(e.target.value.replace(/\D/g, ''))
                 }
                 disabled={disabled}
-                className={`eb-w-full ${!isValid || (!year && isTouched) ? 'eb-border-red-500' : ''}`}
+                className={`eb-w-full ${errorBorder}`}
                 aria-label="Year"
               />
             </div>

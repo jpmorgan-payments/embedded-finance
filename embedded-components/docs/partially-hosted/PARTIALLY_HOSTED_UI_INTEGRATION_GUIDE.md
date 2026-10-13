@@ -41,11 +41,11 @@ The Hosted Onboarding UI requires a **Client ID** before a session can be initia
 
 The `experienceType` parameter controls which hosted UI is rendered inside the iframe:
 
-| Experience Type | Description |
-|----------------|-------------|
-| `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
-| `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
-| `HOSTED_LINKED_ACCOUNTS_UI` | Standalone linked bank account management, including linking and microdeposit verification |
+| Experience Type                   | Description                                                                                |
+| --------------------------------- | ------------------------------------------------------------------------------------------ |
+| `HOSTED_ONBOARDING_UI`            | Full onboarding flow for new clients                                                       |
+| `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process                                             |
+| `HOSTED_LINKED_ACCOUNTS_UI`       | Standalone linked bank account management, including linking and microdeposit verification |
 
 > **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
 
@@ -54,33 +54,33 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 The integration involves the following key steps:
 
 1. **Client Status Check (Optional but Recommended):** Before initiating
-    onboarding, your platform can check the client's current onboarding status
-    (e.g., by calling an API endpoint such as `GET /clients/:id`). If the client
-    status is `INFORMATION_REQUESTED`, you might display a specific visual
-    indicator to the user.
+   onboarding, your platform can check the client's current onboarding status
+   (e.g., by calling an API endpoint such as `GET /clients/:id`). If the client
+   status is `INFORMATION_REQUESTED`, you might display a specific visual
+   indicator to the user.
 2. **Session Initiation (User Action):** When the user triggers the onboarding
-    UI (e.g., by clicking a "Wallet" or "Complete Onboarding" button), your
-    platform's frontend initiates a session.
+   UI (e.g., by clicking a "Wallet" or "Complete Onboarding" button), your
+   platform's frontend initiates a session.
 3. **Backend Session Transfer:**
-    - The frontend calls a secure backend endpoint on your platform (e.g.,
-      `POST /sessions`).
-    - Your backend authenticates this request against your own identity and
-      access management (IAM), with multi-factor authentication (MFA).
-    - It then communicates with the Onboarding Service's API to create a session
-      or obtain a session token. This might involve passing user identifiers.
-    - The Onboarding Service responds with a short-lived JWT token (expected to
-      be valid for 60 seconds).
-    - Your backend securely returns this token to your frontend.
+   - The frontend calls a secure backend endpoint on your platform (e.g.,
+     `POST /sessions`).
+   - Your backend authenticates this request against your own identity and
+     access management (IAM), with multi-factor authentication (MFA).
+   - It then communicates with the Onboarding Service's API to create a session
+     or obtain a session token. This might involve passing user identifiers.
+   - The Onboarding Service responds with a short-lived JWT token (expected to
+     be valid for 60 seconds).
+   - Your backend securely returns this token to your frontend.
 4. **Frontend Iframe Embedding:**
-    - The frontend receives the session token.
-    - It uses the provided URL from the response, which already contains the embedded
-      authentication token (e.g.,
-      `https://url.jpmorgan.com/t/17465629080405AI41`).
-    - The Onboarding UI is then loaded within an `<iframe>` on your platform's
-      page.
+   - The frontend receives the session token.
+   - It uses the provided URL from the response, which already contains the embedded
+     authentication token (e.g.,
+     `https://url.jpmorgan.com/t/17465629080405AI41`).
+   - The Onboarding UI is then loaded within an `<iframe>` on your platform's
+     page.
 5. **Communication (Optional):** The iframe can communicate events (e.g.,
-    status changes, errors, other events) back to the parent window using
-    `window.postMessage`.
+   status changes, errors, other events) back to the parent window using
+   `window.postMessage`.
 
 ```mermaid
 sequenceDiagram
@@ -125,24 +125,24 @@ backend** to manage session transfer to the hosted Onboarding UI.
 
 - **Backend Logic (on your platform's backend):**
   1. Authenticate the request from your frontend (ensure the user is signed in
-      to your platform with MFA and is authorized for this client).
+     to your platform with MFA and is authorized for this client).
   2. Make a secure server-to-server call to the Onboarding Service's API
-      endpoint (provided by the Onboarding Service) to create a session for the
-      given `clientId`. This request requires specifying both the session type (`EMBEDDED_UI`)
-      and the target object with the client ID and type `CLIENT`. Party-level
-      targets are not supported.
-      2.1. In case of error try to retry the request.
-      Possible errors:
+     endpoint (provided by the Onboarding Service) to create a session for the
+     given `clientId`. This request requires specifying both the session type (`EMBEDDED_UI`)
+     and the target object with the client ID and type `CLIENT`. Party-level
+     targets are not supported.
+     2.1. In case of error try to retry the request.
+     Possible errors:
   - `400`: Bad Request - Invalid input parameters.
   - `404`: The clientId is not found.
   - `422`: The clientId is not valid.
   - `500`: Server error.
   1. The Onboarding Service's API responds with:
-      - The URL (or components to build the URL) for the hosted Onboarding UI
-        with a short-lived JWT token (or similar) to authenticate the user
-        session within the iframe.
+     - The URL (or components to build the URL) for the hosted Onboarding UI
+       with a short-lived JWT token (or similar) to authenticate the user
+       session within the iframe.
   2. Your backend securely returns the necessary information (e.g., the JWT
-      token) to your frontend.
+     token) to your frontend.
 - **Example Response (from the Onboarding Service to your backend):**
 
   ```json
@@ -170,137 +170,136 @@ them according to your specific requirements.
 When the user initiates onboarding on your platform:
 
 1. Make an authenticated call from your frontend to your platform's backend
-    endpoint (e.g., `POST /sessions` as described above).
+   endpoint (e.g., `POST /sessions` as described above).
 2. On success, your frontend receives the session token (and other necessary
-    details) from your backend.
+   details) from your backend.
 3. Display appropriate loading indicators during this process (e.g., on the
-    button that triggers the action, as shown in the `SampleDashboard.tsx`
-    example).
+   button that triggers the action, as shown in the `SampleDashboard.tsx`
+   example).
 
 ### 3.2. Rendering the Iframe
 
 1. **Use the provided URL:** The response includes a complete `url` field that should be
-    used directly as the iframe's `src` attribute. The token is already embedded in this URL.
-    For example: `https://url.jpmorgan.com/t/17465629080405AI41`
+   used directly as the iframe's `src` attribute. The token is already embedded in this URL.
+   For example: `https://url.jpmorgan.com/t/17465629080405AI41`
 
-    Optionally, you can append URL parameters to customize the onboarding experience
-    (theme, language, component behavior). See
-    [URL Parameters for Onboarding Customization](#url-parameters-for-onboarding-customization)
-    below.
+   Optionally, you can append URL parameters to customize the onboarding experience
+   (theme, language, component behavior). See
+   [URL Parameters for Onboarding Customization](#url-parameters-for-onboarding-customization)
+   below.
 
 2. **Create and mount the iframe**
+   - **React Implementation:** In React applications, manage iframe state,
+     loading indicators, and resize handling using `useEffect`, `useState`, and
+     proper event cleanup.
+   - **Loading State:** Display accessible loading indicators with
+     `role="status"` and `aria-live="polite"` attributes.
+   - **Responsiveness:** Use container queries and viewport-relative sizing for
+     optimal display across devices.
+   - **Error Handling:** Implement comprehensive error handling with
+     `role="alert"` for screen reader announcements.
 
-    - **React Implementation:** In React applications, manage iframe state,
-      loading indicators, and resize handling using `useEffect`, `useState`, and
-      proper event cleanup.
-    - **Loading State:** Display accessible loading indicators with
-      `role="status"` and `aria-live="polite"` attributes.
-    - **Responsiveness:** Use container queries and viewport-relative sizing for
-      optimal display across devices.
-    - **Error Handling:** Implement comprehensive error handling with
-      `role="alert"` for screen reader announcements.
+   **HTML/CSS/JS Implementation**
 
-    **HTML/CSS/JS Implementation**
+   ```html
+   <!-- Responsive container for the iframe -->
+   <section
+     class="iframe-container"
+     role="region"
+     aria-labelledby="onboarding-title"
+     style="position:relative; width:100%; min-height:600px; container-type: inline-size;"
+   >
+     <h2 id="onboarding-title" class="sr-only">Onboarding Application</h2>
 
-    ```html
-    <!-- Responsive container for the iframe -->
-    <section
-      class="iframe-container"
-      role="region"
-      aria-labelledby="onboarding-title"
-      style="position:relative; width:100%; min-height:600px; container-type: inline-size;"
-    >
-      <h2 id="onboarding-title" class="sr-only">Onboarding Application</h2>
+     <!-- Loader shown while iframe content is loading -->
+     <div
+       id="iframe-loader"
+       style="display:flex; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); z-index:1; align-items:center; justify-content:center;"
+     >
+       <div role="status" aria-live="polite">Loading Onboarding UI...</div>
+     </div>      <iframe
+       id="onboarding-iframe"
+       title="Complete your account onboarding - interactive form"
+       src="YOUR_PROVIDED_SESSION_URL" <!-- Use the url directly from the session response -->
+       width="100%"
+       height="600"
+       style="border:none; display:block; width:100%;"
+       allowfullscreen
+       referrerpolicy="no-referrer"
+       loading="lazy"
+       aria-describedby="iframe-instructions"
+       onload="handleIframeLoad()"
+       onerror="handleIframeError()"
+     ></iframe>
 
-      <!-- Loader shown while iframe content is loading -->
-      <div
-        id="iframe-loader"
-        style="display:flex; position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); z-index:1; align-items:center; justify-content:center;"
-      >
-        <div role="status" aria-live="polite">Loading Onboarding UI...</div>
-      </div>      <iframe
-        id="onboarding-iframe"
-        title="Complete your account onboarding - interactive form"
-        src="YOUR_PROVIDED_SESSION_URL" <!-- Use the url directly from the session response -->
-        width="100%"
-        height="600"
-        style="border:none; display:block; width:100%;"
-        allowfullscreen
-        referrerpolicy="no-referrer"
-        loading="lazy"
-        aria-describedby="iframe-instructions"
-        onload="handleIframeLoad()"
-        onerror="handleIframeError()"
-      ></iframe>
+     <div id="iframe-instructions" class="sr-only">
+       Interactive onboarding form. Use Tab to navigate between fields. Press
+       Escape while focused in the form to return to main page navigation.
+     </div>
+   </section>
 
-      <div id="iframe-instructions" class="sr-only">
-        Interactive onboarding form. Use Tab to navigate between fields. Press
-        Escape while focused in the form to return to main page navigation.
-      </div>
-    </section>
+   <style>
+     .sr-only {
+       position: absolute;
+       width: 1px;
+       height: 1px;
+       padding: 0;
+       margin: -1px;
+       overflow: hidden;
+       clip: rect(0, 0, 0, 0);
+       white-space: nowrap;
+       border: 0;
+     }
 
-    <style>
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
+     /* Responsive iframe container using container queries */
+     @container (max-width: 768px) {
+       #onboarding-iframe {
+         min-height: 500px;
+       }
+     }
 
-      /* Responsive iframe container using container queries */
-      @container (max-width: 768px) {
-        #onboarding-iframe {
-          min-height: 500px;
-        }
-      }
+     @container (min-width: 769px) {
+       #onboarding-iframe {
+         min-height: 700px;
+       }
+     }
 
-      @container (min-width: 769px) {
-        #onboarding-iframe {
-          min-height: 700px;
-        }
-      }
+     /* Accessibility and performance optimizations */
+     @media (prefers-reduced-motion: reduce) {
+       #onboarding-iframe {
+         transition: none;
+       }
+     }
+   </style>
 
-      /* Accessibility and performance optimizations */
-      @media (prefers-reduced-motion: reduce) {
-        #onboarding-iframe {
-          transition: none;
-        }
-      }
-    </style>
+   <script>
+     function handleIframeLoad() {
+       document.getElementById('iframe-loader').style.display = 'none';
+       document.getElementById('onboarding-iframe').style.visibility =
+         'visible';
+     }
 
-    <script>
-      function handleIframeLoad() {
-        document.getElementById('iframe-loader').style.display = 'none';
-        document.getElementById('onboarding-iframe').style.visibility =
-          'visible';
-      }
-
-      function handleIframeError() {
-        const loader = document.getElementById('iframe-loader');
-        loader.innerHTML =
-          '<div role="alert">Failed to load Onboarding UI. Please try again later.</div>';
-        loader.style.background = 'rgba(255, 245, 245, 0.9)';
-      }
-    </script>
-    ```
+     function handleIframeError() {
+       const loader = document.getElementById('iframe-loader');
+       loader.innerHTML =
+         '<div role="alert">Failed to load Onboarding UI. Please try again later.</div>';
+       loader.style.background = 'rgba(255, 245, 245, 0.9)';
+     }
+   </script>
+   ```
 
 ### URL Parameters for Onboarding Customization
 
 You can customize the appearance, language, and behavior of the hosted onboarding
 UI by appending optional URL parameters to the iframe `src` URL.
 
-| Parameter | Format | Description |
-|-----------|--------|-------------|
-| `themeTokens` | URL-encoded JSON | Design token overrides (colors, fonts, border radius, etc.) |
-| `contentTokens` | URL-encoded JSON | Language / locale selection (e.g., `enUS`, `frCA`) |
-| `componentProperties` | URL-encoded JSON | Serializable component props (see table below) |
-| `hostedExperienceType` | String | Experience type (`HOSTED_ONBOARDING_UI` or `HOSTED_DOC_UPLOAD_ONBOARDING_UI`) |
-| `cfg` | `z.<base64url>` | **Optional.** All three JSON parameters above, compressed into one. See [URL Size Limits & the Compact `cfg` Parameter](./URL_SIZE_AND_COMPACT_CONFIG.md) |
+| Parameter              | Format           | Description                                                                                                                                               |
+| ---------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `themeTokens`          | URL-encoded JSON | Design token overrides (colors, fonts, border radius, etc.)                                                                                               |
+| `contentTokens`        | URL-encoded JSON | Language / locale selection (e.g., `enUS`, `frCA`)                                                                                                        |
+| `componentProperties`  | URL-encoded JSON | Serializable component props (see table below)                                                                                                            |
+| `hostedExperienceType` | String           | Experience type (`HOSTED_ONBOARDING_UI` or `HOSTED_DOC_UPLOAD_ONBOARDING_UI`)                                                                             |
+| `cfg`                  | `z.<base64url>`  | **Optional.** All three JSON parameters above, compressed into one. See [URL Size Limits & the Compact `cfg` Parameter](./URL_SIZE_AND_COMPACT_CONFIG.md) |
 
 > ⚠️ **Size limit:** the gateway rejects any request where `path + "?" + query string`
 > exceeds **2047 characters**, returning a 403 before the request reaches the application.
@@ -310,19 +309,19 @@ UI by appending optional URL parameters to the iframe `src` URL.
 
 **Onboarding Component Properties:**
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `alertOnExit` | `boolean` | Show confirmation dialog when leaving |
-| `alertOnPreviousStep` | `boolean` | Show confirmation on back / cancel |
-| `height` | `string` | CSS height value |
-| `hideSidebar` | `boolean` | Hide sidebar navigation |
-| `showDownloadChecklist` | `boolean` | Show download button on Overview step |
-| `disclosurePlatformName` | `string` | Platform name shown in the disclosure step |
-| `disclosureProductName` | `string` | Product name shown in the FDIC disclosure (e.g. "Wallet Accounts"). Default: `"Accounts"` |
-| `disclosurePlatformAgreementUrl` | `string` | URL for the platform agreement link |
-| `disclosurePlatformAgreementLabel` | `string` | Label for the platform agreement link |
-| `showDisclosureFooter` | `boolean` | When `true`, shows the regulatory disclosure footer (e.g. FDIC / "not a bank" language) at the bottom of the flow. Still requires `disclosurePlatformName` for the footer to render. Default: `false` |
-| `showLinkAccountStep` | `boolean` | When `true`, shows linked bank account functionality inside the full onboarding flow. Default: `false` |
+| Property                           | Type      | Description                                                                                                                                                                                           |
+| ---------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `alertOnExit`                      | `boolean` | Show confirmation dialog when leaving                                                                                                                                                                 |
+| `alertOnPreviousStep`              | `boolean` | Show confirmation on back / cancel                                                                                                                                                                    |
+| `height`                           | `string`  | CSS height value                                                                                                                                                                                      |
+| `hideSidebar`                      | `boolean` | Hide sidebar navigation                                                                                                                                                                               |
+| `showDownloadChecklist`            | `boolean` | Show download button on Overview step                                                                                                                                                                 |
+| `disclosurePlatformName`           | `string`  | Platform name shown in the disclosure step                                                                                                                                                            |
+| `disclosureProductName`            | `string`  | Product name shown in the FDIC disclosure (e.g. "Wallet Accounts"). Default: `"Accounts"`                                                                                                             |
+| `disclosurePlatformAgreementUrl`   | `string`  | URL for the platform agreement link                                                                                                                                                                   |
+| `disclosurePlatformAgreementLabel` | `string`  | Label for the platform agreement link                                                                                                                                                                 |
+| `showDisclosureFooter`             | `boolean` | When `true`, shows the regulatory disclosure footer (e.g. FDIC / "not a bank" language) at the bottom of the flow. Still requires `disclosurePlatformName` for the footer to render. Default: `false` |
+| `showLinkAccountStep`              | `boolean` | When `true`, shows linked bank account functionality inside the full onboarding flow. Default: `false`                                                                                                |
 
 #### Linked Account Step in Onboarding
 
@@ -343,8 +342,8 @@ verification action there.
 const params = new URLSearchParams({
   hostedExperienceType: 'HOSTED_ONBOARDING_UI',
   componentProperties: JSON.stringify({
-    showLinkAccountStep: true
-  })
+    showLinkAccountStep: true,
+  }),
 });
 
 const iframeUrl = `${sessionData.url}&${params.toString()}`;
@@ -364,21 +363,21 @@ available through partially hosted URLs.
 
 **All supported standalone linked-account properties:**
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `mode` | `'list' \| 'single'` | `'list'` | Show all linked accounts, or limit the experience to one account. In single mode, the create action is hidden after an active account exists. |
-| `viewMode` | `'cards' \| 'compact-cards' \| 'table'` | `'compact-cards'` | Controls how linked accounts are displayed. |
-| `scrollable` | `boolean` | `false` | Enables a height-constrained virtualized account list. |
-| `scrollableMaxHeight` | `number \| string` | `'400px'` | Maximum list height when `scrollable` is enabled. |
-| `pageSize` | `number` | `10` | Number of linked accounts requested per page. |
-| `paginationStyle` | `'loadMore' \| 'pages'` | `'pages'` | Pagination for card views. Table view always uses pages. |
-| `hideCreateButton` | `boolean` | `false` | Hides the action for linking a new bank account. |
-| `showPaymentFees` | `boolean` | `false` | Shows fees in the default payment review flow opened from an account. |
-| `showRejectedAccounts` | `boolean` | `false` | Shows a collapsible section of recently rejected accounts. |
-| `linkAccountReviewAcknowledgements` | `Array<{ id, labelKey, linkHrefs? }>` | `[]` | Adds required host-defined acknowledgement checkboxes to the link-account create dialog. Labels are resolved from linked-account content tokens. |
-| `showLinkAccountAcknowledgementsIntro` | `boolean` | `false` | Shows the acknowledgement lead-in text when acknowledgement rows are configured. |
-| `linkAccountBankFormConfigOverride` | `object` | `{}` | Partially overrides linked-account bank form configuration, such as available payment methods and account-holder defaults. |
-| `hideRemoveRecipient` | `boolean` | `false` | Hides Remove actions in standalone linked-account cards and table rows. This is separate from onboarding's `hideLinkedAccountRemoval` property. |
+| Property                               | Type                                    | Default           | Description                                                                                                                                      |
+| -------------------------------------- | --------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mode`                                 | `'list' \| 'single'`                    | `'list'`          | Show all linked accounts, or limit the experience to one account. In single mode, the create action is hidden after an active account exists.    |
+| `viewMode`                             | `'cards' \| 'compact-cards' \| 'table'` | `'compact-cards'` | Controls how linked accounts are displayed.                                                                                                      |
+| `scrollable`                           | `boolean`                               | `false`           | Enables a height-constrained virtualized account list.                                                                                           |
+| `scrollableMaxHeight`                  | `number \| string`                      | `'400px'`         | Maximum list height when `scrollable` is enabled.                                                                                                |
+| `pageSize`                             | `number`                                | `10`              | Number of linked accounts requested per page.                                                                                                    |
+| `paginationStyle`                      | `'loadMore' \| 'pages'`                 | `'pages'`         | Pagination for card views. Table view always uses pages.                                                                                         |
+| `hideCreateButton`                     | `boolean`                               | `false`           | Hides the action for linking a new bank account.                                                                                                 |
+| `showPaymentFees`                      | `boolean`                               | `false`           | Shows fees in the default payment review flow opened from an account.                                                                            |
+| `showRejectedAccounts`                 | `boolean`                               | `false`           | Shows a collapsible section of recently rejected accounts.                                                                                       |
+| `linkAccountReviewAcknowledgements`    | `Array<{ id, labelKey, linkHrefs? }>`   | `[]`              | Adds required host-defined acknowledgement checkboxes to the link-account create dialog. Labels are resolved from linked-account content tokens. |
+| `showLinkAccountAcknowledgementsIntro` | `boolean`                               | `false`           | Shows the acknowledgement lead-in text when acknowledgement rows are configured.                                                                 |
+| `linkAccountBankFormConfigOverride`    | `object`                                | `{}`              | Partially overrides linked-account bank form configuration, such as available payment methods and account-holder defaults.                       |
+| `hideRemoveRecipient`                  | `boolean`                               | `false`           | Hides Remove actions in standalone linked-account cards and table rows. This is separate from onboarding's `hideLinkedAccountRemoval` property.  |
 
 **Example — standalone linked-account list:**
 
@@ -388,8 +387,8 @@ const params = new URLSearchParams({
   componentProperties: JSON.stringify({
     mode: 'list',
     viewMode: 'compact-cards',
-    pageSize: 10
-  })
+    pageSize: 10,
+  }),
 });
 
 const iframeUrl = `${sessionData.url}&${params.toString()}`;
@@ -401,7 +400,7 @@ const iframeUrl = `${sessionData.url}&${params.toString()}`;
 const componentProperties = {
   mode: 'single',
   hideRemoveRecipient: true,
-  showRejectedAccounts: true
+  showRejectedAccounts: true,
 };
 ```
 
@@ -418,17 +417,18 @@ const themeTokens = {
   variables: {
     actionableAccentedBoldBackground: '#FF6600',
     actionableBorderRadius: '9999px',
-    contentFontFamily: 'Inter, system-ui, sans-serif'
-  }
+    contentFontFamily: 'Inter, system-ui, sans-serif',
+  },
 };
 
 // 2. Component properties — platform disclosure configuration
 const componentProperties = {
   showDisclosureFooter: true,
   disclosurePlatformName: 'SellSense Marketplace',
-  disclosureProductName: 'Wallet Accounts',  // defaults to "Accounts" if omitted
-  disclosurePlatformAgreementUrl: 'https://sellsense.example.com/terms-of-service',
-  disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service'
+  disclosureProductName: 'Wallet Accounts', // defaults to "Accounts" if omitted
+  disclosurePlatformAgreementUrl:
+    'https://sellsense.example.com/terms-of-service',
+  disclosurePlatformAgreementLabel: 'SellSense Marketplace Terms of Service',
 };
 
 // 3. Build the iframe URL
@@ -436,7 +436,7 @@ const baseIframeUrl = sessionData.url; // from session transfer response
 const params = new URLSearchParams({
   hostedExperienceType: 'HOSTED_ONBOARDING_UI',
   themeTokens: JSON.stringify(themeTokens),
-  componentProperties: JSON.stringify(componentProperties)
+  componentProperties: JSON.stringify(componentProperties),
 });
 
 const iframeUrl = `${baseIframeUrl}&${params.toString()}`;
@@ -496,13 +496,13 @@ const onboardingUI = new PartiallyHostedUIComponent({
     colorScheme: 'light',
     variables: {
       primaryColor: '#0070f3',
-      fontFamily: 'system-ui, sans-serif'
-    }
+      fontFamily: 'system-ui, sans-serif',
+    },
   },
   contentTokens: {
     locale: 'en-US',
-    brandName: 'Your Platform'
-  }
+    brandName: 'Your Platform',
+  },
 });
 
 // Mount to the target element
@@ -522,13 +522,13 @@ onboardingUI.subscribe((event) => {
 
 **Constructor Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `sessionToken` | `string` | Yes | JWT token from session transfer API |
-| `experienceType` | `string` | No | Type of hosted experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'` |
-| `theme` | `object` | No | Theme customization object (see [Embedded Components Theme Docs](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming)) |
-| `contentTokens` | `object` | No | Content localization tokens (see [Embedded Components Content Tokens](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#content-tokens)) |
-| `iframeAttributes` | `object` | No | Additional iframe attributes (e.g., `{ allowfullscreen: true }`) |
+| Parameter          | Type     | Required | Description                                                                                                                                                                          |
+| ------------------ | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sessionToken`     | `string` | Yes      | JWT token from session transfer API                                                                                                                                                  |
+| `experienceType`   | `string` | No       | Type of hosted experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'`                                              |
+| `theme`            | `object` | No       | Theme customization object (see [Embedded Components Theme Docs](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming))             |
+| `contentTokens`    | `object` | No       | Content localization tokens (see [Embedded Components Content Tokens](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#content-tokens)) |
+| `iframeAttributes` | `object` | No       | Additional iframe attributes (e.g., `{ allowfullscreen: true }`)                                                                                                                     |
 
 **Theme Object Structure:**
 
@@ -540,11 +540,11 @@ onboardingUI.subscribe((event) => {
     primaryColor: '#0070f3',
     backgroundColor: '#ffffff',
     textColor: '#000000',
-    
+
     // Typography tokens
     fontFamily: 'system-ui, -apple-system, sans-serif',
     fontSize: '16px',
-    
+
     // Spacing tokens
     borderRadius: '8px',
     spacing: '16px'
@@ -615,8 +615,8 @@ Dynamically updates the theme (requires iframe reload).
 hostedOnboardingUI.updateTheme({
   colorScheme: 'dark',
   variables: {
-    primaryColor: '#1a73e8'
-  }
+    primaryColor: '#1a73e8',
+  },
 });
 ```
 
@@ -654,9 +654,15 @@ const url = `${baseUrl}/onboarding?token=${token}&theme=${encodeJsonParam(theme)
 
 ```javascript
 // Iframe is created with strict security attributes
-iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals');
+iframe.setAttribute(
+  'sandbox',
+  'allow-scripts allow-same-origin allow-forms allow-popups allow-modals'
+);
 iframe.setAttribute('referrerpolicy', 'no-referrer');
-iframe.setAttribute('title', 'Complete your account onboarding - interactive form');
+iframe.setAttribute(
+  'title',
+  'Complete your account onboarding - interactive form'
+);
 ```
 
 1. **Event Communication (Pub/Sub Pattern):**
@@ -689,147 +695,146 @@ For the complete implementation details, architecture decisions, and advanced us
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Onboarding Integration Example</title>
-  <style>
-    #onboarding-container {
-      width: 100%;
-      min-height: 600px;
-      margin: 20px auto;
-      max-width: 1200px;
-    }
-    
-    .loading-indicator {
-      text-align: center;
-      padding: 40px;
-      font-family: system-ui, sans-serif;
-    }
-    
-    .status-message {
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 4px;
-      font-family: system-ui, sans-serif;
-    }
-    
-    .status-message.success {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    
-    .status-message.error {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-  </style>
-</head>
-<body>
-  <div id="status-messages"></div>
-  <div id="onboarding-container">
-    <div class="loading-indicator">Loading onboarding experience...</div>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Onboarding Integration Example</title>
+    <style>
+      #onboarding-container {
+        width: 100%;
+        min-height: 600px;
+        margin: 20px auto;
+        max-width: 1200px;
+      }
 
-  <script type="module">
-    // Import the library
-    import { PartiallyHostedUIComponent } from './partially-hosted-ui-component.mjs';
+      .loading-indicator {
+        text-align: center;
+        padding: 40px;
+        font-family: system-ui, sans-serif;
+      }
 
-    async function initializeOnboarding() {
-      try {
-        // Step 1: Fetch session token from your backend
-        const response = await fetch('/api/sessions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer YOUR_AUTH_TOKEN'
-          },
-          body: JSON.stringify({
-            clientId: 'YOUR_CLIENT_ID'
-          })
-        });
+      .status-message {
+        padding: 12px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: system-ui, sans-serif;
+      }
 
-        if (!response.ok) {
-          throw new Error('Failed to create session');
-        }
+      .status-message.success {
+        background-color: #d4edda;
+        color: #155724;
+      }
 
-        const sessionData = await response.json();
+      .status-message.error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status-messages"></div>
+    <div id="onboarding-container">
+      <div class="loading-indicator">Loading onboarding experience...</div>
+    </div>
 
-        // Step 2: Initialize Hosted Onboarding UI
-        const onboardingUI = new PartiallyHostedUIComponent({
-          sessionToken: sessionData.token,
-          experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-          theme: {
-            colorScheme: 'light',
-            variables: {
-              primaryColor: '#0070f3',
-              backgroundColor: '#ffffff',
-              textColor: '#1a1a1a',
-              fontFamily: 'system-ui, sans-serif',
-              borderRadius: '8px'
-            }
-          },
-          contentTokens: {
-            locale: 'en-US',
-            brandName: 'Your Platform Name'
-          },
-          iframeAttributes: {
-            allowfullscreen: true,
-            height: '800'
+    <script type="module">
+      // Import the library
+      import { PartiallyHostedUIComponent } from './partially-hosted-ui-component.mjs';
+
+      async function initializeOnboarding() {
+        try {
+          // Step 1: Fetch session token from your backend
+          const response = await fetch('/api/sessions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer YOUR_AUTH_TOKEN',
+            },
+            body: JSON.stringify({
+              clientId: 'YOUR_CLIENT_ID',
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to create session');
           }
-        });
 
-        // Step 3: Subscribe to events
-        onboardingUI.subscribe((event) => {
-          console.log('Onboarding event:', event);
-          
-          const statusDiv = document.getElementById('status-messages');
-          
-          if (event.namespace === 'onboarding') {
-            if (event.message === 'OnboardingComplete') {
-              statusDiv.innerHTML = `
+          const sessionData = await response.json();
+
+          // Step 2: Initialize Hosted Onboarding UI
+          const onboardingUI = new PartiallyHostedUIComponent({
+            sessionToken: sessionData.token,
+            experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
+            theme: {
+              colorScheme: 'light',
+              variables: {
+                primaryColor: '#0070f3',
+                backgroundColor: '#ffffff',
+                textColor: '#1a1a1a',
+                fontFamily: 'system-ui, sans-serif',
+                borderRadius: '8px',
+              },
+            },
+            contentTokens: {
+              locale: 'en-US',
+              brandName: 'Your Platform Name',
+            },
+            iframeAttributes: {
+              allowfullscreen: true,
+              height: '800',
+            },
+          });
+
+          // Step 3: Subscribe to events
+          onboardingUI.subscribe((event) => {
+            console.log('Onboarding event:', event);
+
+            const statusDiv = document.getElementById('status-messages');
+
+            if (event.namespace === 'onboarding') {
+              if (event.message === 'OnboardingComplete') {
+                statusDiv.innerHTML = `
                 <div class="status-message success">
                   ✓ Onboarding completed successfully!
                 </div>
               `;
-              
-              // Notify your backend
-              fetch('/api/onboarding/complete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(event.payload)
-              });
-            } else if (event.message === 'OnboardingError') {
-              statusDiv.innerHTML = `
+
+                // Notify your backend
+                fetch('/api/onboarding/complete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(event.payload),
+                });
+              } else if (event.message === 'OnboardingError') {
+                statusDiv.innerHTML = `
                 <div class="status-message error">
                   ✗ An error occurred: ${event.payload.message || 'Unknown error'}
                 </div>
               `;
+              }
             }
-          }
-        });
+          });
 
-        // Step 4: Mount the UI
-        onboardingUI.mount('onboarding-container');
-
-      } catch (error) {
-        console.error('Onboarding initialization error:', error);
-        document.getElementById('status-messages').innerHTML = `
+          // Step 4: Mount the UI
+          onboardingUI.mount('onboarding-container');
+        } catch (error) {
+          console.error('Onboarding initialization error:', error);
+          document.getElementById('status-messages').innerHTML = `
           <div class="status-message error">
             Failed to initialize onboarding: ${error.message}
           </div>
         `;
+        }
       }
-    }
 
-    // Initialize when DOM is ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initializeOnboarding);
-    } else {
-      initializeOnboarding();
-    }
-  </script>
-</body>
+      // Initialize when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeOnboarding);
+      } else {
+        initializeOnboarding();
+      }
+    </script>
+  </body>
 </html>
 ```
 
@@ -847,15 +852,15 @@ function OnboardingComponent({ sessionToken }) {
 
   useEffect(() => {
     // Dynamically import the library
-    import('./partially-hosted-ui-component.mjs')
-      .then(({ PartiallyHostedUIComponent }) => {
+    import('./partially-hosted-ui-component.mjs').then(
+      ({ PartiallyHostedUIComponent }) => {
         const ui = new PartiallyHostedUIComponent({
           sessionToken,
           experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
           theme: {
             colorScheme: 'light',
-            variables: { primaryColor: '#0070f3' }
-          }
+            variables: { primaryColor: '#0070f3' },
+          },
         });
 
         ui.subscribe((event) => {
@@ -866,7 +871,8 @@ function OnboardingComponent({ sessionToken }) {
 
         ui.mount('onboarding-container');
         setOnboardingUI(ui);
-      });
+      }
+    );
 
     // Cleanup on unmount
     return () => {
@@ -956,7 +962,9 @@ The library is provided in two formats to support different integration scenario
    ```html
    <script src="./partially-hosted-ui-component.js"></script>
    <script>
-     const ui = new PartiallyHostedUIComponent({ /* config */ });
+     const ui = new PartiallyHostedUIComponent({
+       /* config */
+     });
    </script>
    ```
 
@@ -972,12 +980,12 @@ The library is provided in two formats to support different integration scenario
    - Include Subresource Integrity (SRI) hash for security
 
    ```html
-   <script 
-     type="module" 
+   <script
+     type="module"
      src="https://your-cdn.example.com/partially-hosted-ui-component@1.0.0.mjs"
      integrity="sha384-[HASH_VALUE]"
-     crossorigin="anonymous">
-   </script>
+     crossorigin="anonymous"
+   ></script>
    ```
 
 ### 3.4. Iframe Responsiveness Best Practices
@@ -1043,7 +1051,7 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
         /* ... */
       },
     },
-    IFRAME_TARGET_ORIGIN, // CRITICAL: Specify the target origin
+    IFRAME_TARGET_ORIGIN // CRITICAL: Specify the target origin
   );
 }
 ```
@@ -1089,7 +1097,7 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
 - **Responsibilities:**
   - Provide a UI element (e.g., a button) for the user to initiate the
     onboarding process.
-  - Call your platform's backend to obtain the session token.  - Create and render the `<iframe>` using the complete `url` provided in the session
+  - Call your platform's backend to obtain the session token. - Create and render the `<iframe>` using the complete `url` provided in the session
     response and appropriate security attributes.
   - Manage loading states:
     - While waiting for the session token from your backend.
