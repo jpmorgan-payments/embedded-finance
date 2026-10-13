@@ -69,11 +69,11 @@ These rules match the `OnboardingFlow` component in this repository when `enable
 
 **When the rules apply:** the saved organization party has `organizationDetails.publiclyTraded.stockExchange` set to exactly `XNYS` (New York Stock Exchange) or `XNAS` (NASDAQ). The rules are the same for a directly traded company and a subsidiary. For a subsidiary, this is the parent's exchange.
 
-| Details                                                | US PTC<br>(trading on NYSE, NASDAQ)                         | US subsidiary of PTC<br>(trading on NYSE, NASDAQ)           | PTC<br>(trading elsewhere) | Subsidiary of PTC<br>(trading elsewhere) |
-| ------------------------------------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------- | -------------------------- | ---------------------------------------- |
-| Collect business information                           | **Yes**                                                     | **Yes**                                                     | **Yes**                    | **Yes**                                  |
-| Collect beneficial owner information (ownership ≥ 25%) | No                                                          | No                                                          | **Yes**                    | **Yes**                                  |
-| Collect controller information                         | **Yes**<br>(government ID and date of birth not required)   | **Yes**<br>(government ID and date of birth not required)   | **Yes**                    | **Yes**                                  |
+| Details                                                | US PTC<br>(trading on NYSE, NASDAQ)                       | US subsidiary of PTC<br>(trading on NYSE, NASDAQ)         | PTC<br>(trading elsewhere) | Subsidiary of PTC<br>(trading elsewhere) |
+| ------------------------------------------------------ | --------------------------------------------------------- | --------------------------------------------------------- | -------------------------- | ---------------------------------------- |
+| Collect business information                           | **Yes**                                                   | **Yes**                                                   | **Yes**                    | **Yes**                                  |
+| Collect beneficial owner information (ownership ≥ 25%) | No                                                        | No                                                        | **Yes**                    | **Yes**                                  |
+| Collect controller information                         | **Yes**<br>(government ID and date of birth not required) | **Yes**<br>(government ID and date of birth not required) | **Yes**                    | **Yes**                                  |
 
 "US" in this table refers to the NYSE or NASDAQ listing. The rules do not depend on the business's country of formation.
 
@@ -107,16 +107,16 @@ See the [Digital Onboarding Flow recipe](./DIGITAL_ONBOARDING_FLOW_RECIPE.md) fo
 
 ## Suggested UI Checks
 
-| Scenario                                | Check                                                                                                          |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Scenario                                | Check                                                                                                                                                                                                                |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Direct PTC on NYSE or NASDAQ            | Save `isSubsidiary: false` with `XNYS`/`XNAS`; collect the controller's name, job title, and contact details; skip beneficial owners and the controller's date of birth and government ID; refresh outstanding work. |
-| Subsidiary of a listed PTC              | Save `isSubsidiary: true` with the parent's ticker and exchange; apply the same NYSE/NASDAQ relaxation when the parent's exchange is `XNYS`/`XNAS`; show the relationship accurately in review. |
-| Other supported exchange                | Collect beneficial owners and the controller's date of birth and government ID, including for other US exchanges such as `ARCX` or `XCBO`; follow the returned requirements. |
-| Exchange not in the list                | Require the exchange name with `stockExchange: "Other"`.                                                       |
-| Neither / ineligible legal form         | Omit both `isSubsidiary` and `publiclyTraded`; do not show PTC-only fields.                                    |
-| Returning client with saved PTC data    | Restore the classification from `publiclyTraded` plus `isSubsidiary`; prevent an unsupported removal.          |
-| Returning client without saved PTC data | Do not silently assume a previously answered “neither.”                                                        |
-| Save fails or outstanding work changes  | Keep the inputs, show the error, reread the client after successful retry, and update the tasks.               |
+| Subsidiary of a listed PTC              | Save `isSubsidiary: true` with the parent's ticker and exchange; apply the same NYSE/NASDAQ relaxation when the parent's exchange is `XNYS`/`XNAS`; show the relationship accurately in review.                      |
+| Other supported exchange                | Collect beneficial owners and the controller's date of birth and government ID, including for other US exchanges such as `ARCX` or `XCBO`; follow the returned requirements.                                         |
+| Exchange not in the list                | Require the exchange name with `stockExchange: "Other"`.                                                                                                                                                             |
+| Neither / ineligible legal form         | Omit both `isSubsidiary` and `publiclyTraded`; do not show PTC-only fields.                                                                                                                                          |
+| Returning client with saved PTC data    | Restore the classification from `publiclyTraded` plus `isSubsidiary`; prevent an unsupported removal.                                                                                                                |
+| Returning client without saved PTC data | Do not silently assume a previously answered “neither.”                                                                                                                                                              |
+| Save fails or outstanding work changes  | Keep the inputs, show the error, reread the client after successful retry, and update the tasks.                                                                                                                     |
 
 ## Known Limitations
 

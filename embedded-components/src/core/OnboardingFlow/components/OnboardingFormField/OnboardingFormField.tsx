@@ -867,22 +867,8 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                               ? new Date(`${field.value}T12:00:00Z`)
                               : undefined
                           }
-                          onChange={async (date, errorMsg) => {
-                            if (errorMsg && form) {
-                              onChangeProp?.('');
-                              field.onChange('');
-                              // Defer setError so it runs after RHF's
-                              // internal validation cycle triggered by
-                              // field.onChange(''), which would otherwise
-                              // overwrite our error with "required".
-                              setTimeout(() => {
-                                form.setError(field.name, {
-                                  type: 'manual',
-                                  message: errorMsg,
-                                });
-                              }, 0);
-                            } else if (date) {
-                              form?.clearErrors(field.name);
+                          onChange={(date, errorMsg) => {
+                            if (date) {
                               // Format using the local date components rather
                               // than toISOString(), which converts the
                               // local-midnight Date to UTC and can shift the
@@ -897,11 +883,24 @@ export function OnboardingFormField<TFieldValues extends FieldValues>({
                                 .padStart(2, '0')}`;
                               onChangeProp?.(localDateString);
                               field.onChange(localDateString);
-                            } else {
-                              onChangeProp?.('');
-                              field.onChange('');
+                              onBlur();
+                              return;
                             }
-                            onBlur();
+                            onChangeProp?.('');
+                            if (!errorMsg) {
+                              // Follows the form's revalidation mode, like other fields
+                              field.onChange('');
+                              return;
+                            }
+                            // Skip validation so "required" can't replace the format error
+                            form?.setValue(field.name as string, '', {
+                              shouldDirty: true,
+                              shouldTouch: true,
+                            });
+                            form?.setError(field.name, {
+                              type: 'manual',
+                              message: errorMsg,
+                            });
                           }}
                           data-dtrum-tracking={field.name}
                         />

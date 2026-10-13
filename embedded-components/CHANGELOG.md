@@ -2,6 +2,19 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.18] - 2026-10-13
+
+### Changes
+
+#### Features
+
+- **onboarding:** improve timing of validation of date selector field
+- **linked-accounts:** prioritize preselecting client party instead of controller party
+
+#### Bug Fixes
+
+- **onboarding:** fix edge case issues with path matching in server error parser
+
 ## [0.17.17] - 2026-10-07
 
 ### Changes

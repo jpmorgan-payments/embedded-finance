@@ -204,6 +204,54 @@ describe('BankAccountForm — single-page linked create', () => {
     });
   });
 
+  test('defaults to the organization party over a single controller', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    const onSubmit = vi.fn();
+    const orgAndController = {
+      id: 'client-4',
+      parties: orgAndIndividuals.parties?.slice(0, 2),
+    } as unknown as ClientResponse;
+
+    render(
+      <LinkedAccountSinglePageHarness
+        client={orgAndController}
+        onSubmit={onSubmit}
+      />
+    );
+
+    const holder = await screen.findByRole('combobox', {
+      name: /Account Holder/i,
+    });
+    await waitFor(() => {
+      expect(holder).toHaveTextContent(/Globex LLC/i);
+    });
+
+    const accountNumber = screen.getByLabelText(/Account Number/i);
+    await user.clear(accountNumber);
+    await user.type(accountNumber, '12345678901234567');
+    const routing = screen.getByLabelText(/ACH Routing Number/i);
+    await user.clear(routing);
+    await user.type(routing, '021000021');
+    await user.click(
+      screen.getByRole('checkbox', { name: /I authorize verification/i })
+    );
+    await user.click(
+      screen.getByRole('button', { name: /Confirm and Link Account/i })
+    );
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          accountType: 'ORGANIZATION',
+          businessName: 'Globex LLC',
+          selectedPartyId: 'org-party',
+          firstName: '',
+          lastName: '',
+        })
+      );
+    });
+  });
+
   test('auto-selects the only available party', async () => {
     render(<LinkedAccountSinglePageHarness client={singleIndividual} />);
 

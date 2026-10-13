@@ -1805,17 +1805,19 @@ export const BankAccountForm: FC<BankAccountFormProps> = ({
       contacts: initialContacts,
       certify: false,
       // Resolve partyId from client data when prefillFromClient is enabled
-      selectedPartyId: effectiveConfig.accountHolder.prefillFromClient
-        ? individualParties.length === 1
+      selectedPartyId:
+        effectiveConfig.accountHolder.prefillFromClient &&
+        !usePartySelector &&
+        individualParties.length === 1
           ? individualParties[0].id
-          : undefined
-        : undefined,
+          : undefined,
     } as BankAccountFormData;
   }, [
     recipient,
     effectiveConfig.accountHolder.defaultType,
     effectiveConfig.accountHolder.prefillFromClient,
     individualParties,
+    usePartySelector,
     organizationName,
     initialRoutingNumbers,
     initialPaymentTypes,
