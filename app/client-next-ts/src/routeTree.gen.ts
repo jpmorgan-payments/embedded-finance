@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as YearInReviewRouteImport } from './routes/year-in-review'
 import { Route as WebhookExplorerRouteImport } from './routes/webhook-explorer'
+import { Route as UxAtlasRouteImport } from './routes/ux-atlas'
 import { Route as UtilsRouteImport } from './routes/utils'
 import { Route as TestScenarioC1RouteImport } from './routes/test-scenario-c1'
 import { Route as TestScenario6RouteImport } from './routes/test-scenario-6'
@@ -48,6 +49,11 @@ const YearInReviewRoute = YearInReviewRouteImport.update({
 const WebhookExplorerRoute = WebhookExplorerRouteImport.update({
   id: '/webhook-explorer',
   path: '/webhook-explorer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UxAtlasRoute = UxAtlasRouteImport.update({
+  id: '/ux-atlas',
+  path: '/ux-atlas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UtilsRoute = UtilsRouteImport.update({
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/test-scenario-6': typeof TestScenario6Route
   '/test-scenario-c1': typeof TestScenarioC1Route
   '/utils': typeof UtilsRoute
+  '/ux-atlas': typeof UxAtlasRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/test-scenario-6': typeof TestScenario6Route
   '/test-scenario-c1': typeof TestScenarioC1Route
   '/utils': typeof UtilsRoute
+  '/ux-atlas': typeof UxAtlasRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
@@ -279,6 +287,7 @@ export interface FileRoutesById {
   '/test-scenario-6': typeof TestScenario6Route
   '/test-scenario-c1': typeof TestScenarioC1Route
   '/utils': typeof UtilsRoute
+  '/ux-atlas': typeof UxAtlasRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
   '/year-in-review': typeof YearInReviewRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
@@ -313,6 +322,7 @@ export interface FileRouteTypes {
     | '/test-scenario-6'
     | '/test-scenario-c1'
     | '/utils'
+    | '/ux-atlas'
     | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/test-scenario-6'
     | '/test-scenario-c1'
     | '/utils'
+    | '/ux-atlas'
     | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
@@ -375,6 +386,7 @@ export interface FileRouteTypes {
     | '/test-scenario-6'
     | '/test-scenario-c1'
     | '/utils'
+    | '/ux-atlas'
     | '/webhook-explorer'
     | '/year-in-review'
     | '/stories/$storyId'
@@ -408,6 +420,7 @@ export interface RootRouteChildren {
   TestScenario6Route: typeof TestScenario6Route
   TestScenarioC1Route: typeof TestScenarioC1Route
   UtilsRoute: typeof UtilsRoute
+  UxAtlasRoute: typeof UxAtlasRoute
   WebhookExplorerRoute: typeof WebhookExplorerRoute
   YearInReviewRoute: typeof YearInReviewRoute
 }
@@ -426,6 +439,13 @@ declare module '@tanstack/react-router' {
       path: '/webhook-explorer'
       fullPath: '/webhook-explorer'
       preLoaderRoute: typeof WebhookExplorerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ux-atlas': {
+      id: '/ux-atlas'
+      path: '/ux-atlas'
+      fullPath: '/ux-atlas'
+      preLoaderRoute: typeof UxAtlasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/utils': {
@@ -680,6 +700,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestScenario6Route: TestScenario6Route,
   TestScenarioC1Route: TestScenarioC1Route,
   UtilsRoute: UtilsRoute,
+  UxAtlasRoute: UxAtlasRoute,
   WebhookExplorerRoute: WebhookExplorerRoute,
   YearInReviewRoute: YearInReviewRoute,
 }

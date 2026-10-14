@@ -2,13 +2,22 @@ import { resolve } from 'node:path';
 import viteReact from '@vitejs/plugin-react';
 import autoprefixer from 'autoprefixer';
 import tailwindcss from 'tailwindcss';
-import { defineConfig } from 'vite';
+import { defineConfig, searchForWorkspaceRoot } from 'vite';
 
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [TanStackRouterVite({ autoCodeSplitting: true }), viteReact()],
+  server: {
+    fs: {
+      // `@ef-docs/*.md?raw` imports live outside this app's root.
+      allow: [
+        searchForWorkspaceRoot(process.cwd()),
+        resolve(__dirname, '../../embedded-components/docs'),
+      ],
+    },
+  },
   css: {
     postcss: {
       plugins: [tailwindcss, autoprefixer],
