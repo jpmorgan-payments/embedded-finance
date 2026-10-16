@@ -22,6 +22,7 @@ import { Route as TestScenarioRouteImport } from './routes/test-scenario'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
+import { Route as RepoEvolutionRouteImport } from './routes/repo-evolution'
 import { Route as ProsperityBayRouteImport } from './routes/prosperity-bay'
 import { Route as PaymentsFlowSimulatorRouteImport } from './routes/payments-flow-simulator'
 import { Route as PartiallyHostedPresentationRouteImport } from './routes/partially-hosted-presentation'
@@ -103,6 +104,11 @@ const SolutionsRoute = SolutionsRouteImport.update({
 const SellsenseDemoRoute = SellsenseDemoRouteImport.update({
   id: '/sellsense-demo',
   path: '/sellsense-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RepoEvolutionRoute = RepoEvolutionRouteImport.update({
+  id: '/repo-evolution',
+  path: '/repo-evolution',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProsperityBayRoute = ProsperityBayRouteImport.update({
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/partially-hosted-presentation': typeof PartiallyHostedPresentationRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/prosperity-bay': typeof ProsperityBayRoute
+  '/repo-evolution': typeof RepoEvolutionRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/partially-hosted-presentation': typeof PartiallyHostedPresentationRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/prosperity-bay': typeof ProsperityBayRoute
+  '/repo-evolution': typeof RepoEvolutionRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/test-scenario-2': typeof TestScenario2Route
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/partially-hosted-presentation': typeof PartiallyHostedPresentationRoute
   '/payments-flow-simulator': typeof PaymentsFlowSimulatorRoute
   '/prosperity-bay': typeof ProsperityBayRoute
+  '/repo-evolution': typeof RepoEvolutionRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
   '/stories': typeof StoriesRouteWithChildren
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/partially-hosted-presentation'
     | '/payments-flow-simulator'
     | '/prosperity-bay'
+    | '/repo-evolution'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/partially-hosted-presentation'
     | '/payments-flow-simulator'
     | '/prosperity-bay'
+    | '/repo-evolution'
     | '/sellsense-demo'
     | '/solutions'
     | '/test-scenario-2'
@@ -364,6 +375,7 @@ export interface FileRouteTypes {
     | '/partially-hosted-presentation'
     | '/payments-flow-simulator'
     | '/prosperity-bay'
+    | '/repo-evolution'
     | '/sellsense-demo'
     | '/solutions'
     | '/stories'
@@ -397,6 +409,7 @@ export interface RootRouteChildren {
   PartiallyHostedPresentationRoute: typeof PartiallyHostedPresentationRoute
   PaymentsFlowSimulatorRoute: typeof PaymentsFlowSimulatorRoute
   ProsperityBayRoute: typeof ProsperityBayRoute
+  RepoEvolutionRoute: typeof RepoEvolutionRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
   StoriesRoute: typeof StoriesRouteWithChildren
@@ -503,6 +516,13 @@ declare module '@tanstack/react-router' {
       path: '/sellsense-demo'
       fullPath: '/sellsense-demo'
       preLoaderRoute: typeof SellsenseDemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/repo-evolution': {
+      id: '/repo-evolution'
+      path: '/repo-evolution'
+      fullPath: '/repo-evolution'
+      preLoaderRoute: typeof RepoEvolutionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prosperity-bay': {
@@ -669,6 +689,7 @@ const rootRouteChildren: RootRouteChildren = {
   PartiallyHostedPresentationRoute: PartiallyHostedPresentationRoute,
   PaymentsFlowSimulatorRoute: PaymentsFlowSimulatorRoute,
   ProsperityBayRoute: ProsperityBayRoute,
+  RepoEvolutionRoute: RepoEvolutionRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
   StoriesRoute: StoriesRouteWithChildren,

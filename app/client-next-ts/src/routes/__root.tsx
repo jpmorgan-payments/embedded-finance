@@ -25,9 +25,10 @@ function RootComponent() {
   const isProsperityBay = location.pathname === '/prosperity-bay';
   const isPartiallyHostedPresentation =
     location.pathname === '/partially-hosted-presentation';
+  const isRepoEvolution = location.pathname === '/repo-evolution';
   const isTestScenario = isTestScenarioPath(location.pathname);
 
-  if (isProsperityBay || isPartiallyHostedPresentation) {
+  if (isProsperityBay || isPartiallyHostedPresentation || isRepoEvolution) {
     return (
       <>
         <main>
