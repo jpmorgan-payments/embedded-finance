@@ -1,0 +1,93 @@
+/* /repo-evolution — NYC-subway-style map, styles scoped to .re-root */
+
+html.repo-evolution-active {
+  overflow: hidden;
+}
+
+.re-root {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-feature-settings: 'tnum' 1;
+}
+
+.re-ink {
+  transition:
+    opacity 300ms ease,
+    fill 300ms ease,
+    stroke 300ms ease;
+}
+
+.re-pop {
+  animation: re-pop 260ms ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.re-pulse {
+  animation: re-pulse 2.4s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.re-fade {
+  animation: re-fade 320ms ease-out both;
+}
+
+.re-rise {
+  animation: re-rise 360ms ease-out both;
+}
+
+@keyframes re-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes re-pulse {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.6);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+@keyframes re-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes re-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .re-pop,
+  .re-fade,
+  .re-rise,
+  .re-pulse {
+    animation: none;
+  }
+
+  .re-ink {
+    transition: none;
+  }
+}
