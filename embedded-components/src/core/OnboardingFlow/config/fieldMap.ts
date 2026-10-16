@@ -375,6 +375,8 @@ export const partyFieldMap: PartyFieldMap = {
       obfuscateWhenUnfocused: true,
     },
     deltaEligibility: { party: 'organization', usOnly: true },
+    isHiddenInReviewFn: (_, values) =>
+      (values.countryOfFormation ?? 'US') !== 'US',
     baseRule: {
       display: 'visible',
       required: true,
@@ -412,6 +414,33 @@ export const partyFieldMap: PartyFieldMap = {
     // The API error path includes the array index and property
     // (e.g. ".0.value"), but organizationIdEin is a flat string field.
     // Collapse the path so the error attaches to the field itself.
+    modifyErrorField: () => '',
+  },
+  // Collected instead of the EIN for businesses formed outside the US
+  // (OnboardingFlow `availableCountriesOfFormation`).
+  organizationIdRegistration: {
+    path: 'organizationDetails.organizationIds',
+    isHiddenInReviewFn: (_, values) =>
+      (values.countryOfFormation ?? 'US') === 'US',
+    baseRule: {
+      display: 'visible',
+      required: true,
+      defaultValue: '',
+    },
+    fromResponseFn: (val: OrganizationIdentityDto[]) => {
+      return (
+        val.find((id) => id.idType === 'BUSINESS_REGISTRATION_ID')?.value ?? ''
+      );
+    },
+    toRequestFn: (val, values): OrganizationIdentityDto[] => {
+      return [
+        {
+          issuer: values?.countryOfFormation ?? '',
+          idType: 'BUSINESS_REGISTRATION_ID',
+          value: val ?? '',
+        },
+      ];
+    },
     modifyErrorField: () => '',
   },
   // organizationIds: {

@@ -18,7 +18,8 @@ export type TestScenarioPresetId =
   | 'health'
   | 'logistics'
   | 'fundManagement'
-  | 'deltaOnboarding';
+  | 'deltaOnboarding'
+  | 'retail';
 
 export type TestScenarioLayoutKind =
   | 'onboarding'
@@ -95,6 +96,7 @@ const PRESET_TO_BUNDLE: Record<TestScenarioPresetId, TestScenarioBundleId> = {
   logistics: 'test-scenario-4',
   fundManagement: 'test-scenario-5',
   deltaOnboarding: 'test-scenario-6',
+  retail: 'test-scenario-7',
 };
 
 const OPERATOR_LOGIN_CASES: TestDemoScenarioMode[] = [
@@ -112,6 +114,14 @@ const HEALTH_LOGIN_CASES: TestDemoScenarioMode[] = [
 
 const LOGISTICS_LOGIN_CASES: TestDemoScenarioMode[] = [
   ...HEALTH_LOGIN_CASES,
+  'multi-linked-start-3',
+];
+
+const RETAIL_LOGIN_CASES: TestDemoScenarioMode[] = [
+  'happy-path-ptc',
+  'happy-path',
+  'happy-path-non-us',
+  ...OPERATOR_LOGIN_CASES.filter((m) => m !== 'happy-path'),
   'multi-linked-start-3',
 ];
 
@@ -135,11 +145,13 @@ const LEGACY_PRESET_CODE: Record<TestScenarioPresetId, string> = {
   logistics: 'o4',
   fundManagement: 'o5',
   deltaOnboarding: 'o6',
+  retail: 'o7',
 };
 
 const LEGACY_LOGIN_CASE_CODE: Record<TestDemoScenarioMode, string> = {
   'happy-path': 'hp',
   'happy-path-ptc': 'ptc',
+  'happy-path-non-us': 'nus',
   'happy-path-approved': 'hpa',
   'doc-request': 'dr',
   'linked-account-approved': 'lam',
@@ -168,6 +180,8 @@ const LEGACY_CODE_TO_LOGIN_CASE = Object.fromEntries(
 const LOGIN_CASE_LABELS: Record<TestDemoScenarioMode, string> = {
   'happy-path': 'Happy path — no document request',
   'happy-path-ptc': 'Happy path — publicly traded company (C-corp + Nasdaq)',
+  'happy-path-non-us':
+    'Happy path — business formed in China (registration ID instead of EIN)',
   'happy-path-approved': 'Happy path — pre-approved client',
   'doc-request': 'Unhappy path — document request',
   'linked-account-approved': 'Unhappy path — linked account with microdeposit',
@@ -243,6 +257,16 @@ export const TEST_SCENARIO_PRESETS: TestScenarioPresetMeta[] = [
     industryFocus:
       'Casual dining restaurant chain — sole owner-operator delta review',
     availableLoginCases: DELTA_LOGIN_CASES,
+  },
+  {
+    id: 'retail',
+    label: 'Big Seller Corp (pre-populated business)',
+    orgDisplayName: 'Big Seller Corp',
+    bundleId: 'test-scenario-7',
+    themeLabel: 'Empty (component defaults)',
+    linkAccountMode: 'editable-multi',
+    industryFocus: 'Retail NAICS + optional PTC + non-US country of formation',
+    availableLoginCases: RETAIL_LOGIN_CASES,
   },
 ];
 

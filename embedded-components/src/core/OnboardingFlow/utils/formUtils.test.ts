@@ -26,6 +26,7 @@ type RequestBodyOrgDetails = {
   organizationName?: string;
   countryOfFormation?: string;
   addresses?: Array<{ addressType?: string; addressLines?: string[] }>;
+  organizationIds?: Array<{ idType?: string; issuer?: string; value?: string }>;
 };
 type ClientRequestBodyShape = {
   parties?: Array<{ organizationDetails?: RequestBodyOrgDetails }>;
@@ -278,6 +279,25 @@ describe('formUtils', () => {
         ?.addresses?.[0];
       expect(address?.addressType).toBe('LEGAL_ADDRESS');
       expect(address?.addressLines?.[0]).toBe('1 Market St');
+    });
+
+    it('issues a non-US registration ID from the submitted country of formation', () => {
+      const result = generatePartyRequestBody(
+        {
+          countryOfFormation: 'CN',
+          organizationIdRegistration: '91310000MA1FL1234X',
+        },
+        {}
+      );
+      expect(
+        (result as PartyRequestBodyShape).organizationDetails?.organizationIds
+      ).toEqual([
+        {
+          issuer: 'CN',
+          idType: 'BUSINESS_REGISTRATION_ID',
+          value: '91310000MA1FL1234X',
+        },
+      ]);
     });
   });
 

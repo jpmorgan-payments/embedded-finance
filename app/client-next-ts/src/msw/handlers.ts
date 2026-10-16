@@ -71,6 +71,7 @@ function initialLinkedAccountRecipientStatus(
   if (
     testDemoScenarioHeader === 'happy-path' ||
     testDemoScenarioHeader === 'happy-path-ptc' ||
+    testDemoScenarioHeader === 'happy-path-non-us' ||
     testDemoScenarioHeader === 'happy-path-approved' ||
     testDemoScenarioHeader === 'doc-request' ||
     testDemoScenarioHeader === 'linked-account-active' ||
@@ -997,6 +998,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       if (
         body?.testDemoScenario === 'happy-path' ||
         body?.testDemoScenario === 'happy-path-ptc' ||
+        body?.testDemoScenario === 'happy-path-non-us' ||
         body?.testDemoScenario === 'happy-path-approved' ||
         body?.testDemoScenario === 'doc-request' ||
         body?.testDemoScenario === 'linked-account-approved' ||
@@ -1113,6 +1115,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       if (
         (testDemoScenario === 'happy-path' ||
           testDemoScenario === 'happy-path-ptc' ||
+          testDemoScenario === 'happy-path-non-us' ||
           testDemoScenario === 'delta-sole-owner') &&
         getTestScenarioClientIds().includes(clientId)
       ) {

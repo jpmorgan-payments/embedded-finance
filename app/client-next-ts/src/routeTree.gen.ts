@@ -13,6 +13,7 @@ import { Route as YearInReviewRouteImport } from './routes/year-in-review'
 import { Route as WebhookExplorerRouteImport } from './routes/webhook-explorer'
 import { Route as UtilsRouteImport } from './routes/utils'
 import { Route as TestScenarioC1RouteImport } from './routes/test-scenario-c1'
+import { Route as TestScenario7RouteImport } from './routes/test-scenario-7'
 import { Route as TestScenario6RouteImport } from './routes/test-scenario-6'
 import { Route as TestScenario5RouteImport } from './routes/test-scenario-5'
 import { Route as TestScenario4RouteImport } from './routes/test-scenario-4'
@@ -58,6 +59,11 @@ const UtilsRoute = UtilsRouteImport.update({
 const TestScenarioC1Route = TestScenarioC1RouteImport.update({
   id: '/test-scenario-c1',
   path: '/test-scenario-c1',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestScenario7Route = TestScenario7RouteImport.update({
+  id: '/test-scenario-7',
+  path: '/test-scenario-7',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TestScenario6Route = TestScenario6RouteImport.update({
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/test-scenario-4': typeof TestScenario4Route
   '/test-scenario-5': typeof TestScenario5Route
   '/test-scenario-6': typeof TestScenario6Route
+  '/test-scenario-7': typeof TestScenario7Route
   '/test-scenario-c1': typeof TestScenarioC1Route
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/test-scenario-4': typeof TestScenario4Route
   '/test-scenario-5': typeof TestScenario5Route
   '/test-scenario-6': typeof TestScenario6Route
+  '/test-scenario-7': typeof TestScenario7Route
   '/test-scenario-c1': typeof TestScenarioC1Route
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/test-scenario-4': typeof TestScenario4Route
   '/test-scenario-5': typeof TestScenario5Route
   '/test-scenario-6': typeof TestScenario6Route
+  '/test-scenario-7': typeof TestScenario7Route
   '/test-scenario-c1': typeof TestScenarioC1Route
   '/utils': typeof UtilsRoute
   '/webhook-explorer': typeof WebhookExplorerRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/test-scenario-4'
     | '/test-scenario-5'
     | '/test-scenario-6'
+    | '/test-scenario-7'
     | '/test-scenario-c1'
     | '/utils'
     | '/webhook-explorer'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/test-scenario-4'
     | '/test-scenario-5'
     | '/test-scenario-6'
+    | '/test-scenario-7'
     | '/test-scenario-c1'
     | '/utils'
     | '/webhook-explorer'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/test-scenario-4'
     | '/test-scenario-5'
     | '/test-scenario-6'
+    | '/test-scenario-7'
     | '/test-scenario-c1'
     | '/utils'
     | '/webhook-explorer'
@@ -406,6 +418,7 @@ export interface RootRouteChildren {
   TestScenario4Route: typeof TestScenario4Route
   TestScenario5Route: typeof TestScenario5Route
   TestScenario6Route: typeof TestScenario6Route
+  TestScenario7Route: typeof TestScenario7Route
   TestScenarioC1Route: typeof TestScenarioC1Route
   UtilsRoute: typeof UtilsRoute
   WebhookExplorerRoute: typeof WebhookExplorerRoute
@@ -440,6 +453,13 @@ declare module '@tanstack/react-router' {
       path: '/test-scenario-c1'
       fullPath: '/test-scenario-c1'
       preLoaderRoute: typeof TestScenarioC1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-scenario-7': {
+      id: '/test-scenario-7'
+      path: '/test-scenario-7'
+      fullPath: '/test-scenario-7'
+      preLoaderRoute: typeof TestScenario7RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/test-scenario-6': {
@@ -678,6 +698,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestScenario4Route: TestScenario4Route,
   TestScenario5Route: TestScenario5Route,
   TestScenario6Route: TestScenario6Route,
+  TestScenario7Route: TestScenario7Route,
   TestScenarioC1Route: TestScenarioC1Route,
   UtilsRoute: UtilsRoute,
   WebhookExplorerRoute: WebhookExplorerRoute,
