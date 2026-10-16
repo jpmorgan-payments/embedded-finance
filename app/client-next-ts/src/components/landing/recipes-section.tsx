@@ -1,4 +1,10 @@
-import { Calendar, FileText, UserCog, Webhook } from 'lucide-react';
+import {
+  Calendar,
+  FileText,
+  Map as MapIcon,
+  UserCog,
+  Webhook,
+} from 'lucide-react';
 
 import { Link } from '@tanstack/react-router';
 
@@ -7,6 +13,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function RecipesSection() {
   const recipes = [
+    {
+      id: 'ux-atlas',
+      title: 'UX Atlas: build your own onboarding and linked account UX',
+      excerpt:
+        'Interactive map of the guides, recipes, and live examples for each step of onboarding and linking a bank account. Profile your platform and copy a checklist (UX_ATLAS.md).',
+      date: '2026-10-14',
+      readTime: 'Interactive',
+      tags: ['Onboarding', 'Linked Accounts', 'Interactive'],
+      link: '/ux-atlas',
+      external: false,
+      icon: <MapIcon className="h-5 w-5" />,
+    },
     {
       id: 'cross-border-fx-payout-client-recipe',
       title: 'Cross-border FX payout — Client UX wiring (DRAFT)',
