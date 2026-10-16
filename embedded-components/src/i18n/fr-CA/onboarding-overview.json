@@ -916,7 +916,8 @@
       "validation": {
         "exactlyTwoChars": "Le code pays doit être exactement de 2 caractères",
         "invalid": "Code pays invalide",
-        "usOnly": "Seuls les États-Unis sont pris en charge pour le moment"
+        "usOnly": "Seuls les États-Unis sont pris en charge pour le moment",
+        "notAvailable": "Sélectionnez un pays dans la liste"
       }
     },
     "ownershipPercentage": {
@@ -982,6 +983,18 @@
         "length": "Le NIE doit contenir exactement 9 chiffres",
         "digitsOnly": "Le NIE ne peut contenir que des chiffres",
         "invalidValue": "Veuillez entrer un NIE valide"
+      }
+    },
+    "organizationIdRegistration": {
+      "fieldName": "Numéro d'enregistrement d'entreprise",
+      "label": "$t(onboarding-overview:idValueLabels.BUSINESS_REGISTRATION_ID)",
+      "description": "Le numéro figurant sur les documents d'enregistrement d'entreprise délivrés dans votre pays d'enregistrement",
+      "placeholder": "Entrez le numéro d'enregistrement d'entreprise",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})",
+        "pattern": "{{fieldName}} ne peut contenir que des lettres, des chiffres, des espaces et - / . + &"
       }
     },
     "solePropHasEin": {
