@@ -48,6 +48,12 @@ import {
 } from '../mocks/testScenario5Dashboard.mock';
 import { testScenario5FundDocumentRequests } from '../mocks/testScenario5FundDocumentRequests.mock';
 import {
+  TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID,
+  testScenarioBigSellerClient,
+  testScenarioBigSellerClientNonUs,
+  testScenarioBigSellerClientNoPtc,
+} from '../mocks/testScenarioBigSellerClient.mock';
+import {
   TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID,
   testScenarioDeltaModeClient,
 } from '../mocks/testScenarioDeltaModeClient.mock';
@@ -709,6 +715,11 @@ export type TestDemoScenarioMode =
    */
   | 'happy-path-ptc'
   /**
+   * `/test-scenario-7`: same MSW behavior as `happy-path`, but seeds a China-formed business
+   * (business registration ID instead of EIN) with business and controller details complete.
+   */
+  | 'happy-path-non-us'
+  /**
    * Same Operator 80 shape as `happy-path`, but client is **APPROVED** immediately (no NEW →
    * delayed approval). Linked LINKED_ACCOUNT creates use **ACTIVE** like `happy-path`.
    */
@@ -718,7 +729,7 @@ export type TestDemoScenarioMode =
   /** APPROVED client + link step; new linked recipient is ACTIVE (no microdeposits). */
   | 'linked-account-active'
   /**
-   * Bundles with multi-link demos (`test-scenario-2`, `test-scenario-4`): APPROVED client;
+   * Bundles with multi-link demos (`test-scenario-2`, `test-scenario-4`, `test-scenario-7`): APPROVED client;
    * MSW seeds **three** pre-existing LINKED_ACCOUNT recipients.
    */
   | 'multi-linked-start-3'
@@ -750,7 +761,8 @@ export type TestScenarioBundleId =
   | 'test-scenario-3'
   | 'test-scenario-4'
   | 'test-scenario-5'
-  | 'test-scenario-6';
+  | 'test-scenario-6'
+  | 'test-scenario-7';
 
 export const DEFAULT_TEST_SCENARIO_BUNDLE_ID: TestScenarioBundleId =
   'test-scenario';
@@ -762,12 +774,14 @@ const TEST_SCENARIO_BUNDLE_IDS = [
   'test-scenario-4',
   'test-scenario-5',
   'test-scenario-6',
+  'test-scenario-7',
 ] as const satisfies readonly TestScenarioBundleId[];
 
 /** Bundles that expose `3-linked@demo.test` / `multi-linked-start-3` recipient pre-seeding. */
 const TEST_SCENARIO_BUNDLES_WITH_MULTI_LINK: readonly TestScenarioBundleId[] = [
   'test-scenario-2',
   'test-scenario-4',
+  'test-scenario-7',
 ];
 
 export function parseTestScenarioBundleId(
@@ -791,6 +805,7 @@ export function getTestScenarioClientIds(): string[] {
     TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID,
     TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID,
+    TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID,
   ];
 }
 
@@ -1057,6 +1072,7 @@ function removeAllTestScenarioSeedClients(): void {
   removePredefinedClient(TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID);
   removePredefinedClient(TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID);
+  removePredefinedClient(TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID);
 }
 
 function removeTestScenario5DashboardRows(): void {
@@ -1290,7 +1306,11 @@ function getTestScenarioMultiLinkedRecipientRows(
 ): Recipient[] {
   const ts = new Date().toISOString();
   const idPrefix =
-    bundleId === 'test-scenario-4' ? 'ts-b4-linked' : 'ts-b2-linked';
+    bundleId === 'test-scenario-4'
+      ? 'ts-b4-linked'
+      : bundleId === 'test-scenario-7'
+        ? 'ts-b7-linked'
+        : 'ts-b2-linked';
 
   if (bundleId === 'test-scenario-4') {
     return [
@@ -1539,11 +1559,19 @@ export function applyTestDemoScenario(
             ? TEST_SCENARIO_BUNDLE_NAICS_CODES_CLIENT_ID
             : bundleId === 'test-scenario-6'
               ? TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID
-              : TEST_DEMO_SCENARIO_CLIENT_ID;
+              : bundleId === 'test-scenario-7'
+                ? TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID
+                : TEST_DEMO_SCENARIO_CLIENT_ID;
   const fasterFulfilmentBase =
     mode === 'happy-path-ptc'
       ? testScenarioFasterFulfilmentClient
       : testScenarioFasterFulfilmentClientNoPtc;
+  const bigSellerBase =
+    mode === 'happy-path-ptc'
+      ? testScenarioBigSellerClient
+      : mode === 'happy-path-non-us'
+        ? testScenarioBigSellerClientNonUs
+        : testScenarioBigSellerClientNoPtc;
   const healthBenefitBase =
     mode === 'happy-path-ptc'
       ? testScenarioHealthBenefitClientPtc
@@ -1559,7 +1587,9 @@ export function applyTestDemoScenario(
             ? testScenarioNaicsCodesClient
             : bundleId === 'test-scenario-6'
               ? testScenarioDeltaModeClient
-              : testScenarioOperator80Client
+              : bundleId === 'test-scenario-7'
+                ? bigSellerBase
+                : testScenarioOperator80Client
   ) as PredefinedClientShape;
   const useMultiLinked = (
     TEST_SCENARIO_BUNDLES_WITH_MULTI_LINK as readonly string[]

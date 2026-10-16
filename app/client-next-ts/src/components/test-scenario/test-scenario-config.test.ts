@@ -242,4 +242,70 @@ describe('test-scenario-config', () => {
       loginCase: 'delta-sole-owner',
     });
   });
+
+  it('maps retail preset to the pre-populated Big Seller Corp bundle', () => {
+    const resolved = resolveTestScenarioConfig(
+      createDefaultTestScenarioConfig('retail')
+    );
+    expect(resolved.bundleId).toBe('test-scenario-7');
+    expect(resolved.bundleConfig.headerOrgDisplayName).toBe('Big Seller Corp');
+    expect(resolved.onboardingProps.readonlyFields).toEqual({
+      fields: [
+        'organizationTypeHierarchy',
+        'organizationName',
+        'dbaName',
+        'organizationIdEin',
+        'organizationIdRegistration',
+        'organizationDescription',
+        'industry',
+      ],
+      mode: 'whenPopulated',
+    });
+    expect(resolved.loginCases.map((item) => item.scenario)).toEqual([
+      'happy-path-ptc',
+      'happy-path',
+      'happy-path-non-us',
+      'doc-request',
+      'linked-account-approved',
+      'linked-account-active',
+      'multi-linked-start-3',
+    ]);
+  });
+
+  it('allows a non-US country of formation only on the retail non-US login', () => {
+    const resolved = resolveTestScenarioConfig(
+      createDefaultTestScenarioConfig('retail')
+    );
+    const propsFor = (scenario: string) => {
+      const loginCase = resolved.loginCases.find(
+        (item) => item.scenario === scenario
+      )!;
+      return buildOnboardingFlowProps({
+        bundleConfig: resolved.bundleConfig,
+        sessionScenario: loginCase.scenario,
+        activeLoginCase: loginCase,
+        onboardingProps: resolved.onboardingProps,
+      });
+    };
+
+    expect(propsFor('happy-path-non-us').availableCountriesOfFormation).toEqual(
+      ['US', 'CN']
+    );
+    expect(propsFor('happy-path-non-us').flowEntry).toEqual({
+      screenId: 'business-section',
+      stepperStepId: 'business-identity',
+    });
+    expect(
+      propsFor('happy-path').availableCountriesOfFormation
+    ).toBeUndefined();
+    expect(propsFor('happy-path').flowEntry).toBeUndefined();
+    expect(propsFor('happy-path-ptc').enablePubliclyTradedCompanies).toBe(true);
+  });
+
+  it('decodes retail non-US login in legacy compact format', () => {
+    expect(decodeTestScenarioConfig('o7.nus')).toEqual({
+      preset: 'retail',
+      loginCase: 'happy-path-non-us',
+    });
+  });
 });

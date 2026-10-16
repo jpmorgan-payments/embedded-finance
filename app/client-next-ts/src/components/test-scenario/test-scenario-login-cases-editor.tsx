@@ -17,6 +17,7 @@ import type { TestDemoScenarioMode } from '@/msw/db';
 const ALL_LOGIN_SCENARIOS: TestDemoScenarioMode[] = [
   'happy-path',
   'happy-path-ptc',
+  'happy-path-non-us',
   'happy-path-approved',
   'doc-request',
   'linked-account-approved',
