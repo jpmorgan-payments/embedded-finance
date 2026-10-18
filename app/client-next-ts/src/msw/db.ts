@@ -48,10 +48,18 @@ import {
 } from '../mocks/testScenario5Dashboard.mock';
 import { testScenario5FundDocumentRequests } from '../mocks/testScenario5FundDocumentRequests.mock';
 import {
+  testScenario7DashboardAccount,
+  testScenario7DashboardBalance,
+  testScenario7DashboardRecipients,
+  testScenario7DashboardTransactions,
+} from '../mocks/testScenario7Dashboard.mock';
+import {
   TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID,
+  testScenarioBigSellerChinaDeltaClient,
   testScenarioBigSellerClient,
   testScenarioBigSellerClientNonUs,
   testScenarioBigSellerClientNoPtc,
+  testScenarioBigSellerDeltaClient,
 } from '../mocks/testScenarioBigSellerClient.mock';
 import {
   TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID,
@@ -88,7 +96,6 @@ import {
 import {
   areAllNaicsCodeQuestionsAnswered,
   isTestScenario5NaicsCode,
-  TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID,
   TEST_SCENARIO_5_QUESTION_IDS,
 } from './test-scenario-5';
 
@@ -738,7 +745,7 @@ export type TestDemoScenarioMode =
    */
   | 'naics-codes-onboarding'
   /**
-   * `/test-scenario-5`: APPROVED client with wallet dashboard data pre-seeded.
+   * `/test-scenario-5` and `/test-scenario-7`: APPROVED client with wallet dashboard data pre-seeded.
    */
   | 'naics-codes-dashboard'
   /**
@@ -746,10 +753,15 @@ export type TestDemoScenarioMode =
    */
   | 'naics-codes-doc-request'
   /**
-   * `/test-scenario-6`: restaurant-chain sole owner-operator (Bright Fork Kitchen)
-   * using the Storybook Delta mode factory (combined controller / owner).
+   * `/test-scenario-6` (Bright Fork Kitchen) and `/test-scenario-7` (Big Seller Corp): sole
+   * owner-operator using the Storybook Delta mode factory (combined controller / owner).
    */
-  | 'delta-sole-owner';
+  | 'delta-sole-owner'
+  /**
+   * `/test-scenario-7`: `delta-sole-owner` shape for a China-formed business with nearly
+   * everything pre-populated (controller passport and sanctions questions outstanding).
+   */
+  | 'delta-non-us';
 
 /**
  * `/test-scenario*` demo **bundle**: maps a route to client seed + optional recipient seeding in MSW.
@@ -1075,21 +1087,43 @@ function removeAllTestScenarioSeedClients(): void {
   removePredefinedClient(TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID);
 }
 
-function removeTestScenario5DashboardRows(): void {
-  const recipientIds = testScenario5DashboardRecipients.map((r) => r.id);
+type TestScenarioDashboardSeed = {
+  account: typeof testScenario5DashboardAccount;
+  balance: typeof testScenario5DashboardBalance;
+  recipients: typeof testScenario5DashboardRecipients;
+  transactions: typeof testScenario5DashboardTransactions;
+};
+
+const TEST_SCENARIO_5_DASHBOARD: TestScenarioDashboardSeed = {
+  account: testScenario5DashboardAccount,
+  balance: testScenario5DashboardBalance,
+  recipients: testScenario5DashboardRecipients,
+  transactions: testScenario5DashboardTransactions,
+};
+
+const TEST_SCENARIO_7_DASHBOARD: TestScenarioDashboardSeed = {
+  account: testScenario7DashboardAccount,
+  balance: testScenario7DashboardBalance,
+  recipients: testScenario7DashboardRecipients,
+  transactions: testScenario7DashboardTransactions,
+};
+
+function removeTestScenarioDashboardRows(
+  seed: TestScenarioDashboardSeed
+): void {
   db.recipient.deleteMany({
-    where: { id: { in: recipientIds } },
+    where: { id: { in: seed.recipients.map((r) => r.id) } },
   });
   db.accountBalance.deleteMany({
-    where: { id: { equals: testScenario5DashboardBalance.id } },
+    where: { id: { equals: seed.balance.id } },
   });
   db.account.deleteMany({
-    where: { id: { equals: TEST_SCENARIO_5_DASHBOARD_ACCOUNT_ID } },
+    where: { id: { equals: seed.account.id } },
   });
   db.transaction.deleteMany({
     where: {
       id: {
-        in: testScenario5DashboardTransactions.map((txn) => txn.id),
+        in: seed.transactions.map((txn) => txn.id),
       },
     },
   });
@@ -1135,32 +1169,32 @@ function seedTestScenario5FundDocumentRequests(clientId: string): void {
   });
 }
 
-/** Seeds accounts, linked accounts, recipients, and transactions for scenario 5 dashboard. */
-export function seedTestScenario5DashboardData(): void {
-  removeTestScenario5DashboardRows();
+/** Seeds the approved-client dashboard rows (account, balance, recipients, transactions). */
+function seedTestScenarioDashboardRows(seed: TestScenarioDashboardSeed): void {
+  removeTestScenarioDashboardRows(seed);
   const timestamp = new Date().toISOString();
 
   try {
     db.account.create({
-      ...testScenario5DashboardAccount,
-      createdAt: testScenario5DashboardAccount.createdAt ?? timestamp,
+      ...seed.account,
+      createdAt: seed.account.createdAt ?? timestamp,
       updatedAt: timestamp,
     } as Partial<DbAccount> & { id: string });
   } catch (error) {
-    console.error('Error creating scenario 5 dashboard account:', error);
+    console.error('Error creating test scenario dashboard account:', error);
   }
 
   try {
     db.accountBalance.create(
-      testScenario5DashboardBalance as Partial<DbAccountBalance> & {
+      seed.balance as Partial<DbAccountBalance> & {
         id: string;
       }
     );
   } catch (error) {
-    console.error('Error creating scenario 5 dashboard balance:', error);
+    console.error('Error creating test scenario dashboard balance:', error);
   }
 
-  for (const recipient of testScenario5DashboardRecipients) {
+  for (const recipient of seed.recipients) {
     try {
       db.recipient.create({
         ...recipient,
@@ -1168,20 +1202,28 @@ export function seedTestScenario5DashboardData(): void {
         updatedAt: recipient.updatedAt ?? timestamp,
       } as Partial<DbRecipient> & { id: string });
     } catch (error) {
-      console.error('Error creating scenario 5 dashboard recipient:', error);
+      console.error('Error creating test scenario dashboard recipient:', error);
     }
   }
 
-  for (const transaction of testScenario5DashboardTransactions) {
+  for (const transaction of seed.transactions) {
     try {
       db.transaction.create({
         ...transaction,
         createdAt: timestamp,
       } as Partial<DbTransaction> & { id: string });
     } catch (error) {
-      console.error('Error creating scenario 5 dashboard transaction:', error);
+      console.error(
+        'Error creating test scenario dashboard transaction:',
+        error
+      );
     }
   }
+}
+
+/** Seeds accounts, linked accounts, recipients, and transactions for scenario 5 dashboard. */
+export function seedTestScenario5DashboardData(): void {
+  seedTestScenarioDashboardRows(TEST_SCENARIO_5_DASHBOARD);
 }
 
 export function promoteTestScenario5ClientToApproved(clientId: string): void {
@@ -1571,7 +1613,11 @@ export function applyTestDemoScenario(
       ? testScenarioBigSellerClient
       : mode === 'happy-path-non-us'
         ? testScenarioBigSellerClientNonUs
-        : testScenarioBigSellerClientNoPtc;
+        : mode === 'delta-sole-owner'
+          ? testScenarioBigSellerDeltaClient
+          : mode === 'delta-non-us'
+            ? testScenarioBigSellerChinaDeltaClient
+            : testScenarioBigSellerClientNoPtc;
   const healthBenefitBase =
     mode === 'happy-path-ptc'
       ? testScenarioHealthBenefitClientPtc
@@ -1641,6 +1687,9 @@ export function applyTestDemoScenario(
   }
   if (mode === 'naics-codes-dashboard' && bundleId === 'test-scenario-5') {
     seedTestScenario5DashboardData();
+  }
+  if (mode === 'naics-codes-dashboard' && bundleId === 'test-scenario-7') {
+    seedTestScenarioDashboardRows(TEST_SCENARIO_7_DASHBOARD);
   }
   if (useMultiLinked) {
     if (mode === 'multi-linked-start-3') {

@@ -8,6 +8,7 @@ import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
 import { TEST_SCENARIO_2_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-2-theme';
 import { TEST_SCENARIO_3_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-3-theme';
 import { TEST_SCENARIO_5_NAICS_CODES } from '@/components/test-scenario/test-scenario-naics-codes';
+import { TEST_SCENARIO_7_DASHBOARD_ACCOUNT_ID } from '@/mocks/testScenario7Dashboard.mock';
 import { TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID } from '@/mocks/testScenarioBigSellerClient.mock';
 import { TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID } from '@/mocks/testScenarioDeltaModeClient.mock';
 import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '@/mocks/testScenarioFasterFulfilmentClient.mock';
@@ -97,6 +98,8 @@ export type TestScenarioBundleConfig = {
   > & {
     readonlyFields?: TestScenarioReadonlyFieldsConfig;
   };
+  /** Default `TestScenarioDashboard` props (e.g. `accountIds`) for dashboard logins. */
+  dashboard?: Record<string, unknown>;
   loginProfiles: TestScenarioLoginProfile[];
 };
 
@@ -345,8 +348,45 @@ const SCENARIO_7_PROFILES: TestScenarioLoginProfile[] = [
       },
     },
   },
+  {
+    email: 'delta-sole-owner@demo.test',
+    label:
+      'Delta mode \u2013 sole owner-operator (combined controller/owner; SSN, birthdate, contact, and sanctions outstanding)',
+    scenario: 'delta-sole-owner',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+      deltaMode: {
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      },
+      skipTermsDocumentAcknowledgment: true,
+    },
+  },
+  {
+    email: 'delta-china@demo.test',
+    label:
+      'Delta mode \u2013 business formed in China, nearly everything pre-populated (controller passport and sanctions questions outstanding)',
+    scenario: 'delta-non-us',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+      availableCountriesOfFormation: ['US', 'CN'],
+      deltaMode: {
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      },
+      skipTermsDocumentAcknowledgment: true,
+    },
+  },
   ...OPERATOR_PROFILES.filter((p) => p.email !== 'happy-path@demo.test'),
   ...MULTI_LINK_START_PROFILES,
+  {
+    email: 'dashboard-approved@demo.test',
+    label:
+      'Approved client \u2013 skip onboarding and open payments account dashboard (balances, statement of transactions, recipients)',
+    scenario: 'naics-codes-dashboard',
+  },
 ];
 
 const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
@@ -650,6 +690,7 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
         mode: 'whenPopulated',
       },
     },
+    dashboard: { accountIds: [TEST_SCENARIO_7_DASHBOARD_ACCOUNT_ID] },
     loginProfiles: SCENARIO_7_PROFILES,
   },
 };

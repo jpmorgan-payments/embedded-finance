@@ -1007,7 +1007,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         body?.testDemoScenario === 'naics-codes-onboarding' ||
         body?.testDemoScenario === 'naics-codes-dashboard' ||
         body?.testDemoScenario === 'naics-codes-doc-request' ||
-        body?.testDemoScenario === 'delta-sole-owner'
+        body?.testDemoScenario === 'delta-sole-owner' ||
+        body?.testDemoScenario === 'delta-non-us'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
         const bundleId = parseTestScenarioBundleId(body.testScenarioBundle);
@@ -1116,7 +1117,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         (testDemoScenario === 'happy-path' ||
           testDemoScenario === 'happy-path-ptc' ||
           testDemoScenario === 'happy-path-non-us' ||
-          testDemoScenario === 'delta-sole-owner') &&
+          testDemoScenario === 'delta-sole-owner' ||
+          testDemoScenario === 'delta-non-us') &&
         getTestScenarioClientIds().includes(clientId)
       ) {
         const delayMs = 3000;

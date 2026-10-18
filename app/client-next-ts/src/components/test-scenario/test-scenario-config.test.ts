@@ -265,10 +265,13 @@ describe('test-scenario-config', () => {
       'happy-path-ptc',
       'happy-path',
       'happy-path-non-us',
+      'delta-sole-owner',
+      'delta-non-us',
       'doc-request',
       'linked-account-approved',
       'linked-account-active',
       'multi-linked-start-3',
+      'naics-codes-dashboard',
     ]);
   });
 
@@ -306,6 +309,59 @@ describe('test-scenario-config', () => {
     expect(decodeTestScenarioConfig('o7.nus')).toEqual({
       preset: 'retail',
       loginCase: 'happy-path-non-us',
+    });
+  });
+
+  it('opens the retail dashboard login on the Big Seller statement account', () => {
+    const resolved = resolveTestScenarioConfig({
+      preset: 'retail',
+      loginCase: 'naics-codes-dashboard',
+    });
+    expect(resolved.loginProfile.email).toBe('dashboard-approved@demo.test');
+    expect(resolved.layout).toBe('dashboard');
+    expect(resolved.dashboardProps).toEqual({
+      accountIds: ['ts7-acc-payments'],
+    });
+  });
+
+  it('enables delta mode only on the retail delta login', () => {
+    const resolved = resolveTestScenarioConfig({
+      preset: 'retail',
+      loginCase: 'delta-sole-owner',
+    });
+    const props = buildOnboardingFlowProps({
+      bundleConfig: resolved.bundleConfig,
+      sessionScenario: resolved.loginProfile.scenario,
+      activeLoginCase: resolved.activeLoginCase,
+      onboardingProps: resolved.onboardingProps,
+    });
+    expect(resolved.loginProfile.email).toBe('delta-sole-owner@demo.test');
+    expect(props.deltaMode).toEqual({
+      enabled: true,
+      maxPendingFields: 5,
+      defaultControllerNotAnOwner: true,
+    });
+    expect(props.skipTermsDocumentAcknowledgment).toBe(true);
+    expect(resolved.onboardingProps.deltaMode).toBeUndefined();
+  });
+
+  it('combines delta mode with China formation on the retail China delta login', () => {
+    const resolved = resolveTestScenarioConfig({
+      preset: 'retail',
+      loginCase: 'delta-non-us',
+    });
+    const props = buildOnboardingFlowProps({
+      bundleConfig: resolved.bundleConfig,
+      sessionScenario: resolved.loginProfile.scenario,
+      activeLoginCase: resolved.activeLoginCase,
+      onboardingProps: resolved.onboardingProps,
+    });
+    expect(resolved.loginProfile.email).toBe('delta-china@demo.test');
+    expect(props.availableCountriesOfFormation).toEqual(['US', 'CN']);
+    expect(props.deltaMode).toMatchObject({ enabled: true });
+    expect(decodeTestScenarioConfig('o7.dnus')).toEqual({
+      preset: 'retail',
+      loginCase: 'delta-non-us',
     });
   });
 });

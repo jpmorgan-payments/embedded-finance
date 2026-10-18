@@ -121,8 +121,11 @@ const RETAIL_LOGIN_CASES: TestDemoScenarioMode[] = [
   'happy-path-ptc',
   'happy-path',
   'happy-path-non-us',
+  'delta-sole-owner',
+  'delta-non-us',
   ...OPERATOR_LOGIN_CASES.filter((m) => m !== 'happy-path'),
   'multi-linked-start-3',
+  'naics-codes-dashboard',
 ];
 
 const MULTI_LINK_LOGIN_CASES: TestDemoScenarioMode[] = [
@@ -161,6 +164,7 @@ const LEGACY_LOGIN_CASE_CODE: Record<TestDemoScenarioMode, string> = {
   'naics-codes-doc-request': 'nadr',
   'naics-codes-dashboard': 'nad',
   'delta-sole-owner': 'dso',
+  'delta-non-us': 'dnus',
 };
 
 const LEGACY_CODE_TO_PRESET = Object.fromEntries(
@@ -194,6 +198,8 @@ const LOGIN_CASE_LABELS: Record<TestDemoScenarioMode, string> = {
   'naics-codes-dashboard': 'Pre-approved — open payments dashboard immediately',
   'delta-sole-owner':
     'Delta mode — sole owner-operator (combined controller/owner)',
+  'delta-non-us':
+    'Delta mode — business formed in China, nearly everything pre-populated',
 };
 
 export const TEST_SCENARIO_PRESETS: TestScenarioPresetMeta[] = [
@@ -265,7 +271,8 @@ export const TEST_SCENARIO_PRESETS: TestScenarioPresetMeta[] = [
     bundleId: 'test-scenario-7',
     themeLabel: 'Empty (component defaults)',
     linkAccountMode: 'editable-multi',
-    industryFocus: 'Retail NAICS + optional PTC + non-US country of formation',
+    industryFocus:
+      'Retail NAICS + optional PTC + non-US formation + delta + approved dashboard',
     availableLoginCases: RETAIL_LOGIN_CASES,
   },
 ];
@@ -574,7 +581,8 @@ export function resolveTestScenarioConfig(
       config.components?.onboarding
     ) ?? {};
 
-  const dashboardProps = config.components?.dashboard ?? {};
+  const dashboardProps =
+    mergeRecords(bundleConfig.dashboard, config.components?.dashboard) ?? {};
 
   return {
     config,

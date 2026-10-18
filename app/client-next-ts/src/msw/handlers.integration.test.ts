@@ -769,6 +769,181 @@ describe('MSW handlers (integration)', () => {
     expect(paymentRecipients.length).toBe(3);
   });
 
+  it('test-scenario-7: naics-codes-dashboard seeds APPROVED Big Seller Corp with statement data', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-dashboard',
+        testScenarioBundle: 'test-scenario-7',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    const client = (await clientRes.json()) as { status?: string };
+    expect(client.status).toBe('APPROVED');
+
+    const accountsRes = await fetch(
+      `${API}/ef/do/v1/accounts?clientId=${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    const accounts = (await accountsRes.json()) as {
+      items?: Array<{ id?: string; category?: string }>;
+    };
+    expect(accounts.items).toEqual([
+      expect.objectContaining({
+        id: 'ts7-acc-payments',
+        category: 'LIMITED_DDA_PAYMENTS',
+      }),
+    ]);
+
+    const balanceRes = await fetch(
+      `${API}/ef/do/v1/accounts/ts7-acc-payments/balances`
+    );
+    expect(balanceRes.ok).toBe(true);
+
+    const txnRes = await fetch(
+      `${API}/ef/do/v1/transactions?accountId=ts7-acc-payments`
+    );
+    const txns = (await txnRes.json()) as {
+      items?: Array<{ id?: string; status?: string }>;
+    };
+    expect((txns.items ?? []).map((t) => t.id).sort()).toEqual([
+      'ts7-txn-001',
+      'ts7-txn-002',
+      'ts7-txn-003',
+      'ts7-txn-004',
+      'ts7-txn-005',
+      'ts7-txn-006',
+    ]);
+
+    const recipientsRes = await fetch(`${API}/ef/do/v1/recipients`);
+    const recipients = (await recipientsRes.json()) as {
+      recipients?: Array<{ id?: string; type?: string }>;
+    };
+    expect(
+      (recipients.recipients ?? [])
+        .filter((r) => r.type === 'RECIPIENT')
+        .map((r) => r.id)
+        .sort()
+    ).toEqual(['ts7-recipient-001', 'ts7-recipient-002', 'ts7-recipient-003']);
+  });
+
+  it('test-scenario-7: delta-sole-owner seeds Big Seller Corp in the scenario 6 delta shape', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'delta-sole-owner',
+        testScenarioBundle: 'test-scenario-7',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    const client = (await clientRes.json()) as {
+      status?: string;
+      outstanding?: { questionIds?: string[] };
+      parties?: Array<{
+        roles?: string[];
+        organizationDetails?: {
+          organizationName?: string;
+          addresses?: unknown[];
+        };
+        individualDetails?: {
+          firstName?: string;
+          soleOwner?: boolean;
+          individualIds?: unknown[];
+        };
+      }>;
+    };
+    expect(client.status).toBe('NEW');
+    expect(client.outstanding?.questionIds).toEqual(['30158', '30162']);
+    expect(client.parties).toHaveLength(2);
+
+    const orgParty = client.parties?.find((p) => p.roles?.includes('CLIENT'));
+    expect(orgParty?.organizationDetails?.organizationName).toBe(
+      'Big Seller Corp'
+    );
+    expect(orgParty?.organizationDetails?.addresses).toEqual([]);
+
+    const operator = client.parties?.find((p) =>
+      p.roles?.includes('CONTROLLER')
+    );
+    expect(operator?.roles).toEqual([
+      'CONTROLLER',
+      'BENEFICIAL_OWNER',
+      'AUTHORIZED_USER',
+    ]);
+    expect(operator?.individualDetails?.firstName).toBe('Rachel');
+    expect(operator?.individualDetails?.soleOwner).toBe(true);
+    expect(operator?.individualDetails?.individualIds).toEqual([]);
+  });
+
+  it('test-scenario-7: delta-non-us seeds a nearly complete China-formed Big Seller Corp', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'delta-non-us',
+        testScenarioBundle: 'test-scenario-7',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    const client = (await clientRes.json()) as {
+      outstanding?: { questionIds?: string[]; documentRequestIds?: string[] };
+      parties?: Array<{
+        roles?: string[];
+        organizationDetails?: {
+          countryOfFormation?: string;
+          organizationIds?: Array<{ idType?: string; issuer?: string }>;
+          addresses?: Array<{ country?: string }>;
+        };
+        individualDetails?: {
+          countryOfResidence?: string;
+          birthDate?: string;
+          soleOwner?: boolean;
+          individualIds?: unknown[];
+          addresses?: Array<{ country?: string }>;
+        };
+      }>;
+    };
+    expect(client.outstanding?.questionIds).toEqual(['30158', '30162']);
+    expect(client.outstanding?.documentRequestIds).toEqual([]);
+
+    const orgParty = client.parties?.find((p) => p.roles?.includes('CLIENT'));
+    expect(orgParty?.organizationDetails?.countryOfFormation).toBe('CN');
+    expect(orgParty?.organizationDetails?.organizationIds).toEqual([
+      expect.objectContaining({
+        idType: 'BUSINESS_REGISTRATION_ID',
+        issuer: 'CN',
+      }),
+    ]);
+    expect(orgParty?.organizationDetails?.addresses?.[0]?.country).toBe('CN');
+
+    const operator = client.parties?.find((p) =>
+      p.roles?.includes('CONTROLLER')
+    );
+    expect(operator?.individualDetails).toMatchObject({
+      countryOfResidence: 'CN',
+      birthDate: '1984-03-18',
+      soleOwner: true,
+      individualIds: [],
+    });
+    expect(operator?.individualDetails?.addresses?.[0]?.country).toBe('CN');
+  });
+
   it('test-scenario-5: selecting NAICS code adds assessment questions to outstanding', async () => {
     await fetch(`${API}/ef/do/v1/_reset`, {
       method: 'POST',

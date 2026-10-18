@@ -27,6 +27,7 @@ const ALL_LOGIN_SCENARIOS: TestDemoScenarioMode[] = [
   'naics-codes-doc-request',
   'naics-codes-dashboard',
   'delta-sole-owner',
+  'delta-non-us',
 ];
 
 type TestScenarioLoginCasesEditorProps = {
