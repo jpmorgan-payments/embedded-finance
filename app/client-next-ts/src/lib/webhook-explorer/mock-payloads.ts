@@ -89,32 +89,15 @@ export const WEBHOOK_EVENT_DEFINITIONS: WebhookEventDefinition[] = [
       'Client-facing: urgent alert with amount and resolution steps; treasury may need program-level monitoring.',
   },
   {
-    eventType: 'RECIPIENT_READY_FOR_VALIDATION',
+    eventType: 'RECIPIENT_ACCOUNT_VALIDATION',
     category: 'recipient',
     priority: 'medium',
-    summary: 'Microdeposits sent; recipient verification started',
+    summary:
+      'Linked account microdeposit validation: ready, reminder, or expired',
     whenItFires:
-      'When microdeposits are sent and the linked account is ready for amount verification.',
+      'When microdeposits are ready to verify (status READY_FOR_VALIDATION), again when 3 days remain (daysUntilExpiry 3), and when the window expires (status INACTIVE).',
     uxNote:
-      'Client-facing: prompt user to confirm microdeposit amounts before the window expires.',
-  },
-  {
-    eventType: 'RECIPIENT_READY_FOR_VALIDATION_REMINDER',
-    category: 'recipient',
-    priority: 'medium',
-    summary: 'Verification deadline approaching',
-    whenItFires:
-      'Reminder phase (e.g. several days into the verification window).',
-    uxNote: 'Client-facing: time-bounded CTA with clear deadline copy.',
-  },
-  {
-    eventType: 'RECIPIENT_READY_FOR_VALIDATION_EXPIRED',
-    category: 'recipient',
-    priority: 'medium',
-    summary: 'Verification window closed without completion',
-    whenItFires:
-      'When the microdeposit verification period ends without success.',
-    uxNote: 'Client-facing: explain expiry and how to restart verification.',
+      'Client-facing: branch on status and daysUntilExpiry, not eventType. Verification CTA while ready, deadline copy at 3 days, restart guidance once expired.',
   },
   {
     eventType: 'THRESHOLD_LIMIT',
@@ -142,6 +125,14 @@ export interface CanonicalNotificationPayload {
   /** Domain payload — illustrative only */
   data: Record<string, unknown>;
 }
+
+const RECIPIENT_VALIDATION_DATA = {
+  recipientId: 'rec-demo-77',
+  clientId: 'cl-demo-01',
+  type: 'LINKED_ACCOUNT',
+  status: 'READY_FOR_VALIDATION',
+  daysUntilExpiry: 18,
+};
 
 function baseDataForEvent(eventType: string): Record<string, unknown> {
   switch (eventType) {
@@ -190,24 +181,8 @@ function baseDataForEvent(eventType: string): Record<string, unknown> {
         clientId: 'cl-demo-01',
         balance: { value: '-42.10', currency: 'USD' },
       };
-    case 'RECIPIENT_READY_FOR_VALIDATION':
-      return {
-        recipientId: 'rec-demo-77',
-        clientId: 'cl-demo-01',
-        microdepositStatus: 'PENDING_USER_VERIFICATION',
-      };
-    case 'RECIPIENT_READY_FOR_VALIDATION_REMINDER':
-      return {
-        recipientId: 'rec-demo-77',
-        clientId: 'cl-demo-01',
-        daysRemaining: 3,
-      };
-    case 'RECIPIENT_READY_FOR_VALIDATION_EXPIRED':
-      return {
-        recipientId: 'rec-demo-77',
-        clientId: 'cl-demo-01',
-        expired: true,
-      };
+    case 'RECIPIENT_ACCOUNT_VALIDATION':
+      return { ...RECIPIENT_VALIDATION_DATA };
     case 'THRESHOLD_LIMIT':
       return {
         programId: 'prg-demo-01',
@@ -222,13 +197,14 @@ function baseDataForEvent(eventType: string): Record<string, unknown> {
 
 export function buildCanonicalPayload(
   eventType: string,
-  eventId: string
+  eventId: string,
+  data?: Record<string, unknown>
 ): CanonicalNotificationPayload {
   return {
     eventId,
     eventType,
     occurredAt: new Date().toISOString(),
-    data: baseDataForEvent(eventType),
+    data: data ? { ...data } : baseDataForEvent(eventType),
   };
 }
 
@@ -258,12 +234,18 @@ export function buildOAuthWrappedDisplay(
   };
 }
 
+export interface LifecycleStep {
+  eventType: string;
+  /** Replaces the default illustrative payload for this step */
+  data?: Record<string, unknown>;
+}
+
 export interface LifecyclePreset {
   id: string;
   label: string;
   description: string;
-  /** Ordered sequence of event types to simulate a flow */
-  eventTypes: string[];
+  /** Ordered sequence of events to simulate a flow */
+  steps: LifecycleStep[];
 }
 
 export const LIFECYCLE_PRESETS: LifecyclePreset[] = [
@@ -272,22 +254,36 @@ export const LIFECYCLE_PRESETS: LifecyclePreset[] = [
     label: 'Onboarding → account',
     description:
       'Typical progression from onboarding updates to a funded account being created.',
-    eventTypes: ['CLIENT_ONBOARDING', 'ACCOUNT_CREATED'],
+    steps: [
+      { eventType: 'CLIENT_ONBOARDING' },
+      { eventType: 'ACCOUNT_CREATED' },
+    ],
   },
   {
     id: 'payout-happy-path',
     label: 'Payout success',
     description: 'A completed credit transaction after the client is active.',
-    eventTypes: ['TRANSACTION_COMPLETED'],
+    steps: [{ eventType: 'TRANSACTION_COMPLETED' }],
   },
   {
     id: 'recipient-verify',
     label: 'Recipient microdeposit flow',
     description:
-      'Reminder and expiry events for linked-account verification (timing illustrative).',
-    eventTypes: [
-      'RECIPIENT_READY_FOR_VALIDATION',
-      'RECIPIENT_READY_FOR_VALIDATION_REMINDER',
+      'Ready, reminder and expiry for linked-account verification. One event type; status and daysUntilExpiry change (timing illustrative).',
+    steps: [
+      { eventType: 'RECIPIENT_ACCOUNT_VALIDATION' },
+      {
+        eventType: 'RECIPIENT_ACCOUNT_VALIDATION',
+        data: { ...RECIPIENT_VALIDATION_DATA, daysUntilExpiry: 3 },
+      },
+      {
+        eventType: 'RECIPIENT_ACCOUNT_VALIDATION',
+        data: {
+          ...RECIPIENT_VALIDATION_DATA,
+          status: 'INACTIVE',
+          daysUntilExpiry: 0,
+        },
+      },
     ],
   },
   {
@@ -295,6 +291,6 @@ export const LIFECYCLE_PRESETS: LifecyclePreset[] = [
     label: 'Program threshold',
     description:
       'Treasury-facing alert when negative balance limits are approached.',
-    eventTypes: ['THRESHOLD_LIMIT'],
+    steps: [{ eventType: 'THRESHOLD_LIMIT' }],
   },
 ];

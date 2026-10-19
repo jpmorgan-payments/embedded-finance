@@ -27,6 +27,7 @@ import {
   WEBHOOK_EVENT_DEFINITIONS,
   type CanonicalNotificationPayload,
   type EventCategory,
+  type LifecycleStep,
 } from '@/lib/webhook-explorer/mock-payloads';
 import {
   DEFAULT_HANDLER,
@@ -158,13 +159,13 @@ export function WebhookExplorerPage() {
     runFire({ duplicateOf: lastPayload });
   };
 
-  const handleRunLifecycle = (eventTypes: string[]) => {
+  const handleRunLifecycle = (steps: LifecycleStep[]) => {
     const acc = new Set(seenEventIds);
     const newEntries: TimelineEntry[] = [];
     let lastCanonical: CanonicalNotificationPayload | null = null;
-    for (const et of eventTypes) {
+    for (const step of steps) {
       const id = crypto.randomUUID();
-      const canonical = buildCanonicalPayload(et, id);
+      const canonical = buildCanonicalPayload(step.eventType, id, step.data);
       lastCanonical = canonical;
       const ctx: HandlerContext = {
         seenEventIds: acc,
@@ -176,7 +177,7 @@ export function WebhookExplorerPage() {
         ctx
       );
       const entry: TimelineEntry = {
-        key: `${canonical.eventId}-${Date.now()}-${et}`,
+        key: `${canonical.eventId}-${Date.now()}-${step.eventType}`,
         at: new Date().toISOString(),
         eventType: canonical.eventType,
         eventId: canonical.eventId,
@@ -418,7 +419,7 @@ export function WebhookExplorerPage() {
                       variant="outline"
                       size="sm"
                       className="h-auto justify-start whitespace-normal py-2 text-left"
-                      onClick={() => handleRunLifecycle(p.eventTypes)}
+                      onClick={() => handleRunLifecycle(p.steps)}
                     >
                       <span className="block font-medium">{p.label}</span>
                       <span className="block text-[11px] font-normal text-jpm-gray">
