@@ -56,7 +56,7 @@ export function ExperiencesSection() {
         'Submit for verification and monitor status',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_FLOW_RECIPE.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/DIGITAL_ONBOARDING_RECIPE.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
@@ -80,7 +80,7 @@ export function ExperiencesSection() {
         'Activate linked account for payments',
       ],
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/RecipientWidgets/LINKED_ACCOUNTS_REQUIREMENTS.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/LINKED_ACCOUNTS_RECIPE.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/external-accounts/add-linked-account',
     },
