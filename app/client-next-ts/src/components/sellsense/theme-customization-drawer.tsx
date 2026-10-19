@@ -1573,7 +1573,7 @@ export function ThemeCustomizationDrawer({
                 </p>
                 <div className="mt-1.5 flex items-center gap-3">
                   <a
-                    href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theme-design-tokens"
+                    href="https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="whitespace-nowrap text-xs text-gray-600 underline hover:text-gray-800"

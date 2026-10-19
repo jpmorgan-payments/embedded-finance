@@ -88,9 +88,9 @@ export function ComponentsSection() {
       icon: <Calendar className="h-5 w-5" />,
       status: 'available',
       githubUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/components/ux/ImportantDateSelector',
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/components/ImportantDateSelector',
       recipeUrl:
-        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/components/ux/ImportantDateSelector/ANALYSIS.md',
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/components/ImportantDateSelector/ANALYSIS.md',
       preview: (
         <div className="rounded-page-md border border-jpm-gray-200 bg-jpm-gray-100 p-3">
           <div className="space-y-1">
