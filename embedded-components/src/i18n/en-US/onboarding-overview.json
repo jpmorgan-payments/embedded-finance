@@ -916,7 +916,8 @@
       "validation": {
         "exactlyTwoChars": "Country code must be exactly 2 characters",
         "invalid": "Invalid country code",
-        "usOnly": "Only US is supported at this time"
+        "usOnly": "Only US is supported at this time",
+        "notAvailable": "Select a country from the list"
       }
     },
     "ownershipPercentage": {
@@ -987,6 +988,18 @@
         "length": "EIN must be exactly 9 digits",
         "digitsOnly": "EIN may only contain numbers",
         "invalidValue": "Please enter a valid EIN"
+      }
+    },
+    "organizationIdRegistration": {
+      "fieldName": "Business registration ID",
+      "label": "$t(onboarding-overview:idValueLabels.BUSINESS_REGISTRATION_ID)",
+      "description": "The ID on the business registration documents issued in your country of registration",
+      "placeholder": "Enter business registration ID",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})",
+        "pattern": "{{fieldName}} can only contain letters, numbers, spaces, and - / . + &"
       }
     },
     "solePropHasEin": {

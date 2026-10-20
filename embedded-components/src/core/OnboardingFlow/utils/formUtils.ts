@@ -382,8 +382,10 @@ export function generateClientRequestBody<
     if (value !== '' && value !== undefined) {
       const modifiedValue = fieldConfig.toRequestFn
         ? (
-            fieldConfig as { toRequestFn: (val: unknown) => unknown }
-          ).toRequestFn(value)
+            fieldConfig as {
+              toRequestFn: (val: unknown, values: unknown) => unknown;
+            }
+          ).toRequestFn(value, formValues)
         : value;
 
       if (modifiedValue !== undefined && modifiedValue !== null) {
@@ -416,8 +418,10 @@ export function generatePartyRequestBody(
     if (value !== '' && value !== undefined) {
       const modifiedValue = fieldConfig.toRequestFn
         ? (
-            fieldConfig as { toRequestFn: (val: unknown) => unknown }
-          ).toRequestFn(value)
+            fieldConfig as {
+              toRequestFn: (val: unknown, values: unknown) => unknown;
+            }
+          ).toRequestFn(value, formValues)
         : value;
 
       if (modifiedValue !== undefined && modifiedValue !== null) {

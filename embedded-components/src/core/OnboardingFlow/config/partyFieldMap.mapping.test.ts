@@ -150,6 +150,48 @@ describe('partyFieldMap.organizationIdEin', () => {
   test('modifyErrorField collapses path to empty string', () => {
     expect(modifyErrorField!('.0.value')).toBe('');
   });
+
+  test('isHiddenInReviewFn hides the EIN only for non-US businesses', () => {
+    const { isHiddenInReviewFn } = partyFieldMap.organizationIdEin;
+    expect(isHiddenInReviewFn!('', { countryOfFormation: 'US' })).toBe(false);
+    expect(isHiddenInReviewFn!('', {})).toBe(false);
+    expect(isHiddenInReviewFn!('', { countryOfFormation: 'CN' })).toBe(true);
+  });
+});
+
+describe('partyFieldMap.organizationIdRegistration', () => {
+  const { fromResponseFn, toRequestFn, isHiddenInReviewFn } =
+    partyFieldMap.organizationIdRegistration!;
+
+  test('fromResponseFn extracts the business registration ID', () => {
+    const ids = [
+      { idType: 'EIN', value: '123456789', issuer: 'US' },
+      {
+        idType: 'BUSINESS_REGISTRATION_ID',
+        value: '91310000MA1FL1234X',
+        issuer: 'CN',
+      },
+    ];
+    expect(fromResponseFn!(ids)).toBe('91310000MA1FL1234X');
+    expect(fromResponseFn!([])).toBe('');
+  });
+
+  test('toRequestFn uses the country of formation as issuer', () => {
+    expect(
+      toRequestFn!('91310000MA1FL1234X', { countryOfFormation: 'CN' })
+    ).toEqual([
+      {
+        issuer: 'CN',
+        idType: 'BUSINESS_REGISTRATION_ID',
+        value: '91310000MA1FL1234X',
+      },
+    ]);
+  });
+
+  test('isHiddenInReviewFn hides the registration ID for US businesses', () => {
+    expect(isHiddenInReviewFn!('', { countryOfFormation: 'US' })).toBe(true);
+    expect(isHiddenInReviewFn!('', { countryOfFormation: 'CN' })).toBe(false);
+  });
 });
 
 describe('partyFieldMap.websiteNotAvailable', () => {

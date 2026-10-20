@@ -14,6 +14,7 @@ import { convertPartyResponseToFormValues } from '@/core/OnboardingFlow/utils/fo
 
 import {
   refineBusinessIdentityFormSchema,
+  useAllowedCountriesOfFormation,
   useBusinessIdentityFormSchema,
 } from './BusinessIdentityForm.schema';
 
@@ -21,6 +22,10 @@ export const BusinessIdentityForm: FormStepComponent = () => {
   const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
   const { clientData } = useOnboardingContext();
+  const allowedCountries = useAllowedCountriesOfFormation();
+  const allowsNonUsFormation = !!allowedCountries?.some(
+    (code) => code !== 'US'
+  );
 
   const orgParty = getOrganizationParty(clientData);
   const { organizationIdEin } = convertPartyResponseToFormValues(
@@ -29,6 +34,7 @@ export const BusinessIdentityForm: FormStepComponent = () => {
 
   const form =
     useFormContext<z.input<ReturnType<typeof useBusinessIdentityFormSchema>>>();
+  const countryOfFormation = form.watch('countryOfFormation');
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -49,7 +55,10 @@ export const BusinessIdentityForm: FormStepComponent = () => {
           control={form.control}
           name="countryOfFormation"
           type="combobox"
-          options={COUNTRIES_OF_FORMATION.map((code) => ({
+          // The US-jurisdiction field rule disables this field; host-allowed countries take precedence.
+          disableFieldRuleMapping={allowsNonUsFormation}
+          required
+          options={(allowedCountries ?? COUNTRIES_OF_FORMATION).map((code) => ({
             value: code,
             searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
             label: (
@@ -62,15 +71,17 @@ export const BusinessIdentityForm: FormStepComponent = () => {
             ),
           }))}
         />
-        <Alert variant="informative" density="sm" noTitle>
-          <InfoIcon className="eb-size-4" />
-          <AlertDescription>
-            {t('screens.companyIdentification.contactPlatformOperator')}
-          </AlertDescription>
-        </Alert>
+        {!allowsNonUsFormation && (
+          <Alert variant="informative" density="sm" noTitle>
+            <InfoIcon className="eb-size-4" />
+            <AlertDescription>
+              {t('screens.companyIdentification.contactPlatformOperator')}
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
 
-      {form.watch('countryOfFormation') === 'US' && (
+      {countryOfFormation === 'US' && (
         <div className="eb-space-y-6">
           <OnboardingFormField
             control={form.control}
@@ -100,6 +111,16 @@ export const BusinessIdentityForm: FormStepComponent = () => {
           )}
         </div>
       )}
+
+      {allowsNonUsFormation &&
+        !!countryOfFormation &&
+        countryOfFormation !== 'US' && (
+          <OnboardingFormField
+            control={form.control}
+            name="organizationIdRegistration"
+            required
+          />
+        )}
     </div>
   );
 };
@@ -107,7 +128,17 @@ export const BusinessIdentityForm: FormStepComponent = () => {
 BusinessIdentityForm.schema = useBusinessIdentityFormSchema;
 BusinessIdentityForm.refineSchemaFn = refineBusinessIdentityFormSchema;
 BusinessIdentityForm.modifyFormValuesBeforeSubmit = (values) => {
-  const { solePropHasEin, organizationIdEin, ...rest } = values;
+  const {
+    solePropHasEin,
+    organizationIdEin,
+    organizationIdRegistration,
+    ...rest
+  } = values;
+
+  // Submit only the ID that matches the country of formation.
+  if (rest.countryOfFormation && rest.countryOfFormation !== 'US') {
+    return { ...rest, organizationIdRegistration };
+  }
 
   return {
     ...rest,

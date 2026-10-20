@@ -6,6 +6,7 @@ import {
   ClientResponse,
   ClientStatus,
   ClientVerificationResponse,
+  CountryCodeIsoAlpha2,
   OrganizationType,
   PartyResponse,
   SchemasApiError,
@@ -335,6 +336,21 @@ export type OnboardingConfigUsedInContext = {
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<Jurisdiction>;
   availableOrganizationTypes?: Array<OrganizationType>;
+  /**
+   * **Business → Identity**: countries a business may select as its country of
+   * formation. When omitted, only `US` is accepted (existing behaviour).
+   *
+   * - The country combobox lists only these countries.
+   * - A business formed outside the US enters a business registration ID
+   *   (`BUSINESS_REGISTRATION_ID`, issuer = country of formation) instead of an EIN.
+   * - Sole proprietorships are always formed in the US and ignore this prop.
+   *
+   * @example
+   * ```tsx
+   * <OnboardingFlow availableCountriesOfFormation={['US', 'CN']} />
+   * ```
+   */
+  availableCountriesOfFormation?: readonly CountryCodeIsoAlpha2[];
   docUploadOnlyMode?: boolean;
   docUploadMaxFileSizeBytes?: number;
   /** Controls visibility of the linked account section. Use alongside `linkAccountEnabledStatuses` to control which statuses allow linking. */

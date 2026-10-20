@@ -195,13 +195,16 @@ const restaurantPresetClient = {
 
 type RestaurantPresetClient = typeof restaurantPresetClient;
 
+/** Pre-delta client shape accepted by {@link createDeltaModeSoleOwnerOperatorClient}. */
+export type DeltaModePresetClient = RestaurantPresetClient;
+
 /**
  * Same transforms as Storybook sole owner-operator: drop the extra owner,
  * combine Jordan as sole controller/owner/authorized user, strip contact +
  * counted identity fields, outstanding sanctions questions only (`30158` →
  * `30162`).
  */
-function createDeltaModeSoleOwnerOperatorClient(
+export function createDeltaModeSoleOwnerOperatorClient(
   client: RestaurantPresetClient
 ): RestaurantPresetClient {
   const next = cloneDeep(client);

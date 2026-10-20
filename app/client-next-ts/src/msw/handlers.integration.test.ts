@@ -9,6 +9,7 @@ import {
   vi,
 } from 'vitest';
 
+import { TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID } from '../mocks/testScenarioBigSellerClient.mock';
 import { TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID } from '../mocks/testScenarioDeltaModeClient.mock';
 import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '../mocks/testScenarioFasterFulfilmentClient.mock';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '../mocks/testScenarioHealthBenefitClient.mock';
@@ -396,6 +397,22 @@ describe('MSW handlers (integration)', () => {
       ticker: 'FULFL',
       exchange: 'XNAS',
     },
+    {
+      bundle: 'test-scenario-7' as const,
+      clientId: TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID,
+      mode: 'happy-path' as const,
+      orgType: 'C_CORPORATION',
+      hasPtc: false,
+    },
+    {
+      bundle: 'test-scenario-7' as const,
+      clientId: TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID,
+      mode: 'happy-path-ptc' as const,
+      orgType: 'C_CORPORATION',
+      hasPtc: true,
+      ticker: 'BGSL',
+      exchange: 'XNAS',
+    },
   ] as const)(
     '$bundle: $mode seeds org without/with PTC',
     async ({ bundle, clientId, mode, orgType, hasPtc, ...ptc }) => {
@@ -439,6 +456,7 @@ describe('MSW handlers (integration)', () => {
   it.each([
     ['test-scenario-2', TEST_SCENARIO_BUNDLE_MULTI_LINKED_CLIENT_ID],
     ['test-scenario-4', TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID],
+    ['test-scenario-7', TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID],
   ] as const)(
     '%s: multi-linked-start-3 seeds 3 LINKED_ACCOUNT recipient(s)',
     async (testScenarioBundle, clientId) => {
@@ -467,10 +485,11 @@ describe('MSW handlers (integration)', () => {
         (r) => r.type === 'LINKED_ACCOUNT'
       );
       expect(linked.length).toBe(3);
-      const idPrefix =
-        testScenarioBundle === 'test-scenario-4'
-          ? 'ts-b4-linked'
-          : 'ts-b2-linked';
+      const idPrefix = {
+        'test-scenario-2': 'ts-b2-linked',
+        'test-scenario-4': 'ts-b4-linked',
+        'test-scenario-7': 'ts-b7-linked',
+      }[testScenarioBundle];
       expect(linked.map((r) => r.id)).toEqual(
         expect.arrayContaining([
           `${idPrefix}-001`,
@@ -505,6 +524,12 @@ describe('MSW handlers (integration)', () => {
       clientId: TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID,
       orgPartyId: '2100535300',
       expectedName: 'Faster Fulfilment Corp.',
+    },
+    {
+      bundle: 'test-scenario-7',
+      clientId: TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID,
+      orgPartyId: '2100535700',
+      expectedName: 'Big Seller Corp',
     },
   ] as const)(
     '$bundle: partyId-only linked account has org display name',
@@ -744,6 +769,181 @@ describe('MSW handlers (integration)', () => {
     expect(paymentRecipients.length).toBe(3);
   });
 
+  it('test-scenario-7: naics-codes-dashboard seeds APPROVED Big Seller Corp with statement data', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'naics-codes-dashboard',
+        testScenarioBundle: 'test-scenario-7',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    const client = (await clientRes.json()) as { status?: string };
+    expect(client.status).toBe('APPROVED');
+
+    const accountsRes = await fetch(
+      `${API}/ef/do/v1/accounts?clientId=${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    const accounts = (await accountsRes.json()) as {
+      items?: Array<{ id?: string; category?: string }>;
+    };
+    expect(accounts.items).toEqual([
+      expect.objectContaining({
+        id: 'ts7-acc-payments',
+        category: 'LIMITED_DDA_PAYMENTS',
+      }),
+    ]);
+
+    const balanceRes = await fetch(
+      `${API}/ef/do/v1/accounts/ts7-acc-payments/balances`
+    );
+    expect(balanceRes.ok).toBe(true);
+
+    const txnRes = await fetch(
+      `${API}/ef/do/v1/transactions?accountId=ts7-acc-payments`
+    );
+    const txns = (await txnRes.json()) as {
+      items?: Array<{ id?: string; status?: string }>;
+    };
+    expect((txns.items ?? []).map((t) => t.id).sort()).toEqual([
+      'ts7-txn-001',
+      'ts7-txn-002',
+      'ts7-txn-003',
+      'ts7-txn-004',
+      'ts7-txn-005',
+      'ts7-txn-006',
+    ]);
+
+    const recipientsRes = await fetch(`${API}/ef/do/v1/recipients`);
+    const recipients = (await recipientsRes.json()) as {
+      recipients?: Array<{ id?: string; type?: string }>;
+    };
+    expect(
+      (recipients.recipients ?? [])
+        .filter((r) => r.type === 'RECIPIENT')
+        .map((r) => r.id)
+        .sort()
+    ).toEqual(['ts7-recipient-001', 'ts7-recipient-002', 'ts7-recipient-003']);
+  });
+
+  it('test-scenario-7: delta-sole-owner seeds Big Seller Corp in the scenario 6 delta shape', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'delta-sole-owner',
+        testScenarioBundle: 'test-scenario-7',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    const client = (await clientRes.json()) as {
+      status?: string;
+      outstanding?: { questionIds?: string[] };
+      parties?: Array<{
+        roles?: string[];
+        organizationDetails?: {
+          organizationName?: string;
+          addresses?: unknown[];
+        };
+        individualDetails?: {
+          firstName?: string;
+          soleOwner?: boolean;
+          individualIds?: unknown[];
+        };
+      }>;
+    };
+    expect(client.status).toBe('NEW');
+    expect(client.outstanding?.questionIds).toEqual(['30158', '30162']);
+    expect(client.parties).toHaveLength(2);
+
+    const orgParty = client.parties?.find((p) => p.roles?.includes('CLIENT'));
+    expect(orgParty?.organizationDetails?.organizationName).toBe(
+      'Big Seller Corp'
+    );
+    expect(orgParty?.organizationDetails?.addresses).toEqual([]);
+
+    const operator = client.parties?.find((p) =>
+      p.roles?.includes('CONTROLLER')
+    );
+    expect(operator?.roles).toEqual([
+      'CONTROLLER',
+      'BENEFICIAL_OWNER',
+      'AUTHORIZED_USER',
+    ]);
+    expect(operator?.individualDetails?.firstName).toBe('Rachel');
+    expect(operator?.individualDetails?.soleOwner).toBe(true);
+    expect(operator?.individualDetails?.individualIds).toEqual([]);
+  });
+
+  it('test-scenario-7: delta-non-us seeds a nearly complete China-formed Big Seller Corp', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'delta-non-us',
+        testScenarioBundle: 'test-scenario-7',
+      }),
+    });
+
+    const clientRes = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    const client = (await clientRes.json()) as {
+      outstanding?: { questionIds?: string[]; documentRequestIds?: string[] };
+      parties?: Array<{
+        roles?: string[];
+        organizationDetails?: {
+          countryOfFormation?: string;
+          organizationIds?: Array<{ idType?: string; issuer?: string }>;
+          addresses?: Array<{ country?: string }>;
+        };
+        individualDetails?: {
+          countryOfResidence?: string;
+          birthDate?: string;
+          soleOwner?: boolean;
+          individualIds?: unknown[];
+          addresses?: Array<{ country?: string }>;
+        };
+      }>;
+    };
+    expect(client.outstanding?.questionIds).toEqual(['30158', '30162']);
+    expect(client.outstanding?.documentRequestIds).toEqual([]);
+
+    const orgParty = client.parties?.find((p) => p.roles?.includes('CLIENT'));
+    expect(orgParty?.organizationDetails?.countryOfFormation).toBe('CN');
+    expect(orgParty?.organizationDetails?.organizationIds).toEqual([
+      expect.objectContaining({
+        idType: 'BUSINESS_REGISTRATION_ID',
+        issuer: 'CN',
+      }),
+    ]);
+    expect(orgParty?.organizationDetails?.addresses?.[0]?.country).toBe('CN');
+
+    const operator = client.parties?.find((p) =>
+      p.roles?.includes('CONTROLLER')
+    );
+    expect(operator?.individualDetails).toMatchObject({
+      countryOfResidence: 'CN',
+      birthDate: '1984-03-18',
+      soleOwner: true,
+      individualIds: [],
+    });
+    expect(operator?.individualDetails?.addresses?.[0]?.country).toBe('CN');
+  });
+
   it('test-scenario-5: selecting NAICS code adds assessment questions to outstanding', async () => {
     await fetch(`${API}/ef/do/v1/_reset`, {
       method: 'POST',
@@ -943,6 +1143,71 @@ describe('MSW handlers (integration)', () => {
     expect(updateRes.ok).toBe(true);
     const body = (await updateRes.json()) as { status?: string };
     expect(body.status).toBe('APPROVED');
+  });
+
+  it('test-scenario-7: happy-path-non-us seeds Big Seller Corp as a China-formed business', async () => {
+    await fetch(`${API}/ef/do/v1/_reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scenario: DB_SCENARIOS.EMPTY,
+        overrides: {},
+        testDemoScenario: 'happy-path-non-us',
+        testScenarioBundle: 'test-scenario-7',
+      }),
+    });
+
+    type OrgParty = {
+      id?: string;
+      roles?: string[];
+      organizationDetails?: {
+        organizationName?: string;
+        countryOfFormation?: string;
+        industry?: { code?: string };
+        organizationIds?: Array<{
+          idType?: string;
+          issuer?: string;
+          value?: string;
+        }>;
+        addresses?: Array<{ country?: string; city?: string }>;
+      };
+      individualDetails?: {
+        countryOfResidence?: string;
+        individualIds?: Array<{ idType?: string; issuer?: string }>;
+      };
+    };
+    const res = await fetch(
+      `${API}/ef/do/v1/clients/${TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID}`
+    );
+    expect(res.ok).toBe(true);
+    const client = (await res.json()) as { parties?: OrgParty[] };
+    const orgParty = (client.parties ?? []).find((p) =>
+      (p.roles ?? []).includes('CLIENT')
+    );
+    const controller = (client.parties ?? []).find((p) =>
+      (p.roles ?? []).includes('CONTROLLER')
+    );
+
+    expect(orgParty?.organizationDetails?.organizationName).toBe(
+      'Big Seller Corp'
+    );
+    expect(orgParty?.organizationDetails?.countryOfFormation).toBe('CN');
+    expect(orgParty?.organizationDetails?.organizationIds).toEqual([
+      {
+        idType: 'BUSINESS_REGISTRATION_ID',
+        issuer: 'CN',
+        value: '91310000MA1FL1234X',
+      },
+    ]);
+    expect(orgParty?.organizationDetails?.addresses?.[0]).toMatchObject({
+      city: 'Shanghai',
+      country: 'CN',
+    });
+    expect(controller?.individualDetails?.countryOfResidence).toBe('CN');
+    expect(controller?.individualDetails?.individualIds?.[0]).toMatchObject({
+      idType: 'PASSPORT',
+      issuer: 'CN',
+    });
   });
 
   it('test-scenario-6: delta-sole-owner seeds Bright Fork Kitchen restaurant client', async () => {

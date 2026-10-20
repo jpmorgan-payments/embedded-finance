@@ -916,7 +916,8 @@
       "validation": {
         "exactlyTwoChars": "El código de país debe tener exactamente 2 caracteres",
         "invalid": "Código de país inválido",
-        "usOnly": "Solo se admite EE. UU. en este momento"
+        "usOnly": "Solo se admite EE. UU. en este momento",
+        "notAvailable": "Seleccione un país de la lista"
       }
     },
     "organizationName": {
@@ -982,6 +983,18 @@
         "length": "El EIN debe tener exactamente 9 dígitos",
         "digitsOnly": "El EIN solo puede contener números",
         "invalidValue": "Ingrese un EIN válido"
+      }
+    },
+    "organizationIdRegistration": {
+      "fieldName": "Número de registro comercial",
+      "label": "$t(onboarding-overview:idValueLabels.BUSINESS_REGISTRATION_ID)",
+      "description": "El número que aparece en los documentos de registro comercial emitidos en su país de registro",
+      "placeholder": "Ingrese el número de registro comercial",
+      "tooltip": "",
+      "validation": {
+        "required": "$t(validation:required)",
+        "maxLength": "$t(validation:text.maxLength, {'count': 100})",
+        "pattern": "{{fieldName}} solo puede contener letras, números, espacios y - / . + &"
       }
     },
     "solePropHasEin": {
