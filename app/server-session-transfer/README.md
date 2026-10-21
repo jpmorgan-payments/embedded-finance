@@ -62,6 +62,9 @@ Each experience type renders a different embedded UI within the iframe targeting
    # Server port
    PORT=3000
    
+   # Interface to listen on (loopback only by default, see Security notes)
+   HOST=127.0.0.1
+   
    # JPMorgan Embedded UI Base URL
    EMBEDDED_UI_BASE_URL=https://concourse-test.jpmorgan.com
    ```
@@ -139,10 +142,11 @@ The server uses your p12 certificate for secure authentication:
 ```javascript
 const httpsAgent = new https.Agent({
   pfx: fs.readFileSync(certPath),
-  passphrase: certPassword,
-  rejectUnauthorized: false
+  passphrase: certPassword
 });
 ```
+
+Server certificate verification stays on (Node's default). If you are behind a TLS-inspecting proxy, add its CA with `NODE_EXTRA_CA_CERTS` instead of turning verification off.
 
 ### 4. Session Response
 
@@ -194,9 +198,8 @@ const iframeUrl = `${sessionData.url}?token=${sessionData.token}`;
 const encodedTheme = encodeURIComponent(JSON.stringify(themeConfig));
 const experienceType = document.getElementById('experienceType').value;
 const iframeUrlWithTheme = `${iframeUrl}&themeTokens=${encodedTheme}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
-const embedResponse = await fetch(`/embed?url=${encodeURIComponent(iframeUrlWithTheme)}`);
-const embedData = await embedResponse.json();
-showIframe(embedData.html);
+if (new URL(iframeUrlWithTheme).protocol !== 'https:') throw new Error('Embedded UI URL must use https');
+showIframe(iframeUrlWithTheme); // creates the <iframe> with document.createElement, never innerHTML
 
 // Manual iframe height adjustment
 function adjustIframeHeight(iframe) {
@@ -451,12 +454,12 @@ server-session-transfer/
 - **Response**: Session data with iframe URL and token
 - **Authentication**: Server-side p12 certificate
 
-### `GET /embed?url=<encoded_url>`
-- Returns iframe HTML for embedding in same window
-- **Query Parameter**: `url` - The encoded iframe URL with session token
-- **Response**: JSON with HTML content for inline rendering
-
 ## 🔐 Security & Compliance Notes
+
+### Local-only by default
+- The server listens on `127.0.0.1`. `/clients` and `/sessions` have no authentication and act with your certificate, so anyone who can reach the port can use them.
+- Set `HOST=0.0.0.0` only on a machine nobody else can reach, and add your own authentication before exposing it anywhere.
+- Request bodies must be JSON, so other websites cannot post forms to your local server.
 
 ### Certificate Management
 - **P12 certificates contain private keys** - treat as highly sensitive credentials
@@ -465,7 +468,7 @@ server-session-transfer/
 - **Store certificates securely** using enterprise-grade secret management
 
 ### Production Security
-- **Set `rejectUnauthorized: true`** in HTTPS agent for production
+- **Keep TLS certificate verification on** - never set `rejectUnauthorized: false`
 - **Implement proper input validation** and sanitization
 - **Add rate limiting** to prevent API abuse
 - **Use HTTPS everywhere** - no mixed content

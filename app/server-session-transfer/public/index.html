@@ -448,24 +448,30 @@
             }
         });
 
-        function showIframe(html) {
+        function showIframe(iframeUrl) {
             const iframeContainer = document.getElementById('iframeContainer');
             const iframeContent = document.getElementById('iframeContent');
             
             // Create iframe wrapper with header
-            const iframeWrapper = `
+            iframeContent.innerHTML = `
                 <div class="iframe-wrapper scroll-target">
                     <div class="iframe-header">
                         <h3>JPMorgan Embedded Finance Onboarding</h3>
                         <p>Complete your onboarding process in the embedded experience below</p>
                     </div>
-                    <div class="iframe-body">
-                        ${html}
-                    </div>
+                    <div class="iframe-body"></div>
                 </div>
             `;
-            
-            iframeContent.innerHTML = iframeWrapper;
+
+            // Built with DOM APIs so the URL is never parsed as HTML
+            const iframe = document.createElement('iframe');
+            iframe.src = iframeUrl;
+            iframe.title = 'Embedded Finance Onboarding';
+            iframe.className = 'embedded-iframe';
+            iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms allow-popups');
+            iframe.setAttribute('scrolling', 'auto');
+            iframe.setAttribute('frameborder', '0');
+            iframeContent.querySelector('.iframe-body').appendChild(iframe);
             iframeContainer.classList.remove('hidden');
             
             // Smooth scroll to iframe after a short delay
@@ -592,18 +598,14 @@
                     const encodedProps = encodeURIComponent(JSON.stringify(componentProperties));
                     const iframeUrlWithTheme = `${sessionData.iframeUrl}&themeTokens=${encodedTheme}&componentProperties=${encodedProps}&hostedExperienceType=${encodeURIComponent(experienceType)}`;
                     
-                    // Get iframe HTML
-                    const embedResponse = await fetch(`/embed?url=${encodeURIComponent(iframeUrlWithTheme)}`);
-                    const embedData = await embedResponse.json();
-                    
-                                         if (embedData.html) {
-                         // Show iframe below success message
-                         setTimeout(() => {
-                             showIframe(embedData.html);
-                         }, 800);
-                     } else {
-                         throw new Error('Failed to load embedded experience');
-                     }
+                    if (new URL(iframeUrlWithTheme).protocol !== 'https:') {
+                        throw new Error('Embedded UI URL must use https');
+                    }
+
+                    // Show iframe below success message
+                    setTimeout(() => {
+                        showIframe(iframeUrlWithTheme);
+                    }, 800);
                     
                 } else {
                     throw new Error(sessionData.error || 'Unknown error occurred');
