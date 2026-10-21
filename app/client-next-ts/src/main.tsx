@@ -49,6 +49,13 @@ async function enableMocking() {
 
     // Prefetches bundled PDF for document mocks before the worker registers (`msw/browser.ts`).
     await startShowcaseMocks();
+
+    if (import.meta.env.DEV) {
+      const { MswHealthIndicator } = await import('./msw/MswHealthIndicator');
+      const indicatorRoot = document.createElement('div');
+      document.body.appendChild(indicatorRoot);
+      ReactDOM.createRoot(indicatorRoot).render(<MswHealthIndicator />);
+    }
   } catch (error) {
     console.warn('MSW failed to start:', error);
     // Continue anyway - app should work without MSW in development
