@@ -427,8 +427,9 @@
                 if (data.success) {
                     successEl.innerHTML = `
                         <strong>\u2705 Client Created!</strong><br>
-                        <span class="text-sm">Client ID: <strong>${data.clientId}</strong> (auto-filled below)</span>
+                        <span class="text-sm">Client ID: <strong data-value></strong> (auto-filled below)</span>
                     `;
+                    successEl.querySelector('[data-value]').textContent = data.clientId;
                     successEl.classList.remove('hidden');
 
                     // Auto-fill the Client ID field
@@ -439,8 +440,9 @@
             } catch (error) {
                 errorEl.innerHTML = `
                     <strong>\u274c Error Creating Client</strong><br>
-                    <span class="text-sm">${error.message}</span>
+                    <span class="text-sm" data-value></span>
                 `;
+                errorEl.querySelector('[data-value]').textContent = error.message;
                 errorEl.classList.remove('hidden');
             } finally {
                 createBtn.disabled = false;
@@ -570,8 +572,9 @@
                     // Show success message briefly
                     successMessage.innerHTML = `
                         <strong>✅ Session Created Successfully!</strong><br>
-                        <span class="text-sm">Session ID: ${sessionData.sessionId}</span>
+                        <span class="text-sm">Session ID: <span data-value></span></span>
                     `;
+                    successMessage.querySelector('[data-value]').textContent = sessionData.sessionId;
                     successMessage.classList.remove('hidden');
                     
                     // Build iframe URL with theme overrides
@@ -615,8 +618,9 @@
                 console.error('Error:', error);
                 errorMessage.innerHTML = `
                     <strong>❌ Error Creating Session</strong><br>
-                    <span class="text-sm">${error.message || 'Please check your certificate configuration and try again.'}</span>
+                    <span class="text-sm" data-value></span>
                 `;
+                errorMessage.querySelector('[data-value]').textContent = error.message || 'Please check your certificate configuration and try again.';
                 errorMessage.classList.remove('hidden');
             } finally {
                 // Hide loading state

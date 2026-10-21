@@ -8,8 +8,24 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '127.0.0.1';
+const ALLOWED_HOSTNAMES = new Set([
+  'localhost',
+  '127.0.0.1',
+  '[::1]',
+  ...(process.env.ALLOWED_HOSTS || '')
+    .split(',')
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean),
+]);
 
 // Middleware
+// A DNS-rebinding page sends its own domain as Host, so unknown hosts are refused
+app.use((req, res, next) => {
+  if (ALLOWED_HOSTNAMES.has(req.hostname)) {
+    return next();
+  }
+  res.status(403).json({ error: 'Host not allowed' });
+});
 app.use(express.json());
 app.use(express.static('public'));
 

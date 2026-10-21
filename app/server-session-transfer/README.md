@@ -65,6 +65,9 @@ Each experience type renders a different embedded UI within the iframe targeting
    # Interface to listen on (loopback only by default, see Security notes)
    HOST=127.0.0.1
    
+   # Extra host names or IPs allowed in the Host header (localhost is always allowed)
+   ALLOWED_HOSTS=
+   
    # JPMorgan Embedded UI Base URL
    EMBEDDED_UI_BASE_URL=https://concourse-test.jpmorgan.com
    ```
@@ -458,7 +461,8 @@ server-session-transfer/
 
 ### Local-only by default
 - The server listens on `127.0.0.1`. `/clients` and `/sessions` have no authentication and act with your certificate, so anyone who can reach the port can use them.
-- Set `HOST=0.0.0.0` only on a machine nobody else can reach, and add your own authentication before exposing it anywhere.
+- Set `HOST=0.0.0.0` only on a machine nobody else can reach, and add your own authentication before exposing it anywhere. Add the host name or IP you browse to into `ALLOWED_HOSTS`.
+- Requests whose `Host` header is not `localhost`, `127.0.0.1`, `[::1]` or in `ALLOWED_HOSTS` get `403`, which blocks DNS-rebinding attacks from other websites.
 - Request bodies must be JSON, so other websites cannot post forms to your local server.
 
 ### Certificate Management
