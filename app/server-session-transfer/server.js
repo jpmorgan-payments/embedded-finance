@@ -7,10 +7,26 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '127.0.0.1';
+const ALLOWED_HOSTNAMES = new Set([
+  'localhost',
+  '127.0.0.1',
+  '[::1]',
+  ...(process.env.ALLOWED_HOSTS || '')
+    .split(',')
+    .map((name) => name.trim().toLowerCase())
+    .filter(Boolean),
+]);
 
 // Middleware
+// A DNS-rebinding page sends its own domain as Host, so unknown hosts are refused
+app.use((req, res, next) => {
+  if (ALLOWED_HOSTNAMES.has(req.hostname)) {
+    return next();
+  }
+  res.status(403).json({ error: 'Host not allowed' });
+});
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 /**
@@ -38,8 +54,7 @@ function createHttpsAgent() {
     // Create HTTPS agent with the certificate
     return new https.Agent({
       pfx: pfx,
-      passphrase: certPassword,
-      rejectUnauthorized: false // Set to true in production
+      passphrase: certPassword
     });
   } catch (error) {
     console.error('Error creating HTTPS agent:', error.message);
@@ -83,7 +98,7 @@ async function createEmbeddedSession(clientId) {
       }
     );
 
-    console.log('Session created successfully:', response.data);
+    console.log('Session created successfully:', response.data.id);
     return response.data;
   } catch (error) {
     console.error('Error creating session:', error.response?.data || error.message);
@@ -134,7 +149,7 @@ async function createClient({ organizationName, organizationType }) {
       }
     );
 
-    console.log('Client created successfully:', response.data);
+    console.log('Client created successfully:', response.data.id);
     return response.data;
   } catch (error) {
     console.error('Error creating client:', error.response?.data || error.message);
@@ -218,6 +233,9 @@ app.post('/sessions', async (req, res) => {
     
     // Extract base URL from sessionData.url for utility library
     const urlObj = new URL(sessionData.url);
+    if (urlObj.protocol !== 'https:') {
+      throw new Error(`Unexpected embedded UI URL protocol: ${urlObj.protocol}`);
+    }
     const baseUrl = `${urlObj.protocol}//${urlObj.host}`;
     
     // Return session data (including token and baseUrl for utility library)
@@ -238,33 +256,8 @@ app.post('/sessions', async (req, res) => {
   }
 });
 
-/**
- * Route: GET /embed
- * Returns the iframe HTML content for embedding in the same window
- */
-app.get('/embed', (req, res) => {
-  const { url } = req.query;
-  
-  if (!url) {
-    return res.status(400).json({ error: 'Missing iframe URL parameter' });
-  }
-
-  const html = `
-    <iframe 
-      src="${url}" 
-      title="Embedded Finance Onboarding"
-      class="embedded-iframe"
-      sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
-      scrolling="auto"
-      frameborder="0"
-    ></iframe>
-  `;
-  
-  res.json({ html });
-});
-
-// Start server
-app.listen(PORT, () => {
+// Start server (loopback only by default: the endpoints act with your certificate and have no auth)
+app.listen(PORT, HOST, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📝 Open your browser and navigate to the URL above to test the embedded finance experience`);
   console.log(`🔐 Make sure your .env file is configured with your p12 certificate details`);

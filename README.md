@@ -22,10 +22,6 @@ React application demonstrating component usage. Built with Vite, React 18, Type
 
 Main demo: `/sellsense-demo`
 
-### [API Server](./app/server/)
-
-Express server for proxying requests to J.P. Morgan APIs.
-
 ### [Session Transfer Demo](./app/server-session-transfer/)
 
 Demo for partially hosted (drop-in) embedded components integration using session transfer API.

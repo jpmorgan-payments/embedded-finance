@@ -32,7 +32,6 @@ Before generating component code, review the architecture document for:
 │   │                        # - Features SellSense marketplace demo
 │   │                        # - Uses MSW for API mocking
 │   ├── client/             # Legacy/archived showcase (minimal content)
-│   ├── server/             # API server for J.P. Morgan Sandbox/UAT APIs
 │   └── server-session-transfer/  # Session transfer demo for partially hosted onboarding
 ```
 
@@ -57,7 +56,6 @@ Before generating component code, review the architecture document for:
   - **Note**: This app **consumes** embedded-components. Component development happens in `embedded-components/`.
   - **Code quality**: `npm test` · `npm run format:check` / `npm run format` · `npm run health-check`
 - **app/client**: Legacy/archived showcase (minimal content, not actively maintained)
-- **app/server**: Express server for proxying requests to J.P. Morgan Sandbox/UAT APIs (sandbox uses OAuth2, UAT uses certificate authentication)
 - **app/server-session-transfer**: Demo application for partially hosted onboarding integration pattern
 
 ## Additional Resources
