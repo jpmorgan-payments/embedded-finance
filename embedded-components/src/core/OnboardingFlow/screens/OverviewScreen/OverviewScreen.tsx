@@ -59,6 +59,8 @@ import {
   useSaveDeltaPendingFields,
 } from '@/core/OnboardingFlow/screens/ReviewAndAttestSectionForms/ReviewForm/DeltaPendingFieldsPanel';
 import {
+  clientHasRequestedDocuments,
+  clientHasRequestedQuestions,
   getOrganizationParty,
   getPartyByAssociatedPartyFilters,
 } from '@/core/OnboardingFlow/utils/dataUtils';
@@ -92,16 +94,85 @@ const getReviewInProgressDescriptionKey = (
 };
 
 /**
+ * Resolve the information-requested description key from what the request
+ * still needs (documents, questions, or both). Approved clients get copy that
+ * confirms they stay verified rather than suggesting verification is in trouble.
+ */
+const getInformationRequestedDescriptionKey = (
+  hasRequestedDocuments: boolean,
+  hasRequestedQuestions: boolean,
+  isApproved: boolean
+) => {
+  if (isApproved) {
+    if (hasRequestedDocuments && hasRequestedQuestions) {
+      return 'screens.overview.verifyBusinessSection.approved.informationRequested.documentsAndQuestions';
+    }
+    if (hasRequestedQuestions) {
+      return 'screens.overview.verifyBusinessSection.approved.informationRequested.questions';
+    }
+    return 'screens.overview.verifyBusinessSection.approved.informationRequested.documents';
+  }
+  if (hasRequestedDocuments && hasRequestedQuestions) {
+    return 'screens.overview.verifyBusinessSection.informationRequested.documentsAndQuestions';
+  }
+  if (hasRequestedQuestions) {
+    return 'screens.overview.verifyBusinessSection.informationRequested.questions';
+  }
+  return 'screens.overview.verifyBusinessSection.informationRequested.description';
+};
+
+/**
+ * Explains what an open information request still needs. During review it is
+ * a warning; for an approved client it is informational, since the account
+ * stays active.
+ */
+const InformationRequestedAlert = ({
+  hasRequestedDocuments,
+  hasRequestedQuestions,
+  isApproved,
+}: {
+  hasRequestedDocuments: boolean;
+  hasRequestedQuestions: boolean;
+  isApproved: boolean;
+}) => {
+  const { t } = useTranslationWithTokens(['onboarding-overview']);
+  const Icon = isApproved ? InfoIcon : AlertTriangleIcon;
+  return (
+    <Alert
+      variant={isApproved ? 'informative' : 'warning'}
+      density="sm"
+      className="eb-mb-6"
+      noTitle
+    >
+      <Icon className="eb-size-4" />
+      <AlertDescription>
+        {t(
+          getInformationRequestedDescriptionKey(
+            hasRequestedDocuments,
+            hasRequestedQuestions,
+            isApproved
+          )
+        )}
+      </AlertDescription>
+    </Alert>
+  );
+};
+
+/**
  * Status-driven informational/warning alerts for the Verify Business section.
  */
 const VerifyBusinessStatusAlerts = ({
   status,
   docRequestsClosed,
   hasAnyDocumentRequests,
+  hasRequestedDocuments,
+  hasRequestedQuestions,
 }: {
   status: string | undefined;
   docRequestsClosed: boolean;
   hasAnyDocumentRequests: boolean;
+  hasRequestedDocuments: boolean;
+  hasRequestedQuestions: boolean;
 }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
 
@@ -119,15 +190,26 @@ const VerifyBusinessStatusAlerts = ({
   }
 
   if (status === 'INFORMATION_REQUESTED') {
+    // Everything requested has been provided; the status flips back to
+    // REVIEW_IN_PROGRESS once the review team picks it up.
+    if (!hasRequestedDocuments && !hasRequestedQuestions) {
+      return (
+        <Alert variant="informative" density="sm" className="eb-mb-6" noTitle>
+          <Clock9Icon className="eb-size-4" />
+          <AlertDescription>
+            {t(
+              'screens.overview.verifyBusinessSection.informationRequested.responseReceived'
+            )}
+          </AlertDescription>
+        </Alert>
+      );
+    }
     return (
-      <Alert variant="warning" density="sm" className="eb-mb-6" noTitle>
-        <AlertTriangleIcon className="eb-size-4" />
-        <AlertDescription>
-          {t(
-            'screens.overview.verifyBusinessSection.informationRequested.description'
-          )}
-        </AlertDescription>
-      </Alert>
+      <InformationRequestedAlert
+        hasRequestedDocuments={hasRequestedDocuments}
+        hasRequestedQuestions={hasRequestedQuestions}
+        isApproved={false}
+      />
     );
   }
 
@@ -143,6 +225,15 @@ const VerifyBusinessStatusAlerts = ({
   }
 
   if (status === 'APPROVED') {
+    if (hasRequestedDocuments || hasRequestedQuestions) {
+      return (
+        <InformationRequestedAlert
+          hasRequestedDocuments={hasRequestedDocuments}
+          hasRequestedQuestions={hasRequestedQuestions}
+          isApproved
+        />
+      );
+    }
     return (
       <Alert variant="success" density="sm" noTitle>
         <CheckIcon className="eb-size-4" />
@@ -573,12 +664,14 @@ function pickTouchedLeaves(value: unknown, touched: unknown): unknown {
  */
 function resolveDeltaAvailability(args: {
   deltaModeActive: boolean;
+  isClientSubmitted: boolean;
   deltaBaselineGroups: readonly unknown[];
   deltaOutstandingQuestionIds: readonly unknown[];
   sessionOverviewViewMode: 'delta' | 'full' | undefined;
 }): { deltaAvailable: boolean; overviewViewMode: 'delta' | 'full' } {
   const {
     deltaModeActive,
+    isClientSubmitted,
     deltaBaselineGroups,
     deltaOutstandingQuestionIds,
     sessionOverviewViewMode,
@@ -586,7 +679,9 @@ function resolveDeltaAvailability(args: {
 
   const hasDeltaItems =
     deltaBaselineGroups.length > 0 || deltaOutstandingQuestionIds.length > 0;
-  const deltaAvailable = deltaModeActive && hasDeltaItems;
+  // Delta mode is latched for the session, but once the client is submitted
+  // any outstanding questions belong to an information request instead.
+  const deltaAvailable = deltaModeActive && !isClientSubmitted && hasDeltaItems;
   const overviewViewMode: 'delta' | 'full' = deltaAvailable
     ? (sessionOverviewViewMode ?? 'delta')
     : 'full';
@@ -634,6 +729,7 @@ export const OverviewScreen = () => {
 
   const { deltaAvailable, overviewViewMode } = resolveDeltaAvailability({
     deltaModeActive,
+    isClientSubmitted: !!clientData?.status && clientData.status !== 'NEW',
     deltaBaselineGroups,
     deltaOutstandingQuestionIds,
     sessionOverviewViewMode: sessionData.overviewViewMode,
@@ -816,6 +912,10 @@ export const OverviewScreen = () => {
     (docRequest) => docRequest.status === 'ACTIVE'
   );
   const docRequestsClosed = !hasOutstandingDocRequests;
+  const hasRequestedDocuments = clientHasRequestedDocuments(clientData);
+  const hasRequestedQuestions = clientHasRequestedQuestions(clientData);
+  const hasOpenInformationRequest =
+    hasRequestedDocuments || hasRequestedQuestions;
 
   const verifyBusinessSectionTitleKey = useMemo(() => {
     const status = clientData?.status;
@@ -823,7 +923,9 @@ export const OverviewScreen = () => {
       return 'screens.overview.verifyBusinessSection.title' as const;
     }
     if (status === 'APPROVED') {
-      return 'screens.overview.verifyBusinessSection.approved.title' as const;
+      return hasOpenInformationRequest
+        ? ('screens.overview.verifyBusinessSection.approved.informationRequested.title' as const)
+        : ('screens.overview.verifyBusinessSection.approved.title' as const);
     }
     if (status === 'DECLINED') {
       return 'screens.overview.verifyBusinessSection.declined.title' as const;
@@ -838,7 +940,12 @@ export const OverviewScreen = () => {
       return 'screens.overview.verifyBusinessSection.applicationSubmitted.title' as const;
     }
     return 'screens.overview.verifyBusinessSection.title' as const;
-  }, [clientData?.status, docRequestsClosed, hasAnyDocumentRequests]);
+  }, [
+    clientData?.status,
+    docRequestsClosed,
+    hasAnyDocumentRequests,
+    hasOpenInformationRequest,
+  ]);
 
   return (
     <StepLayout
@@ -1008,6 +1115,8 @@ export const OverviewScreen = () => {
                   status={clientData?.status}
                   docRequestsClosed={docRequestsClosed}
                   hasAnyDocumentRequests={hasAnyDocumentRequests}
+                  hasRequestedDocuments={hasRequestedDocuments}
+                  hasRequestedQuestions={hasRequestedQuestions}
                 />
 
                 <div className="eb-space-y-3">

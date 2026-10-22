@@ -54,7 +54,7 @@ export const Active: Story = {
 };
 
 /**
- * Waiting for microdeposits to arrive (1-2 business days).
+ * Waiting for microdeposits to arrive (3-5 business days).
  * User cannot take action yet - just needs to wait for JPMorgan deposits.
  */
 export const PendingMicrodeposits: Story = {

@@ -379,6 +379,88 @@ describe('DocumentUploadScreen', () => {
     });
   });
 
+  describe('information request questions', () => {
+    const informationRequestedWithQuestions: Partial<ClientResponse> = {
+      status: 'INFORMATION_REQUESTED',
+      outstanding: {
+        ...mockClient.outstanding,
+        questionIds: ['30158'],
+      },
+    };
+
+    test('links to the questions screen alongside document requests', async () => {
+      const goToMock = vi.fn();
+      renderDocumentUploadScreen({
+        client: informationRequestedWithQuestions,
+        flow: { goTo: goToMock },
+      });
+
+      await waitForDocumentListReady();
+      expect(
+        screen.getByRole('heading', { name: /questions for you/i })
+      ).toBeInTheDocument();
+
+      await user.click(
+        screen.getByRole('button', { name: /answer questions/i })
+      );
+      expect(goToMock).toHaveBeenCalledWith('requested-questions-section');
+    });
+
+    test('questions-only request shows the questions card instead of an error', async () => {
+      renderDocumentUploadScreen({
+        client: informationRequestedWithQuestions,
+        documentRequests: [],
+      });
+
+      expect(
+        await screen.findByRole('button', { name: /answer questions/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/no document requests found/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('heading', { name: /for the business/i })
+      ).not.toBeInTheDocument();
+    });
+
+    test('approved client with an open request sees requested documents and questions', async () => {
+      renderDocumentUploadScreen({
+        client: {
+          status: 'APPROVED',
+          outstanding: {
+            ...mockClient.outstanding,
+            documentRequestIds: [DOC_REQ.businessActive],
+            questionIds: ['30158'],
+          },
+        },
+      });
+
+      await waitForDocumentListReady();
+      expect(
+        screen.getByRole('button', { name: /answer questions/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/your onboarding has been approved/i)
+      ).not.toBeInTheDocument();
+    });
+
+    test('no questions card outside an information request', async () => {
+      renderDocumentUploadScreen({
+        client: {
+          outstanding: { ...mockClient.outstanding, questionIds: ['30005'] },
+        },
+      });
+
+      // Onboarding (NEW) questions are handled in the main flow instead.
+      expect(
+        (await screen.findAllByText(/outstanding items/i)).length
+      ).toBeGreaterThan(0);
+      expect(
+        screen.queryByRole('button', { name: /answer questions/i })
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe('status and error messages', () => {
     test('REVIEW_IN_PROGRESS', async () => {
       renderDocumentUploadScreen({ client: { status: 'REVIEW_IN_PROGRESS' } });

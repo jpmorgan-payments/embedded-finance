@@ -21,6 +21,7 @@ generated using `npx markdown-toc -i DIGITAL_ONBOARDING_RECIPE.md`
     - [Hooks](#hooks-1)
     - [Update Party specifics](#update-party-specifics)
     - [Create utils to map API data to form data and vice versa](#create-utils-to-map-api-data-to-form-data-and-vice-versa)
+    - [Address state and postal code](#address-state-and-postal-code)
     - [UX Best Practices](#ux-best-practices-1)
   - [Steps 3 & 4: Business Owners and Decision Makers](#steps-3--4-business-owners-and-decision-makers)
     - [API Operations](#api-operations-2)
@@ -377,6 +378,48 @@ export function setApiFormErrors(
   }
 }
 ```
+
+### Address state and postal code
+
+Every party address requires `addressLines`, `city`, `country`, `state` and
+`postalCode`. Countries differ in how those last two can be filled:
+
+- **State must be a supported subdivision code.** SMBDO validates `state`
+  against its subdivision list for the address `country`, case-insensitively.
+  Omitting `state` or sending free text such as `ENG` for GB returns a
+  `400` with code `10104` on `...addresses[n].state`. Offer a picker of
+  supported codes rather than a free-text field.
+- **Some countries have only one subdivision, their own country code** (for
+  example HK or SG). Send the country code as `state` and skip the state
+  question in your UI.
+- **Some countries have no postal codes.** `"n/a"` is the supported
+  `postalCode` value for them. For HK, AE and QA, send `"postalCode": "n/a"`
+  and hide the postal code field. Do not send `n/a` for US or CA; it is
+  rejected with `10104` on `postalCode`. Accepting `n/a` does not mean a
+  country lacks postal codes, so only apply it to countries known not to use
+  them.
+- **Some countries currently have no supported subdivisions** (AX, BL, BQ, CW,
+  GG, IM, JE, ME, MF, PS, RS, SS, SX, TL, UM). Every `state` value is
+  rejected for them, so addresses in these countries cannot be saved yet.
+  Surface the `state` error from the API rather than retrying.
+
+Example address for Hong Kong:
+
+```json
+{
+  "addressType": "BUSINESS_ADDRESS",
+  "addressLines": ["1 Queen's Road Central"],
+  "city": "Central",
+  "state": "HK",
+  "postalCode": "n/a",
+  "country": "HK"
+}
+```
+
+See
+[Address Reference Data](./DIGITAL_ONBOARDING_FLOW_RECIPE.md#address-reference-data)
+in the OnboardingFlow recipe for the full per-country table used by the
+embedded components.
 
 ### UX Best Practices
 

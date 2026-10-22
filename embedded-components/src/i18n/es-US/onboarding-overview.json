@@ -243,6 +243,11 @@
     "addAnotherDocument": "Agregar otro documento",
     "documentType": "Tipo de documento",
     "removeDocument": "Quitar documento {{number}}",
+    "requestedQuestions": {
+      "title": "Preguntas para usted",
+      "description": "También necesitamos respuestas a algunas preguntas sobre su negocio.",
+      "answerQuestions": "Responder preguntas"
+    },
     "partyCard": {
       "statusLabels": {
         "pending": "Pendiente",
@@ -431,7 +436,10 @@
           "description": "Espere mientras revisamos su solicitud. Este proceso generalmente toma de 1 a 2 días hábiles."
         },
         "informationRequested": {
-          "description": "Estamos teniendo dificultades para verificar su negocio. Proporcione documentación de respaldo."
+          "description": "Estamos teniendo dificultades para verificar su negocio. Proporcione documentación de respaldo.",
+          "questions": "Necesitamos un poco más de información para verificar su negocio. Responda las preguntas a continuación.",
+          "documentsAndQuestions": "Necesitamos un poco más de información para verificar su negocio. Responda las preguntas y proporcione los documentos de respaldo a continuación.",
+          "responseReceived": "Gracias, hemos recibido todo lo que solicitamos. Lo estamos revisando y le informaremos si necesitamos algo más."
         },
         "declined": {
           "title": "Solicitud rechazada",
@@ -439,7 +447,13 @@
         },
         "approved": {
           "title": "¡Verificación del negocio completada!",
-          "description": "Los datos de su negocio han sido verificados"
+          "description": "Los datos de su negocio han sido verificados",
+          "informationRequested": {
+            "title": "Necesitamos algunos datos más",
+            "documents": "Su negocio sigue verificado y su cuenta permanece activa. Para mantener actualizada la información de su negocio, proporcione los documentos de respaldo a continuación.",
+            "questions": "Su negocio sigue verificado y su cuenta permanece activa. Para mantener actualizada la información de su negocio, responda las preguntas a continuación.",
+            "documentsAndQuestions": "Su negocio sigue verificado y su cuenta permanece activa. Para mantener actualizada la información de su negocio, responda las preguntas y proporcione los documentos de respaldo a continuación."
+          }
         },
         "businessTypeLabel": "Su tipo de negocio seleccionado",
         "ptcLabel": "Empresa que cotiza en bolsa",
@@ -649,6 +663,20 @@
       "label": "Documentos de respaldo",
       "onHoldText": "Le informaremos si se necesitan documentos"
     },
+    "requestedQuestionsSection": {
+      "label": "Información adicional",
+      "requirementsList": [
+        "Respuestas a las preguntas de nuestro equipo de revisión"
+      ]
+    },
+    "requestedQuestions": {
+      "title": "Información adicional",
+      "description": "Nuestro equipo de revisión necesita respuestas a las siguientes preguntas sobre su negocio.",
+      "submit": "Enviar respuestas",
+      "submitAndContinue": "Enviar respuestas y continuar a los documentos",
+      "noQuestions": "No hay preguntas pendientes de respuesta.",
+      "followUpQuestions": "Según sus respuestas, necesitamos un poco más de información. Responda las nuevas preguntas a continuación."
+    },
     "operationalDetails": {
       "title": "Detalles operativos",
       "description": "Responda estas preguntas adicionales para ayudarnos a comprender las operaciones de su negocio.",
@@ -667,7 +695,9 @@
       "invalidFormat": "Formato no válido",
       "numberFormat": "Debe ser un número",
       "wholeNumber": "Ingrese un monto en dólares enteros (sin centavos)",
-      "maxItems": "No puede exceder {{maxItems}} elementos"
+      "maxItems": "No puede exceder {{maxItems}} elementos",
+      "minLength": "Ingrese al menos {{minLength}} caracteres",
+      "maxLength": "Ingrese como máximo {{maxLength}} caracteres"
     }
   },
   "fields": {

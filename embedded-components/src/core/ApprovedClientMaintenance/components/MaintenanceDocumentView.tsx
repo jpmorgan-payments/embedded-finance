@@ -107,23 +107,6 @@ export function MaintenanceDocumentView({
         ) : null}
       </header>
 
-      {documentDescription ? (
-        <section
-          aria-labelledby="document-upload-guidance-heading"
-          className="eb-border-b eb-bg-informative-accent/40 eb-px-4 eb-py-3 @[40rem]:eb-px-5"
-        >
-          <h3
-            id="document-upload-guidance-heading"
-            className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-informative"
-          >
-            {t('document.uploadGuidance')}
-          </h3>
-          <div className="eb-mt-1.5 eb-text-sm eb-leading-6 eb-text-foreground [&>*:last-child]:eb-mb-0">
-            {formatDocumentDescription(documentDescription)}
-          </div>
-        </section>
-      ) : null}
-
       {documentRequestQuery.isPending ? (
         <div className="eb-space-y-3 eb-p-4">
           <Skeleton className="eb-h-6 eb-w-48" />
@@ -137,6 +120,24 @@ export function MaintenanceDocumentView({
         <DocumentUploadRequestForm
           documentRequest={uploadDocumentRequest}
           maxFileSizeBytes={maxFileSizeBytes}
+          intro={
+            documentDescription ? (
+              <section
+                aria-labelledby="document-upload-guidance-heading"
+                className="eb-border-b eb-bg-muted/20 eb-px-4 eb-py-3 @[40rem]:eb-px-5"
+              >
+                <h3
+                  id="document-upload-guidance-heading"
+                  className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-informative"
+                >
+                  {t('document.uploadGuidance')}
+                </h3>
+                <div className="eb-mt-1.5 eb-text-sm eb-leading-6 eb-text-foreground [&>*:last-child]:eb-mb-0">
+                  {formatDocumentDescription(documentDescription)}
+                </div>
+              </section>
+            ) : undefined
+          }
           onCancel={onBack}
           onComplete={onComplete}
         />

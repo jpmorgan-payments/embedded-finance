@@ -243,6 +243,11 @@
     "addAnotherDocument": "Ajouter un autre document",
     "documentType": "Type de document",
     "removeDocument": "Retirer le document {{number}}",
+    "requestedQuestions": {
+      "title": "Questions pour vous",
+      "description": "Nous avons aussi besoin de réponses à quelques questions au sujet de votre entreprise.",
+      "answerQuestions": "Répondre aux questions"
+    },
     "partyCard": {
       "statusLabels": {
         "pending": "En attente",
@@ -431,7 +436,10 @@
           "description": "Veuillez patienter pendant que nous examinons votre demande. Ce processus prend généralement 1 à 2 jours ouvrables."
         },
         "informationRequested": {
-          "description": "Nous avons de la difficulté à vérifier votre entreprise. Veuillez fournir des documents justificatifs."
+          "description": "Nous avons de la difficulté à vérifier votre entreprise. Veuillez fournir des documents justificatifs.",
+          "questions": "Nous avons besoin d'un peu plus d'information pour vérifier votre entreprise. Veuillez répondre aux questions ci-dessous.",
+          "documentsAndQuestions": "Nous avons besoin d'un peu plus d'information pour vérifier votre entreprise. Veuillez répondre aux questions et fournir les documents justificatifs ci-dessous.",
+          "responseReceived": "Merci, nous avons reçu tout ce que nous avons demandé. Nous l'examinons et nous vous informerons si nous avons besoin d'autre chose."
         },
         "declined": {
           "title": "Demande refusée",
@@ -439,7 +447,13 @@
         },
         "approved": {
           "title": "Vérification de l’entreprise terminée!",
-          "description": "Les renseignements de votre entreprise ont été vérifiés"
+          "description": "Les renseignements de votre entreprise ont été vérifiés",
+          "informationRequested": {
+            "title": "Il nous faut quelques renseignements de plus",
+            "documents": "Votre entreprise est toujours vérifiée et votre compte reste actif. Pour garder les renseignements de votre entreprise à jour, veuillez fournir les documents justificatifs ci-dessous.",
+            "questions": "Votre entreprise est toujours vérifiée et votre compte reste actif. Pour garder les renseignements de votre entreprise à jour, veuillez répondre aux questions ci-dessous.",
+            "documentsAndQuestions": "Votre entreprise est toujours vérifiée et votre compte reste actif. Pour garder les renseignements de votre entreprise à jour, veuillez répondre aux questions et fournir les documents justificatifs ci-dessous."
+          }
         },
         "businessTypeLabel": "Votre type d'entreprise sélectionné",
         "ptcLabel": "Société cotée en bourse",
@@ -649,6 +663,20 @@
       "label": "Documents justificatifs",
       "onHoldText": "Nous vous informerons si des documents sont nécessaires"
     },
+    "requestedQuestionsSection": {
+      "label": "Renseignements supplémentaires",
+      "requirementsList": [
+        "Réponses aux questions de notre équipe d'examen"
+      ]
+    },
+    "requestedQuestions": {
+      "title": "Renseignements supplémentaires",
+      "description": "Notre équipe d'examen a besoin de réponses aux questions suivantes au sujet de votre entreprise.",
+      "submit": "Envoyer les réponses",
+      "submitAndContinue": "Envoyer les réponses et passer aux documents",
+      "noQuestions": "Aucune question n'attend votre réponse.",
+      "followUpQuestions": "En fonction de vos réponses, nous avons besoin d'un peu plus d'information. Veuillez répondre aux nouvelles questions ci-dessous."
+    },
     "operationalDetails": {
       "title": "Détails opérationnels",
       "description": "Veuillez répondre à ces questions supplémentaires pour nous aider à comprendre les opérations de votre entreprise.",
@@ -667,7 +695,9 @@
       "invalidFormat": "Format invalide",
       "numberFormat": "Doit être un nombre",
       "wholeNumber": "Saisissez un montant en dollars entiers (sans cents)",
-      "maxItems": "Ne peut pas dépasser {{maxItems}} éléments"
+      "maxItems": "Ne peut pas dépasser {{maxItems}} éléments",
+      "minLength": "Saisissez au moins {{minLength}} caractères",
+      "maxLength": "Saisissez au plus {{maxLength}} caractères"
     }
   },
   "fields": {

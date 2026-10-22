@@ -10,9 +10,14 @@ import { Button } from '@/components/ui/button';
 import { FormLoadingState, StepLayout } from '@/core/OnboardingFlow/components';
 import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext';
 import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingContext';
+import {
+  clientHasRequestedDocuments,
+  clientHasRequestedQuestions,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { DocumentRequestsSection } from './DocumentRequestsSection';
 import { groupDocumentRequests } from './documentUtils';
+import { RequestedQuestionsCard } from './RequestedQuestionsCard';
 import { StatusMessages } from './StatusMessages';
 
 /**
@@ -45,6 +50,7 @@ export const DocumentUploadScreen: FC = () => {
 
   const documentRequests = documentRequestListResponse?.documentRequests;
   const hasDocumentRequests = !!documentRequests?.length;
+  const hasRequestedQuestions = clientHasRequestedQuestions(clientData);
 
   // Refetch client data when document requests change to ensure client status is up-to-date
   useEffect(() => {
@@ -85,6 +91,8 @@ export const DocumentUploadScreen: FC = () => {
       clientStatus: clientData?.status,
       documentRequestStatus: documentRequestGetListStatus,
       hasDocumentRequests,
+      hasRequestedQuestions,
+      hasRequestedDocuments: clientHasRequestedDocuments(clientData),
       clientOutstanding: clientData?.outstanding,
     });
 
@@ -112,9 +120,22 @@ export const DocumentUploadScreen: FC = () => {
     const { businessDocumentRequests, individualDocumentRequests } =
       groupDocumentRequests(documentRequests, clientData);
 
+    const requestedQuestionsCard = hasRequestedQuestions ? (
+      <RequestedQuestionsCard
+        onAnswerClick={() => goTo('requested-questions-section')}
+      />
+    ) : null;
+
+    // A questions-only information request has nothing to upload.
+    if (!hasDocumentRequests) {
+      return requestedQuestionsCard;
+    }
+
     // Render document request sections
     return (
       <div className="eb-space-y-6">
+        {requestedQuestionsCard}
+
         {/* Business document requests section */}
         <DocumentRequestsSection
           title={t('onboarding-overview:documentUpload.businessSectionTitle')}
@@ -139,7 +160,8 @@ export const DocumentUploadScreen: FC = () => {
       title={t('onboarding-overview:documentUpload.title')}
       description={
         documentRequestGetListStatus === 'success' &&
-        clientData?.status === 'INFORMATION_REQUESTED' &&
+        (clientData?.status === 'INFORMATION_REQUESTED' ||
+          clientHasRequestedDocuments(clientData)) &&
         hasDocumentRequests
           ? t(
               'onboarding-overview:documentUpload.regulatoryRequirementsDescription'

@@ -58,14 +58,11 @@ describe('DocumentUploadRequestForm', () => {
     const footer = cancelButton.closest('footer');
     expect(footer).toHaveClass('eb-border-t', 'eb-py-3');
     expect(footer).not.toHaveClass('eb--mb-4', '@[40rem]:eb--mb-5');
-    expect(footer?.closest('form')?.parentElement).toHaveClass(
-      'eb-pt-4',
-      '@[40rem]:eb-pt-5'
+    // The footer sits outside the scrolling body so it stays visible.
+    expect(footer?.previousElementSibling).toHaveAttribute(
+      'data-maintenance-page-body'
     );
-    expect(footer?.closest('form')?.parentElement).not.toHaveClass(
-      'eb-p-4',
-      '@[40rem]:eb-p-5'
-    );
+    expect(footer?.previousElementSibling?.contains(resetButton)).toBe(true);
     expect(cancelButton).toHaveClass('eb-border');
     // The only allowed type is shown as a fact, not as a choice.
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
@@ -193,5 +190,31 @@ describe('DocumentUploadRequestForm', () => {
       'BUSINESS_LICENSE',
       'ARTICLES_OF_INCORPORATION',
     ]);
+  });
+
+  test('rejects files over the 2 MB API limit when no limit is passed', async () => {
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+    render(
+      <DocumentUploadRequestForm
+        documentRequest={documentRequest}
+        onCancel={vi.fn()}
+        onComplete={vi.fn()}
+      />
+    );
+
+    const fileInput =
+      document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    await user.upload(
+      fileInput,
+      new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'license.pdf', {
+        type: 'application/pdf',
+      })
+    );
+
+    expect(
+      await screen.findByText(/exceeds the maximum allowed size of 2\.00 MB/)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reset form' })).toBeDisabled();
+    expect(uploadDocument).not.toHaveBeenCalled();
   });
 });

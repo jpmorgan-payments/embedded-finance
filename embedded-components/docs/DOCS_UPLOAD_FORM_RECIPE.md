@@ -77,9 +77,18 @@ interface DocumentRequest {
 ### Document Processing
 
 - Async file uploads with unique request IDs
-- Base64 encoding for document content
+- Files are sent as `multipart/form-data` to `POST /documents`
 - Supports multiple uploads of same document type
 - Only processes ACTIVE document requests
+
+### File Constraints
+
+- Accepted types: PNG, JPEG and PDF (`ACCEPTED_FILE_TYPES`)
+- Maximum size: 2 MB per file, the API limit. Override with `docUploadMaxFileSizeBytes`; larger values are still rejected by the API
+- JPEG/PNG images are compressed in the browser before the size check, so the limit applies to the file that is uploaded. PDFs are not compressed and are checked as selected
+- Oversized files are rejected in the dropzone with an error and never reach the API
+
+See [Upload documents](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/upload-documents).
 
 ### UI Behavior
 

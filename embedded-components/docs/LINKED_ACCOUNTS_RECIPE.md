@@ -25,7 +25,7 @@ sequenceDiagram
     else Microdeposits Required
         E->>B: Initiate microdeposits
         E-->>C: Status: MICRODEPOSITS_INITIATED
-        B-->>C: Microdeposits appear in account (1-3 days)
+        B-->>C: Microdeposits appear in account (3-5 business days)
         C->>+E: POST /recipients/{id}/verify-microdeposit
         E-->>-C: Verification result (VERIFIED or FAILED)
     end
@@ -136,7 +136,7 @@ const { data: recipient } = useGetRecipient(recipientId);
 
 - Display the current verification status to the user.
 - If microdeposits are initiated, clearly explain the process and next steps to the user.
-- Provide an estimated timeframe for when microdeposits will appear (1-3 days).
+- Provide an estimated timeframe for when microdeposits will appear (3-5 business days).
 
 ### Implementation Example
 
@@ -154,7 +154,7 @@ const VerificationStatus = ({ recipientId }) => {
         <p>
           We've initiated two small deposits to your account for verification.
         </p>
-        <p>These should appear in your account within 1-3 business days.</p>
+        <p>These should appear in your account within 3-5 business days.</p>
         <p>
           Once you see them, please return here to complete the verification
           process.
@@ -183,7 +183,7 @@ const { mutate: verifyMicrodeposits } = useRecipientsVerifications();
 
 - Clearly explain how to find and enter the microdeposit amounts.
 - Use appropriate input validation for currency amounts.
-- Display the number of remaining attempts (max 3).
+- Tell users they have 3 attempts. The response doesn't include a remaining-attempts count; after the third incorrect attempt it returns `FAILED_MAX_ATTEMPTS_EXCEEDED` and the account becomes `REJECTED`.
 - Provide clear feedback on verification success or failure.
 
 ### Implementation Example

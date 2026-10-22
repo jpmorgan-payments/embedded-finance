@@ -5,6 +5,26 @@ import type { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import { createDynamicZodSchema } from './OperationalDetailsForm.schema';
 
 describe('createDynamicZodSchema', () => {
+  test('free-text responses honor minLength and maxLength', () => {
+    const questions: QuestionResponse[] = [
+      {
+        id: '30999',
+        responseSchema: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 1,
+          items: { type: 'string', minLength: 3, maxLength: 10 },
+        },
+      },
+    ];
+    const schema = createDynamicZodSchema(questions);
+    expect(schema.safeParse({ question_30999: ['Retail'] }).success).toBe(true);
+    expect(schema.safeParse({ question_30999: ['ab'] }).success).toBe(false);
+    expect(schema.safeParse({ question_30999: ['a'.repeat(11)] }).success).toBe(
+      false
+    );
+  });
+
   test('DATE_QUESTION_IDS enforce ISO yyyy-mm-dd', () => {
     const questions: QuestionResponse[] = [
       {

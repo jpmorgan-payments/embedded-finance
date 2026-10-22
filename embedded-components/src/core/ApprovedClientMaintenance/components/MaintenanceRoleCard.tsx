@@ -31,10 +31,8 @@ export function MaintenanceRoleCard({
       data-role-state={state}
       className={cn(
         'eb-overflow-hidden eb-rounded-md eb-border eb-border-border eb-bg-background',
-        state === 'pending-addition' &&
-          'eb-border-informative/70 eb-bg-informative-accent/40',
-        state === 'pending-removal' &&
-          'eb-border-destructive/50 eb-bg-destructive-accent/40'
+        state === 'pending-addition' && 'eb-border-informative/50',
+        state === 'pending-removal' && 'eb-border-destructive/50'
       )}
     >
       <div className="eb-flex eb-items-start eb-gap-3 eb-px-4 eb-py-3">
@@ -72,7 +70,7 @@ export function MaintenanceRoleCard({
         </div>
       ) : null}
       {actions ? (
-        <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-end eb-gap-2 eb-border-t eb-border-border eb-bg-muted/15 eb-px-4 eb-py-3">
+        <div className="eb-flex eb-flex-wrap eb-items-center eb-justify-end eb-gap-2 eb-border-t eb-border-border eb-bg-muted/20 eb-px-4 eb-py-3">
           {actions}
         </div>
       ) : null}

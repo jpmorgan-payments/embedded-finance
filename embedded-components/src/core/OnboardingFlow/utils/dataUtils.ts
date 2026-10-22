@@ -163,6 +163,48 @@ export const clientHasOutstandingDocRequests = (
   return hasTopLevelDocRequests || hasPartyDocRequests;
 };
 
+export const clientHasOutstandingQuestions = (
+  clientData: ClientResponse | undefined
+): boolean => (clientData?.outstanding?.questionIds?.length ?? 0) > 0;
+
+/**
+ * Whether the client's status allows a Request for Information (RFI): during
+ * review (`INFORMATION_REQUESTED`) or after approval (status stays `APPROVED`).
+ */
+export const isInformationRequestStatus = (
+  clientData: ClientResponse | undefined
+): boolean =>
+  clientData?.status === 'INFORMATION_REQUESTED' ||
+  clientData?.status === 'APPROVED';
+
+/** Whether an information request is waiting on question answers. */
+export const clientHasRequestedQuestions = (
+  clientData: ClientResponse | undefined
+): boolean =>
+  isInformationRequestStatus(clientData) &&
+  clientHasOutstandingQuestions(clientData);
+
+/** Whether an information request is waiting on document uploads. */
+export const clientHasRequestedDocuments = (
+  clientData: ClientResponse | undefined
+): boolean => {
+  if (clientData?.status === 'INFORMATION_REQUESTED') {
+    return clientHasOutstandingDocRequests(clientData);
+  }
+  // After approval, the RFI is described by the client-level outstanding list.
+  return (
+    clientData?.status === 'APPROVED' &&
+    (clientData.outstanding?.documentRequestIds?.length ?? 0) > 0
+  );
+};
+
+/** Whether the client has an open information request needing user action. */
+export const clientHasOpenInformationRequest = (
+  clientData: ClientResponse | undefined
+): boolean =>
+  clientHasRequestedQuestions(clientData) ||
+  clientHasRequestedDocuments(clientData);
+
 export const convertClientToSoleProprietorship = (
   clientData: ClientResponse | undefined
 ): ClientResponse | undefined => {

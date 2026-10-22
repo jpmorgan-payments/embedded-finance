@@ -1,9 +1,19 @@
 import { useCallback, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
-import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
+import {
+  getSmbdoGetDocumentDetailQueryKey,
+  useSmbdoGetDocumentDetailHook,
+  useSmbdoListDocumentRequests,
+} from '@/api/generated/smbdo';
 import { useEbInstance } from '@/api/use-axios-instance';
+import { useQuestionTree } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/useQuestionTree';
 
 import {
   addLimitedDdaPaymentsProduct,
@@ -14,7 +24,6 @@ import {
   getAllMaintenanceParties,
   getMaintenanceClient,
   getMaintenanceDocumentRequests,
-  getMaintenanceQuestions,
   patchMaintenanceParty,
   patchMaintenancePartyName,
   submitMaintenanceVerification,
@@ -39,6 +48,8 @@ export const getMaintenanceClientQueryKey = (clientId: string) =>
 
 export const getMaintenancePartiesQueryKey = (clientId: string) =>
   ['approved-client-maintenance', 'parties', clientId] as const;
+
+const NO_EXISTING_RESPONSES: never[] = [];
 
 export type MaintenancePartyStep =
   | {
@@ -67,11 +78,33 @@ export function useMaintenanceWorkspace(clientId: string) {
     enabled: Boolean(clientId),
   });
   const questionIds = clientQuery.data?.outstanding?.questionIds ?? [];
-  const questionsQuery = useQuery({
-    queryKey: ['approved-client-maintenance', 'questions', ...questionIds],
-    queryFn: () => getMaintenanceQuestions(request, questionIds),
-    enabled: questionIds.length > 0,
+  // Only outstanding questions; nested ones load as their parents make them outstanding.
+  const questionTree = useQuestionTree({
+    outstandingQuestionIds: questionIds,
+    existingQuestionResponses: NO_EXISTING_RESPONSES,
   });
+  const questionsQuery = {
+    data: questionTree.allQuestions,
+    isPending: questionTree.isLoading,
+    error: questionTree.error,
+  };
+  const getDocumentDetail = useSmbdoGetDocumentDetailHook();
+  const attestationDocumentIds =
+    clientQuery.data?.outstanding?.attestationDocumentIds ?? [];
+  // The type names each document, such as "Ownership Attestation".
+  const attestationDocumentQueries = useQueries({
+    queries: attestationDocumentIds.map((documentId) => ({
+      queryKey: getSmbdoGetDocumentDetailQueryKey(documentId),
+      queryFn: ({ signal }: { signal: AbortSignal }) =>
+        getDocumentDetail(documentId, undefined, signal),
+    })),
+  });
+  const attestationDocuments = attestationDocumentIds.map(
+    (documentId, index) => ({
+      id: documentId,
+      documentType: attestationDocumentQueries[index]?.data?.documentType,
+    })
+  );
   const expectedDocumentRequestIds = [
     ...new Set([
       ...(clientQuery.data?.outstanding?.documentRequestIds ?? []),
@@ -390,6 +423,7 @@ export function useMaintenanceWorkspace(clientId: string) {
     cancelProductAddition: cancelProductAdditionMutation.mutateAsync,
     clientTaskMutation,
     updateClientTasks: clientTaskMutation.mutateAsync,
+    attestationDocuments,
     downloadAttestation,
     cancelMaintenanceMutation,
     cancelChanges,

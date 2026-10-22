@@ -191,6 +191,136 @@ describe('OverviewScreen', () => {
     expect(getVerifyBusinessHeadingText(expected)).toBeInTheDocument();
   });
 
+  describe('INFORMATION_REQUESTED information requests', () => {
+    const buildInformationRequestedClient = (
+      outstanding: Partial<ClientResponse['outstanding']>
+    ): ClientResponse => {
+      const client = buildClient('INFORMATION_REQUESTED');
+      return {
+        ...client,
+        outstanding: { ...client.outstanding, ...outstanding },
+      };
+    };
+
+    const t = (key: string) =>
+      i18n.t(
+        `onboarding-overview:screens.overview.verifyBusinessSection.informationRequested.${key}`
+      );
+
+    test('documents and questions: asks for both and shows both cards', () => {
+      renderOverview({
+        clientData: buildInformationRequestedClient({
+          documentRequestIds: ['68803'],
+          questionIds: ['30158'],
+        }),
+      });
+
+      expect(screen.getByText(t('documentsAndQuestions'))).toBeInTheDocument();
+      expect(
+        screen.getByTestId('requested-questions-section-button')
+      ).toBeEnabled();
+      expect(
+        screen.getByTestId('upload-documents-section-button')
+      ).toBeEnabled();
+      // Onboarding sections stay locked while the request is open.
+      expect(
+        screen.queryByTestId('additional-questions-section-button')
+      ).not.toBeInTheDocument();
+    });
+
+    test('questions only: asks for answers and keeps documents on hold', () => {
+      renderOverview({
+        clientData: buildInformationRequestedClient({
+          questionIds: ['30158'],
+        }),
+      });
+
+      expect(screen.getByText(t('questions'))).toBeInTheDocument();
+      expect(
+        screen.getByTestId('requested-questions-section-button')
+      ).toBeEnabled();
+      expect(
+        screen.getByTestId('upload-documents-section-button')
+      ).toBeDisabled();
+    });
+
+    test('documents only: keeps the supporting documentation copy', () => {
+      renderOverview({
+        clientData: buildInformationRequestedClient({
+          documentRequestIds: ['68803'],
+        }),
+      });
+
+      expect(screen.getByText(t('description'))).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('requested-questions-section-button')
+      ).not.toBeInTheDocument();
+    });
+
+    test('nothing outstanding: confirms the response was received', () => {
+      renderOverview({
+        clientData: buildInformationRequestedClient({}),
+      });
+
+      expect(screen.getByText(t('responseReceived'))).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('requested-questions-section-button')
+      ).not.toBeInTheDocument();
+    });
+
+    test('APPROVED with an open request: one action-needed state, no approval banner', () => {
+      const approved = buildClient('APPROVED');
+      renderOverview({
+        clientData: {
+          ...approved,
+          outstanding: {
+            ...approved.outstanding,
+            documentRequestIds: ['68803'],
+            questionIds: ['30158'],
+          },
+        },
+      });
+
+      expect(
+        getVerifyBusinessHeadingText('We need a few more details')
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('Business Verification Complete!')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          i18n.t(
+            'onboarding-overview:screens.overview.verifyBusinessSection.approved.description'
+          )
+        )
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(
+          i18n.t(
+            'onboarding-overview:screens.overview.verifyBusinessSection.approved.informationRequested.documentsAndQuestions'
+          )
+        )
+      ).toBeInTheDocument();
+      expect(
+        screen.getByTestId('requested-questions-section-button')
+      ).toBeEnabled();
+      expect(
+        screen.getByTestId('upload-documents-section-button')
+      ).toBeEnabled();
+    });
+
+    test('APPROVED without an open request shows no request cards', () => {
+      renderOverview({ clientData: buildClient('APPROVED') });
+
+      expect(
+        screen.queryByTestId('requested-questions-section-button')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('upload-documents-section-button')
+      ).not.toBeInTheDocument();
+    });
+  });
+
   test('APPROVED client shows contextual heading once (no duplicate alert title)', () => {
     renderOverview({
       clientData: buildClient('APPROVED'),

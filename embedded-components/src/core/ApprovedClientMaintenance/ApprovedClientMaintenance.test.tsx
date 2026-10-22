@@ -1,8 +1,17 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import type { DocumentRequestResponse } from '@/api/generated/smbdo.schemas';
+import type {
+  DocumentRequestResponse,
+  QuestionResponse,
+} from '@/api/generated/smbdo.schemas';
 
 import { ApprovedClientMaintenance } from './ApprovedClientMaintenance';
 import type {
@@ -106,12 +115,7 @@ const workspace = {
     refetch: refetchMaintenance,
   },
   questionsQuery: {
-    data: [] as Array<{
-      id?: string;
-      label: string;
-      responseType?: 'enum' | 'string';
-      options?: string[];
-    }>,
+    data: [] as QuestionResponse[],
     error: null as unknown,
     isPending: false,
   },
@@ -154,6 +158,7 @@ const workspace = {
     reset: vi.fn(),
   },
   updateClientTasks,
+  attestationDocuments: [] as Array<{ id: string; documentType?: string }>,
   downloadAttestation,
   addProductMutation: {
     isPending: false,
@@ -297,6 +302,7 @@ const clickOwnershipMenuItem = async (
 describe('ApprovedClientMaintenance', () => {
   beforeEach(() => {
     workspace.clientQuery.data = approvedClient;
+    workspace.attestationDocuments = [];
     workspace.clientQuery.error = null;
     workspace.clientQuery.isError = false;
     workspace.maintenanceQuery.data = { pages: [], parties: [] };
@@ -391,9 +397,11 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       pendingDetailHeading.querySelector('.lucide-pencil-line')
     ).toBeInTheDocument();
+    // Fills are reserved for page banners; the section only colors its label.
     expect(pendingDetailHeading.closest('section')).toHaveClass(
-      'eb-bg-informative-accent/40'
+      'eb-bg-muted/20'
     );
+    expect(pendingDetailHeading).toHaveClass('eb-text-informative');
     expect(screen.getByLabelText('Current value: Doe')).toBeInTheDocument();
     expect(screen.getByLabelText('Pending change: Diaz')).toBeInTheDocument();
     await user.click(
@@ -485,8 +493,7 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
-    expect(screen.getByText('••••••••')).toBeInTheDocument();
-    expect(screen.queryByText('1975-03-12')).not.toBeInTheDocument();
+    expect(screen.getByText('1975-03-12')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Edit details' }));
     await fillImportantDate(user, '1976-04-13');
     await user.click(screen.getByRole('button', { name: 'Save changes' }));
@@ -712,8 +719,10 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.queryByLabelText(/Social security number \(SSN\)/i)
     ).not.toBeInTheDocument();
-    expect(screen.getByText('••••0000')).toBeInTheDocument();
+    expect(screen.getByText('***-**-0000')).toBeInTheDocument();
     expect(screen.queryByText('555110000')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Show value' }));
+    expect(screen.getByText('555-11-0000')).toBeInTheDocument();
   });
 
   test('explains that clearing an optional DBA is not supported', async () => {
@@ -896,7 +905,7 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(screen.getByText('Business profile')).toBeInTheDocument();
-    expect(screen.queryByText('Request ID: request-1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Reference request-1')).not.toBeInTheDocument();
     const pendingSummaryHeading = screen.getByRole('heading', {
       name: 'Draft maintenance request',
     });
@@ -916,7 +925,7 @@ describe('ApprovedClientMaintenance', () => {
     expect(screen.queryByText(/field changed/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
-    expect(screen.getByText('Request ID: request-1')).toBeInTheDocument();
+    expect(screen.getByText('Reference request-1')).toBeInTheDocument();
   });
 
   test('locks editing and cancellation while the active request is in review', async () => {
@@ -1055,7 +1064,7 @@ describe('ApprovedClientMaintenance', () => {
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
 
-    expect(screen.queryByText('Request ID: request-1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Reference request-1')).not.toBeInTheDocument();
     expect(screen.getByText('Jane R Diaz')).toBeInTheDocument();
     expect(screen.getByText('Alexander Smith')).toBeInTheDocument();
     expect(screen.queryByText(/parties changed/)).not.toBeInTheDocument();
@@ -1123,11 +1132,8 @@ describe('ApprovedClientMaintenance', () => {
     const documentContainer = documentAction.closest('.eb-rounded-md');
     expect(requestWorkSection).toContainElement(documentAction);
     expect(changeTable).toHaveClass('eb-rounded-md', 'eb-border');
-    expect(documentContainer).toHaveClass(
-      'eb-rounded-md',
-      'eb-border',
-      'eb-border-warning/50'
-    );
+    expect(documentContainer).toHaveClass('eb-rounded-md', 'eb-border');
+    expect(documentAction).not.toHaveClass('eb-bg-warning-accent');
     expect(changeTable?.nextElementSibling).toHaveClass('eb-mt-3');
     expect(changeTable?.nextElementSibling).not.toHaveClass('eb-border-t');
     const profileDetails = screen.getByRole('heading', {
@@ -1421,15 +1427,61 @@ describe('ApprovedClientMaintenance', () => {
       name: 'Add Limited DDA Payments',
     });
     expect(addPayments).toBeEnabled();
-    const availableNode = addPayments.closest('li');
-    expect(availableNode).toHaveAttribute('data-presentation', 'action-only');
+    // The upgrade leads the overview rather than hiding in the product list.
+    const upgrade = addPayments.closest<HTMLElement>('[data-product-upgrade]');
+    expect(upgrade).toHaveAttribute(
+      'data-product-upgrade',
+      'LIMITED_DDA_PAYMENTS'
+    );
     expect(
-      within(availableNode!).queryByText('Limited DDA Payments')
-    ).not.toBeInTheDocument();
-    expect(availableNode!.querySelector('.lucide-boxes')).toBeNull();
+      within(upgrade!).getByRole('heading', { name: 'Limited DDA Payments' })
+    ).toBeInTheDocument();
+    expect(document.querySelector('[data-product-tree]')).not.toHaveTextContent(
+      'Limited DDA Payments'
+    );
     expect(
       screen.queryByRole('button', { name: 'Add Limited DDA' })
     ).not.toBeInTheDocument();
+  });
+
+  test('quiets the upgrade while the request is locked for more information', () => {
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      updateRequest: { status: 'INFORMATION_REQUESTED', requestId: 'r-1' },
+      productDetails: [
+        {
+          product: 'EMBEDDED_PAYMENTS',
+          subProduct: 'LIMITED_DDA',
+          onboardingStatus: 'APPROVED',
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        initialProductVerificationAcceptedAt="2020-01-01T00:00:00.000Z"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['ADD_LIMITED_DDA_PAYMENTS'],
+          },
+        ]}
+      />
+    );
+
+    const addPayments = screen.getByRole('button', {
+      name: 'Add Limited DDA Payments',
+    });
+    expect(addPayments).toBeDisabled();
+    const upgrade = addPayments.closest<HTMLElement>('[data-product-upgrade]')!;
+    expect(upgrade).toHaveAttribute('data-upgrade-available', 'false');
+    expect(upgrade).not.toHaveClass('eb-border-primary/50');
+    expect(addPayments).not.toHaveClass('eb-bg-primary');
+    expect(upgrade).toHaveTextContent(
+      'New changes are unavailable while your maintenance request is under review.'
+    );
   });
 
   test('groups a pending sub-product under Embedded Payments and resumes its upgrade', async () => {
@@ -1714,10 +1766,20 @@ describe('ApprovedClientMaintenance', () => {
     const pendingProduct = screen
       .getByText('Limited DDA Payments')
       .closest('li');
-    const cancelProduct = within(pendingProduct!).getByRole('button', {
-      name: 'Cancel product addition',
-    });
-    await user.click(cancelProduct);
+    // Cancelling is secondary, so it sits in the sub-product's menu.
+    expect(
+      within(pendingProduct!).queryByRole('button', {
+        name: 'Cancel product addition',
+      })
+    ).not.toBeInTheDocument();
+    await user.click(
+      within(pendingProduct!).getByRole('button', {
+        name: 'Actions for Limited DDA Payments',
+      })
+    );
+    await user.click(
+      await screen.findByRole('menuitem', { name: /^Cancel product addition/ })
+    );
 
     const dialog = screen.getByRole('alertdialog');
     expect(dialog).toHaveTextContent(
@@ -1760,8 +1822,11 @@ describe('ApprovedClientMaintenance', () => {
       .closest('li');
     await user.click(
       within(pendingProduct!).getByRole('button', {
-        name: 'Cancel product addition',
+        name: 'Actions for Limited DDA Payments',
       })
+    );
+    await user.click(
+      await screen.findByRole('menuitem', { name: /^Cancel product addition/ })
     );
 
     expect(screen.getByRole('alertdialog')).toHaveTextContent(
@@ -1824,6 +1889,9 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.queryByRole('button', { name: 'Cancel product addition' })
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Actions for Limited DDA Payments' })
+    ).not.toBeInTheDocument();
   });
 
   test('keeps approved status quiet and delegates a missing Limited DDA prerequisite to the host', async () => {
@@ -1865,7 +1933,7 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Complete the requested items so review of your submitted changes can continue.'
+        'Complete the requested items so review of your maintenance request can continue.'
       )
     ).toBeInTheDocument();
   });
@@ -2263,8 +2331,12 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Controller')).toBeInTheDocument();
     await user.click(
-      screen.getByText('This person is also a direct beneficial owner')
+      screen.getByText('This person is also a beneficial owner')
     );
+    // Without restructuring rights there's nothing to own through, so no path choice.
+    expect(
+      document.querySelector('[data-replacement-ownership-path]')
+    ).toBeNull();
     await user.type(screen.getByLabelText('First name'), 'Wendy');
     await user.type(screen.getByLabelText('Last name'), 'Darling');
     await fillRequiredAddPersonFields(user, '1990-05-12');
@@ -2300,6 +2372,92 @@ describe('ApprovedClientMaintenance', () => {
     );
     expect(updateParty).toHaveBeenCalledTimes(2);
     expect(updateParty).toHaveBeenCalledWith('person-1', { active: false });
+  });
+
+  test('lets a new replacement controller own through an intermediary business', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: {
+            organizationName: 'Darling Holdings LLC',
+            natureOfOwnership: 'Direct',
+          },
+        },
+      ],
+    };
+    createParty.mockResolvedValue(undefined);
+    updateParty.mockResolvedValue(undefined);
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    await user.click(
+      screen.getByRole('button', { name: 'Replace controller' })
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Choose replacement controller' })
+    );
+    await user.click(screen.getByRole('button', { name: 'Add a new person' }));
+    // The path choice only appears once the person is marked as an owner.
+    expect(
+      document.querySelector('[data-replacement-ownership-path]')
+    ).toBeNull();
+    await user.click(
+      screen.getByText('This person is also a beneficial owner')
+    );
+    await user.click(screen.getByLabelText('How they hold their stake'));
+    await user.click(
+      screen.getByRole('option', { name: 'Through Darling Holdings LLC' })
+    );
+    await user.type(screen.getByLabelText('First name'), 'Wendy');
+    await user.type(screen.getByLabelText('Last name'), 'Darling');
+    await fillRequiredAddPersonFields(user, '1990-05-12');
+    await user.type(
+      screen.getByLabelText(/Social security number \(SSN\)/i),
+      '555110000'
+    );
+    await user.type(
+      screen.getByLabelText('Address line 1'),
+      '14 Market Street'
+    );
+    await user.type(screen.getByLabelText('City / Town'), 'New York');
+    await user.click(screen.getByLabelText('State'));
+    await user.click(screen.getByRole('option', { name: 'New York' }));
+    await user.type(screen.getByLabelText('ZIP code'), '10001');
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Add replacement and remove current controller',
+      })
+    );
+
+    await waitFor(() =>
+      expect(createParty).toHaveBeenCalledWith(
+        expect.objectContaining({
+          parentPartyId: 'intermediary-1',
+          roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+          individualDetails: expect.objectContaining({
+            natureOfOwnership: 'Indirect',
+          }),
+        })
+      )
+    );
   });
 
   test('reuses an existing direct related person as replacement controller', async () => {
@@ -2663,7 +2821,7 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'Replace controller' })
     );
     await user.click(
-      screen.getByRole('button', {
+      screen.getByRole('radio', {
         name: 'Yes, keep as a beneficial owner',
       })
     );
@@ -2701,10 +2859,14 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('heading', { name: 'Add beneficial owner role' })
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Choose how Jane R Doe owns part of the business/)
+      screen.getByText(
+        'Jane R Doe stays the controller and is also listed as a beneficial owner.'
+      )
     ).toBeInTheDocument();
+    // Without indirect ownership there's nothing to choose, so the page confirms directly.
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     await user.click(
-      screen.getByRole('button', { name: /Owns your business directly/ })
+      screen.getByRole('button', { name: 'Add beneficial owner role' })
     );
 
     expect(updateParty).toHaveBeenCalledWith('person-1', {
@@ -2776,27 +2938,118 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(
       screen.getByRole('button', { name: 'Add beneficial owner role' })
     );
+    const confirm = screen.getByRole('button', {
+      name: 'Add beneficial owner role',
+    });
+    expect(confirm).toBeDisabled();
     await user.click(
-      screen.getByRole('button', { name: /^Darling Holdings LLC/ })
+      screen.getByRole('radio', { name: /^Through another business/ })
     );
     expect(
-      screen.getByRole('heading', { name: 'Add indirect beneficial owner' })
+      screen.getByRole('heading', {
+        name: 'Which business does Jane R Doe own through?',
+      })
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('First name')).toHaveValue('Jane');
     await user.click(
-      screen.getByRole('button', { name: 'Add beneficial owner' })
+      screen.getByRole('radio', { name: 'Darling Holdings LLC' })
+    );
+    expect(applyOwnershipOperations).not.toHaveBeenCalled();
+    await user.click(confirm);
+
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      {
+        partyId: 'person-1',
+        request: { roles: ['CONTROLLER', 'BENEFICIAL_OWNER'] },
+      },
+      { partyId: 'person-1', request: { parentPartyId: 'intermediary-1' } },
+      {
+        partyId: 'person-1',
+        request: { individualDetails: { natureOfOwnership: 'Indirect' } },
+      },
+    ]);
+    expect(createParty).not.toHaveBeenCalled();
+    expect(updateParty).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole('heading', { name: 'Add indirect beneficial owner' })
+    ).not.toBeInTheDocument();
+  });
+
+  test('adds a controller as an indirect owner through a new intermediary', async () => {
+    const user = userEvent.setup();
+    createParty.mockResolvedValueOnce({ id: 'intermediary-1' });
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
     );
 
-    expect(createParty).toHaveBeenCalledWith(
-      expect.objectContaining({
-        parentPartyId: 'intermediary-1',
-        roles: ['BENEFICIAL_OWNER'],
-        individualDetails: expect.objectContaining({
-          natureOfOwnership: 'Indirect',
-        }),
-      })
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    await user.click(
+      screen.getByRole('button', { name: 'Add beneficial owner role' })
     );
-    expect(updateParty).not.toHaveBeenCalled();
+    await user.click(
+      screen.getByRole('radio', { name: /^Through another business/ })
+    );
+    // With no intermediary yet, adding one is the only choice and is preselected.
+    const newBusiness = screen.getByRole('radio', {
+      name: /^Add a new intermediary business/,
+    });
+    expect(newBusiness).toBeChecked();
+    // The whole row is the choice, and a business that doesn't exist yet hangs from a dashed line.
+    expect(newBusiness).toHaveClass('eb-h-14', 'eb-rounded-md');
+    expect(newBusiness.querySelector('[data-radio-mark]')).not.toBeNull();
+    expect(newBusiness.querySelector('[data-entity-medallion]')).toBeNull();
+    expect(
+      newBusiness.parentElement?.querySelector('[data-tree-elbow]')
+    ).toHaveClass('eb-border-dashed');
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+    await user.type(
+      screen.getByLabelText('Legal name of the company'),
+      'Darling Holdings LLC'
+    );
+    await user.click(screen.getByLabelText('Organization type'));
+    await user.click(
+      screen.getByRole('option', { name: /Limited Liability Company/ })
+    );
+    await user.type(
+      screen.getByLabelText(/Employer Identification Number/),
+      '121234567'
+    );
+    await user.type(
+      screen.getByLabelText('Address line 1'),
+      '200 Market Street'
+    );
+    await user.type(screen.getByLabelText('City / Town'), 'New York');
+    await user.click(screen.getByLabelText('State'));
+    await user.click(screen.getByRole('option', { name: 'New York' }));
+    await user.type(screen.getByLabelText('ZIP code'), '10001');
+    await user.click(
+      screen.getByRole('button', { name: 'Add intermediary owner' })
+    );
+
+    expect(createParty).toHaveBeenCalledTimes(1);
+    expect(applyOwnershipOperations).toHaveBeenCalledWith([
+      {
+        partyId: 'person-1',
+        request: { roles: ['CONTROLLER', 'BENEFICIAL_OWNER'] },
+      },
+      { partyId: 'person-1', request: { parentPartyId: 'intermediary-1' } },
+      {
+        partyId: 'person-1',
+        request: { individualDetails: { natureOfOwnership: 'Indirect' } },
+      },
+    ]);
+    expect(
+      screen.queryByRole('heading', { name: 'Add indirect beneficial owner' })
+    ).not.toBeInTheDocument();
   });
 
   test('discards all party changes when removing a pending owner role', async () => {
@@ -2913,7 +3166,7 @@ describe('ApprovedClientMaintenance', () => {
       'After the controller is replaced, will this person still own 25% or more?'
     );
     await user.click(
-      within(dialog).getByRole('button', {
+      within(dialog).getByRole('radio', {
         name: 'Yes, keep as a beneficial owner',
       })
     );
@@ -3023,10 +3276,8 @@ describe('ApprovedClientMaintenance', () => {
     const pendingParty = screen.getByRole('button', {
       name: /Wendy Darling.*Pending addition/,
     });
-    expect(pendingParty).toHaveClass(
-      'eb-border-informative/60',
-      'eb-bg-informative-accent/40'
-    );
+    expect(pendingParty).toHaveClass('eb-border-informative');
+    expect(pendingParty).not.toHaveClass('eb-bg-informative-accent');
     expect(pendingParty.querySelector('.lucide-circle-plus')).not.toBeNull();
     await user.click(pendingParty);
 
@@ -3034,7 +3285,7 @@ describe('ApprovedClientMaintenance', () => {
       name: 'Wendy Darling',
     });
     const pendingHeader = pendingHeading.closest('header');
-    expect(pendingHeader).toHaveClass('eb-bg-informative-accent/40');
+    expect(pendingHeader).toHaveClass('eb-bg-informative-accent');
     expect(
       within(pendingHeader!).getByText('Pending addition')
     ).toBeInTheDocument();
@@ -3121,10 +3372,7 @@ describe('ApprovedClientMaintenance', () => {
     const reviewedAddition = screen.getByRole('button', {
       name: /Wendy Darling.*Addition under review/,
     });
-    expect(reviewedAddition).toHaveClass(
-      'eb-border-informative/60',
-      'eb-bg-informative-accent/40'
-    );
+    expect(reviewedAddition).toHaveClass('eb-border-informative');
     expect(reviewedAddition.querySelector('.lucide-clock3')).not.toBeNull();
     expect(reviewedAddition).not.toHaveTextContent('Pending addition');
 
@@ -3134,7 +3382,7 @@ describe('ApprovedClientMaintenance', () => {
       name: 'Wendy Darling',
     });
     const reviewedHeader = reviewedHeading.closest('header');
-    expect(reviewedHeader).toHaveClass('eb-bg-informative-accent/40');
+    expect(reviewedHeader).toHaveClass('eb-bg-informative-accent');
     expect(
       within(reviewedHeader!).getByText('Addition under review')
     ).toBeInTheDocument();
@@ -3206,7 +3454,7 @@ describe('ApprovedClientMaintenance', () => {
 
     const heading = screen.getByRole('heading', { name: 'Wendy Darling' });
     const header = heading.closest('header');
-    expect(header).toHaveClass('eb-bg-informative-accent/40');
+    expect(header).toHaveClass('eb-bg-informative-accent');
     expect(within(header!).getByText('Pending addition')).toBeInTheDocument();
     expect(
       within(header!).getByRole('button', { name: 'Edit pending party' })
@@ -3447,15 +3695,16 @@ describe('ApprovedClientMaintenance', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Choose where Michael Darling connects',
+        name: 'Change how Michael Darling owns the business',
       })
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('heading', { name: 'Choose a replacement controller' })
     ).not.toBeInTheDocument();
     await user.click(
-      screen.getByRole('button', { name: /Existing Holdings LLC/ })
+      screen.getByRole('radio', { name: 'Existing Holdings LLC' })
     );
+    await user.click(screen.getByRole('button', { name: 'Update connection' }));
 
     expect(applyOwnershipOperations).toHaveBeenCalledWith([
       {
@@ -3551,8 +3800,9 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('button', { name: 'Change to indirect ownership' })
     );
     await user.click(
-      screen.getByRole('button', { name: /Existing Holdings LLC/ })
+      screen.getByRole('radio', { name: 'Existing Holdings LLC' })
     );
+    await user.click(screen.getByRole('button', { name: 'Update connection' }));
 
     expect(applyOwnershipOperations).toHaveBeenCalledWith([
       {
@@ -3988,8 +4238,8 @@ describe('ApprovedClientMaintenance', () => {
     );
     const fullNode = screen.getByText('Central Park Cookie').closest('article');
     expect(fullNode).toHaveClass(
-      'eb-border-informative/60',
-      'eb-bg-informative-accent/20'
+      'eb-border-informative/50',
+      'eb-bg-background'
     );
     expect(fullNode).toHaveTextContent('Pending addition');
     await user.click(
@@ -3999,7 +4249,7 @@ describe('ApprovedClientMaintenance', () => {
       name: 'Central Park Cookie',
     });
     const intermediaryHeader = intermediaryHeading.closest('header');
-    expect(intermediaryHeader).toHaveClass('eb-bg-informative-accent/40');
+    expect(intermediaryHeader).toHaveClass('eb-bg-informative-accent');
     expect(
       screen.getByRole('heading', { name: 'Proposed business details' })
     ).toBeInTheDocument();
@@ -4226,7 +4476,27 @@ describe('ApprovedClientMaintenance', () => {
       await ownershipMenuItem('Discard pending addition')
     ).toBeInTheDocument();
     await user.click(await ownershipMenuItem('Update connection'));
-    await user.click(screen.getByLabelText('Marketplace Vendor LLC'));
+    const dialog = screen.getByRole('alertdialog');
+    // The current connection is shown in place but can't be chosen again.
+    expect(
+      within(dialog).queryByRole('radio', { name: 'Darling Holdings LLC' })
+    ).not.toBeInTheDocument();
+    expect(
+      dialog.querySelector(
+        '[data-ownership-picker-node="intermediary-1"] [data-ownership-marker="current"]'
+      )
+    ).toHaveTextContent('Wendy DarlingCurrent position');
+    expect(
+      dialog.querySelector('[data-ownership-marker="new"]')
+    ).not.toBeInTheDocument();
+    await user.click(
+      within(dialog).getByRole('radio', { name: 'Marketplace Vendor LLC' })
+    );
+    expect(
+      dialog.querySelector(
+        '[data-ownership-picker-node="organization-1"] > ul > li > [data-ownership-marker="new"]'
+      )
+    ).toHaveTextContent('Wendy DarlingNew position');
     await user.click(screen.getByRole('button', { name: 'Update connection' }));
 
     expect(applyOwnershipOperations).toHaveBeenCalledWith([
@@ -4543,7 +4813,7 @@ describe('ApprovedClientMaintenance', () => {
     );
     expect(removedNode!.querySelector('article')).toHaveClass(
       'eb-border-destructive/50',
-      'eb-bg-destructive-accent/20'
+      'eb-bg-background'
     );
 
     await openOwnershipMenu(user, 'Wendy Darling');
@@ -5500,17 +5770,16 @@ describe('ApprovedClientMaintenance', () => {
     );
     expect(
       screen.getByRole('heading', {
-        name: 'Choose where Jane R Doe connects',
+        name: 'Change how Jane R Doe owns the business',
       })
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /Owns your business directly/ })
+      screen.queryByRole('radio', { name: /^Directly/ })
     ).not.toBeInTheDocument();
-    await user.click(
-      screen.getByRole('button', {
-        name: 'Add a new intermediary business',
-      })
-    );
+    expect(
+      screen.getByRole('radio', { name: /^Add a new intermediary business/ })
+    ).toBeChecked();
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
     await user.type(
       screen.getByLabelText('Legal name of the company'),
       'Darling Holdings LLC'
@@ -5621,8 +5890,9 @@ describe('ApprovedClientMaintenance', () => {
       'Change to indirect ownership'
     );
     await user.click(
-      screen.getByRole('button', { name: /Existing Holdings LLC/ })
+      screen.getByRole('radio', { name: 'Existing Holdings LLC' })
     );
+    await user.click(screen.getByRole('button', { name: 'Update connection' }));
 
     expect(applyOwnershipOperations).toHaveBeenCalledWith([
       {
@@ -5849,18 +6119,30 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
   });
 
-  test('separates overview sections with a label gutter and bounded content groups', () => {
+  test('lays out the overview as the profile beside shortcuts and products', () => {
     render(
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
 
-    ['Business details', 'Products', 'Related parties'].forEach((heading) => {
-      const sectionHeading = screen.getByRole('heading', { name: heading });
-      expect(sectionHeading.closest('section')).toHaveClass(
-        'eb-grid',
-        'eb-bg-muted/20',
-        '@[48rem]:eb-grid-cols-[minmax(8rem,1fr)_2.5fr]'
-      );
+    const layout = document.querySelector<HTMLElement>(
+      '[data-overview-layout]'
+    )!;
+    expect(layout).toHaveClass(
+      'eb-grid',
+      '@[56rem]:eb-grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
+    );
+    const [profileColumn, actionColumn] = Array.from(
+      layout.children
+    ) as HTMLElement[];
+    ['Business details', 'Related parties'].forEach((heading) => {
+      expect(
+        within(profileColumn).getByRole('heading', { name: heading })
+      ).toBeInTheDocument();
+    });
+    ['Make a change', 'Products'].forEach((heading) => {
+      expect(
+        within(actionColumn).getByRole('heading', { name: heading })
+      ).toBeInTheDocument();
     });
 
     ['Business details', 'Related parties'].forEach((heading) => {
@@ -5872,23 +6154,30 @@ describe('ApprovedClientMaintenance', () => {
         'eb-bg-background'
       );
     });
+    // Shortcuts sit on a quiet muted panel so they don't compete with the profile cards.
+    const shortcuts = document.querySelector('[data-home-tasks]');
+    expect(shortcuts).toHaveClass('eb-bg-muted/40');
+    expect(shortcuts).not.toHaveClass('eb-border', 'eb-bg-background');
 
     const productTree = document.querySelector('[data-product-tree]');
-    expect(productTree).toHaveClass('eb-bg-background');
     expect(productTree).not.toHaveClass('eb-rounded-md', 'eb-border');
+    // Sub-products are cards hung from the same connectors as the ownership structure.
+    const subProduct = productTree!.querySelector('[data-sub-product]');
+    expect(subProduct?.querySelector('[data-tree-elbow]')).not.toBeNull();
+    expect(subProduct?.lastElementChild).toHaveClass(
+      'eb-rounded-md',
+      'eb-border',
+      'eb-bg-background'
+    );
 
-    ['Products', 'Related parties'].forEach((heading) => {
-      expect(
-        screen.getByRole('heading', { name: heading }).closest('section')
-      ).toHaveClass('eb-border-t');
-    });
-
+    // The title already says what the business card holds.
     expect(
-      screen.getByText('Current business information')
-    ).toBeInTheDocument();
+      screen.getByRole('heading', { name: 'Business details' })
+        .nextElementSibling
+    ).toBeNull();
     expect(screen.getByText('1 active product')).toBeInTheDocument();
     expect(
-      screen.getByText('Key roles and intermediary businesses')
+      screen.getByText('Who manages and owns the business')
     ).toBeInTheDocument();
     expect(screen.getByText('Controller')).toBeInTheDocument();
   });
@@ -5944,16 +6233,21 @@ describe('ApprovedClientMaintenance', () => {
       '[data-navigator-request-state]'
     )!;
     expect(requestGroup).toHaveTextContent('Maintenance request');
-    const requestRow = within(requestGroup).getByRole('button', {
-      name: /Request details.*Maintenance request submitted/,
-    });
-    // One control per row: no button nested inside the clickable row.
+    const callToAction = requestGroup.querySelector<HTMLElement>(
+      '[data-navigator-request-cta]'
+    )!;
+    // Same background as the overview's request banner for this state.
+    expect(callToAction).toHaveClass('eb-bg-informative-accent');
     expect(
-      requestRow.querySelector('button, [class*="eb-bg-primary"]')
-    ).toBeNull();
-    // Neutral background so the shared active highlight reads the same as other rows.
-    expect(requestGroup.className).not.toMatch(/eb-bg-(informative|warning)/);
-    expect(requestRow.querySelector('.lucide-chevron-right')).not.toBeNull();
+      within(callToAction).getByRole('heading', {
+        name: 'Maintenance request submitted',
+      })
+    ).toBeInTheDocument();
+    // Waiting on the reviewer, so nothing pulses.
+    expect(callToAction.querySelector('.eb-animate-ping')).toBeNull();
+    const requestButton = within(callToAction).getByRole('button', {
+      name: 'View request details',
+    });
     const janeRow = within(sidebar).getByRole('button', {
       name: /Jane.*Diaz/,
     });
@@ -5962,17 +6256,83 @@ describe('ApprovedClientMaintenance', () => {
     ).toHaveTextContent('Changes under review');
     expect(janeRow).toHaveTextContent('Controller');
 
-    await user.click(requestRow);
+    await user.click(requestButton);
     expect(
       screen.getByRole('heading', { name: 'Maintenance request' })
     ).toBeInTheDocument();
     expect(
       within(
         document.querySelector<HTMLElement>(
-          '[data-maintenance-navigator] [data-navigator-request-state]'
+          '[data-maintenance-navigator] [data-navigator-request-cta]'
         )!
-      ).getByRole('button', { name: /Request details/ })
+      ).getByRole('button', { name: 'View request details' })
     ).toHaveAttribute('aria-current', 'page');
+    // The page itself shows the status, so the card takes the nav's active style instead.
+    const activeCallToAction = document.querySelector<HTMLElement>(
+      '[data-maintenance-navigator] [data-navigator-request-cta]'
+    )!;
+    expect(activeCallToAction).toHaveClass('eb-bg-accent');
+    expect(activeCallToAction).not.toHaveClass('eb-bg-informative-accent');
+    expect(
+      activeCallToAction.querySelector('[data-navigator-active-marker]')
+    ).toHaveClass('eb-bg-primary');
+
+    widthSpy.mockRestore();
+  });
+
+  test('calls attention to a draft request from the sidebar', async () => {
+    const user = userEvent.setup();
+    const widthSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockReturnValue(1200);
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [
+        {
+          id: 'person-1',
+          partyType: 'INDIVIDUAL',
+          individualDetails: { lastName: 'Diaz' },
+          updateRequest: {
+            status: 'NEW',
+            action: 'MODIFY',
+            requestId: 'request-1',
+            submittedAt: '2026-09-03T10:00:00.000Z',
+          },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+
+    const sidebar = document.querySelector(
+      '[data-maintenance-navigator]'
+    ) as HTMLElement;
+    const callToAction = sidebar.querySelector<HTMLElement>(
+      '[data-navigator-request-cta]'
+    )!;
+    expect(callToAction).toHaveClass('eb-bg-informative-accent');
+    expect(
+      within(callToAction).getByRole('heading', {
+        name: '1 change ready to review',
+      })
+    ).toBeInTheDocument();
+    expect(callToAction.querySelector('.eb-animate-ping')).not.toBeNull();
+    const reviewButton = within(callToAction).getByRole('button', {
+      name: 'Review and submit',
+    });
+
+    await user.click(reviewButton);
+    expect(
+      screen.getByRole('heading', { name: 'Review your changes' })
+    ).toBeInTheDocument();
+    expect(reviewButton).toHaveAttribute('aria-current', 'page');
+    // The reminder stops once the user is reviewing.
+    expect(callToAction.querySelector('.eb-animate-ping')).toBeNull();
 
     widthSpy.mockRestore();
   });
@@ -6004,8 +6364,25 @@ describe('ApprovedClientMaintenance', () => {
     );
     expect(splitLayout?.querySelector('main')).toHaveClass(
       'eb-overflow-y-auto',
-      'eb-@container'
+      'eb-@container',
+      '[&>*:has([data-maintenance-page-body])]:eb-flex',
+      '[&_[data-maintenance-footer]]:eb-shrink-0'
     );
+    // Only the page body scrolls; the header and footer sit outside it.
+    const pageBody = splitLayout?.querySelector<HTMLElement>(
+      'main [data-maintenance-page-body]'
+    );
+    expect(pageBody?.previousElementSibling?.tagName).toBe('HEADER');
+    expect(pageBody?.nextElementSibling).toHaveAttribute(
+      'data-maintenance-footer'
+    );
+    // Scrolling past either end hands off to the page instead of trapping the wheel.
+    const pageScroll = pageBody?.querySelector(
+      '[data-maintenance-page-scroll]'
+    );
+    expect(pageScroll).toHaveClass('eb-overflow-y-auto');
+    expect(pageScroll).not.toHaveClass('eb-overscroll-contain');
+    expect(pageBody?.querySelector('[data-scroll-shadow]')).not.toBeNull();
     const sidebar = splitLayout?.querySelector(
       '[data-maintenance-navigator]'
     ) as HTMLElement;
@@ -6013,9 +6390,13 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       within(sidebar).queryByRole('heading', { name: 'Business profile' })
     ).not.toBeInTheDocument();
-    expect(
-      within(sidebar).getByRole('button', { name: 'Business profile' })
-    ).toBeInTheDocument();
+    const exitLink = within(sidebar).getByRole('button', {
+      name: 'Business profile',
+    });
+    // Set apart from the drilldown items, since leaving for the overview hides the sidebar.
+    expect(exitLink).toHaveAttribute('data-navigator-exit');
+    expect(exitLink.closest('li')).toBeNull();
+    expect(exitLink.querySelector('.lucide-arrow-left')).not.toBeNull();
     expect(
       screen.queryByRole('navigation', { name: 'Business profile navigation' })
     ).not.toBeInTheDocument();
@@ -6065,6 +6446,52 @@ describe('ApprovedClientMaintenance', () => {
     widthSpy.mockRestore();
   });
 
+  test('pauses navigation away from a change while it saves', async () => {
+    const user = userEvent.setup();
+    const widthSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockReturnValue(1200);
+    const view = () => (
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    const { rerender } = render(view());
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+    const sidebar = document.querySelector('aside')!;
+    expect(sidebar).not.toHaveAttribute('inert');
+
+    workspace.partyStepsMutation.isPending = true;
+    rerender(view());
+    expect(sidebar).toHaveAttribute('inert');
+    expect(sidebar).toHaveAttribute('aria-busy', 'true');
+
+    workspace.partyStepsMutation.isPending = false;
+    rerender(view());
+    expect(sidebar).not.toHaveAttribute('inert');
+    widthSpy.mockRestore();
+
+    // Without the sidebar, the overview and breadcrumb pause instead.
+    cleanup();
+    const { rerender: rerenderNarrow } = render(view());
+    workspace.partyStepsMutation.isPending = true;
+    rerenderNarrow(view());
+    expect(document.querySelector('[data-maintenance-busy]')).toHaveAttribute(
+      'inert'
+    );
+    workspace.partyStepsMutation.isPending = false;
+    rerenderNarrow(view());
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+    workspace.partyStepsMutation.isPending = true;
+    rerenderNarrow(view());
+    expect(
+      screen.getByRole('button', { name: 'Business profile' })
+    ).toBeDisabled();
+    workspace.partyStepsMutation.isPending = false;
+  });
+
   test('shows breadcrumbs only when the navigator sidebar is hidden', async () => {
     const user = userEvent.setup();
     render(
@@ -6083,13 +6510,14 @@ describe('ApprovedClientMaintenance', () => {
     });
     expect(breadcrumb).toHaveTextContent('Business profile');
     expect(breadcrumb).toHaveTextContent('Business details');
+    // Without a height limit, the page body isn't a scroll container that could swallow the wheel.
+    const pageBody = document.querySelector('[data-maintenance-page-body]');
+    expect(pageBody?.querySelector('.eb-overflow-y-auto')).toBeNull();
+    expect(pageBody?.querySelector('[data-scroll-shadow]')).toBeNull();
   });
 
   test('marks related parties with the same entity medallions as the ownership structure', async () => {
     const user = userEvent.setup();
-    const widthSpy = vi
-      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
-      .mockReturnValue(1200);
     workspace.clientQuery.data = {
       ...approvedClient,
       parties: [
@@ -6133,6 +6561,7 @@ describe('ApprovedClientMaintenance', () => {
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
 
+    // Without room for the navigator, the overview lists each party itself.
     const personMedallion = document.querySelector(
       '[data-party-id="person-1"] [data-entity-medallion]'
     );
@@ -6149,7 +6578,24 @@ describe('ApprovedClientMaintenance', () => {
     );
     expect(pendingMedallion).toHaveClass('eb-bg-informative-accent');
     expect(personMedallion).toHaveClass('eb-bg-muted');
+    expect(
+      [...document.querySelectorAll('[data-home-task]')].map((task) =>
+        task.getAttribute('data-home-task')
+      )
+    ).toEqual(['edit-business', 'add-owner', 'replace-controller']);
+    expect(
+      document.querySelector('[data-request-breakdown]')
+    ).toHaveTextContent('Added1');
+    cleanup();
 
+    const widthSpy = vi
+      .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
+      .mockReturnValue(1200);
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    // The overview lists the whole profile itself, so the navigator waits for detail pages.
+    expect(document.querySelector('[data-maintenance-navigator]')).toBeNull();
     await user.click(
       screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
     );
@@ -6377,14 +6823,8 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       pendingAdditionRow.querySelector('.lucide-circle-plus')
     ).not.toBeNull();
-    expect(pendingAdditionRow).toHaveClass(
-      'eb-border-informative/60',
-      'eb-bg-informative-accent/40'
-    );
-    expect(pendingRemovalRow).toHaveClass(
-      'eb-border-destructive/50',
-      'eb-bg-destructive-accent/40'
-    );
+    expect(pendingAdditionRow).toHaveClass('eb-border-informative');
+    expect(pendingRemovalRow).toHaveClass('eb-border-destructive');
 
     await user.click(pendingRemovalRow);
 
@@ -6394,7 +6834,7 @@ describe('ApprovedClientMaintenance', () => {
     const removedPartyHeader = removedPartyHeading.closest('header');
     expect(removedPartyHeader).toHaveClass(
       'eb-border-destructive/50',
-      'eb-bg-destructive-accent/40'
+      'eb-bg-destructive-accent'
     );
     expect(
       within(removedPartyHeader!).getByText('Pending removal')
@@ -6438,12 +6878,19 @@ describe('ApprovedClientMaintenance', () => {
     );
 
     expect(
-      screen.getByText('Key roles and intermediary businesses')
+      screen.getByText('Who manages and owns the business')
     ).toBeInTheDocument();
     const viewOwnershipButton = screen.getByRole('button', {
       name: 'View ownership structure',
     });
     expect(viewOwnershipButton).toBeEnabled();
+    // Without restructuring rights, the entry only promises a view.
+    expect(viewOwnershipButton).toHaveAccessibleDescription(
+      'See who owns the business and how they hold their stake.'
+    );
+    expect(
+      document.querySelector('[data-home-task="restructure-ownership"]')
+    ).toBeNull();
     await user.click(viewOwnershipButton);
 
     expect(
@@ -6548,15 +6995,25 @@ describe('ApprovedClientMaintenance', () => {
       'false'
     );
     expect(
-      ownershipNodes?.[0].querySelector('[data-ownership-tree-spine]')
-    ).toHaveClass('eb--top-3', 'eb-border-border');
+      [...ownershipNodes![0].children].flatMap(
+        (child) => child.getAttribute('data-tree-spine') ?? []
+      )
+    ).toEqual(['solid', 'solid']);
     expect(ownershipNodes?.[1]).toHaveAttribute(
       'data-last-ownership-node',
       'false'
     );
+    // Past the last owner, the spine only leads to the add actions, so it turns dashed there.
     expect(
-      ownershipNodes?.[1].querySelector('[data-ownership-tree-junction]')
-    ).toHaveClass('eb-top-6', 'eb-bg-border');
+      [...ownershipNodes![1].children].flatMap(
+        (child) => child.getAttribute('data-tree-spine') ?? []
+      )
+    ).toEqual(['solid', 'dashed']);
+    expect(
+      [...rootAddRow!.children].find((child) =>
+        child.hasAttribute('data-tree-elbow')
+      )
+    ).toHaveClass('eb-rounded-bl-lg', 'eb-border-dashed');
 
     await openOwnershipMenu(user, 'Jane R Doe');
     expect(
@@ -6578,7 +7035,7 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
   });
 
-  test('shows full ownership paths when choosing nested intermediary destinations', async () => {
+  test('nests destination businesses beneath the businesses that own them', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -6636,13 +7093,13 @@ describe('ApprovedClientMaintenance', () => {
     );
     await clickOwnershipMenuItem(user, 'Wendy Darling', 'Update connection');
 
+    const dialog = screen.getByRole('alertdialog');
+    const nestedNode = dialog.querySelector<HTMLElement>(
+      '[data-ownership-picker-node="organization-1"] [data-ownership-picker-node="intermediary-1"] [data-ownership-picker-node="intermediary-2"]'
+    );
+    expect(nestedNode).not.toBeNull();
     expect(
-      screen.getByText(
-        'Marketplace Vendor LLC › Darling Holdings LLC › Neverland Holdings LLC'
-      )
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('radio', { name: 'Neverland Holdings LLC' })
+      within(nestedNode!).getByRole('radio', { name: 'Neverland Holdings LLC' })
     ).toBeInTheDocument();
   });
 
@@ -6690,19 +7147,115 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByRole('heading', { name: 'Add a beneficial owner' })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /Owns your business directly/ })
+      screen.getByRole('group', {
+        name: 'How does the new owner own the business?',
+      })
     ).toBeInTheDocument();
+    const continueButton = screen.getByRole('button', { name: 'Continue' });
+    expect(continueButton).toBeDisabled();
+    // Businesses appear only once ownership through a business is chosen.
     expect(
-      screen.getByRole('button', { name: /Darling Holdings LLC/ })
-    ).toBeInTheDocument();
+      screen.queryByRole('radio', { name: 'Darling Holdings LLC' })
+    ).not.toBeInTheDocument();
 
     await user.click(
-      screen.getByRole('button', { name: /Darling Holdings LLC/ })
+      screen.getByRole('radio', { name: /^Through another business/ })
     );
+    expect(continueButton).toBeDisabled();
+    await user.click(
+      screen.getByRole('radio', { name: 'Darling Holdings LLC' })
+    );
+    await user.click(continueButton);
     expect(
       screen.getByRole('heading', { name: 'Add indirect beneficial owner' })
     ).toBeInTheDocument();
-    expect(screen.getByText(/Darling Holdings LLC/)).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-add-party-connection]')
+    ).toHaveTextContent('Owns through Darling Holdings LLC');
+  });
+
+  test('labels the unnamed owner in the new-business path preview like the diagrams do', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await user.click(
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add beneficial owner',
+      })
+    );
+    await user.click(
+      screen.getByRole('radio', { name: /^Through another business/ })
+    );
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    const preview = document.querySelector('[data-ownership-path-preview]');
+    expect(preview).toHaveTextContent(
+      /Your business.*New intermediary business.*New owner$/
+    );
+    expect(preview).not.toHaveTextContent('the new owner');
+  });
+
+  test('opens the direct owner form after choosing direct ownership', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: [
+        ...(approvedClient.parties ?? []),
+        {
+          id: 'intermediary-1',
+          parentPartyId: 'organization-1',
+          partyType: 'ORGANIZATION',
+          roles: ['INTERMEDIARY_OWNER'],
+          organizationDetails: { organizationName: 'Darling Holdings LLC' },
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await user.click(
+      within(getOwnershipAddRow('organization-1')!).getByRole('button', {
+        name: 'Add beneficial owner',
+      })
+    );
+    await user.click(screen.getByRole('radio', { name: /^Directly/ }));
+    expect(
+      screen.queryByRole('radio', { name: 'Darling Holdings LLC' })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Add beneficial owner' })
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-add-party-connection]')
+    ).toHaveTextContent('Owns Marketplace Vendor LLC directly');
   });
 
   test('uses a full-width detail layout in focused views', async () => {
@@ -6844,8 +7397,10 @@ describe('ApprovedClientMaintenance', () => {
     expect(blockedSubmit).toBeDisabled();
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     // Not interactive, so it stays quiet: no warning fill or warning icons.
-    expect(blockedSection).not.toHaveClass('eb-bg-warning-accent/40');
-    expect(blockedSection?.querySelector('.eb-text-warning')).toBeNull();
+    expect(blockedSection).not.toHaveClass('eb-bg-warning-accent');
+    expect(
+      blockedSection?.querySelector('.eb-text-warning-foreground')
+    ).toBeNull();
     expect(blockedSection).toHaveTextContent('1 question requires an answer.');
     expect(
       screen.getByRole('button', { name: 'Business profile' })
@@ -6856,7 +7411,7 @@ describe('ApprovedClientMaintenance', () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
-      outstanding: { questionIds: ['30005'] },
+      outstanding: { questionIds: ['30010'] },
     };
     workspace.maintenanceQuery.data = {
       pages: [],
@@ -6864,11 +7419,15 @@ describe('ApprovedClientMaintenance', () => {
     };
     workspace.questionsQuery.data = [
       {
-        id: '30005',
-        label: 'What is your expected monthly volume?',
-        responseType: 'enum',
-        options: ['$10,000', '$25,000'],
-      },
+        id: '30010',
+        description: 'What is your expected monthly volume?',
+        responseSchema: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 1,
+          items: { type: 'string', enum: ['$10,000', '$25,000'] },
+        },
+      } as unknown as QuestionResponse,
     ];
     updateClientTasks.mockResolvedValue(undefined);
 
@@ -6877,18 +7436,168 @@ describe('ApprovedClientMaintenance', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     await user.click(screen.getByRole('button', { name: 'Complete' }));
+    // A plain count instead of a progress bar.
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(document.querySelector('[data-question-count]')).toHaveTextContent(
+      '0 of 1 answered'
+    );
     await user.click(
       screen.getByLabelText('What is your expected monthly volume?')
     );
     await user.click(screen.getByRole('option', { name: '$10,000' }));
+    expect(document.querySelector('[data-question-count]')).toHaveTextContent(
+      '1 of 1 answered'
+    );
     await user.click(screen.getByRole('button', { name: 'Save answers' }));
 
-    expect(updateClientTasks).toHaveBeenCalledWith({
-      questionResponses: [{ questionId: '30005', values: ['$10,000'] }],
-    });
+    await waitFor(() =>
+      expect(updateClientTasks).toHaveBeenCalledWith({
+        questionResponses: [{ questionId: '30010', values: ['$10,000'] }],
+      })
+    );
   });
 
-  test('requires attestation document review before structured submission', async () => {
+  test('shows a sub-question only for the answer that opens it, like onboarding', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      outstanding: { questionIds: ['30020', '30021'] },
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Diaz')],
+    };
+    workspace.questionsQuery.data = [
+      {
+        id: '30020',
+        description: 'Does the business send international payments?',
+        responseSchema: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 1,
+          items: { type: 'boolean' },
+        },
+        subQuestions: [{ questionIds: ['30021'], anyValuesMatch: 'true' }],
+      },
+      {
+        id: '30021',
+        parentQuestionId: '30020',
+        description: 'Which countries does it pay?',
+        responseSchema: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 1,
+          items: { type: 'string' },
+        },
+      },
+    ] as unknown as QuestionResponse[];
+    updateClientTasks.mockResolvedValue({ questionIds: ['30022'] });
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    await user.click(screen.getByRole('button', { name: 'Review and submit' }));
+    await user.click(screen.getByRole('button', { name: 'Complete' }));
+
+    const count = document.querySelector('[data-question-count]');
+    expect(count).toHaveTextContent('0 of 1 answered');
+    expect(
+      screen.queryByLabelText('Which countries does it pay?')
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('radio', { name: 'Yes' }));
+    // The follow-up belongs to its question, so the total holds steady.
+    expect(count).toHaveTextContent('0 of 1 answered');
+    const followUp = screen.getByLabelText('Which countries does it pay?');
+    expect(
+      followUp.closest('[data-question-follow-ups]')?.parentElement
+    ).toHaveAttribute('data-question-id', '30020');
+    await user.type(followUp, 'Canada');
+    expect(count).toHaveTextContent('1 of 1 answered');
+
+    // Hidden sub-questions are left out of the answers, as in onboarding.
+    await user.click(screen.getByRole('radio', { name: 'No' }));
+    expect(
+      screen.queryByLabelText('Which countries does it pay?')
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Save answers' }));
+
+    await waitFor(() =>
+      expect(updateClientTasks).toHaveBeenCalledWith({
+        questionResponses: [{ questionId: '30020', values: ['false'] }],
+      })
+    );
+    // The answers opened another question, so the page stays and says why.
+    expect(
+      await screen.findByText(
+        'Your answers opened up a few more questions. Answer them to continue.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Additional questions' })
+    ).toBeInTheDocument();
+  });
+
+  test('keeps the review-updated notice within the page width', async () => {
+    const user = userEvent.setup();
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Diaz')],
+    };
+    const { rerender } = render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    await user.click(screen.getByRole('button', { name: 'Review and submit' }));
+
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Dean')],
+    };
+    rerender(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    const notice = await waitFor(() => {
+      const element = document.querySelector('[data-review-updated-notice]');
+      expect(element).not.toBeNull();
+      return element!;
+    });
+    // A full-width alert with margins overflows; padding the wrapper doesn't.
+    expect(notice).toHaveClass('eb-px-4');
+    expect(notice.firstElementChild).toHaveClass('eb-w-full');
+    expect(notice.firstElementChild?.className).not.toMatch(/\beb-m[xy]?-/);
+  });
+
+  test('does not announce review changes the user made themselves', async () => {
+    const user = userEvent.setup();
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Diaz')],
+    };
+    const view = () => (
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    const { rerender } = render(view());
+    await user.click(screen.getByRole('button', { name: 'Review and submit' }));
+
+    // The request refreshes while the user's own change is still settling.
+    workspace.cancelMaintenanceMutation.isPending = true;
+    rerender(view());
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Dean')],
+    };
+    rerender(view());
+    workspace.cancelMaintenanceMutation.isPending = false;
+    rerender(view());
+
+    expect(screen.getAllByText(/Dean/).length).toBeGreaterThan(0);
+    expect(
+      document.querySelector('[data-review-updated-notice]')
+    ).not.toBeInTheDocument();
+  });
+
+  test('opens attestation documents and signs as the controller by default', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -6898,6 +7607,85 @@ describe('ApprovedClientMaintenance', () => {
       pages: [],
       parties: [createProposal('Diaz')],
     };
+    workspace.attestationDocuments = [
+      { id: 'attestation-1', documentType: 'OWNERSHIP_ATTESTATION' },
+    ];
+    downloadAttestation.mockResolvedValue(
+      new Blob(['attestation'], { type: 'application/octet-stream' })
+    );
+    updateClientTasks.mockResolvedValue(undefined);
+    const createObjectURL = vi.fn((_blob: Blob) => 'blob:attestation');
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: createObjectURL,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    const tab = { opener: {}, location: { href: '' }, close: vi.fn() };
+    const openSpy = vi
+      .spyOn(window, 'open')
+      .mockReturnValue(tab as unknown as Window);
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    await user.click(screen.getByRole('button', { name: 'Review and submit' }));
+    await user.click(screen.getByRole('button', { name: 'Complete' }));
+    const submit = screen.getByRole('button', { name: 'Submit attestation' });
+    expect(submit).toBeDisabled();
+    expect(screen.getByText('Ownership Attestation')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'I have read each document above and attest to its contents.'
+      )
+    ).toBeInTheDocument();
+    const signer = document.querySelector('[data-attestation-signer]')!;
+    expect(signer).toHaveTextContent('Jane R Doe');
+    expect(signer).toHaveTextContent('CEO');
+    const confirmation = screen.getByRole('checkbox');
+    expect(confirmation).toBeDisabled();
+
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(openSpy).toHaveBeenCalledWith('', '_blank');
+    expect(tab.opener).toBeNull();
+    expect(tab.location.href).toBe('blob:attestation');
+    expect(createObjectURL.mock.calls[0][0].type).toBe('application/pdf');
+    expect(screen.getByText('1 of 1 opened')).toBeInTheDocument();
+    await user.click(confirmation);
+    expect(submit).toBeEnabled();
+    await user.click(submit);
+
+    expect(updateClientTasks).toHaveBeenCalledWith({
+      addAttestations: [
+        expect.objectContaining({
+          documentId: 'attestation-1',
+          ipAddress: '127.0.0.1',
+          attester: {
+            firstName: 'Jane',
+            middleName: 'R',
+            lastName: 'Doe',
+            designation: 'CEO',
+          },
+        }),
+      ],
+    });
+    openSpy.mockRestore();
+  });
+
+  test('lets someone else sign an attestation and offers a download when pop-ups are blocked', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      outstanding: { attestationDocumentIds: ['attestation-1'] },
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Diaz')],
+    };
+    // Until its type loads, a document is named by its position.
+    workspace.attestationDocuments = [{ id: 'attestation-1' }];
     downloadAttestation.mockResolvedValue(
       new Blob(['attestation'], { type: 'application/pdf' })
     );
@@ -6910,32 +7698,43 @@ describe('ApprovedClientMaintenance', () => {
       configurable: true,
       value: vi.fn(),
     });
-    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null);
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
 
     render(
       <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     await user.click(screen.getByRole('button', { name: 'Complete' }));
-    const submit = screen.getByRole('button', { name: 'Submit attestation' });
-    expect(submit).toBeDisabled();
-    await user.click(screen.getByRole('button', { name: 'Review document' }));
-    await user.type(screen.getByLabelText('First name'), 'Peiter');
-    await user.type(screen.getByLabelText('Last name'), 'Pan');
-    await user.type(screen.getByLabelText('Job title'), 'CFO');
-    await user.click(
-      screen.getByText(
-        'I have reviewed the required documents and attest that the information is complete and accurate.'
-      )
+    await user.click(screen.getByRole('button', { name: 'Open' }));
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Your browser blocked the document'
     );
-    expect(submit).toBeEnabled();
-    await user.click(submit);
+    expect(screen.getByRole('checkbox')).toBeDisabled();
+    await user.click(
+      screen.getByRole('button', { name: 'Download Attestation document 1' })
+    );
+    expect(click).toHaveBeenCalled();
+    expect(screen.getByRole('checkbox')).toBeEnabled();
+
+    await user.click(screen.getByRole('button', { name: 'Edit' }));
+    await user.clear(screen.getByLabelText('First name'));
+    await user.type(screen.getByLabelText('First name'), 'Peiter');
+    await user.clear(screen.getByLabelText(/Middle name/));
+    await user.clear(screen.getByLabelText('Last name'));
+    await user.type(screen.getByLabelText('Last name'), 'Pan');
+    await user.clear(screen.getByLabelText('Job title'));
+    await user.type(screen.getByLabelText('Job title'), 'CFO');
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(
+      screen.getByRole('button', { name: 'Submit attestation' })
+    );
 
     expect(updateClientTasks).toHaveBeenCalledWith({
       addAttestations: [
         expect.objectContaining({
-          documentId: 'attestation-1',
-          ipAddress: '127.0.0.1',
           attester: {
             firstName: 'Peiter',
             middleName: undefined,
@@ -6945,6 +7744,8 @@ describe('ApprovedClientMaintenance', () => {
         }),
       ],
     });
+    openSpy.mockRestore();
+    click.mockRestore();
   });
 
   test('returns to draft review after cancelling an edit opened from review', async () => {
@@ -7110,12 +7911,14 @@ describe('ApprovedClientMaintenance', () => {
         'data-review-group',
         'updated'
       );
-      expect(partyCard?.parentElement).toHaveClass(
-        'eb-divide-y',
+      // Each change is its own card rather than a row in a shared box.
+      expect(partyCard).toHaveClass(
         'eb-rounded-md',
         'eb-border',
         'eb-bg-background'
       );
+      expect(partyCard?.parentElement).toHaveClass('eb-space-y-3');
+      expect(partyCard?.parentElement).not.toHaveClass('eb-border');
     });
     expect(screen.queryByText('Previously Jane R Doe')).not.toBeInTheDocument();
     expect(screen.queryByText('Previously Alex Smith')).not.toBeInTheDocument();
@@ -7150,7 +7953,7 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
   });
 
-  test('shows complete business and party details while masking sensitive values', async () => {
+  test('shows complete business and party details with identifiers masked until revealed', async () => {
     const user = userEvent.setup();
     workspace.clientQuery.data = {
       ...approvedClient,
@@ -7206,17 +8009,23 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByText('Doing business as (DBA name)')
     ).toBeInTheDocument();
     expect(screen.getByText('Marketplace Collective')).toBeInTheDocument();
-    expect(screen.getByText('EIN ••••6789')).toBeInTheDocument();
-    expect(screen.getByText('+1 ••••0142')).toBeInTheDocument();
-    expect(screen.queryByText('123456789')).not.toBeInTheDocument();
+    expect(screen.getByText('**-***6789')).toBeInTheDocument();
+    expect(screen.getByText('+1 2125550142')).toBeInTheDocument();
+    expect(screen.queryByText('12-3456789')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Show value' }));
+    expect(screen.getByText('12-3456789')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Hide value' }));
+    expect(screen.getByText('**-***6789')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Business profile' }));
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
     expect(screen.getByText('CEO')).toBeInTheDocument();
-    expect(screen.getByText('SSN ••••3333')).toBeInTheDocument();
-    expect(screen.getByText('+1 ••••0199')).toBeInTheDocument();
-    expect(screen.queryByText('111223333')).not.toBeInTheDocument();
-    expect(screen.queryByText('1990-01-01')).not.toBeInTheDocument();
+    expect(screen.getByText('***-**-3333')).toBeInTheDocument();
+    expect(screen.getByText('+1 6465550199')).toBeInTheDocument();
+    expect(screen.queryByText('111-22-3333')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Show value' }));
+    expect(screen.getByText('111-22-3333')).toBeInTheDocument();
+    expect(screen.getByText('1990-01-01')).toBeInTheDocument();
   });
 
   test('lists the fields the API still needs from a person and opens their edit form', async () => {
@@ -7391,6 +8200,15 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.queryByRole('button', { name: 'Return to business profile' })
     ).not.toBeInTheDocument();
+    // Submitting again is where the returned request ends, so the step is shown, locked, from the start.
+    const resubmit = screen.getByRole('button', { name: 'Submit for review' });
+    expect(resubmit).toBeDisabled();
+    expect(
+      resubmit.parentElement?.querySelector('[data-submission-hint]')
+    ).toHaveTextContent(
+      'Submitting becomes available once every item above is complete.'
+    );
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
 
     await user.click(documentAction);
     expect(
@@ -7528,8 +8346,7 @@ describe('ApprovedClientMaintenance', () => {
 
     expect(screen.getByText('Profile details')).toBeInTheDocument();
     expect(screen.getByText('Date of birth')).toBeInTheDocument();
-    expect(screen.getByText('••••••••')).toBeInTheDocument();
-    expect(screen.queryByText('1990-01-01')).not.toBeInTheDocument();
+    expect(screen.getByText('1990-01-01')).toBeInTheDocument();
     const reviewHeading = screen.getByRole('heading', {
       name: 'Changes under review',
     });

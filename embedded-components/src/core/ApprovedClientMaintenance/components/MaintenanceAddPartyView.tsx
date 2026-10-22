@@ -2,15 +2,13 @@ import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 
 import { useMaintenanceFormExitGuard } from '../hooks/useMaintenanceFormExitGuard';
-import type {
-  MaintenanceParty,
-  MaintenancePartyCreateRequest,
-} from '../models/maintenanceApi.types';
+import type { MaintenancePartyCreateRequest } from '../models/maintenanceApi.types';
 import { AddRelatedPartyForm } from './AddRelatedPartyForm';
 import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
+import { MaintenanceEntityMedallion } from './MaintenanceEntityMedallion';
 import { MaintenanceUnsavedChangesDialog } from './MaintenanceUnsavedChangesDialog';
 
 type RelatedPartyRole = 'CONTROLLER' | 'BENEFICIAL_OWNER';
@@ -19,9 +17,11 @@ type MaintenanceAddPartyViewProps = {
   breadcrumbs: MaintenanceBreadcrumbItem[];
   parentPartyId: string;
   natureOfOwnership?: 'Direct' | 'Indirect';
+  /** The business a new owner connects to, shown so the choice stays visible. */
+  connectionName?: string;
   isControllerReplacement?: boolean;
-  initialParty?: MaintenanceParty;
   canAlsoBeBeneficialOwner?: boolean;
+  ownershipBusinesses?: Array<{ partyId: string; name: string }>;
   allowedRoles: RelatedPartyRole[];
   isSubmitting: boolean;
   mutationError?: unknown;
@@ -34,9 +34,10 @@ export function MaintenanceAddPartyView({
   breadcrumbs,
   parentPartyId,
   natureOfOwnership,
+  connectionName,
   isControllerReplacement,
-  initialParty,
   canAlsoBeBeneficialOwner,
+  ownershipBusinesses,
   allowedRoles,
   isSubmitting,
   mutationError,
@@ -87,15 +88,35 @@ export function MaintenanceAddPartyView({
         <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
           {t(descriptionKey)}
         </p>
+        {connectionName && natureOfOwnership ? (
+          <p
+            data-add-party-connection=""
+            className="eb-mt-3 eb-inline-flex eb-max-w-full eb-items-center eb-gap-2 eb-rounded-full eb-border eb-bg-muted/20 eb-py-1 eb-pl-1 eb-pr-3 eb-text-xs eb-font-medium"
+          >
+            <MaintenanceEntityMedallion
+              kind="business"
+              size="sm"
+              className="eb-size-6"
+            />
+            <span className="eb-truncate">
+              {t(
+                natureOfOwnership === 'Indirect'
+                  ? 'addParty.connectionIndirect'
+                  : 'addParty.connectionDirect',
+                { name: connectionName }
+              )}
+            </span>
+          </p>
+        ) : null}
       </header>
-      <div className="eb-w-full">
+      <div className="eb-w-full" data-maintenance-page-fill="">
         <AddRelatedPartyForm
           parentPartyId={parentPartyId}
           natureOfOwnership={natureOfOwnership}
           isControllerReplacement={isControllerReplacement}
-          initialParty={initialParty}
           isBeneficialOwnerOnly={isBeneficialOwnerOnly}
           canAlsoBeBeneficialOwner={canAlsoBeBeneficialOwner}
+          ownershipBusinesses={ownershipBusinesses}
           allowedRoles={allowedRoles}
           isSubmitting={isSubmitting}
           mutationError={mutationError}

@@ -62,6 +62,7 @@ You can extend an existing onboarding overview, add a dedicated maintenance area
 - **Must:** expect at most one open party-maintenance `requestId` per client. Party writes made while that request is `NEW` are grouped under the same `requestId`.
 - **Must:** treat a `NEW` proposal as changing. Repeated writes to a party are merged into that party's one proposal in the same maintenance request: the latest value of each field wins, fields written earlier are kept, and `submittedAt` moves to the latest write. Reread the proposals after every write instead of assuming earlier values still hold.
 - **Must:** send only the fields whose values changed. Don't replay a complete party object.
+- **Must:** don't send a write whose fields would all be ignored, such as one with only `null` values or empty arrays. It still opens a maintenance request, with an empty proposal.
 - **Must:** stop accepting edits once verification moves the request to `REVIEW_IN_PROGRESS`. The API rejects edits and discards from then on (`11902`), but see [Known Limitations](#known-limitations) for additions.
 - **Must:** respect the five-minute lead time after the first product verification. See [Enforce the product-verification lead time](#enforce-the-product-verification-lead-time).
 
@@ -74,6 +75,11 @@ The [Update party information](https://developer.payments.jpmorgan.com/docs/comm
 - add a related party;
 - remove a related party by setting `active: false`; and
 - change a related party's first, middle, or last name, or birth date.
+
+The guide also sets conditions on some of them:
+
+- A `SOLE_PROPRIETORSHIP` client's legal name change also sends the owner's `firstName`, `middleName`, and `lastName`.
+- An address in an unsupported or sanctioned country terminates the request.
 
 Depending on your integration, maintenance can also cover the following. Check with your J.P. Morgan representative before enabling them:
 
@@ -104,7 +110,8 @@ The API rejects a maintenance update to a field that isn't editable, with error 
 ### Legal entity and ownership rules
 
 - **Recommended:** apply the same legal entity rules as onboarding. For example, onboarding collects no ownership structure for a `SOLE_PROPRIETORSHIP` client, so don't offer ownership views or `BENEFICIAL_OWNER` actions for one in maintenance.
-- A `BENEFICIAL_OWNER` party owns 25% or more of the client, so a client has at most four. **Recommended:** enforce this before the API rejects a fifth.
+- A `BENEFICIAL_OWNER` party owns 25% or more of the client, so a client has at most four. The API counts them after applying pending changes and excludes `INTERMEDIARY_OWNER` parties. **Recommended:** count the same way and disable adding at four, before the API rejects a fifth.
+- An owner held through a company needs at least one `INTERMEDIARY_OWNER` party in its chain. A company can be the last owner in a chain, with no individual beneath it.
 - A client keeps one `CONTROLLER` party. **Recommended:** model a `CONTROLLER` change as a replacement, not as separate additions and removals. See [Replace the `CONTROLLER` party](#replace-the-controller-party).
 
 ## High-Level Flow
@@ -230,6 +237,8 @@ Apply these rules when parsing:
 
 - A maintenance item is a sparse party proposal, not a request aggregate. Its request metadata is nested under `party.updateRequest`.
 - Treat every `KycUpdateRequest` property as optional. When a proposal lacks `PartyResponse.id` or the correlation data you need, mark it unresolved and block submission.
+- Build the projection from the client-scoped list. Request-scoped and party-scoped reads have been returned without `id`; when you query by party, keep the party ID you queried as context instead of relying on the payload.
+- One response can mix records for the same party from different requests, such as a `TERMINATED` record beside a `NEW` one. There's no active-only filter, so filter by status.
 - A proposal returns collections it doesn't change as empty arrays, for example `roles: []` or `individualDetails.addresses: []`. Treat an empty array in a proposal as unchanged, not as a request to clear the collection.
 - The client response holds persisted state. The maintenance response holds pending state. Never mix the two.
 - `GET /clients/{id}` also lists parties that aren't approved yet, such as pending additions. Use each party's `profileStatus`: `APPROVED` parties form the approved baseline; parties with any other value, such as `NEW`, don't. A pending addition may also carry an `ADD` `updateRequest` in the client response, but don't rely on it.
@@ -285,6 +294,7 @@ Content-Type: application/json
 
 - Keep the pending product out of the approved snapshot. Show it only in the proposed view until it is approved and the client response publishes it.
 - An additional sub-product sits alongside the approved one. Don't present it as a replacement.
+- `GET /clients/{id}` always includes `products`, but `productDetails`, the only place `subProduct` appears, can be absent. When your platform's product family implies the client's current sub-product, take it from your configuration. Don't wait for it to appear before offering an addition, and don't tell the client they hold nothing.
 - A client can already have the sub-product configured even when `productDetails` is empty, for example on clients onboarded before `productDetails` existed. The API then rejects the addition with `11901` ("Product config already exists"). Treat that as already added.
 - A product addition can create outstanding requirements, such as a document request, before verification. Which requirements appear depends on the client, so refetch the client and render whatever `outstanding` returns.
 
@@ -320,6 +330,9 @@ Content-Type: application/json
 
 - Set `parentPartyId` to the immediate parent. For a direct `BENEFICIAL_OWNER`, that's the `CLIENT` party's ID, not the client ID. For an indirect one, it's the `INTERMEDIARY_OWNER` party it owns through.
 - An `INTERMEDIARY_OWNER` party is an `ORGANIZATION` party, parented to its own immediate parent in the same way.
+- Derive `natureOfOwnership` from the parent's role rather than asking for it: `Direct` under the `CLIENT` party, and `Indirect` under an `INTERMEDIARY_OWNER` party, where it's required. The API rejects a mismatch, and an omitted value under an `INTERMEDIARY_OWNER` party.
+- Create an ownership chain from the client outward, so each `POST` can name the party the previous one returned.
+- Adding a party that already has a pending `ADD` is rejected. Edit the pending addition instead.
 - Show the returned `ADD` proposal as pending until approval, and keep its assigned party ID.
 - A new party creates no outstanding work before verification; its requirements are evaluated during review.
 
@@ -371,6 +384,7 @@ A `CONTROLLER` change touches two parties:
 **Recommended:**
 
 - Treat the replacement as one user action. Apply both writes, then refetch once.
+- Write the incoming party first and the outgoing one second, so the draft never has no `CONTROLLER` party.
 - If one write fails, retry the remaining write before letting the user continue. Never present zero or two `CONTROLLER` parties as a settled state.
 - Undo a replacement by restoring roles rather than discarding each party's other pending edits.
 
@@ -399,7 +413,8 @@ Several of the operations above take more than one write.
 ### Cancel pending party changes
 
 - `DELETE /maintenance-requests/{requestId}` cancels every party change in the request. It returns the affected proposals with status `TERMINATED`, and pending additions become inactive and leave the client response.
-- Adding `?partyId={partyId}` cancels only that party's changes.
+- Adding `?partyId={partyId}` cancels only that party's changes, and the discarded values can't be recovered. The request itself ends only once every party in it is cancelled, so the other changes stay in place.
+- Editing a cancelled party again starts a new `MODIFY` proposal. Present it as a fresh change, not as undoing the cancellation.
 - Discarding a request that adds an `INTERMEDIARY_OWNER` party fails, and can leave the party behind. See [Known Limitations](#known-limitations).
 - Cancellation is available only while the request is `NEW`. After verification starts, the API rejects it.
 - A cancelled edit can leave the party needing information. See [Validation follows every write](#validation-follows-every-write).
@@ -506,6 +521,7 @@ Handle each kind of item as follows:
 - **Questions** (`questionIds`): fetch them with `GET /questions?questionIds={ids}` and answer through `PATCH /clients/{id}` with `questionResponses`. Questions belong to the client; `QuestionResponse` has no `partyId`.
 - **Documents** (`documentRequestIds`, and each party's `validationResponse.documentRequestIds`):
   - Collect the IDs from both places and fetch each with `GET /document-requests/{id}`. `GET /document-requests?clientId={id}&includeRelatedParty=true` doesn't always include requests created for a party during maintenance.
+  - The same ID can appear in both places. Deduplicate it; it's one task, not two.
   - Upload each file with `POST /documents` (multipart `file` plus a `documentData` JSON part with `documentType` and `documentRequestId`), then submit with `POST /document-requests/{id}/submit`.
   - `documentType` must be one of the types the request lists. Other types are rejected with `11903` ("Invalid document type").
   - Use `DocumentRequestResponse.partyId` to associate a request with its party. If a request names a party that isn't on the profile, keep it visible rather than dropping it.
@@ -529,6 +545,8 @@ When a product or party status becomes `INFORMATION_REQUESTED`:
 - refetch the client and show every returned item;
 - enable only completion actions documented for that status, and keep others disabled; and
 - complete the requested information within 30 days, or the request is terminated automatically.
+
+Once every returned item is complete, the status goes back to `REVIEW_IN_PROGRESS` without another verification call; confirm it by refetching. A rejected document leaves the status unchanged, so keep its task visible until a refetch shows it cleared.
 
 Keep every approved party in its approved state while maintenance is open. Show an `ADD` proposal as a new party pending approval, not as an approved party, until the client response publishes it.
 
@@ -570,7 +588,7 @@ const descriptors: PartyFieldDescriptor[] = [
   individualField('firstName', 'First name'),
   individualField('middleName', 'Middle name'),
   individualField('lastName', 'Last name'),
-  individualField('birthDate', 'Date of birth', 'masked'),
+  individualField('birthDate', 'Date of birth'),
   partyField('roles', 'Roles'),
   partyField('parentPartyId', 'Owned through'),
 ];
@@ -687,6 +705,8 @@ On narrow screens, stack the approved and proposed values instead of placing the
 | Product or party `DECLINED`                | The changes were not approved              | Drop the proposal from the proposed view and keep its history                |
 | Party request `TERMINATED`                 | The changes were canceled or closed        | Drop the proposal from the proposed view                                     |
 
+The update guide names four reasons a request is `TERMINATED`: the platform cancelled it before verification, an information request went unanswered for 30 days, an updated country isn't supported, or the change carries a different tax identification number that requires new onboarding. **Recommended:** say which one applies when you can tell, rather than showing a generic cancellation message.
+
 ## Attestation and Verification
 
 ### Enforce the product-verification lead time
@@ -721,7 +741,7 @@ Don't unlock on elapsed time alone. If the original product is still `NEW`, `REV
 }
 ```
 
-If the attestation `PATCH` fails, don't call verification.
+If the attestation `PATCH` fails, don't call verification. To confirm it succeeded, refetch the client until `outstanding.attestationDocumentIds` no longer lists the document. Don't read the deprecated `ClientResponse.attestations`.
 
 ### Submit for review
 
@@ -782,9 +802,11 @@ async function patchParty(partyId: string, changedFields: UpdatePartyRequest) {
 
 - **Must:** don't optimistically write submitted values into `approvedClient`.
 - Keep form values until the maintenance refetch succeeds, and label them as not yet saved.
-- Fetch page zero, validate `metadata.page`, `metadata.limit`, and `metadata.total`, fetch every remaining page, and check the combined count against a final page-zero refetch before enabling review.
+- Fetch page zero, validate `metadata.page` and `metadata.total`, fetch every remaining page, and check the combined count against a final page-zero refetch before enabling review.
+- `metadata.limit` can be missing. Page with the limit you requested, at most 25, and treat a returned `limit` that differs from it as malformed.
 - Treat malformed metadata, a missing page, or a changing total as an incomplete read, and block review.
-- When a client has no maintenance requests, the list call returns `404` with `error: NOT_FOUND` and a "KYC Maintenance request with ID: [...] not found" message. Treat that response as an empty list, and any other `404` as a failure.
+- When a client has never had a maintenance request, the list call returns `404` with `error: NOT_FOUND` and a "KYC Maintenance request with ID: [...] not found" message. Treat that response as an empty list, and any other `404` as a failure. The message shows the client ID as though it were a request ID, so don't read an ID from it.
+- Once a client has had a request, the list call returns `200`, even when the only record is a cancelled, `TERMINATED` one.
 - Rebuild the projection from query data rather than storing a second mutable copy.
 - Key request-specific caches by both client and `requestId`.
 - Keep birth dates and identifiers out of analytics, errors, and logs.
@@ -827,11 +849,9 @@ No notification type covers maintenance requests yet, so poll product `onboardin
 
 ## Sensitive Data
 
-Mask sensitive values in every comparison, using per-field sensitivity metadata:
+Mask sensitive values everywhere they're displayed, using per-field sensitivity metadata:
 
-- government identifiers show their type and only a masked ending;
-- dates of birth are fully masked in comparisons;
-- phone numbers show only the last four digits;
+- government identifiers show their type and a masked value with only the last four digits, such as `***-**-6789`, and a control to reveal the full value;
 - raw sensitive values never reach telemetry or request logs; and
 - unknown fields aren't rendered just because they appear in JSON.
 
@@ -909,7 +929,11 @@ Cover at least:
 - product-only additions without a request ID, and product details that omit `product` or `action`;
 - terminal maintenance history not hiding an active product addition;
 - product cancellation separate from party-maintenance cancellation;
-- request bodies that omit unchanged fields and reject unsupported fields;
+- request bodies that omit unchanged fields and reject unsupported fields, and no write whose fields would all be ignored;
+- `natureOfOwnership` derived from the parent's role, and the four-owner limit counted after pending changes without `INTERMEDIARY_OWNER` parties;
+- a `CONTROLLER` replacement that writes the incoming party before the outgoing one;
+- a party-scoped cancellation that leaves the request's other changes in place;
+- a document request listed in both `outstanding` and a party's `validationResponse` shown once;
 - repeated party writes sharing one `NEW` request ID and merging into one proposal per party;
 - `parentPartyId` set to the immediate parent for new parties;
 - write responses keeping persisted values while the maintenance list returns pending ones;
@@ -918,7 +942,7 @@ Cover at least:
 - `ADD`, `MODIFY`, and `DELETE` projections, and `MODIFY` plus `active: false` treated as a removal;
 - ownership moves, if supported, including cycle prevention;
 - ambiguous duplicate fields and unresolved proposals blocking submission;
-- identifier, birth-date, and phone masking;
+- identifier masking and reveal;
 - an unchanged approved baseline after every kind of write;
 - multi-step changes resuming after a partial failure without replaying completed steps;
 - whole-request and party-scoped cancellation while `NEW`, including requests with a pending `INTERMEDIARY_OWNER` party, and no cancellation after submission;
@@ -929,7 +953,7 @@ Cover at least:
 - verification moving `NEW` to `REVIEW_IN_PROGRESS` and locking edits;
 - `INFORMATION_REQUESTED` showing all returned work while ordinary edits stay disabled;
 - `202 Accepted` presented as submitted, separate from approval and publication; and
-- pagination, the empty-list `404`, and staleness detection before submission.
+- pagination without `metadata.limit`, the empty-list `404`, a `200` with only `TERMINATED` records after cancellation, and staleness detection before submission.
 
 ## Known Limitations
 
@@ -938,7 +962,7 @@ These reflect the current API. Design around them; this section will be updated 
 | Area                                    | Current behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | What to do                                                                                                                                                                                                                                                                                 |
 | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Maintenance scope                       | Beyond the scenarios in the update guide, the supported fields, role changes, and ownership moves vary by integration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Enable only what your J.P. Morgan representative confirms for your integration.                                                                                                                                                                                                            |
-| Discarding `INTERMEDIARY_OWNER` parties | Discarding a pending `INTERMEDIARY_OWNER` party always fails with `11903` ("Party with role [INTERMEDIARY_OWNER] could not be inactivated"), whether it's discarded alone or with its request. A failed party-scoped discard still ends its `ADD`, leaving the party active, never approved, and impossible to remove (`active: false` returns `11911`). `GET /clients/{id}` returns it with the ended `ADD` until the next maintenance request starts, then with `updateRequest: null`, so it looks approved. A failed whole-request discard can mark the client's `updateRequest` `TERMINATED` while the proposals stay `NEW`. | Before adding an `INTERMEDIARY_OWNER` party, tell the user it can't be withdrawn once added. Treat a party with `profileStatus: NEW` and no open or approved `ADD` as an unreviewed leftover, not an approved party: mark it, offer no changes to it, and ask the user to contact support. |
+| Discarding `INTERMEDIARY_OWNER` parties | Discarding a pending `INTERMEDIARY_OWNER` party always fails with `11903` ("Party with role [INTERMEDIARY_OWNER] could not be inactivated"), whether it's discarded alone or with its request. A failed party-scoped discard still ends its `ADD`, leaving the party active, never approved, and impossible to remove (`active: false` returns `11911`). `GET /clients/{id}` returns it with the ended `ADD` until the next maintenance request starts, then with `updateRequest: null`, so it looks approved. A failed whole-request discard can mark the client's `updateRequest` `TERMINATED` while the proposals stay `NEW`. | Before adding an `INTERMEDIARY_OWNER` party, tell the user it can't be withdrawn once added. Treat a party with `profileStatus: NEW` and no open or approved `ADD` as unreviewed, not approved: route the client to your onboarding flow so the party is completed like a new one. |
 | Hidden open request                     | After a failed whole-request discard, the next write starts a new request. The earlier request's proposals stay `NEW` but no longer appear in `GET /maintenance-requests?clientId={id}`, only in `GET /maintenance-requests/{requestId}`, and verification is refused.                                                                                                                                                                                                                                                                                                                                                           | Treat a client `updateRequest` of `TERMINATED` alongside `NEW` proposals as a blocked state, and ask the user to contact support.                                                                                                                                                          |
 | Additions during review                 | While a request is `REVIEW_IN_PROGRESS`, `POST /parties` returns `11902` but still creates the party, active, with no proposal. Edits and discards are rejected as expected; a whole-request discard returns `500`.                                                                                                                                                                                                                                                                                                                                                                                                              | Block every write while the request is under review, and refetch after any failed write. Treat a party whose `profileStatus` isn't `APPROVED` and that has no proposal as unreviewed.                                                                                                      |
 | Validation after changes                | Validation reads the approved record, and stays after a change is discarded. An approved record missing a now-required field blocks submission after any change to that party.                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Warn before editing a party whose `validationResponse` isn't `VALIDATED`; if it blocks submission, ask the user to contact support.                                                                                                                                                        |
@@ -951,4 +975,4 @@ These reflect the current API. Design around them; this section will be updated 
 
 ## Example Implementation
 
-The [`ApprovedClientMaintenance`](../src/core/ApprovedClientMaintenance/) component in this repository is one implementation of this recipe. Its layout, navigation, wording, and visual design are its own choices, not requirements. Its Storybook stories under **Draft/ApprovedClientMaintenance** show it with different eligibility configurations, legal entity types, maintenance request statuses, and outstanding requirements.
+The [`ApprovedClientMaintenance`](../src/core/ApprovedClientMaintenance/) component in this repository is one implementation of this recipe. Its layout, navigation, wording, and visual design are its own choices, not requirements. Its Storybook stories under **Draft/ApprovedClientMaintenance** show it with different controllers, ownership structures, legal entity types, eligibility configurations, maintenance request statuses and draft changes, and outstanding requirements. **Draft/ClientExperience** shows how a client is routed between onboarding and maintenance.

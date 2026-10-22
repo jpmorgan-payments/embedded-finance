@@ -10,6 +10,11 @@ export const ACCEPTED_FILE_TYPES = {
 };
 
 /**
+ * Maximum file size accepted by POST /documents (2 MB)
+ */
+export const DEFAULT_MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+
+/**
  * Interface for uploaded document
  */
 export interface UploadedDocument {

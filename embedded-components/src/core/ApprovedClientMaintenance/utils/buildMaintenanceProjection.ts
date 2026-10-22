@@ -10,6 +10,7 @@ import {
   type MaintenanceClient,
   type MaintenanceParty,
 } from '../models/maintenanceApi.types';
+import { getUnreviewedPartyIds } from './getUnreviewedPartyIds';
 import { getMaintenancePartyName } from './maintenanceDisplay';
 import {
   MAINTENANCE_FIELD_DESCRIPTORS,
@@ -107,27 +108,9 @@ export function buildMaintenanceProjection(
 ): MaintenanceProjection {
   const approvedBaseline = structuredClone(approvedClient);
   const proposedClient = structuredClone(approvedClient);
-  const reviewableAdditionIds = new Set(
-    [...maintenanceParties, ...(approvedClient.parties ?? [])].flatMap(
-      (party) =>
-        party.id &&
-        party.updateRequest?.action === 'ADD' &&
-        (isActiveMaintenanceStatus(party.updateRequest.status) ||
-          party.updateRequest.status === 'APPROVED')
-          ? [party.id]
-          : []
-    )
-  );
-  const unreviewedPartyIds = new Set(
-    (approvedClient.parties ?? []).flatMap((party) =>
-      party.id &&
-      party.profileStatus === 'NEW' &&
-      party.active !== false &&
-      !party.roles?.includes('CLIENT') &&
-      !reviewableAdditionIds.has(party.id)
-        ? [party.id]
-        : []
-    )
+  const unreviewedPartyIds = getUnreviewedPartyIds(
+    approvedClient,
+    maintenanceParties
   );
   const nonApprovedEmbeddedAdditions = (approvedClient.parties ?? []).filter(
     (party) =>

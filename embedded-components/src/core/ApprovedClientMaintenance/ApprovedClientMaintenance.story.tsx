@@ -11,9 +11,15 @@ import {
 } from './stories/support/maintenanceStoryMeta';
 
 /**
- * Maintenance for an already approved client. The folders below show
- * eligibility matrix configurations, client profiles, maintenance request
- * statuses, and edge cases, all against a stateful mock API.
+ * Maintenance for an already approved client, against a stateful mock API:
+ *
+ * - **Client profiles**: controllers, ownership structures, and organization
+ *   types with no maintenance request.
+ * - **Maintenance requests**: each request status, and each kind of draft change.
+ * - **Eligibility matrix**: which controls each configuration allows.
+ * - **Edge cases**: outstanding information and unexpected API data.
+ *
+ * To route a client between onboarding and maintenance, use `ClientExperience`.
  */
 const meta: Meta<MaintenanceStoryArgs> = {
   title: 'Draft/ApprovedClientMaintenance',

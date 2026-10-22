@@ -45,18 +45,17 @@ import {
 } from '@/core/OnboardingFlow/utils/validationPatterns';
 
 import { useMaintenanceFormOptions } from '../hooks/useMaintenanceFormOptions';
-import type {
-  MaintenanceParty,
-  MaintenancePartyCreateRequest,
-} from '../models/maintenanceApi.types';
+import type { MaintenancePartyCreateRequest } from '../models/maintenanceApi.types';
 import { MaintenanceFormFooter } from './MaintenanceFormFooter';
 import { MaintenanceFormSection } from './MaintenanceFormSection';
+import { MaintenancePageBody } from './MaintenancePageBody';
 
 type RelatedPartyRole = 'CONTROLLER' | 'BENEFICIAL_OWNER';
 
 type AddRelatedPartyValues = {
   role: RelatedPartyRole;
   alsoBeneficialOwner: boolean;
+  ownershipParentPartyId: string;
   firstName: string;
   middleName: string;
   lastName: string;
@@ -98,6 +97,7 @@ const createSchema = (
     .object({
       role: z.enum(['CONTROLLER', 'BENEFICIAL_OWNER']),
       alsoBeneficialOwner: z.boolean(),
+      ownershipParentPartyId: z.string(),
       ...createIndividualLegalNameSchemaShape(
         {
           firstName: 'firstName',
@@ -262,9 +262,10 @@ type AddRelatedPartyFormProps = {
   natureOfOwnership?: 'Direct' | 'Indirect';
   allowedRoles: RelatedPartyRole[];
   isControllerReplacement?: boolean;
-  initialParty?: MaintenanceParty;
   isBeneficialOwnerOnly?: boolean;
   canAlsoBeBeneficialOwner?: boolean;
+  /** Intermediary businesses a replacement controller can also own through. */
+  ownershipBusinesses?: Array<{ partyId: string; name: string }>;
   isSubmitting: boolean;
   mutationError?: unknown;
   lockedCountry?: string;
@@ -278,9 +279,9 @@ export function AddRelatedPartyForm({
   natureOfOwnership = 'Direct',
   allowedRoles,
   isControllerReplacement = false,
-  initialParty,
   isBeneficialOwnerOnly = false,
   canAlsoBeBeneficialOwner = false,
+  ownershipBusinesses = [],
   isSubmitting: isMutationPending,
   mutationError,
   lockedCountry,
@@ -327,47 +328,19 @@ export function AddRelatedPartyForm({
     defaultValues: {
       role: allowedRoles[0] ?? 'BENEFICIAL_OWNER',
       alsoBeneficialOwner: false,
-      firstName: initialParty?.individualDetails?.firstName ?? '',
-      middleName: initialParty?.individualDetails?.middleName ?? '',
-      lastName: initialParty?.individualDetails?.lastName ?? '',
-      nameSuffix: initialParty?.individualDetails?.nameSuffix ?? '',
-      birthDate: initialParty?.individualDetails?.birthDate ?? '',
-      countryOfResidence:
-        initialParty?.individualDetails?.countryOfResidence ?? 'US',
-      individualId: {
-        idType:
-          initialParty?.individualDetails?.individualIds?.[0]?.idType ?? 'SSN',
-        value: initialParty?.individualDetails?.individualIds?.[0]?.value ?? '',
-      },
-      jobTitle: initialParty?.individualDetails?.jobTitle ?? '',
-      jobTitleDescription:
-        initialParty?.individualDetails?.jobTitleDescription ?? '',
-      email: initialParty?.email ?? '',
-      phone: {
-        phoneType:
-          initialParty?.individualDetails?.phone?.phoneType ?? 'MOBILE_PHONE',
-        countryCode: initialParty?.individualDetails?.phone?.countryCode ?? '',
-        phoneNumber: initialParty?.individualDetails?.phone?.phoneNumber ?? '',
-      },
-      residentialAddress: initialParty?.individualDetails?.addresses?.[0]
-        ? {
-            country:
-              initialParty.individualDetails.addresses[0].country ?? 'US',
-            primaryAddressLine:
-              initialParty.individualDetails.addresses[0].addressLines?.[0] ??
-              '',
-            secondaryAddressLine:
-              initialParty.individualDetails.addresses[0].addressLines?.[1] ??
-              '',
-            tertiaryAddressLine:
-              initialParty.individualDetails.addresses[0].addressLines?.[2] ??
-              '',
-            city: initialParty.individualDetails.addresses[0].city ?? '',
-            state: initialParty.individualDetails.addresses[0].state ?? '',
-            postalCode:
-              initialParty.individualDetails.addresses[0].postalCode ?? '',
-          }
-        : emptyAddress,
+      ownershipParentPartyId: parentPartyId,
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      nameSuffix: '',
+      birthDate: '',
+      countryOfResidence: 'US',
+      individualId: { idType: 'SSN', value: '' },
+      jobTitle: '',
+      jobTitleDescription: '',
+      email: '',
+      phone: { phoneType: 'MOBILE_PHONE', countryCode: '', phoneNumber: '' },
+      residentialAddress: emptyAddress,
     },
   });
   useEffect(() => {
@@ -393,15 +366,20 @@ export function AddRelatedPartyForm({
       values.residentialAddress.secondaryAddressLine,
       values.residentialAddress.tertiaryAddressLine,
     ].filter(Boolean);
+    const isControllerAndOwner =
+      values.role === 'CONTROLLER' && values.alsoBeneficialOwner;
+    const ownsThroughBusiness =
+      isControllerAndOwner && values.ownershipParentPartyId !== parentPartyId;
     try {
       await onSave({
         partyType: 'INDIVIDUAL',
-        parentPartyId,
+        parentPartyId: ownsThroughBusiness
+          ? values.ownershipParentPartyId
+          : parentPartyId,
         email: values.email,
-        roles:
-          values.role === 'CONTROLLER' && values.alsoBeneficialOwner
-            ? ['CONTROLLER', 'BENEFICIAL_OWNER']
-            : [values.role],
+        roles: isControllerAndOwner
+          ? ['CONTROLLER', 'BENEFICIAL_OWNER']
+          : [values.role],
         individualDetails: {
           firstName: values.firstName,
           middleName: values.middleName || undefined,
@@ -409,7 +387,9 @@ export function AddRelatedPartyForm({
           nameSuffix: values.nameSuffix || undefined,
           birthDate: values.birthDate,
           countryOfResidence: values.countryOfResidence,
-          natureOfOwnership,
+          natureOfOwnership: ownsThroughBusiness
+            ? 'Indirect'
+            : natureOfOwnership,
           jobTitle: values.jobTitle,
           jobTitleDescription:
             values.jobTitle === 'Other'
@@ -448,18 +428,20 @@ export function AddRelatedPartyForm({
   });
 
   return (
-    <div className="eb-px-4 eb-pt-4">
-      {(mutationError || submitError) &&
-      hasUnmappedApiErrors(
-        mutationError ?? submitError,
-        ADD_PARTY_API_FIELD_PATHS
-      ) ? (
-        <div className="eb-mb-4">
-          <ServerErrorAlert error={(mutationError ?? submitError) as never} />
-        </div>
-      ) : null}
-      <Form {...form}>
-        <form onSubmit={submit}>
+    <Form {...form}>
+      <form onSubmit={submit} data-maintenance-page-fill="">
+        <MaintenancePageBody contentClassName="eb-px-4 eb-pt-4">
+          {(mutationError || submitError) &&
+          hasUnmappedApiErrors(
+            mutationError ?? submitError,
+            ADD_PARTY_API_FIELD_PATHS
+          ) ? (
+            <div className="eb-mb-4">
+              <ServerErrorAlert
+                error={(mutationError ?? submitError) as never}
+              />
+            </div>
+          ) : null}
           <div className="eb-mx-auto eb-w-full eb-max-w-3xl">
             {isControllerReplacement || allowedRoles.length > 1 ? (
               <fieldset className="eb-space-y-3">
@@ -506,7 +488,7 @@ export function AddRelatedPartyForm({
                               <label
                                 key={role}
                                 htmlFor={`related-party-role-${role}`}
-                                className="eb-flex eb-cursor-pointer eb-items-start eb-gap-3 eb-rounded-md eb-border eb-bg-background eb-p-4 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-accent/40"
+                                className="eb-flex eb-cursor-pointer eb-items-start eb-gap-3 eb-rounded-md eb-border eb-bg-background eb-p-4 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-accent/30"
                               >
                                 <RadioGroupItem
                                   id={`related-party-role-${role}`}
@@ -565,6 +547,36 @@ export function AddRelatedPartyForm({
                       </FormItem>
                     )}
                   />
+                ) : null}
+                {/* Owning through another business is rare, so it waits behind the owner checkbox. */}
+                {isControllerReplacement &&
+                canAlsoBeBeneficialOwner &&
+                ownershipBusinesses.length > 0 &&
+                form.watch('alsoBeneficialOwner') ? (
+                  <div
+                    data-replacement-ownership-path=""
+                    className="eb-ml-7 eb-duration-200 eb-animate-in eb-fade-in-0 motion-reduce:eb-animate-none"
+                  >
+                    <ProfileSelectField
+                      control={form.control}
+                      name="ownershipParentPartyId"
+                      label={t('addParty.ownershipPath.label')}
+                      description={t('addParty.ownershipPath.description')}
+                      placeholder={tString('addParty.ownershipPath.label')}
+                      options={[
+                        {
+                          value: parentPartyId,
+                          label: t('addParty.ownershipPath.direct'),
+                        },
+                        ...ownershipBusinesses.map((business) => ({
+                          value: business.partyId,
+                          label: t('addParty.ownershipPath.through', {
+                            name: business.name,
+                          }),
+                        })),
+                      ]}
+                    />
+                  </div>
                 ) : null}
               </fieldset>
             ) : null}
@@ -813,37 +825,36 @@ export function AddRelatedPartyForm({
               </div>
             </MaintenanceFormSection>
           </div>
-          <MaintenanceFormFooter
-            sticky
-            leading={
-              <Button
-                type="button"
-                variant="outlineSurface"
-                size="sm"
-                onClick={onCancel}
-                disabled={isSubmitting}
-              >
-                <ArrowLeftIcon />
-                {t('form.back')}
-              </Button>
-            }
-            trailing={
-              <Button type="submit" size="sm" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2Icon className="eb-animate-spin" />
-                ) : null}
-                {t(
-                  isControllerReplacement
-                    ? 'addParty.saveReplacement'
-                    : isBeneficialOwnerOnly
-                      ? 'addParty.saveBeneficialOwner'
-                      : 'addParty.save'
-                )}
-              </Button>
-            }
-          />
-        </form>
-      </Form>
-    </div>
+        </MaintenancePageBody>
+        <MaintenanceFormFooter
+          leading={
+            <Button
+              type="button"
+              variant="outlineSurface"
+              size="sm"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              <ArrowLeftIcon />
+              {t('form.back')}
+            </Button>
+          }
+          trailing={
+            <Button type="submit" size="sm" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2Icon className="eb-animate-spin" />
+              ) : null}
+              {t(
+                isControllerReplacement
+                  ? 'addParty.saveReplacement'
+                  : isBeneficialOwnerOnly
+                    ? 'addParty.saveBeneficialOwner'
+                    : 'addParty.save'
+              )}
+            </Button>
+          }
+        />
+      </form>
+    </Form>
   );
 }

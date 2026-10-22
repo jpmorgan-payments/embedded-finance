@@ -10,10 +10,14 @@ import {
 
 import { cn } from '@/lib/utils';
 
+import {
+  MaintenanceActionMenu,
+  type MaintenanceAction,
+} from './MaintenanceActionMenu';
+import { MaintenanceTreeBranch } from './MaintenanceTreeBranch';
+
 export type MaintenanceProductState =
   | 'active'
-  | 'available'
-  | 'ready'
   | 'pending'
   | 'review'
   | 'action'
@@ -25,8 +29,7 @@ export type MaintenanceSubProductItem = {
   description?: ReactNode;
   state: MaintenanceProductState;
   eyebrow?: ReactNode;
-  presentation?: 'detail' | 'action-only';
-  action?: ReactNode;
+  menu?: { label: string; actions: MaintenanceAction[] };
 };
 
 const STATE_ICON: Partial<Record<MaintenanceProductState, typeof Clock3Icon>> =
@@ -36,6 +39,28 @@ const STATE_ICON: Partial<Record<MaintenanceProductState, typeof Clock3Icon>> =
     action: AlertTriangleIcon,
     declined: XCircleIcon,
   };
+
+// Toned frames like the ownership structure's cards; fills stay for page banners.
+const STATE_CARD_CLASS: Partial<Record<MaintenanceProductState, string>> = {
+  pending: 'eb-border-informative/50',
+  review: 'eb-border-informative/50',
+  action: 'eb-border-warning/50',
+  declined: 'eb-border-destructive/50',
+};
+
+const STATE_TEXT_CLASS: Partial<Record<MaintenanceProductState, string>> = {
+  pending: 'eb-font-semibold eb-text-informative',
+  review: 'eb-font-semibold eb-text-informative',
+  action: 'eb-font-semibold eb-text-warning-foreground',
+  declined: 'eb-font-semibold eb-text-destructive',
+};
+
+const STATE_ICON_CLASS: Partial<Record<MaintenanceProductState, string>> = {
+  pending: 'eb-bg-informative-accent eb-text-informative',
+  review: 'eb-bg-informative-accent eb-text-informative',
+  action: 'eb-bg-warning-accent eb-text-warning-foreground',
+  declined: 'eb-bg-destructive-accent eb-text-destructive',
+};
 
 export function MaintenanceProductFamily({
   productName,
@@ -49,13 +74,9 @@ export function MaintenanceProductFamily({
   subProducts: MaintenanceSubProductItem[];
 }) {
   return (
-    <div
-      data-product-family=""
-      data-product-tree=""
-      className="eb-bg-background"
-    >
-      <div className="eb-flex eb-items-center eb-gap-3 eb-pb-2">
-        <span className="eb-relative eb-z-10 eb-flex eb-size-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-sm eb-bg-muted eb-text-foreground">
+    <div data-product-family="" data-product-tree="">
+      <div className="eb-flex eb-items-center eb-gap-3">
+        <span className="eb-flex eb-size-9 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-sm eb-bg-muted eb-text-foreground">
           <PackageIcon className="eb-size-5" aria-hidden="true" />
         </span>
         <div className="eb-min-w-0">
@@ -67,57 +88,37 @@ export function MaintenanceProductFamily({
           </h4>
         </div>
       </div>
-      <ul className="eb-ml-[1.125rem]">
-        {subProducts.map((subProduct, index) => {
-          const StatusIcon = STATE_ICON[subProduct.state];
-          const NodeIcon = StatusIcon ?? BoxesIcon;
-          const isActionOnly = subProduct.presentation === 'action-only';
-          const isFirst = index === 0;
-          const isLast = index === subProducts.length - 1;
-          return (
-            <li
-              key={subProduct.id}
-              data-sub-product={subProduct.id}
-              data-last-sub-product={isLast ? 'true' : 'false'}
-              data-presentation={isActionOnly ? 'action-only' : 'detail'}
-              className={cn(
-                'eb-relative eb-grid eb-gap-3 eb-py-3 eb-pl-8 eb-pr-1 @[40rem]:eb-grid-cols-[minmax(0,1fr)_auto] @[40rem]:eb-items-center',
-                subProduct.state === 'action' &&
-                  'eb-rounded-sm eb-bg-warning-accent/40',
-                subProduct.state === 'declined' &&
-                  'eb-rounded-sm eb-bg-destructive-accent/30'
-              )}
-            >
-              <span
-                aria-hidden="true"
-                data-tree-spine=""
-                className={cn(
-                  'eb-absolute eb-left-0 eb-border-l eb-border-border',
-                  isFirst ? 'eb--top-2' : 'eb-top-0',
-                  isLast ? 'eb-bottom-1/2' : 'eb-bottom-0'
-                )}
-              />
-              <span
-                aria-hidden="true"
-                className="eb-absolute eb-left-0 eb-top-1/2 eb-w-8 eb-border-t eb-border-border"
-              />
-              {isActionOnly ? (
-                <div className="eb-col-span-full eb-flex eb-items-center">
-                  {subProduct.action}
-                </div>
-              ) : (
-                <>
-                  <div className="eb-flex eb-min-w-0 eb-items-start eb-gap-3">
+      {subProducts.length > 0 ? (
+        <ul className="eb-ml-[1.125rem] eb-mt-2 eb-space-y-2">
+          {subProducts.map((subProduct, index) => {
+            const StatusIcon = STATE_ICON[subProduct.state];
+            const NodeIcon = StatusIcon ?? BoxesIcon;
+            const isLast = index === subProducts.length - 1;
+            const line = subProduct.state === 'pending' ? 'dashed' : 'solid';
+            return (
+              <MaintenanceTreeBranch
+                key={subProduct.id}
+                isLast={isLast}
+                line={line}
+                nextLine={
+                  subProducts[index + 1]?.state === 'pending'
+                    ? 'dashed'
+                    : 'solid'
+                }
+                data-sub-product={subProduct.id}
+                data-last-sub-product={isLast ? 'true' : 'false'}
+              >
+                <div
+                  className={cn(
+                    'eb-flex eb-items-stretch eb-overflow-hidden eb-rounded-md eb-border eb-bg-background',
+                    STATE_CARD_CLASS[subProduct.state]
+                  )}
+                >
+                  <div className="eb-flex eb-min-w-0 eb-flex-1 eb-items-start eb-gap-3 eb-p-3">
                     <span
                       className={cn(
-                        'eb-relative eb-z-10 eb-flex eb-size-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-sm',
-                        StatusIcon
-                          ? 'eb-bg-informative-accent eb-text-informative'
-                          : 'eb-bg-muted eb-text-muted-foreground',
-                        subProduct.state === 'action' &&
-                          'eb-bg-warning-accent eb-text-warning-foreground',
-                        subProduct.state === 'declined' &&
-                          'eb-bg-destructive-accent eb-text-destructive'
+                        'eb-flex eb-size-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-sm eb-bg-muted eb-text-muted-foreground',
+                        STATE_ICON_CLASS[subProduct.state]
                       )}
                     >
                       <NodeIcon
@@ -131,14 +132,8 @@ export function MaintenanceProductFamily({
                     <div className="eb-min-w-0">
                       <p
                         className={cn(
-                          'eb-text-xs',
-                          StatusIcon
-                            ? 'eb-font-semibold eb-text-informative'
-                            : 'eb-text-muted-foreground',
-                          subProduct.state === 'action' &&
-                            'eb-text-warning-foreground',
-                          subProduct.state === 'declined' &&
-                            'eb-text-destructive'
+                          'eb-text-xs eb-text-muted-foreground',
+                          STATE_TEXT_CLASS[subProduct.state]
                         )}
                       >
                         {subProduct.eyebrow ?? subProductLabel}
@@ -153,15 +148,23 @@ export function MaintenanceProductFamily({
                       ) : null}
                     </div>
                   </div>
-                  <div className="eb-flex eb-flex-wrap eb-items-center eb-gap-2 eb-pl-11 @[40rem]:eb-justify-end @[40rem]:eb-pl-0">
-                    {subProduct.action}
-                  </div>
-                </>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+                  {subProduct.menu ? (
+                    <div
+                      data-sub-product-actions=""
+                      className="eb-flex eb-shrink-0 eb-items-start eb-border-l eb-border-border eb-p-1.5"
+                    >
+                      <MaintenanceActionMenu
+                        label={subProduct.menu.label}
+                        actions={subProduct.menu.actions}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              </MaintenanceTreeBranch>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 }

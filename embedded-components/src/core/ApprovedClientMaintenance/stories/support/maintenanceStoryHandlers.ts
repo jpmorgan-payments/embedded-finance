@@ -1,3 +1,4 @@
+import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
 import { http, HttpResponse, type HttpHandler } from 'msw';
 
 import type {
@@ -29,14 +30,6 @@ export type StoryDocumentRequest = {
   }>;
 };
 
-export type StoryQuestion = {
-  id: string;
-  label: string;
-  description?: string;
-  /** Omit for free text. */
-  options?: string[];
-};
-
 export type MaintenanceStoryScenario = {
   client: MaintenanceClient;
   /** Sparse party proposals returned by GET /maintenance-requests. */
@@ -44,7 +37,12 @@ export type MaintenanceStoryScenario = {
   /** Status of a pending Limited DDA Payments addition, if any. */
   productUpgrade?: KycUpdateRequestStatus;
   documentRequests?: StoryDocumentRequest[];
-  questions?: StoryQuestion[];
+  /** Outstanding question IDs from the onboarding question mock, follow-ups included. */
+  questionIds?: string[];
+  /** GET /questions fails, so outstanding questions can't be shown. */
+  failQuestionLoad?: boolean;
+  /** Saving answers through PATCH /clients fails. */
+  failQuestionSave?: boolean;
   attestationDocumentIds?: string[];
   /** Outstanding items beyond those derived from documents, questions, and attestations. */
   outstanding?: Pick<ClientResponseOutstanding, 'partyIds' | 'partyRoles'>;
@@ -108,9 +106,35 @@ export function createMaintenanceStoryHandlers(
   let productUpgrade = scenario.productUpgrade;
   let nextPartyId = 2290000001;
   const documentRequests = structuredClone(scenario.documentRequests ?? []);
-  const answeredQuestionIds = new Set<string>();
+  const outstandingQuestionIds = new Set(scenario.questionIds ?? []);
+  const questionAnswers = new Map<string, string[]>();
   const attestedDocumentIds = new Set<string>();
   const approvedParties = scenario.client.parties ?? [];
+
+  // Like the API, completing everything review asked for resumes it without another verification.
+  const resumeReviewWhenComplete = () => {
+    const hasOpenWork =
+      outstandingQuestionIds.size > 0 ||
+      documentRequests.some(
+        (documentRequest) => documentRequest.status !== 'CLOSED'
+      ) ||
+      (scenario.outstanding?.partyIds?.length ?? 0) > 0;
+    if (hasOpenWork) return;
+    proposals = proposals.map((proposal) =>
+      proposal.updateRequest?.status === 'INFORMATION_REQUESTED'
+        ? {
+            ...proposal,
+            updateRequest: {
+              ...proposal.updateRequest,
+              status: 'REVIEW_IN_PROGRESS',
+            },
+          }
+        : proposal
+    );
+    if (productUpgrade === 'INFORMATION_REQUESTED') {
+      productUpgrade = 'REVIEW_IN_PROGRESS';
+    }
+  };
 
   const getClient = (): MaintenanceClient => {
     const openDocuments = documentRequests.filter(
@@ -165,9 +189,7 @@ export function createMaintenanceStoryHandlers(
         documentRequestIds: openDocuments
           .filter((documentRequest) => !documentRequest.partyId)
           .map((documentRequest) => documentRequest.id),
-        questionIds: (scenario.questions ?? [])
-          .map((question) => question.id)
-          .filter((questionId) => !answeredQuestionIds.has(questionId)),
+        questionIds: [...outstandingQuestionIds],
         attestationDocumentIds: (scenario.attestationDocumentIds ?? []).filter(
           (documentId) => !attestedDocumentIds.has(documentId)
         ),
@@ -219,32 +241,32 @@ export function createMaintenanceStoryHandlers(
       );
       if (!documentRequest) return new HttpResponse(null, { status: 404 });
       documentRequest.status = 'CLOSED';
+      resumeReviewWhenComplete();
       return HttpResponse.json(documentRequest);
     }),
     http.get('/questions', ({ request }) => {
+      if (scenario.failQuestionLoad) {
+        return HttpResponse.json(
+          { title: 'Service unavailable', httpStatus: 503 },
+          { status: 503 }
+        );
+      }
       const questionIds = (
         new URL(request.url).searchParams.get('questionIds') ?? ''
       ).split(',');
       return HttpResponse.json({
-        questions: (scenario.questions ?? [])
-          .filter((question) => questionIds.includes(question.id))
-          .map((question) => ({
-            id: question.id,
-            content: [
-              {
-                label: question.label,
-                description: question.description,
-                locale: 'en-US',
-              },
-            ],
-            responseSchema: {
-              items: question.options
-                ? { type: 'string', enum: question.options }
-                : { type: 'string' },
-            },
-          })),
+        metadata: efClientQuestionsMock.metadata,
+        questions: efClientQuestionsMock.questions.filter((question) =>
+          questionIds.includes(question.id)
+        ),
       });
     }),
+    http.get('/documents/:documentId', ({ params }) =>
+      HttpResponse.json({
+        id: params.documentId,
+        documentType: 'OWNERSHIP_ATTESTATION',
+      })
+    ),
     http.get(
       '/documents/:documentId/file',
       () =>
@@ -255,7 +277,7 @@ export function createMaintenanceStoryHandlers(
     http.patch('/clients/:clientId', async ({ request }) => {
       const body = (await request.json()) as {
         productDetails?: Array<{ subProduct?: string; action?: string }>;
-        questionResponses?: Array<{ questionId: string }>;
+        questionResponses?: Array<{ questionId: string; values?: unknown[] }>;
         addAttestations?: Array<{ documentId: string }>;
       };
       const productCommand = body.productDetails?.find(
@@ -264,9 +286,47 @@ export function createMaintenanceStoryHandlers(
       if (productCommand) {
         productUpgrade = productCommand.action === 'REMOVE' ? undefined : 'NEW';
       }
-      body.questionResponses?.forEach((response) =>
-        answeredQuestionIds.add(response.questionId)
-      );
+      if (body.questionResponses && scenario.failQuestionSave) {
+        return HttpResponse.json(
+          {
+            title: 'Internal Server Error',
+            httpStatus: 500,
+            context: [{ code: '15000', message: 'System error' }],
+          },
+          { status: 500 }
+        );
+      }
+      if (body.questionResponses) {
+        body.questionResponses.forEach((response) => {
+          questionAnswers.set(
+            response.questionId,
+            (response.values ?? []).map(String)
+          );
+          outstandingQuestionIds.delete(response.questionId);
+        });
+        // Same follow-up rules as the onboarding mock: a matching answer opens
+        // its unanswered sub-questions, anything else closes them.
+        const isAnswered = (questionId: string) =>
+          (questionAnswers.get(questionId) ?? []).some(
+            (value) => value.trim() !== ''
+          );
+        efClientQuestionsMock.questions.forEach((question) => {
+          const parentAnswers = questionAnswers.get(question.id) ?? [];
+          question.subQuestions?.forEach((subQuestion) => {
+            const revealed = parentAnswers.includes(
+              String(subQuestion.anyValuesMatch)
+            );
+            subQuestion.questionIds.forEach((childId) => {
+              if (revealed && !isAnswered(childId)) {
+                outstandingQuestionIds.add(childId);
+              } else {
+                outstandingQuestionIds.delete(childId);
+              }
+            });
+          });
+        });
+        resumeReviewWhenComplete();
+      }
       body.addAttestations?.forEach((attestation) =>
         attestedDocumentIds.add(attestation.documentId)
       );

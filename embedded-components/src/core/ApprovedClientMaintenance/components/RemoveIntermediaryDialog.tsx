@@ -121,7 +121,7 @@ export function RemoveIntermediaryDialog({
             </Label>
             <Label
               htmlFor="remove-intermediary-branch"
-              className="eb-flex eb-cursor-pointer eb-items-start eb-gap-3 eb-rounded-md eb-border eb-border-destructive/40 eb-p-4 has-[[data-state=checked]]:eb-bg-destructive-accent"
+              className="eb-flex eb-cursor-pointer eb-items-start eb-gap-3 eb-rounded-md eb-border eb-border-destructive/50 eb-p-4 has-[[data-state=checked]]:eb-bg-destructive-accent"
             >
               <RadioGroupItem
                 id="remove-intermediary-branch"

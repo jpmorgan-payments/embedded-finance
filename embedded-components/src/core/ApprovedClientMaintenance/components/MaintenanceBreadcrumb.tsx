@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ChevronRightIcon } from 'lucide-react';
 
+import { useIsMaintenanceBusy } from './MaintenanceBusyContext';
 import { useIsMaintenanceNavigatorVisible } from './MaintenanceNavigatorVisibleContext';
 
 export type MaintenanceBreadcrumbItem = {
@@ -18,6 +19,7 @@ export function MaintenanceBreadcrumb({
   ariaLabel,
 }: MaintenanceBreadcrumbProps) {
   const isNavigatorVisible = useIsMaintenanceNavigatorVisible();
+  const isBusy = useIsMaintenanceBusy();
   // The navigator sidebar already provides location and wayfinding.
   if (isNavigatorVisible) return null;
 
@@ -42,7 +44,8 @@ export function MaintenanceBreadcrumb({
             {item.onSelect && !isCurrent ? (
               <button
                 type="button"
-                className="eb-flex eb-min-w-0 eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground hover:eb-text-foreground hover:eb-underline focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring"
+                className="eb-flex eb-min-w-0 eb-items-center eb-gap-1 eb-text-sm eb-text-muted-foreground hover:eb-text-foreground hover:eb-underline focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring disabled:eb-cursor-not-allowed disabled:eb-opacity-60 disabled:hover:eb-text-muted-foreground disabled:hover:eb-no-underline"
+                disabled={isBusy}
                 onClick={item.onSelect}
               >
                 <span className="eb-truncate">{item.label}</span>

@@ -16,7 +16,7 @@ type MaintenanceSectionProps = {
   children: ReactNode;
 };
 
-/** Label gutter beside a bounded content group; the shared section shape for every maintenance view. */
+/** Label gutter beside a bounded content group; tone colors the label and frame, never the fill. */
 export function MaintenanceSection({
   id,
   title,
@@ -53,12 +53,7 @@ export function MaintenanceSection({
     <section
       aria-labelledby={id}
       className={cn(
-        'eb-grid eb-gap-x-8 eb-gap-y-3 eb-px-4 eb-py-5 @[48rem]:eb-grid-cols-[minmax(8rem,1fr)_2.5fr]',
-        tone === 'informative'
-          ? 'eb-bg-informative-accent/40'
-          : tone === 'warning'
-            ? 'eb-bg-warning-accent/40'
-            : 'eb-bg-muted/20',
+        'eb-grid eb-gap-x-8 eb-gap-y-3 eb-bg-muted/20 eb-px-4 eb-py-5 @[48rem]:eb-grid-cols-[minmax(8rem,1fr)_2.5fr]',
         divided && 'eb-border-t'
       )}
     >
@@ -70,7 +65,7 @@ export function MaintenanceSection({
             tone === 'informative'
               ? 'eb-text-informative'
               : tone === 'warning'
-                ? 'eb-text-warning'
+                ? 'eb-text-warning-foreground'
                 : 'eb-text-foreground'
           )}
         >

@@ -1,3 +1,5 @@
+import type { KycUpdateRequestStatus } from '@/api/generated/smbdo.schemas';
+
 import {
   APPROVED_CLIENT_MAINTENANCE_OPERATIONS,
   type ApprovedClientMaintenanceEligibilityRule,
@@ -7,7 +9,7 @@ import type {
   MaintenanceClient,
   MaintenanceParty,
 } from '../../models/maintenanceApi.types';
-import { STORY_CLIENT_ID } from './maintenanceStoryHandlers';
+import { pendingUpdate, STORY_CLIENT_ID } from './maintenanceStoryHandlers';
 
 export const ORGANIZATION_PARTY_ID = '2200000100';
 
@@ -401,3 +403,113 @@ export const LLC_WITHOUT_LIMITED_DDA = approvedClient(
   [PETER, TINKER],
   { withLimitedDda: false }
 );
+
+const JOHN = person({
+  id: '2200000161',
+  firstName: 'John',
+  lastName: 'Darling',
+  roles: ['BENEFICIAL_OWNER'],
+  jobTitle: 'Other',
+});
+
+/** The controller owns nothing; two other people own directly. */
+export const LLC_WITH_NON_OWNER_CONTROLLER = approvedClient(
+  business({
+    name: 'Darling Home Goods LLC',
+    organizationType: 'LIMITED_LIABILITY_COMPANY',
+    description: 'Furniture and home goods retailer.',
+  }),
+  [WENDY, JOHN, TINKER]
+);
+
+/** The controller is the only owner. */
+export const LLC_WITH_SOLE_OWNER_CONTROLLER = approvedClient(
+  business({
+    name: 'Pan Aviation LLC',
+    organizationType: 'LIMITED_LIABILITY_COMPANY',
+    description: 'Charter flights and flight instruction.',
+  }),
+  [PETER]
+);
+
+/** The controller owns through an intermediary; another person owns directly. */
+export const LLC_WITH_INDIRECT_OWNER_CONTROLLER = approvedClient(
+  business({
+    name: 'Crocodile Creek Ventures LLC',
+    organizationType: 'LIMITED_LIABILITY_COMPANY',
+    description: 'River cruises and waterfront dining.',
+  }),
+  [
+    intermediary({ id: '2200000171', name: 'Tick Tock Holdings LLC' }),
+    person({
+      id: '2200000172',
+      firstName: 'Tiger',
+      lastName: 'Lily',
+      roles: ['CONTROLLER', 'BENEFICIAL_OWNER'],
+      parentPartyId: '2200000171',
+    }),
+    TINKER,
+  ]
+);
+
+/** The controller owns nothing, and every owner holds their stake through one business. */
+export const LLC_WITH_INDIRECT_OWNERS_ONLY = approvedClient(
+  business({
+    name: 'Jolly Roger Shipping LLC',
+    organizationType: 'LIMITED_LIABILITY_COMPANY',
+    description: 'Freight shipping between coastal ports.',
+  }),
+  [
+    WENDY,
+    intermediary({ id: '2200000181', name: 'Black Flag Holdings LLC' }),
+    person({
+      id: '2200000182',
+      firstName: 'James',
+      lastName: 'Hook',
+      roles: ['BENEFICIAL_OWNER'],
+      parentPartyId: '2200000181',
+      jobTitle: 'Other',
+    }),
+    person({
+      id: '2200000183',
+      firstName: 'Starkey',
+      lastName: 'Smee',
+      roles: ['BENEFICIAL_OWNER'],
+      parentPartyId: '2200000181',
+      jobTitle: 'Other',
+    }),
+  ]
+);
+
+/**
+ * An owner whose `ADD` ended without review: active, `profileStatus: NEW`,
+ * and never approved. Only an API defect produces this state.
+ */
+export const LLC_WITH_UNREVIEWED_OWNER = approvedClient(
+  LLC_WITH_DIRECT_OWNERS.parties![0],
+  [
+    PETER,
+    TINKER,
+    {
+      ...JOHN,
+      profileStatus: 'NEW',
+      updateRequest: pendingUpdate('TERMINATED', 'ADD'),
+    },
+  ]
+);
+
+export const renamePeter = (
+  status: KycUpdateRequestStatus = 'NEW'
+): MaintenanceParty => ({
+  id: PETER.id,
+  individualDetails: { lastName: 'Pan-Darling' },
+  updateRequest: pendingUpdate(status),
+});
+
+export const renameTinker = (
+  status: KycUpdateRequestStatus = 'NEW'
+): MaintenanceParty => ({
+  id: TINKER.id,
+  individualDetails: { firstName: 'Tinkerbell' },
+  updateRequest: pendingUpdate(status),
+});

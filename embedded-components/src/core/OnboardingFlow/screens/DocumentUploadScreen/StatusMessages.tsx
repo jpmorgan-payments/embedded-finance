@@ -25,6 +25,13 @@ interface StatusMessagesProps {
    * Whether document requests exist
    */
   hasDocumentRequests: boolean;
+  /**
+   * Whether an information request is waiting on question answers. A request
+   * may contain only questions, so having no document requests is expected.
+   */
+  hasRequestedQuestions?: boolean;
+  /** Whether an information request is waiting on document uploads. */
+  hasRequestedDocuments?: boolean;
   clientOutstanding: ClientResponseOutstanding | undefined;
 }
 
@@ -36,6 +43,8 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
   clientStatus,
   documentRequestStatus,
   hasDocumentRequests,
+  hasRequestedQuestions = false,
+  hasRequestedDocuments = false,
   clientOutstanding,
 }): ReactElement | undefined => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
@@ -63,8 +72,12 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
     );
   }
 
-  // Client is approved
-  if (clientStatus === 'APPROVED') {
+  // Client is approved and has no open information request
+  if (
+    clientStatus === 'APPROVED' &&
+    !hasRequestedDocuments &&
+    !hasRequestedQuestions
+  ) {
     return (
       <Alert variant="success" noTitle>
         <CheckIcon className="eb-h-4 eb-w-4" />
@@ -121,7 +134,7 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
   }
 
   // No document requests found
-  if (!hasDocumentRequests) {
+  if (!hasDocumentRequests && !hasRequestedQuestions) {
     return (
       <Alert variant="warning">
         <AlertTriangle className="eb-h-4 eb-w-4" />

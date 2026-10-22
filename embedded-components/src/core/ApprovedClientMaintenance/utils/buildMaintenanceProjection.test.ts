@@ -349,7 +349,7 @@ describe('buildMaintenanceProjection', () => {
     ]);
   });
 
-  test('masks birth dates for display while retaining the raw fingerprint value', () => {
+  test('shows birth dates unmasked', () => {
     const client: MaintenanceClient = {
       ...approvedClient,
       parties: [
@@ -378,11 +378,11 @@ describe('buildMaintenanceProjection', () => {
 
     expect(birthDateChange).toEqual(
       expect.objectContaining({
-        approvedValue: '••••••••',
-        proposedValue: '••••••••',
+        approvedValue: '1975-03-12',
+        proposedValue: '1976-04-13',
         approvedRawValue: '1975-03-12',
         proposedRawValue: '1976-04-13',
-        sensitivity: 'masked',
+        sensitivity: 'public',
       })
     );
   });

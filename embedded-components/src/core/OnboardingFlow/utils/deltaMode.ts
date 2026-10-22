@@ -285,6 +285,11 @@ export function isDeltaModeActive(
   if (!clientData?.id) {
     return false;
   }
+  // Delta is a pre-submission completion path. Once submitted, outstanding
+  // questions belong to an information request, not to the delta panel.
+  if (clientData.status && clientData.status !== 'NEW') {
+    return false;
+  }
   const pendingCount = countPendingOnboardingFields(
     clientData,
     questionDefinitions

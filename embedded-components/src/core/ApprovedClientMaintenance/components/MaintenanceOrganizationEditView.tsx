@@ -59,7 +59,7 @@ export function MaintenanceOrganizationEditView({
           {t('organizationForm.editDescription')}
         </p>
       </header>
-      <div className="eb-w-full">
+      <div className="eb-w-full" data-maintenance-page-fill="">
         <OrganizationChangeEditor
           variant={variant}
           initialValues={initialValues}

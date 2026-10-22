@@ -21,6 +21,7 @@ import { Button, Skeleton } from '@/components/ui';
 
 import { usePendingAction } from '../hooks/usePendingAction';
 import type { PartyMaintenanceEntityTask } from '../utils/buildMaintenanceEntityTasks';
+import { formatPhone } from '../utils/identifierDisplay';
 import { getMaintenancePartyIdentity } from '../utils/maintenanceDisplay';
 import {
   MaintenanceBreadcrumb,
@@ -30,7 +31,9 @@ import { MaintenanceChangeStatusIcon } from './MaintenanceChangeStatusIcon';
 import { MaintenanceChangeTable } from './MaintenanceChangeTable';
 import { MaintenanceDetailsGroup } from './MaintenanceDetailsGroup';
 import { MaintenanceDocumentRequestRow } from './MaintenanceDocumentRequestRow';
+import { MaintenanceIdentifierValue } from './MaintenanceIdentifierValue';
 import { MaintenanceOwnershipRolesSection } from './MaintenanceOwnershipRolesSection';
+import { MaintenancePageBody } from './MaintenancePageBody';
 import { MaintenanceSection } from './MaintenanceSection';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
 
@@ -151,7 +154,7 @@ export function MaintenanceEntityView({
     },
     {
       label: t('editor.birthDate'),
-      value: individual?.birthDate ? '••••••••' : undefined,
+      value: individual?.birthDate,
     },
     {
       label: t('individualDetails.countryOfResidence'),
@@ -166,9 +169,12 @@ export function MaintenanceEntityView({
     },
     {
       label: t('individualDetails.identification'),
-      value: identityDocument
-        ? `${identityDocument.idType ?? ''} ••••${identityDocument.value?.slice(-4) ?? ''}`.trim()
-        : undefined,
+      value: identityDocument?.value ? (
+        <>
+          {identityDocument.idType}{' '}
+          <MaintenanceIdentifierValue identifier={identityDocument} />
+        </>
+      ) : undefined,
     },
   ];
   const responsibilityDetails = [
@@ -184,9 +190,7 @@ export function MaintenanceEntityView({
     { label: t('individualDetails.email'), value: displayedParty.email },
     {
       label: t('individualDetails.phone'),
-      value: individual?.phone?.phoneNumber
-        ? `${individual.phone.countryCode ?? ''} ••••${individual.phone.phoneNumber.slice(-4)}`.trim()
-        : undefined,
+      value: formatPhone(individual?.phone) || undefined,
     },
     {
       label: t('individualDetails.address'),
@@ -215,13 +219,15 @@ export function MaintenanceEntityView({
       {!isLoadingDocuments &&
       !documentError &&
       task.unresolvedDocumentRequestIds.length > 0 ? (
-        <Alert variant="warning" noTitle className="eb-m-4">
-          <AlertDescription>
-            {t('documents.unresolved', {
-              count: task.unresolvedDocumentRequestIds.length,
-            })}
-          </AlertDescription>
-        </Alert>
+        <div className="eb-p-4">
+          <Alert variant="warning" noTitle>
+            <AlertDescription>
+              {t('documents.unresolved', {
+                count: task.unresolvedDocumentRequestIds.length,
+              })}
+            </AlertDescription>
+          </Alert>
+        </div>
       ) : null}
 
       {!isLoadingDocuments && task.documentRequests.length > 0 ? (
@@ -249,19 +255,19 @@ export function MaintenanceEntityView({
     <div
       className={cn(
         'eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background',
-        task.isPendingAddition && 'eb-border-informative/60',
+        task.isPendingAddition && 'eb-border-informative/50',
         isPendingRemoval && 'eb-border-destructive/50',
-        task.isUnreviewed && 'eb-border-warning/60'
+        task.isUnreviewed && 'eb-border-warning/50'
       )}
     >
       <header
         className={cn(
           'eb-border-b eb-px-4 eb-py-4',
           task.isPendingAddition &&
-            'eb-border-informative/50 eb-bg-informative-accent/40',
+            'eb-border-informative/50 eb-bg-informative-accent',
           isPendingRemoval &&
-            'eb-border-destructive/50 eb-bg-destructive-accent/40',
-          task.isUnreviewed && 'eb-border-warning/50 eb-bg-warning-accent/40'
+            'eb-border-destructive/50 eb-bg-destructive-accent',
+          task.isUnreviewed && 'eb-border-warning/50 eb-bg-warning-accent'
         )}
       >
         <MaintenanceBreadcrumb
@@ -417,149 +423,150 @@ export function MaintenanceEntityView({
         ) : null}
       </header>
 
-      {task.change && !task.isPendingAddition && !isPendingRemoval ? (
-        <MaintenanceSection
-          id="entity-updates-heading"
-          title={updateHeading}
-          icon={
-            <MaintenanceChangeStatusIcon
-              status={updateStatus}
-              className="eb-size-4 eb-shrink-0"
-            />
-          }
-          caption={updateCaption}
-          tone={
-            updateStatus === 'NEW' || updateStatus === 'REVIEW_IN_PROGRESS'
-              ? 'informative'
-              : updateStatus === 'INFORMATION_REQUESTED'
-                ? 'warning'
-                : 'default'
-          }
-          divided
-          unframed
-          actions={
-            updateStatus === 'NEW' ? (
-              <>
-                {canEdit ? (
-                  <Button variant="outlineSurface" size="sm" onClick={onEdit}>
-                    <PencilIcon />
-                    {t('changes.editDraft')}
-                  </Button>
-                ) : null}
-                {canCancel ? (
-                  <Button
-                    variant="outlineSurface"
-                    size="sm"
-                    className="eb-border-destructive/50 eb-text-destructive hover:eb-bg-destructive-accent hover:eb-text-destructive"
-                    onClick={onCancelChanges}
-                  >
-                    <Undo2Icon />
-                    {t('cancel.discardChanges')}
-                  </Button>
-                ) : null}
-              </>
-            ) : undefined
-          }
-          afterContent={
-            <Button
-              variant="outlineSurface"
-              size="sm"
-              onClick={onViewRequestDetails}
-            >
-              {t('requestDetails.viewFullRequest')}
-              <ArrowRightIcon />
-            </Button>
-          }
+      <MaintenancePageBody>
+        {task.change && !task.isPendingAddition && !isPendingRemoval ? (
+          <MaintenanceSection
+            id="entity-updates-heading"
+            title={updateHeading}
+            icon={
+              <MaintenanceChangeStatusIcon
+                status={updateStatus}
+                className="eb-size-4 eb-shrink-0"
+              />
+            }
+            caption={updateCaption}
+            tone={
+              updateStatus === 'NEW' || updateStatus === 'REVIEW_IN_PROGRESS'
+                ? 'informative'
+                : updateStatus === 'INFORMATION_REQUESTED'
+                  ? 'warning'
+                  : 'default'
+            }
+            divided
+            unframed
+            actions={
+              updateStatus === 'NEW' ? (
+                <>
+                  {canEdit ? (
+                    <Button variant="outlineSurface" size="sm" onClick={onEdit}>
+                      <PencilIcon />
+                      {t('changes.editDraft')}
+                    </Button>
+                  ) : null}
+                  {canCancel ? (
+                    <Button
+                      variant="outlineSurface"
+                      size="sm"
+                      className="eb-border-destructive/50 eb-text-destructive hover:eb-bg-destructive-accent hover:eb-text-destructive"
+                      onClick={onCancelChanges}
+                    >
+                      <Undo2Icon />
+                      {t('cancel.discardChanges')}
+                    </Button>
+                  ) : null}
+                </>
+              ) : undefined
+            }
+            afterContent={
+              <Button
+                variant="outlineSurface"
+                size="sm"
+                onClick={onViewRequestDetails}
+              >
+                {t('requestDetails.viewFullRequest')}
+                <ArrowRightIcon />
+              </Button>
+            }
+          >
+            <div className="eb-overflow-hidden eb-rounded-md eb-border eb-bg-background">
+              <MaintenanceChangeTable
+                changes={task.change.fieldChanges}
+                mode={updateStatus === 'NEW' ? 'draft' : 'submitted'}
+              />
+            </div>
+            {hasRequirements ? (
+              <div className="eb-mt-3">
+                <div className="eb-overflow-hidden eb-rounded-md eb-border eb-bg-background">
+                  {requirementsContent}
+                </div>
+              </div>
+            ) : null}
+          </MaintenanceSection>
+        ) : null}
+
+        {(!task.change || isPendingRemoval) && hasRequirements ? (
+          <MaintenanceSection
+            id="entity-requirements-heading"
+            title={t('entity.documentRequest')}
+            tone="warning"
+            divided
+          >
+            {requirementsContent}
+          </MaintenanceSection>
+        ) : null}
+
+        <section
+          aria-labelledby="entity-profile-heading"
+          className={cn(
+            'eb-px-4 eb-py-5',
+            !task.isPendingAddition && 'eb-border-t'
+          )}
         >
-          <div className="eb-overflow-hidden eb-rounded-md eb-border eb-bg-background">
-            <MaintenanceChangeTable
-              changes={task.change.fieldChanges}
-              mode={updateStatus === 'NEW' ? 'draft' : 'submitted'}
+          <div className="eb-flex eb-flex-wrap eb-items-start eb-justify-between eb-gap-3 eb-pb-2">
+            <h3
+              id="entity-profile-heading"
+              className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider"
+            >
+              {task.isPendingAddition
+                ? t('pendingAddition.personDetailsTitle')
+                : t('entity.profileDetails')}
+            </h3>
+          </div>
+          <div className="eb-mt-2">
+            <MaintenanceDetailsGroup
+              title={t('individualDetails.identityGroup')}
+              details={identityDetails}
+              notProvided={tString('notProvided')}
+              unframed
+            />
+            <MaintenanceDetailsGroup
+              title={t('individualDetails.responsibilityGroup')}
+              details={responsibilityDetails}
+              notProvided={tString('notProvided')}
+              unframed
+            />
+            <MaintenanceDetailsGroup
+              title={t('individualDetails.contactGroup')}
+              details={contactDetails}
+              notProvided={tString('notProvided')}
+              unframed
             />
           </div>
-          {hasRequirements ? (
-            <div className="eb-mt-3">
-              <div className="eb-overflow-hidden eb-rounded-md eb-border eb-border-warning/50 eb-bg-background">
-                {requirementsContent}
-              </div>
-            </div>
-          ) : null}
-        </MaintenanceSection>
-      ) : null}
+        </section>
 
-      {(!task.change || isPendingRemoval) && hasRequirements ? (
-        <MaintenanceSection
-          id="entity-requirements-heading"
-          title={t('entity.documentRequest')}
-          tone="warning"
-          divided
-        >
-          {requirementsContent}
-        </MaintenanceSection>
-      ) : null}
-
-      <section
-        aria-labelledby="entity-profile-heading"
-        className={
-          task.isPendingAddition
-            ? 'eb-bg-informative-accent/10 eb-px-4 eb-py-5'
-            : 'eb-border-t eb-px-4 eb-py-5'
-        }
-      >
-        <div className="eb-flex eb-flex-wrap eb-items-start eb-justify-between eb-gap-3 eb-pb-2">
-          <h3
-            id="entity-profile-heading"
-            className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider"
+        {task.isPendingAddition && hasRequirements ? (
+          <MaintenanceSection
+            id="entity-pending-requirements-heading"
+            title={t('entity.documentRequest')}
+            tone="warning"
+            divided
           >
-            {task.isPendingAddition
-              ? t('pendingAddition.personDetailsTitle')
-              : t('entity.profileDetails')}
-          </h3>
-        </div>
-        <div className="eb-mt-2">
-          <MaintenanceDetailsGroup
-            title={t('individualDetails.identityGroup')}
-            details={identityDetails}
-            notProvided={tString('notProvided')}
-            unframed
-          />
-          <MaintenanceDetailsGroup
-            title={t('individualDetails.responsibilityGroup')}
-            details={responsibilityDetails}
-            notProvided={tString('notProvided')}
-            unframed
-          />
-          <MaintenanceDetailsGroup
-            title={t('individualDetails.contactGroup')}
-            details={contactDetails}
-            notProvided={tString('notProvided')}
-            unframed
-          />
-        </div>
-      </section>
+            {requirementsContent}
+          </MaintenanceSection>
+        ) : null}
 
-      {task.isPendingAddition && hasRequirements ? (
-        <MaintenanceSection
-          id="entity-pending-requirements-heading"
-          title={t('entity.documentRequest')}
-          tone="warning"
-          divided
-        >
-          {requirementsContent}
-        </MaintenanceSection>
-      ) : null}
-
-      <MaintenanceOwnershipRolesSection
-        task={task}
-        mode={task.isPendingAddition ? 'pending-party' : 'approved-party'}
-        canAddBeneficialOwnerRole={canAddBeneficialOwnerRole}
-        canManageOwnership={canManageOwnership}
-        onAddBeneficialOwnerRole={onAddBeneficialOwnerRole}
-        onManageOwnership={onManageOwnership}
-        onInsertIntermediary={onInsertIntermediary}
-        onChangeConnection={onChangeConnection}
-        ownershipPath={ownershipPath}
-      />
+        <MaintenanceOwnershipRolesSection
+          task={task}
+          mode={task.isPendingAddition ? 'pending-party' : 'approved-party'}
+          canAddBeneficialOwnerRole={canAddBeneficialOwnerRole}
+          canManageOwnership={canManageOwnership}
+          onAddBeneficialOwnerRole={onAddBeneficialOwnerRole}
+          onManageOwnership={onManageOwnership}
+          onInsertIntermediary={onInsertIntermediary}
+          onChangeConnection={onChangeConnection}
+          ownershipPath={ownershipPath}
+        />
+      </MaintenancePageBody>
 
       <MaintenanceViewNavigation backLabel={backLabel} onBack={onBack} />
     </div>

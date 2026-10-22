@@ -14,7 +14,7 @@
     "default": "Review the profile status and complete any available actions before continuing.",
     "INFORMATION_REQUESTED": {
       "title": "The client profile needs more information",
-      "description": "Complete the requested items so review of your submitted changes can continue."
+      "description": "Complete the requested items so review of your maintenance request can continue."
     },
     "REVIEW_IN_PROGRESS": {
       "title": "The client profile is under review",
@@ -33,13 +33,46 @@
       "product": "Product upgrade",
       "combined": "Product upgrade and maintenance request"
     },
-    "requestDetails": "Request details"
+    "changesReady_one": "{{count}} change ready to review",
+    "changesReady_other": "{{count}} changes ready to review",
+    "changesSaved_one": "{{count}} change saved",
+    "changesSaved_other": "{{count}} changes saved",
+    "requirementsHint": "Some items are required before you can submit."
+  },
+  "home": {
+    "changesTitle": "Make a change",
+    "changesCaption": "Start a common change here, or select any item in the profile to review or edit it.",
+    "tasks": {
+      "editBusiness": {
+        "title": "Update business details",
+        "description": "Correct the business's name, address, or contact information."
+      },
+      "addOwner": {
+        "title": "Add a beneficial owner",
+        "description": "Someone who now owns 25% or more of the business."
+      },
+      "replaceController": {
+        "title": "Replace the controller",
+        "description": "Hand management of the business profile to someone else."
+      }
+    },
+    "ownershipEntry": {
+      "editable": "See who owns the business, and add, move, or remove the businesses owners hold their stake through.",
+      "readOnly": "See who owns the business and how they hold their stake."
+    }
+  },
+  "upgrade": {
+    "eyebrow": "Available for this business",
+    "description": {
+      "LIMITED_DDA": "Add the Limited DDA sub-product to Embedded Payments.",
+      "LIMITED_DDA_PAYMENTS": "Add payment capabilities alongside your existing Limited DDA sub-product."
+    }
   },
   "products": "Products",
   "product": "Product",
   "subProduct": "Sub-product",
   "people": "Related parties",
-  "peopleDescription": "Key roles and intermediary businesses",
+  "peopleDescription": "Who manages and owns the business",
   "peopleAreas": {
     "controller": "Controller",
     "controllerCaption": "Primary management contact",
@@ -51,7 +84,6 @@
     "ownershipCaption_other": "{{count}} beneficial owners at 25% or more"
   },
   "sectionCaption": {
-    "organization": "Current business information",
     "profileDetails": "Current information",
     "updates": "Changes apply to your profile once they're submitted and approved.",
     "partyUpdates": {
@@ -115,7 +147,7 @@
   "notProvided": "N/A",
   "flow": {
     "title": "Business profile",
-    "changeSet": "Request ID: {{requestId}}",
+    "changeSet": "Reference {{requestId}}",
     "moreActions": "More actions",
     "documentsNeeded": "Documents needed",
     "uploadDocuments": "Upload documents",
@@ -194,7 +226,7 @@
       "combined": "Product upgrade and maintenance request"
     },
     "description": {
-      "maintenance": "The business and related-party changes in this request, and anything still needed from you.",
+      "maintenance": "The business and related-party changes in this maintenance request, and anything still needed from you.",
       "product": "The product upgrade you submitted, and anything still needed from you.",
       "combined": "The product upgrade and profile changes you submitted, and anything still needed from you."
     },
@@ -267,7 +299,7 @@
     "jobTitle": "Job title",
     "email": "Email",
     "phone": "Phone",
-    "ownership": "Ownership relationship",
+    "ownership": "Nature of ownership",
     "roles": "Roles on this profile",
     "identification": "Government identification",
     "address": "Residential address"
@@ -294,6 +326,8 @@
     "replacementDescription": "Choose the new controller. This replaces the current one.",
     "beneficialOwnerDescription": "Add a person who owns 25% or more directly.",
     "indirectOwnerDescription": "Enter the person who currently owns 25% or more through this intermediary business.",
+    "connectionDirect": "Owns {{name}} directly",
+    "connectionIndirect": "Owns through {{name}}",
     "caption": "Identity and ownership details",
     "role": "Role",
     "roleDescription": "Choose the responsibility this person has for the business.",
@@ -312,8 +346,14 @@
     "ssn": "Social Security number",
     "residentialAddress": "Residential address",
     "addressDescription": "Enter the address where this person currently lives.",
-    "alsoBeneficialOwner": "This person is also a direct beneficial owner",
-    "alsoBeneficialOwnerDescription": "Once approved, this person will be both Controller and Direct beneficial owner.",
+    "alsoBeneficialOwner": "This person is also a beneficial owner",
+    "alsoBeneficialOwnerDescription": "Once approved, this person will be both Controller and a beneficial owner.",
+    "ownershipPath": {
+      "label": "How they hold their stake",
+      "description": "Most owners hold it directly. Choose a business only if they own through it.",
+      "direct": "Directly in your business",
+      "through": "Through {{name}}"
+    },
     "roles": {
       "CONTROLLER": "Controller",
       "BENEFICIAL_OWNER": "Beneficial owner"
@@ -375,8 +415,10 @@
     "moveTitle": "Update connection for {{name}}",
     "moveDescriptionDirect": "{{name}} owns your business directly. Choose the business they own through.",
     "moveDescriptionIndirect": "{{name}} owns through {{currentParentName}}. Choose a different connection.",
-    "moveDirectOption": "Owns your business directly",
     "moveConfirm": "Update connection",
+    "moveCurrent": "Current position",
+    "moveResult": "New position",
+    "moveDestinationLabel": "Choose a new connection",
     "retryRemaining": "Retry remaining changes",
     "moveNotRecorded": "The connection wasn't updated.",
     "cancel": "Cancel"
@@ -429,34 +471,35 @@
   "questions": {
     "title": "Additional questions",
     "description": "Answer the required questions so review can continue.",
-    "sectionTitle": "Questions",
     "loading": "Loading questions",
     "progress": "{{answered}} of {{total}} answered",
+    "newQuestions": "Your answers opened up a few more questions. Answer them to continue.",
     "emptyTitle": "Questions could not be loaded",
     "emptyDescription": "Return to review and try again. Submission remains unavailable until every requested question is returned.",
-    "select": "Select an answer",
-    "yes": "Yes",
-    "no": "No",
     "cancel": "Back to review",
     "save": "Save answers"
   },
   "attestation": {
     "title": "Review and attest",
-    "description": "Review each required document and confirm the information below.",
-    "sectionTitle": "Attestation",
+    "description": "Open each document, then sign below to attest to its contents.",
     "document": "Attestation document {{number}}",
-    "documentsTitle": "Review required documents",
-    "documentsDescription": "Open every document before entering the details of the person making this attestation.",
-    "progress": "{{reviewed}} of {{total}} reviewed",
-    "review": "Review document",
-    "opened": "Reviewed",
-    "signerTitle": "Person making this attestation",
-    "signerDescription": "Enter your legal name and your role at the business.",
-    "signerLocked": "Review every required document to unlock signer details.",
+    "documentsTitle": "Documents",
+    "progress": "{{opened}} of {{total}} opened",
+    "open": "Open",
+    "download": "Download {{name}}",
+    "opened": "Opened",
+    "notOpened": "Not opened yet",
+    "popupBlocked": "Your browser blocked the document from opening in a new tab. Allow pop-ups for this site, or download it instead.",
+    "signatureTitle": "Signature",
+    "date": "Date",
+    "signerTitle": "Signer",
+    "signerFromController": "Filled in from the business's controller. Edit this if someone else is signing.",
+    "signerDescription": "Enter the legal name and job title of the person signing.",
+    "editSigner": "Edit",
     "designation": "Job title",
-    "designationPlaceholder": "For example, CEO, controller, or partner",
-    "designationDescription": "Use your title or role at the business.",
-    "confirmation": "I have reviewed the required documents and attest that the information is complete and accurate.",
+    "designationDescription": "Their title or role at the business, such as CEO or partner.",
+    "confirmation": "I have read each document above and attest to its contents.",
+    "confirmationLocked": "Open every document first.",
     "cancel": "Back to review",
     "save": "Submit attestation"
   },
@@ -528,27 +571,29 @@
   "ownerRelationship": {
     "title": "Ownership connection",
     "addTitle": "Add a beneficial owner",
-    "addDescription": "Choose whether this person owns directly or through another business.",
+    "addDescription": "Someone who owns 25% or more of the business, directly or through other businesses.",
     "controllerTitle": "Add beneficial owner role",
-    "controllerDescription": "Choose how {{name}} owns part of the business.",
-    "changeTitle": "Choose where {{name}} connects",
+    "controllerDescription": "{{name}} stays the controller and is also listed as a beneficial owner.",
+    "changeTitle": "Change how {{name}} owns the business",
     "changeDescription": "Pick the business they own through, or add a new one.",
     "newOwner": "the new owner",
-    "directTitle": "Owns your business directly",
-    "directDescription": "Choose this when no other business sits between the owner and your business.",
-    "directPath": "Your business → Owner",
-    "indirectTitle": "Owns through another business",
-    "indirectDescription": "Choose the intermediary business that sits between this owner and your business.",
-    "chooseBusiness": "Existing businesses",
+    "newOwnerNode": "New owner",
+    "connectionQuestion": "How does {{name}} own the business?",
+    "directTitle": "Directly",
+    "directDescription": "They hold their stake in your business themselves.",
+    "indirectTitle": "Through another business",
+    "indirectDescription": "They hold their stake through one or more businesses in between.",
+    "businessQuestion": "Which business does {{name}} own through?",
     "addBusiness": "Add a new intermediary business",
-    "changeFirstBusinessDescription": "There are no intermediary businesses yet. Add the business that sits between {{name}} and your business."
+    "addBusinessDescription": "You'll enter its details next.",
+    "changeFirstBusinessDescription": "There are no intermediary businesses yet. Add the business that sits between {{name}} and your business.",
+    "continue": "Continue"
   },
   "controllerReplacement": {
     "title": "Choose a replacement controller",
-    "description": "Select an existing person who is directly related to this business, or add someone new.",
+    "description": "Select an existing person on the business profile, or add someone new.",
     "existingTitle": "Use an existing person",
     "existingDescription": "Their current roles and profile details will be preserved.",
-    "selectDescription": "Make this person the controller",
     "emptyTitle": "No existing people are available",
     "emptyDescription": "Add a new person to continue replacing the controller.",
     "addNew": "Add a new person"
@@ -596,6 +641,8 @@
   "submission": {
     "draftExplanation": "Your pending changes are saved and have not been submitted for review.",
     "reviewAndSubmit": "Review and submit",
+    "blockedHint": "Submitting becomes available once every item above is complete.",
+    "confirmHint": "Confirm both statements to submit.",
     "backToProfile": "Back to business profile",
     "reviewTitle": "Review your changes",
     "reviewDescription": {
@@ -605,7 +652,7 @@
     },
     "submittedChangesTitle": "Submitted changes",
     "submittedChangesDescription": "These are the changes currently under review.",
-    "reviewUpdated": "The pending changes were updated while you were reviewing them. Review the latest changes before confirming.",
+    "reviewUpdated": "These changes were updated while you were reviewing them. Check the latest changes, then confirm again.",
     "profileUpdates": "Profile changes",
     "edit": "Edit",
     "returnToProfile": "Return to business profile",
@@ -727,8 +774,6 @@
     "contactTitle": "Contact",
     "contactDescription": "Enter the current email address and phone number for this person.",
     "phoneCountryCode": "Country code",
-    "personalDetailsTitle": "Personal details",
-    "personalDetailsDescription": "Birth dates are masked everywhere outside this form.",
     "dbaName": "Doing business as",
     "addresses": "Business address",
     "address": {

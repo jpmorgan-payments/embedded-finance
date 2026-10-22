@@ -64,14 +64,17 @@ export function MaintenanceAddIntermediaryView({
         </p>
       </header>
       {isOwnershipPathInsertion ? (
-        <section className="eb-border-b eb-bg-informative-accent/40 eb-px-4 eb-py-4">
+        <section className="eb-shrink-0 eb-border-b eb-bg-muted/20 eb-px-4 eb-py-4">
           <h3 className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-informative">
             {t('ownership.pathPreviewTitle')}
           </h3>
           <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
             {t('ownership.pathPreviewDescription')}
           </p>
-          <div className="eb-mt-3 eb-flex eb-flex-wrap eb-items-center eb-gap-2 eb-text-sm eb-font-medium">
+          <div
+            data-ownership-path-preview=""
+            className="eb-mt-3 eb-flex eb-flex-wrap eb-items-center eb-gap-2 eb-text-sm eb-font-medium"
+          >
             <span className="eb-inline-flex eb-items-center eb-gap-1.5">
               {t('ownership.clientRoot')}
             </span>
@@ -81,12 +84,12 @@ export function MaintenanceAddIntermediaryView({
             </span>
             <ArrowRightIcon className="eb-size-4 eb-text-muted-foreground" />
             <span className="eb-inline-flex eb-items-center eb-gap-1.5">
-              {pathOwnerName ?? t('ownerRelationship.newOwner')}
+              {pathOwnerName ?? t('ownerRelationship.newOwnerNode')}
             </span>
           </div>
         </section>
       ) : null}
-      <div className="eb-w-full">
+      <div className="eb-w-full" data-maintenance-page-fill="">
         <AddIntermediaryOwnerForm
           parentPartyId={parentPartyId}
           parentIsClient={parentIsClient}

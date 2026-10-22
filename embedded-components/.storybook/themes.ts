@@ -10,8 +10,7 @@ import { EBTheme } from '../src/core/EBComponentsProvider/config.types';
 /**
  * Salt Theme Configuration
  *
- * Uses official Salt Design System colors from JPMorgan Chase.
- * Status tokens use Salt's official color palette.
+ * Salt Design System (JPM Brand, light) foundation colors mapped onto EB tokens.
  */
 export const SALT_THEME: EBTheme = {
   colorScheme: 'light',
@@ -26,8 +25,10 @@ export const SALT_THEME: EBTheme = {
     actionableLetterSpacing: '0.6px',
     actionableAccentedBoldFontWeight: '600',
     actionableSubtleFontWeight: '600',
+    actionableNegativeBoldFontWeight: '600',
     actionableShiftOnActive: false,
-    actionableBorderRadius: '8px',
+    // Salt curves: 4px for actions and fields, 6px for cards and panels.
+    actionableBorderRadius: '4px',
     editableBorderRadius: '4px',
     editableLabelFontSize: '0.75rem',
     editableLabelLineHeight: '1rem',
@@ -36,48 +37,71 @@ export const SALT_THEME: EBTheme = {
     spacingUnit: '0.25rem',
   },
   light: {
-    containerPrimaryBackground: '#f6f7f8',
+    // Container: snow page and cards, marble for muted fills
+    containerPrimaryBackground: '#FFFFFF',
     containerCardBackground: '#FFFFFF',
-    containerPrimaryForeground: '#4C5157',
-    containerSecondaryBackground: '#f6f7f8',
-    containerSecondaryForeground: '#6B7280',
-    contentPrimaryForeground: '#4C5157',
+    containerSecondaryBackground: '#F5F7F8',
+    // Content: black primary, gray-700 secondary
+    contentPrimaryForeground: '#000000',
+    containerPrimaryForeground: '#000000',
+    containerSecondaryForeground: '#4C5157',
+
+    // Overlayable
     overlayableBackground: '#FFFFFF',
-    overlayableForeground: '#1e293b',
-    accentBackground: '#f1f5f9',
-    accentForeground: '#475569',
+    overlayableForeground: '#000000',
+
+    // Accent: neutral-weakest (gray-100) for hover and selected fills
+    accentBackground: '#E6E9EB',
+    contentAccentForeground: '#000000',
+    accentMetricBackground: '#1B7F9E',
+
+    // Editable
     editableBackground: '#FFFFFF',
     editableBorderColor: '#0000004D',
     editableLabelForeground: '#4C5157',
-    actionableAccentedBoldBackground: '#1A7B99',
-    actionableAccentedBoldBackgroundHover: '#166b85',
-    actionableAccentedBoldBackgroundActive: '#145a71',
+
+    // Actionable accented bold (CTA): teal-500 → 600 → 700
+    actionableAccentedBoldBackground: '#1B7F9E',
+    actionableAccentedBoldBackgroundHover: '#12647E',
+    actionableAccentedBoldBackgroundActive: '#094A60',
     actionableAccentedBoldForeground: '#FFFFFF',
     actionableAccentedBoldBorderWidth: '0px',
-    actionableSubtleBackground: 'white',
-    actionableSubtleBackgroundHover: '#f1f2f480',
-    actionableSubtleBackgroundActive: '#f1f2f4cc',
-    actionableSubtleForeground: '#1A7B99',
-    actionableSubtleForegroundHover: '#166b85',
-    actionableSubtleForegroundActive: '#145a71',
+
+    // Actionable subtle (bordered accented): teal text, neutral fills on interaction
+    actionableSubtleBackground: '#FFFFFF',
+    actionableSubtleBackgroundHover: '#F5F7F8',
+    actionableSubtleBackgroundActive: '#E6E9EB',
+    actionableSubtleForeground: '#1B7F9E',
+    actionableSubtleForegroundHover: '#12647E',
+    actionableSubtleForegroundActive: '#094A60',
     actionableSubtleBorderWidth: '1px',
-    focusedRingColor: '#1A7B99',
-    actionableNegativeBoldBackground: '#ef4444',
-    actionableNegativeBoldBackgroundHover: '#dc2626',
-    actionableNegativeBoldBackgroundActive: '#b91c1c',
+
+    // Actionable negative bold: red-500 → 600 → 700
+    actionableNegativeBoldBackground: '#E52135',
+    actionableNegativeBoldBackgroundHover: '#BA1729',
+    actionableNegativeBoldBackgroundActive: '#910D1E',
     actionableNegativeBoldForeground: '#FFFFFF',
+
+    // Sentiment and status: -600 foregrounds stay legible on their -100 tints, as Salt badges do
     sentimentNegativeAccentBackground: '#FFECEA',
-    sentimentPositiveForeground: '#00875D',
+    sentimentPositiveForeground: '#006B48',
     sentimentPositiveAccentBackground: '#EAF5F2',
-    sentimentCautionForeground: '#C75300',
+    sentimentCautionForeground: '#9E4200',
     sentimentCautionAccentBackground: '#FFECD9',
-    statusInfoForeground: '#1A7B99',
-    statusInfoAccentBackground: '#e6f3f7',
-    statusSuccessForeground: '#00875D',
-    statusSuccessAccentBackground: '#EAF5F2',
-    statusWarningForeground: '#C75300',
-    statusWarningAccentBackground: '#FFECD9',
-    separableBorderColor: '#0000004D',
+    statusInfoForeground: '#005EA6',
+    statusInfoAccentBackground: '#EAF6FF',
+
+    // Navigable: transparent rows with neutral hover and selection
+    navigableBackground: '#FFFFFF',
+    navigableForeground: '#4C5157',
+    navigableAccentBackground: '#E6E9EB',
+    navigableAccentForeground: '#000000',
+
+    // Separable and focused
+    separableBorderColor: '#D3D5D8',
+    focusedRingColor: '#1B7F9E',
+
+    alertForegroundColor: '#000000',
   },
 };
 

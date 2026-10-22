@@ -2,7 +2,7 @@
 
 > **Documentation References:**
 >
-> - [JPMorgan Chase Embedded Payments - Linked Accounts](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/linked-accounts)
+> - [JPMorgan Chase Embedded Payments - Linked Accounts](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/external-accounts/add-linked-account)
 >
 > **API References:**
 >
@@ -404,7 +404,7 @@ The Linked Accounts functionality has the following constraints:
 - Automatically initiate microdeposits to the account when verification is required
 - Update account status to MICRODEPOSITS_INITIATED
 - Display explanation of the process to the user
-- Clearly indicate that microdeposits may take 1-3 business days to appear
+- Clearly indicate that microdeposits may take 3-5 business days to appear
 - Provide clear instructions on how to complete verification
 
 **Technical Considerations:**
@@ -563,7 +563,7 @@ The Linked Accounts functionality has the following constraints:
 
 ### 6.3 Verifying Microdeposits
 
-1. User receives microdeposits in their bank account (1-3 business days)
+1. User receives microdeposits in their bank account (3-5 business days)
 2. User returns to Linked Accounts section and clicks "Verify Microdeposits"
 3. System displays verification dialog with two input fields for amounts
 4. User enters amounts and submits
@@ -731,7 +731,7 @@ interface AccountTypeFieldConfig {
 
 ### 10.1 API Documentation References
 
-- [JPMorgan Chase Embedded Payments - Linked Accounts](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/linked-accounts)
+- [JPMorgan Chase Embedded Payments - Linked Accounts](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/external-accounts/add-linked-account)
 - [Create Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/createRecipient)
 - [Update Recipient API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/amendRecipient)
 - [List Recipients API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/recipients#/operations/getAllRecipients)
@@ -742,8 +742,8 @@ interface AccountTypeFieldConfig {
 ## Storybook Reference
 
 - **Live stories**: [LinkedAccountWidget — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/core-linkedaccountwidget--default)
-- **Workflow stories**: [LinkedAccountWidget Workflows](https://storybook.embedded-finance-dev.com/?path=/story/core-linkedaccountwidget-workflows--default)
-- **Status stories**: [LinkedAccountWidget Statuses](https://storybook.embedded-finance-dev.com/?path=/story/core-linkedaccountwidget-statuses--default)
+- **Workflow stories**: [LinkedAccountWidget Workflows](https://storybook.embedded-finance-dev.com/?path=/story/core-linkedaccountwidget-interactive-workflows--link-new-account)
+- **Status stories**: [LinkedAccountWidget Statuses](https://storybook.embedded-finance-dev.com/?path=/story/core-linkedaccountwidget-account-statuses--active)
 - **Showcase demo**: [Embedded Finance Showcase](https://embedded-finance-dev.com/sellsense-demo)
 
 Storybook stories serve as living documentation and implementation recipes. Each story demonstrates a specific scenario (linking flow, microdeposit verification, status transitions, error states) that maps directly to the functional requirements above.

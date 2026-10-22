@@ -23,4 +23,13 @@ describe('shouldSuppressOnboardingLeaveWarnings', () => {
       shouldSuppressOnboardingLeaveWarnings({ status } as ClientResponse)
     ).toBe(suppress);
   });
+
+  it('does not suppress for an APPROVED client with an open information request', () => {
+    expect(
+      shouldSuppressOnboardingLeaveWarnings({
+        status: ClientStatus.APPROVED,
+        outstanding: { questionIds: ['30158'] },
+      } as ClientResponse)
+    ).toBe(false);
+  });
 });

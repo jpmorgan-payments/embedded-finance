@@ -10,6 +10,9 @@ import type {
 import {
   asPlainString,
   clientHasOutstandingDocRequests,
+  clientHasOutstandingQuestions,
+  clientHasRequestedDocuments,
+  clientHasRequestedQuestions,
   convertClientToSoleProprietorship,
   formatQuestionResponse,
   getActiveOwners,
@@ -361,6 +364,56 @@ describe('dataUtils', () => {
 
     it('returns false for undefined client', () => {
       expect(clientHasOutstandingDocRequests(undefined)).toBe(false);
+    });
+  });
+
+  describe('clientHasOutstandingQuestions / clientHasRequestedQuestions', () => {
+    const withQuestions = (status: ClientResponse['status']) =>
+      ({
+        status,
+        outstanding: { questionIds: ['30158'] },
+      }) as unknown as ClientResponse;
+
+    it('detects outstanding questions in any status', () => {
+      expect(clientHasOutstandingQuestions(withQuestions('NEW'))).toBe(true);
+      expect(
+        clientHasOutstandingQuestions({
+          outstanding: { questionIds: [] },
+        } as unknown as ClientResponse)
+      ).toBe(false);
+      expect(clientHasOutstandingQuestions(undefined)).toBe(false);
+    });
+
+    it('treats INFORMATION_REQUESTED and APPROVED questions as an information request', () => {
+      expect(
+        clientHasRequestedQuestions(withQuestions('INFORMATION_REQUESTED'))
+      ).toBe(true);
+      expect(clientHasRequestedQuestions(withQuestions('APPROVED'))).toBe(true);
+      expect(clientHasRequestedQuestions(withQuestions('NEW'))).toBe(false);
+      expect(
+        clientHasRequestedQuestions(withQuestions('REVIEW_IN_PROGRESS'))
+      ).toBe(false);
+    });
+
+    it('only uses client-level document requests after approval', () => {
+      const approvedWithPartyDocs = {
+        status: 'APPROVED',
+        outstanding: { documentRequestIds: [] },
+        parties: [{ validationResponse: [{ documentRequestIds: ['old'] }] }],
+      } as unknown as ClientResponse;
+      expect(clientHasRequestedDocuments(approvedWithPartyDocs)).toBe(false);
+      expect(
+        clientHasRequestedDocuments({
+          ...approvedWithPartyDocs,
+          outstanding: { documentRequestIds: ['68803'] },
+        } as unknown as ClientResponse)
+      ).toBe(true);
+      expect(
+        clientHasRequestedDocuments({
+          ...approvedWithPartyDocs,
+          status: 'INFORMATION_REQUESTED',
+        })
+      ).toBe(true);
     });
   });
 

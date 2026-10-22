@@ -16,7 +16,7 @@
 >
 > **Primary sources (all local, verified):**
 >
-> - [`api-specs/embedded-finance-pub-ep-transactions-3.0.55.yaml`](../../../api-specs/embedded-finance-pub-ep-transactions-3.0.55.yaml) — `createTransactionV3`, `listTransactionsV3`, `getTransactionV3`
+> - [`api-specs/embedded-finance-pub-ep-transactions-3.0.58.yaml`](../../../api-specs/embedded-finance-pub-ep-transactions-3.0.58.yaml) — `createTransactionV3`, `listTransactionsV3`, `getTransactionV3`
 > - [`api-specs/fx-rate-sheet-1.0.2.yaml`](../../../api-specs/fx-rate-sheet-1.0.2.yaml) — `getCurrentRatesheet`
 > - [`api-specs/embedded-finance-pub-ep-accounts-2.0.47.yaml`](../../../api-specs/embedded-finance-pub-ep-accounts-2.0.47.yaml) — `LIMITED_DDA_PAYMENTS` account category
 > - Portal how-to: [Cross-border FX payout](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/payouts/how-to/cross-border-fx-payout)

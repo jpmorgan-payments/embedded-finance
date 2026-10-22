@@ -71,6 +71,17 @@ export const mockClientApproved: ClientResponse = {
   results: {
     customerIdentityStatus: 'APPROVED',
   },
+  parties: efClientCorpEBMock.parties?.map((party) => ({
+    ...party,
+    validationResponse: [],
+  })),
+  outstanding: {
+    attestationDocumentIds: [],
+    documentRequestIds: [],
+    partyIds: [],
+    partyRoles: [],
+    questionIds: [],
+  },
 };
 
 /** Mock client with REVIEW_IN_PROGRESS status */
@@ -83,7 +94,7 @@ export const mockClientInReview: ClientResponse = {
   },
 };
 
-/** Mock client with INFORMATION_REQUESTED status */
+/** Mock client with INFORMATION_REQUESTED status (document requests only) */
 export const mockClientInfoRequested: ClientResponse = {
   ...efClientCorpEBMock,
   id: DEFAULT_CLIENT_ID,
@@ -93,7 +104,54 @@ export const mockClientInfoRequested: ClientResponse = {
   },
   outstanding: {
     ...efClientCorpEBMock.outstanding,
+    attestationDocumentIds: [],
+    questionIds: [],
     documentRequestIds: ['68803', '68804', '68805'],
+  },
+};
+
+/**
+ * Question IDs raised in the sample information request, taken from
+ * `efClientQuestionsMock`. As in the delta-mode stories, the conditional
+ * follow-up 30162 is outstanding alongside its parent 30158, so it appears
+ * inline once the parent is answered "Yes".
+ */
+export const REQUESTED_QUESTION_IDS = ['30158', '30162', '30194'];
+
+/** INFORMATION_REQUESTED with both document requests and questions outstanding */
+export const mockClientInfoRequestedWithQuestions: ClientResponse = {
+  ...mockClientInfoRequested,
+  outstanding: {
+    ...mockClientInfoRequested.outstanding,
+    questionIds: REQUESTED_QUESTION_IDS,
+  },
+};
+
+/** INFORMATION_REQUESTED with only questions outstanding (no documents) */
+export const mockClientInfoRequestedQuestionsOnly: ClientResponse = {
+  ...mockClientInfoRequested,
+  parties: mockClientInfoRequested.parties?.map((party) => ({
+    ...party,
+    validationResponse: [],
+  })),
+  outstanding: {
+    ...mockClientInfoRequested.outstanding,
+    documentRequestIds: [],
+    questionIds: REQUESTED_QUESTION_IDS,
+  },
+};
+
+/**
+ * APPROVED client with outstanding items from a request for information
+ * raised after approval: one business document and the sample questions. The
+ * status stays APPROVED.
+ */
+export const mockClientApprovedWithOutstandingItems: ClientResponse = {
+  ...mockClientApproved,
+  outstanding: {
+    ...mockClientApproved.outstanding,
+    documentRequestIds: ['68803'],
+    questionIds: REQUESTED_QUESTION_IDS,
   },
 };
 
@@ -525,35 +583,32 @@ export function seedClientToDb(
 /**
  * Seeds {@link db.documentRequest} rows aligned with {@link efClientCorpEBMock} parties
  * (org 68803, controller 68804, beneficial owner 68805) for Client States demos.
+ * Pass `documentRequestIds` to seed only those requests.
  */
 export function seedInformationRequestedDocumentRequests(
-  clientId: string
+  clientId: string,
+  documentRequestIds: string[] = ['68803', '68804', '68805']
 ): void {
   const timestamp = new Date().toISOString();
+  const sampleRequests = [
+    {
+      ...efOrganizationDocumentRequestDetails,
+      id: '68803',
+      partyId: '2000000111',
+    },
+    { ...efDocumentRequestDetails, id: '68804', partyId: '2000000112' },
+    { ...efDocumentRequestDetails, id: '68805', partyId: '2000000113' },
+  ];
 
-  upsertDocumentRequest('68803', {
-    ...efOrganizationDocumentRequestDetails,
-    id: '68803',
-    clientId,
-    partyId: '2000000111',
-    createdAt: timestamp,
-  });
-
-  upsertDocumentRequest('68804', {
-    ...efDocumentRequestDetails,
-    id: '68804',
-    clientId,
-    partyId: '2000000112',
-    createdAt: timestamp,
-  });
-
-  upsertDocumentRequest('68805', {
-    ...efDocumentRequestDetails,
-    id: '68805',
-    clientId,
-    partyId: '2000000113',
-    createdAt: timestamp,
-  });
+  sampleRequests
+    .filter((request) => documentRequestIds.includes(request.id))
+    .forEach((request) => {
+      upsertDocumentRequest(request.id, {
+        ...request,
+        clientId,
+        createdAt: timestamp,
+      });
+    });
 }
 
 export function resetAndSeedClient(
@@ -568,8 +623,17 @@ export function resetAndSeedClient(
 
   seedClientToDb(clientResponse, clientId);
 
-  if (clientResponse.status === ClientStatus.INFORMATION_REQUESTED) {
-    seedInformationRequestedDocumentRequests(clientId);
+  const outstandingDocumentRequestIds =
+    clientResponse.outstanding?.documentRequestIds ?? [];
+  if (
+    (clientResponse.status === ClientStatus.INFORMATION_REQUESTED ||
+      clientResponse.status === ClientStatus.APPROVED) &&
+    outstandingDocumentRequestIds.length > 0
+  ) {
+    seedInformationRequestedDocumentRequests(
+      clientId,
+      outstandingDocumentRequestIds
+    );
   }
 }
 
@@ -811,6 +875,11 @@ export function createDocUploadHandlers(
       return HttpResponse.json({
         ...efClientCorpEBMock,
         status: 'INFORMATION_REQUESTED',
+        outstanding: {
+          ...efClientCorpEBMock.outstanding,
+          attestationDocumentIds: [],
+          questionIds: [],
+        },
       });
     }),
     http.get('/document-requests', async (req) => {

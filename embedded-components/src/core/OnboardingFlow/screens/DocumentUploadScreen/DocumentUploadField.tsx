@@ -26,7 +26,10 @@ import {
 } from '@/components/ui';
 import { DOCUMENT_TYPE_MAPPING } from '@/core/OnboardingFlow/config';
 
-import { ACCEPTED_FILE_TYPES } from './documentUploadUtils';
+import {
+  ACCEPTED_FILE_TYPES,
+  DEFAULT_MAX_FILE_SIZE_BYTES,
+} from './documentUploadUtils';
 
 interface DocumentUploadFieldProps {
   /**
@@ -80,7 +83,7 @@ export const DocumentUploadField: FC<DocumentUploadFieldProps> = ({
   control,
   isReadOnly = false,
   isOptional = false,
-  maxFileSizeBytes,
+  maxFileSizeBytes = DEFAULT_MAX_FILE_SIZE_BYTES,
   isOnlyFieldShown = false,
   onRemove,
 }) => {

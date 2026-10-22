@@ -11,7 +11,6 @@ import {
   maintenanceDocumentRequestListSchema,
   maintenancePageSchema,
   maintenancePartySchema,
-  maintenanceQuestionListSchema,
   maintenanceVerificationResponseSchema,
 } from './models/maintenanceApi.schemas';
 import type {
@@ -22,7 +21,6 @@ import type {
   MaintenancePartyCreateRequest,
   MaintenancePartyUpdateRequest,
   MaintenanceProductUpdateRequest,
-  MaintenanceQuestion,
 } from './models/maintenanceApi.types';
 
 export type MaintenanceRequest = (
@@ -321,48 +319,21 @@ export async function submitMaintenanceVerification(
   ) as ClientVerificationResponse;
 }
 
-export async function getMaintenanceQuestions(
-  request: MaintenanceRequest,
-  questionIds: string[],
-  locale = 'en-US'
-): Promise<MaintenanceQuestion[]> {
-  if (questionIds.length === 0) return [];
-  const response = maintenanceQuestionListSchema.parse(
-    await request({
-      url: '/questions',
-      method: 'GET',
-      params: { questionIds: questionIds.join(',') },
-    })
-  );
-  return response.questions.map((question) => {
-    const content =
-      question.content?.find((item) => item.locale === locale) ??
-      question.content?.[0];
-    return {
-      id: question.id,
-      label: content?.label ?? question.description ?? question.id ?? '',
-      description: content?.description ?? question.description,
-      responseType: question.responseSchema?.items?.type as
-        | MaintenanceQuestion['responseType']
-        | undefined,
-      options: question.responseSchema?.items?.enum,
-    };
-  });
-}
-
+/** Returns what the client still has outstanding, such as questions the answers just opened up. */
 export async function updateMaintenanceClientTasks(
   request: MaintenanceRequest,
   clientId: string,
   taskUpdate: MaintenanceClientTaskUpdateRequest,
   idempotencyKey: string
-): Promise<void> {
-  await request({
+): Promise<{ questionIds?: string[] } | undefined> {
+  const response = await request({
     url: `/clients/${clientId}`,
     method: 'PATCH',
     skipClientIdBodyInjection: true,
     headers: { 'Idempotency-Key': idempotencyKey },
     data: taskUpdate,
   });
+  return maintenanceClientSchema.safeParse(response).data?.outstanding;
 }
 
 export async function downloadMaintenanceAttestation(

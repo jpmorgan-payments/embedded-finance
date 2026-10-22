@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
+import type { QuestionResponse } from '@/api/generated/smbdo.schemas';
+
 import type { MaintenanceClient } from '../models/maintenanceApi.types';
 import { buildMaintenanceProjection } from './buildMaintenanceProjection';
 import {
@@ -175,6 +177,31 @@ describe('maintenanceReview', () => {
       { type: 'attestations', count: 1 },
       { type: 'documents', count: 1 },
     ]);
+  });
+
+  test('counts outstanding follow-up questions with the question that opened them', () => {
+    const clientWithQuestions: MaintenanceClient = {
+      ...client,
+      outstanding: { questionIds: ['30026', '30027', '30095'] },
+    };
+    const questions = [
+      {
+        id: '30026',
+        subQuestions: [{ anyValuesMatch: 'true', questionIds: ['30027'] }],
+      },
+      { id: '30027', parentQuestionId: '30026' },
+      { id: '30095' },
+    ] as unknown as QuestionResponse[];
+
+    expect(
+      getMaintenanceSubmissionBlockers(
+        clientWithQuestions,
+        buildMaintenanceProjection(clientWithQuestions, [proposal]),
+        [],
+        false,
+        questions
+      )
+    ).toContainEqual({ type: 'questions', count: 2 });
   });
 
   test('does not duplicate document-backed parties as additional information blockers', () => {

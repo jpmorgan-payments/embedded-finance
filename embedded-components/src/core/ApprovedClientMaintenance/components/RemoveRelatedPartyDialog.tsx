@@ -1,6 +1,10 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { Loader2Icon } from 'lucide-react';
+import {
+  Loader2Icon,
+  UserRoundCheckIcon,
+  UserRoundMinusIcon,
+} from 'lucide-react';
 
 import {
   AlertDialog,
@@ -12,7 +16,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
-import { Button } from '@/components/ui';
+import { Button, Label, RadioGroup, RadioGroupItem } from '@/components/ui';
 
 import { usePendingAction } from '../hooks/usePendingAction';
 
@@ -103,29 +107,51 @@ export function RemoveRelatedPartyDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         {asksAboutOwnership ? (
-          <fieldset className="eb-space-y-2" disabled={isBusy}>
-            <legend className="eb-text-sm eb-font-semibold">
+          <fieldset disabled={isBusy}>
+            <legend className="eb-mb-3 eb-text-sm eb-font-semibold">
               {t('removeParty.remainsOwnerQuestion')}
             </legend>
-            <div className="eb-grid eb-gap-2 @[40rem]:eb-grid-cols-2">
-              {[true, false].map((value) => (
-                <Button
-                  key={String(value)}
-                  type="button"
-                  variant={
-                    remainsBeneficialOwner === value ? 'default' : 'outline'
-                  }
-                  aria-pressed={remainsBeneficialOwner === value}
-                  onClick={() => setRemainsBeneficialOwner(value)}
+            <RadioGroup
+              value={
+                remainsBeneficialOwner === undefined
+                  ? ''
+                  : String(remainsBeneficialOwner)
+              }
+              disabled={isBusy}
+              onValueChange={(value) =>
+                setRemainsBeneficialOwner(value === 'true')
+              }
+              className="eb-gap-3"
+            >
+              {[
+                {
+                  value: 'true',
+                  Icon: UserRoundCheckIcon,
+                  label: t('removeParty.remainsOwnerYes'),
+                },
+                {
+                  value: 'false',
+                  Icon: UserRoundMinusIcon,
+                  label: t('removeParty.remainsOwnerNo'),
+                },
+              ].map(({ value, Icon, label }) => (
+                <Label
+                  key={value}
+                  htmlFor={`controller-remains-owner-${value}`}
+                  className="eb-flex eb-cursor-pointer eb-items-center eb-gap-3 eb-rounded-md eb-border eb-p-4 eb-font-normal has-[:disabled]:eb-cursor-not-allowed has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-accent/30 has-[:disabled]:eb-opacity-60"
                 >
-                  {t(
-                    value
-                      ? 'removeParty.remainsOwnerYes'
-                      : 'removeParty.remainsOwnerNo'
-                  )}
-                </Button>
+                  <RadioGroupItem
+                    id={`controller-remains-owner-${value}`}
+                    value={value}
+                  />
+                  <Icon
+                    aria-hidden="true"
+                    className="eb-size-5 eb-shrink-0 eb-text-muted-foreground"
+                  />
+                  <span className="eb-text-sm eb-font-semibold">{label}</span>
+                </Label>
               ))}
-            </div>
+            </RadioGroup>
           </fieldset>
         ) : null}
         {error || replacement.error ? (

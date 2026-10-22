@@ -52,8 +52,11 @@ export function MaintenanceReviewChangeRow({
   );
 
   return (
-    <li data-review-change={changeId}>
-      <div className="eb-flex eb-items-start">
+    <li
+      data-review-change={changeId}
+      className="eb-overflow-hidden eb-rounded-md eb-border eb-bg-background"
+    >
+      <div className="eb-flex eb-items-stretch">
         {onOpen ? (
           <button
             type="button"
@@ -72,7 +75,10 @@ export function MaintenanceReviewChangeRow({
           </div>
         )}
         {actions.length > 0 ? (
-          <div className="eb-shrink-0 eb-py-2 eb-pr-2">
+          <div
+            data-review-change-actions=""
+            className="eb-flex eb-shrink-0 eb-items-start eb-border-l eb-border-border eb-p-1.5"
+          >
             <MaintenanceActionMenu label={menuLabel} actions={actions} />
           </div>
         ) : null}

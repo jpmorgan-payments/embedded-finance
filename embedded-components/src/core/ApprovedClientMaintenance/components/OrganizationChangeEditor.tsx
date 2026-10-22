@@ -44,6 +44,8 @@ import {
 } from '../utils/buildOrganizationPartyUpdate';
 import { MaintenanceFormFooter } from './MaintenanceFormFooter';
 import { MaintenanceFormSection } from './MaintenanceFormSection';
+import { MaintenanceIdentifierValue } from './MaintenanceIdentifierValue';
+import { MaintenancePageBody } from './MaintenancePageBody';
 
 type OrganizationChangeEditorProps = {
   variant: 'client' | 'intermediary';
@@ -466,20 +468,20 @@ export function OrganizationChangeEditor({
   });
 
   return (
-    <div className="eb-px-4 eb-pt-4">
-      {mutationError &&
-      hasUnmappedApiErrors(mutationError, ORGANIZATION_API_FIELD_PATHS) ? (
-        <div className="eb-mb-4">
-          <ServerErrorAlert error={mutationError as never} />
-        </div>
-      ) : null}
-      {formError ? (
-        <Alert variant="warning" noTitle className="eb-mb-4">
-          <AlertDescription>{formError}</AlertDescription>
-        </Alert>
-      ) : null}
-      <Form {...form}>
-        <form onSubmit={submit}>
+    <Form {...form}>
+      <form onSubmit={submit} data-maintenance-page-fill="">
+        <MaintenancePageBody contentClassName="eb-px-4 eb-pt-4">
+          {mutationError &&
+          hasUnmappedApiErrors(mutationError, ORGANIZATION_API_FIELD_PATHS) ? (
+            <div className="eb-mb-4">
+              <ServerErrorAlert error={mutationError as never} />
+            </div>
+          ) : null}
+          {formError ? (
+            <Alert variant="warning" noTitle className="eb-mb-4">
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          ) : null}
           <fieldset
             disabled={isSubmitting}
             className="eb-mx-auto eb-w-full eb-max-w-3xl"
@@ -586,9 +588,13 @@ export function OrganizationChangeEditor({
                   </p>
                   <ProfileReadonlyValue
                     value={
-                      approvedValues.organizationId.value
-                        ? `••••${approvedValues.organizationId.value.slice(-4)}`
-                        : tString('notProvided')
+                      approvedValues.organizationId.value ? (
+                        <MaintenanceIdentifierValue
+                          identifier={approvedValues.organizationId}
+                        />
+                      ) : (
+                        tString('notProvided')
+                      )
                     }
                   />
                   <p className="eb-text-xs eb-text-muted-foreground">
@@ -816,34 +822,33 @@ export function OrganizationChangeEditor({
               />
             </MaintenanceFormSection>
           </fieldset>
-          <MaintenanceFormFooter
-            sticky
-            leading={
-              <Button
-                type="button"
-                variant="outlineSurface"
-                size="sm"
-                onClick={onCancel}
-                disabled={isSubmitting}
-              >
-                {t('editor.cancelEditing')}
-              </Button>
-            }
-            trailing={
-              <Button
-                type="submit"
-                size="sm"
-                disabled={isSubmitting || update.kind === 'unchanged'}
-              >
-                {isSubmitting ? (
-                  <Loader2Icon className="eb-animate-spin" />
-                ) : null}
-                {t('editor.save')}
-              </Button>
-            }
-          />
-        </form>
-      </Form>
-    </div>
+        </MaintenancePageBody>
+        <MaintenanceFormFooter
+          leading={
+            <Button
+              type="button"
+              variant="outlineSurface"
+              size="sm"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              {t('editor.cancelEditing')}
+            </Button>
+          }
+          trailing={
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSubmitting || update.kind === 'unchanged'}
+            >
+              {isSubmitting ? (
+                <Loader2Icon className="eb-animate-spin" />
+              ) : null}
+              {t('editor.save')}
+            </Button>
+          }
+        />
+      </form>
+    </Form>
   );
 }
