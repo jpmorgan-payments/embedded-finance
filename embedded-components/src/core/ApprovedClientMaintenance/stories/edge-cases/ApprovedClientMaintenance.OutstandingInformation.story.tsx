@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { ApprovedClientMaintenance } from '../../ApprovedClientMaintenance';
 import type {
   MaintenanceClient,
   MaintenanceParty,
@@ -14,12 +13,9 @@ import {
 import {
   identityDocumentRequest,
   pendingUpdate,
-  type StoryQuestion,
 } from '../support/maintenanceStoryHandlers';
 import {
-  maintenanceStoryArgs,
-  maintenanceStoryArgTypes,
-  maintenanceStoryDecorator,
+  maintenanceStoryMetaBase,
   withScenario,
   type MaintenanceStoryArgs,
 } from '../support/maintenanceStoryMeta';
@@ -54,30 +50,18 @@ const CONTROLLER_WITHOUT_NAME = withPeter({
   ],
 });
 
-const QUESTIONS: StoryQuestion[] = [
-  {
-    id: '30005',
-    label: 'Does the business send payments to other countries?',
-    options: ['Yes', 'No'],
-  },
-  {
-    id: '30026',
-    label: 'Describe the source of funds for the business.',
-  },
-];
+// From the onboarding question mock: annual revenue, sanctioned regions with its
+// follow-up, and a two-level chain of follow-ups about covered goods.
+const QUESTION_IDS = ['30005', '30026', '30027', '30088', '30089', '30090'];
 
 /**
  * Work the API returns in `outstanding` that blocks submission. Open Review
- * and submit to see how each item is listed and completed.
+ * and submit to see how each item is listed and completed. Questions have
+ * their own stories under Maintenance requests.
  */
 const meta: Meta<MaintenanceStoryArgs> = {
   title: 'Draft/ApprovedClientMaintenance/Edge cases/Outstanding information',
-  component: ApprovedClientMaintenance,
-  decorators: [maintenanceStoryDecorator],
-  parameters: { layout: 'padded' },
-  args: maintenanceStoryArgs,
-  argTypes: maintenanceStoryArgTypes,
-  render: (args) => <ApprovedClientMaintenance {...args} />,
+  ...maintenanceStoryMetaBase,
 };
 
 export default meta;
@@ -137,15 +121,6 @@ export const DocumentForUnknownParty: Story = {
   }),
 };
 
-/** Client-level questions, one with choices and one free text. */
-export const OutstandingQuestions: Story = {
-  parameters: withScenario({
-    client: LLC_WITH_DIRECT_OWNERS,
-    proposals: [DBA_EDIT],
-    questions: QUESTIONS,
-  }),
-};
-
 /** A formal attestation document to review and sign. */
 export const OutstandingAttestation: Story = {
   parameters: withScenario({
@@ -175,7 +150,7 @@ export const EverythingAtOnce: Story = {
     proposals: [DBA_EDIT],
     outstanding: { partyIds: [PETER.id!] },
     documentRequests: [identityDocumentRequest(TINKER.id!, 'Tinker Bell')],
-    questions: QUESTIONS,
+    questionIds: QUESTION_IDS,
     attestationDocumentIds: ['attestation-beneficial-ownership'],
   }),
 };

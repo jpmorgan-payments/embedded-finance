@@ -9,7 +9,6 @@ import {
   downloadMaintenanceAttestation,
   getAllMaintenanceParties,
   getMaintenanceDocumentRequests,
-  getMaintenanceQuestions,
   patchMaintenanceParty,
   patchMaintenancePartyName,
   submitMaintenanceVerification,
@@ -450,35 +449,6 @@ describe('clientMaintenanceApi', () => {
           },
         ],
       },
-    });
-  });
-
-  test('loads localized questions and preserves response options', async () => {
-    const request = vi.fn<MaintenanceRequest>().mockResolvedValue({
-      questions: [
-        {
-          id: '30005',
-          content: [
-            { locale: 'en-US', label: 'What is your expected volume?' },
-          ],
-          responseSchema: {
-            items: { type: 'enum', enum: ['$10,000', '$25,000'] },
-          },
-        },
-      ],
-    });
-
-    await expect(getMaintenanceQuestions(request, ['30005'])).resolves.toEqual([
-      expect.objectContaining({
-        id: '30005',
-        label: 'What is your expected volume?',
-        options: ['$10,000', '$25,000'],
-      }),
-    ]);
-    expect(request).toHaveBeenCalledWith({
-      url: '/questions',
-      method: 'GET',
-      params: { questionIds: '30005' },
     });
   });
 

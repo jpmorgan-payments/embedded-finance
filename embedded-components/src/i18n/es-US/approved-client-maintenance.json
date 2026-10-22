@@ -14,7 +14,7 @@
     "default": "Revise el estado del perfil y complete las acciones disponibles antes de continuar.",
     "INFORMATION_REQUESTED": {
       "title": "El perfil del cliente necesita más información",
-      "description": "Complete los elementos solicitados para que pueda continuar la revisión de sus cambios enviados."
+      "description": "Complete los elementos solicitados para que pueda continuar la revisión de su solicitud de mantenimiento."
     },
     "REVIEW_IN_PROGRESS": {
       "title": "El perfil del cliente está en revisión",
@@ -33,13 +33,46 @@
       "product": "Mejora de producto",
       "combined": "Mejora de producto y solicitud de mantenimiento"
     },
-    "requestDetails": "Detalles de la solicitud"
+    "changesReady_one": "{{count}} cambio listo para revisar",
+    "changesReady_other": "{{count}} cambios listos para revisar",
+    "changesSaved_one": "{{count}} cambio guardado",
+    "changesSaved_other": "{{count}} cambios guardados",
+    "requirementsHint": "Algunos elementos son obligatorios antes de enviar."
+  },
+  "home": {
+    "changesTitle": "Hacer un cambio",
+    "changesCaption": "Inicie aquí un cambio común o seleccione cualquier elemento del perfil para revisarlo o editarlo.",
+    "tasks": {
+      "editBusiness": {
+        "title": "Actualizar los datos de la empresa",
+        "description": "Corrija el nombre, la dirección o la información de contacto de la empresa."
+      },
+      "addOwner": {
+        "title": "Agregar un beneficiario efectivo",
+        "description": "Una persona que ahora posee el 25 % o más de la empresa."
+      },
+      "replaceController": {
+        "title": "Reemplazar al controlador",
+        "description": "Transfiera la administración del perfil de la empresa a otra persona."
+      }
+    },
+    "ownershipEntry": {
+      "editable": "Vea quién es propietario de la empresa y agregue, mueva o elimine las empresas a través de las cuales los propietarios mantienen su participación.",
+      "readOnly": "Vea quién es propietario de la empresa y cómo mantiene su participación."
+    }
+  },
+  "upgrade": {
+    "eyebrow": "Disponible para esta empresa",
+    "description": {
+      "LIMITED_DDA": "Agregue el subproducto DDA limitada a Embedded Payments.",
+      "LIMITED_DDA_PAYMENTS": "Agregue capacidades de pago junto a su subproducto DDA limitada existente."
+    }
   },
   "products": "Productos",
   "product": "Producto",
   "subProduct": "Subproducto",
   "people": "Partes relacionadas",
-  "peopleDescription": "Roles clave y empresas intermediarias",
+  "peopleDescription": "Quién administra y es propietario de la empresa",
   "peopleAreas": {
     "controller": "Controlador",
     "controllerCaption": "Contacto principal de administración",
@@ -51,7 +84,6 @@
     "ownershipCaption_other": "{{count}} beneficiarios efectivos con el 25 % o más"
   },
   "sectionCaption": {
-    "organization": "Entidad legal registrada",
     "profileDetails": "Valores aprobados registrados",
     "updates": "Los cambios se aplican a su perfil cuando se envían y se aprueban.",
     "partyUpdates": {
@@ -115,7 +147,7 @@
   "notProvided": "N/D",
   "flow": {
     "title": "Perfil del negocio",
-    "changeSet": "ID de solicitud: {{requestId}}",
+    "changeSet": "Referencia {{requestId}}",
     "moreActions": "Más acciones",
     "documentsNeeded": "Se necesitan documentos",
     "uploadDocuments": "Cargar documentos",
@@ -194,7 +226,7 @@
       "combined": "Mejora de producto y solicitud de mantenimiento"
     },
     "description": {
-      "maintenance": "Los cambios de la empresa y de las partes relacionadas de esta solicitud, y lo que aún se necesita de usted.",
+      "maintenance": "Los cambios de la empresa y de las partes relacionadas de esta solicitud de mantenimiento, y lo que aún se necesita de usted.",
       "product": "La mejora de producto que envió, y lo que aún se necesita de usted.",
       "combined": "La mejora de producto y los cambios del perfil que envió, y lo que aún se necesita de usted."
     },
@@ -267,7 +299,7 @@
     "jobTitle": "Cargo",
     "email": "Correo electrónico",
     "phone": "Teléfono",
-    "ownership": "Relación de propiedad",
+    "ownership": "Naturaleza de la propiedad",
     "roles": "Funciones en este perfil",
     "identification": "Identificación gubernamental",
     "address": "Dirección residencial"
@@ -294,6 +326,8 @@
     "replacementDescription": "Elija al nuevo controlador. Reemplaza al actual.",
     "beneficialOwnerDescription": "Agregue a una persona que posea directamente el 25 % o más de la empresa.",
     "indirectOwnerDescription": "Agregue a la persona que finalmente posee el 25 % o más a través de esta empresa intermediaria.",
+    "connectionDirect": "Posee {{name}} directamente",
+    "connectionIndirect": "Posee a través de {{name}}",
     "caption": "Identidad y propiedad",
     "role": "Función",
     "roleDescription": "Elija la responsabilidad que esta persona tiene en la empresa.",
@@ -312,8 +346,14 @@
     "ssn": "Número de Seguro Social",
     "residentialAddress": "Dirección residencial",
     "addressDescription": "Ingrese la dirección donde vive actualmente esta persona.",
-    "alsoBeneficialOwner": "Esta persona también es beneficiario efectivo directo",
-    "alsoBeneficialOwnerDescription": "Una vez aprobado, esta persona será Controlador y Beneficiario efectivo directo.",
+    "alsoBeneficialOwner": "Esta persona también es beneficiario efectivo",
+    "alsoBeneficialOwnerDescription": "Una vez aprobado, esta persona será Controlador y beneficiario efectivo.",
+    "ownershipPath": {
+      "label": "Cómo mantiene su participación",
+      "description": "La mayoría de los propietarios la mantienen directamente. Elija una empresa solo si es propietario a través de ella.",
+      "direct": "Directamente en su empresa",
+      "through": "A través de {{name}}"
+    },
     "roles": {
       "CONTROLLER": "Controlador",
       "BENEFICIAL_OWNER": "Beneficiario efectivo"
@@ -375,8 +415,10 @@
     "moveTitle": "Cambiar la conexión de propiedad de {{name}}",
     "moveDescriptionDirect": "{{name}} posee su empresa directamente. Elija la empresa a través de la cual es propietario.",
     "moveDescriptionIndirect": "{{name}} posee a través de {{currentParentName}}. Elija una conexión diferente.",
-    "moveDirectOption": "Posee su empresa directamente",
     "moveConfirm": "Actualizar conexión",
+    "moveCurrent": "Posición actual",
+    "moveResult": "Nueva posición",
+    "moveDestinationLabel": "Elija una nueva conexión",
     "retryRemaining": "Reintentar cambios restantes",
     "moveNotRecorded": "No se actualizó la conexión.",
     "cancel": "Cancelar"
@@ -429,34 +471,35 @@
   "questions": {
     "title": "Preguntas adicionales",
     "description": "Responda las preguntas requeridas para que la revisión pueda continuar.",
-    "sectionTitle": "Preguntas",
     "loading": "Cargando preguntas",
     "progress": "{{answered}} de {{total}} respondidas",
+    "newQuestions": "Sus respuestas generaron algunas preguntas más. Respóndalas para continuar.",
     "emptyTitle": "No se pudieron cargar las preguntas",
     "emptyDescription": "Vuelva a la revisión e inténtelo de nuevo. El envío no estará disponible hasta que se devuelvan todas las preguntas solicitadas.",
-    "select": "Seleccione una respuesta",
-    "yes": "Sí",
-    "no": "No",
     "cancel": "Volver a la revisión",
     "save": "Guardar respuestas"
   },
   "attestation": {
     "title": "Revisar y certificar",
-    "description": "Revise cada documento requerido y confirme la información a continuación.",
-    "sectionTitle": "Certificación",
+    "description": "Abra cada documento y luego firme a continuación para certificar su contenido.",
     "document": "Documento de certificación {{number}}",
-    "documentsTitle": "Revisar los documentos requeridos",
-    "documentsDescription": "Abra cada documento antes de ingresar los datos de la persona que realiza esta certificación.",
-    "progress": "{{reviewed}} de {{total}} revisados",
-    "review": "Revisar documento",
-    "opened": "Revisado",
-    "signerTitle": "Persona que realiza esta certificación",
-    "signerDescription": "Ingrese su nombre legal y su función en la empresa.",
-    "signerLocked": "Revise todos los documentos requeridos para desbloquear los datos del firmante.",
+    "documentsTitle": "Documentos",
+    "progress": "{{opened}} de {{total}} abiertos",
+    "open": "Abrir",
+    "download": "Descargar {{name}}",
+    "opened": "Abierto",
+    "notOpened": "Aún no se ha abierto",
+    "popupBlocked": "Su navegador impidió abrir el documento en una pestaña nueva. Permita las ventanas emergentes para este sitio o descárguelo.",
+    "signatureTitle": "Firma",
+    "date": "Fecha",
+    "signerTitle": "Firmante",
+    "signerFromController": "Completado con los datos del controlador de la empresa. Edítelo si firma otra persona.",
+    "signerDescription": "Ingrese el nombre legal y el cargo de la persona que firma.",
+    "editSigner": "Editar",
     "designation": "Cargo",
-    "designationPlaceholder": "Por ejemplo, director ejecutivo, controlador o socio",
-    "designationDescription": "Use su cargo o función en la empresa.",
-    "confirmation": "He revisado los documentos requeridos y certifico que la información está completa y es correcta.",
+    "designationDescription": "Su cargo o función en la empresa, como director ejecutivo o socio.",
+    "confirmation": "He leído cada documento anterior y certifico su contenido.",
+    "confirmationLocked": "Primero abra todos los documentos.",
     "cancel": "Volver a la revisión",
     "save": "Enviar certificación"
   },
@@ -528,27 +571,29 @@
   "ownerRelationship": {
     "title": "Conexión de propiedad",
     "addTitle": "Agregar un beneficiario efectivo",
-    "addDescription": "Primero elija si este propietario mantiene su participación directamente o a través de una empresa intermediaria.",
+    "addDescription": "Una persona que posee el 25 % o más de la empresa, directamente o a través de otras empresas.",
     "controllerTitle": "Agregar función de beneficiario efectivo",
-    "controllerDescription": "Elija cómo {{name}} mantiene su participación de propiedad.",
-    "changeTitle": "Elija dónde se conecta {{name}}",
+    "controllerDescription": "{{name}} sigue siendo el controlador y también figura como beneficiario efectivo.",
+    "changeTitle": "Cambie cómo {{name}} es propietario de la empresa",
     "changeDescription": "Elija la empresa a través de la cual es propietario o agregue una nueva.",
     "newOwner": "el nuevo propietario",
-    "directTitle": "Posee su empresa directamente",
-    "directDescription": "Elija esta opción cuando no haya otro negocio entre el propietario y el cliente.",
-    "directPath": "Resultado: Negocio cliente → Propietario",
-    "indirectTitle": "Posee a través de otro negocio",
-    "indirectDescription": "Elija esta opción cuando el propietario mantenga su participación mediante una empresa intermediaria. Seleccione un negocio existente o agregue primero el intermediario.",
-    "chooseBusiness": "Empresas existentes",
+    "newOwnerNode": "Nuevo propietario",
+    "connectionQuestion": "¿Cómo tiene {{name}} la propiedad de la empresa?",
+    "directTitle": "Directamente",
+    "directDescription": "Mantiene su participación en su empresa a título personal.",
+    "indirectTitle": "A través de otra empresa",
+    "indirectDescription": "Mantiene su participación mediante una o más empresas intermediarias.",
+    "businessQuestion": "Elija la empresa intermediaria para {{name}}",
     "addBusiness": "Agregar una nueva empresa intermediaria",
-    "changeFirstBusinessDescription": "Todavía no hay empresas intermediarias. Agregue la empresa que se encuentra entre {{name}} y su empresa."
+    "addBusinessDescription": "Ingresará sus datos a continuación.",
+    "changeFirstBusinessDescription": "Todavía no hay empresas intermediarias. Agregue la empresa que se encuentra entre {{name}} y su empresa.",
+    "continue": "Continuar"
   },
   "controllerReplacement": {
     "title": "Elegir un controlador de reemplazo",
-    "description": "Seleccione una persona existente relacionada directamente con esta empresa o agregue una nueva.",
+    "description": "Seleccione una persona existente del perfil de la empresa o agregue una nueva.",
     "existingTitle": "Usar una persona existente",
     "existingDescription": "Se conservarán sus funciones actuales y los datos de su perfil.",
-    "selectDescription": "Designar a esta persona como controlador",
     "emptyTitle": "No hay personas existentes disponibles",
     "emptyDescription": "Agregue una nueva persona para continuar con el reemplazo del controlador.",
     "addNew": "Agregar una nueva persona"
@@ -596,6 +641,8 @@
   "submission": {
     "draftExplanation": "Sus cambios pendientes están guardados y no se enviaron para revisión.",
     "reviewAndSubmit": "Revisar y enviar",
+    "blockedHint": "Podrá enviar cuando se completen todos los elementos anteriores.",
+    "confirmHint": "Confirme ambas declaraciones para enviar.",
     "backToProfile": "Volver al perfil del negocio",
     "reviewTitle": "Revise sus cambios",
     "reviewDescription": {
@@ -605,7 +652,7 @@
     },
     "submittedChangesTitle": "Cambios enviados",
     "submittedChangesDescription": "Estos son los cambios que están en revisión.",
-    "reviewUpdated": "Los cambios pendientes se actualizaron mientras los revisaba. Revise los cambios más recientes antes de confirmar.",
+    "reviewUpdated": "Estos cambios se actualizaron mientras los revisaba. Revise los cambios más recientes y vuelva a confirmar.",
     "profileUpdates": "Cambios del perfil",
     "edit": "Editar",
     "returnToProfile": "Volver al perfil del negocio",
@@ -727,8 +774,6 @@
     "contactTitle": "Contacto",
     "contactDescription": "Revise o actualice el mejor correo electrónico y número de teléfono para esta persona.",
     "phoneCountryCode": "Código de país",
-    "personalDetailsTitle": "Datos personales",
-    "personalDetailsDescription": "Las fechas de nacimiento se ocultan en todas partes fuera de este formulario.",
     "dbaName": "Nombre comercial",
     "addresses": "Dirección del negocio",
     "address": {

@@ -19,6 +19,7 @@ import { MaintenanceAddIntermediaryView } from './components/MaintenanceAddInter
 import { MaintenanceAddPartyView } from './components/MaintenanceAddPartyView';
 import { MaintenanceAttestationView } from './components/MaintenanceAttestationView';
 import type { MaintenanceBreadcrumbItem } from './components/MaintenanceBreadcrumb';
+import { MaintenanceBusyProvider } from './components/MaintenanceBusyContext';
 import { MaintenanceControllerReplacementView } from './components/MaintenanceControllerReplacementView';
 import { MaintenanceDocumentDiscoveryView } from './components/MaintenanceDocumentDiscoveryView';
 import { MaintenanceDocumentView } from './components/MaintenanceDocumentView';
@@ -32,6 +33,7 @@ import { MaintenanceNavigatorVisibleProvider } from './components/MaintenanceNav
 import { MaintenanceOrganizationEditView } from './components/MaintenanceOrganizationEditView';
 import { MaintenanceOrganizationView } from './components/MaintenanceOrganizationView';
 import { MaintenanceOwnerRelationshipView } from './components/MaintenanceOwnerRelationshipView';
+import type { OwnershipPickerNode } from './components/MaintenanceOwnershipPicker';
 import { MaintenanceOwnershipView } from './components/MaintenanceOwnershipView';
 import { MaintenanceProductAdditionView } from './components/MaintenanceProductAdditionView';
 import { MaintenanceProfileOverview } from './components/MaintenanceProfileOverview';
@@ -41,6 +43,7 @@ import { MaintenanceReviewView } from './components/MaintenanceReviewView';
 import { MoveOwnershipDialog } from './components/MoveOwnershipDialog';
 import { RemoveIntermediaryDialog } from './components/RemoveIntermediaryDialog';
 import { RemoveRelatedPartyDialog } from './components/RemoveRelatedPartyDialog';
+import { useInert } from './hooks/useInert';
 import {
   useMaintenanceWorkspace,
   type MaintenanceWorkspace,
@@ -79,6 +82,7 @@ import {
   buildMoveOwnershipPlan,
   buildRemoveIntermediaryPlan,
   getEligibleOwnershipParents,
+  type OwnershipOperation,
 } from './utils/ownershipOperations';
 
 type MaintenanceReturnView =
@@ -104,7 +108,6 @@ type MaintenanceView =
       allowedRoles?: Array<'CONTROLLER' | 'BENEFICIAL_OWNER'>;
       replacementPartyId?: string;
       outgoingControllerRoles?: string[];
-      initialPartyId?: string;
     }
   | {
       id: 'owner-relationship';
@@ -282,6 +285,7 @@ export function ApprovedClientMaintenanceWorkspace({
     resetOwnershipOperations,
     clientTaskMutation,
     updateClientTasks,
+    attestationDocuments,
     downloadAttestation,
     cancelMaintenanceMutation,
     cancelChanges,
@@ -292,6 +296,25 @@ export function ApprovedClientMaintenanceWorkspace({
     resetVerificationAttempt,
     refreshMaintenanceWorkspace,
   } = workspace;
+  // Mutations settle only after their refresh, so the request changes while these are pending.
+  const isApplyingOwnChange = [
+    updatePartyNameMutation,
+    updatePartyMutation,
+    createPartyMutation,
+    ownershipOperationsMutation,
+    addProductMutation,
+    cancelProductAdditionMutation,
+    clientTaskMutation,
+    cancelMaintenanceMutation,
+    partyStepsMutation,
+  ].some((mutation) => mutation?.isPending);
+  // While a change saves, everything outside its own page pauses so it can't be left half-done.
+  const isBusy =
+    isApplyingOwnChange ||
+    verificationMutation.isPending ||
+    isRequestingLimitedDda;
+  const navigatorRef = useInert<HTMLElement>(isBusy);
+  const overviewRef = useInert<HTMLDivElement>(isBusy);
 
   const projection = useMemo(() => {
     if (!clientQuery.data) return undefined;
@@ -413,7 +436,8 @@ export function ApprovedClientMaintenanceWorkspace({
       clientQuery.data,
       projection,
       documentRequestsQuery.data?.documentRequests ?? [],
-      isDocumentDiscoveryPending
+      isDocumentDiscoveryPending,
+      questionsQuery?.data
     );
     return blockers;
   }, [
@@ -421,6 +445,7 @@ export function ApprovedClientMaintenanceWorkspace({
     documentRequestsQuery.data?.documentRequests,
     isDocumentDiscoveryPending,
     projection,
+    questionsQuery?.data,
   ]);
   const eligibleOperations = clientQuery.data
     ? getEligibleMaintenanceOperations(clientQuery.data, eligibility)
@@ -713,27 +738,45 @@ export function ApprovedClientMaintenanceWorkspace({
     setView(view.id === 'add-party' ? view.returnTo : { id: 'profile' });
   };
 
-  const moveOwner = async (partyId: string, destinationPartyId: string) => {
+  const moveOwner = async (
+    partyId: string,
+    destinationPartyId: string,
+    { addOwnerRole = false }: { addOwnerRole?: boolean } = {}
+  ) => {
     const party = currentProjection.proposedClient.parties?.find(
       (candidate) => candidate.id === partyId
     );
     if (!party || !client.partyId) {
       throw new Error('The ownership path could not be correlated.');
     }
-    await applyOwnershipOperations(
-      buildMoveOwnershipPlan({
+    const roleOperations: OwnershipOperation[] = addOwnerRole
+      ? [
+          {
+            partyId,
+            request: {
+              roles: [...new Set([...(party.roles ?? []), 'BENEFICIAL_OWNER'])],
+            },
+          },
+        ]
+      : [];
+    await applyOwnershipOperations([
+      ...roleOperations,
+      ...buildMoveOwnershipPlan({
         party,
         destinationPartyId,
         clientPartyId: client.partyId,
-      })
-    );
+      }),
+    ]);
   };
 
   const saveIntermediary = async (
     requestBody: Parameters<typeof createParty>[0]
   ) => {
-    if (view.id === 'add-intermediary' && view.ownerToReplaceId) {
-      const ownerPartyId = view.ownerToReplaceId;
+    const ownerPartyId =
+      view.id === 'add-intermediary'
+        ? (view.ownerToReplaceId ?? view.ownerToAddId)
+        : undefined;
+    if (view.id === 'add-intermediary' && ownerPartyId) {
       let intermediaryPartyId =
         pathIntermediary?.ownerPartyId === ownerPartyId
           ? pathIntermediary.intermediaryPartyId
@@ -745,16 +788,15 @@ export function ApprovedClientMaintenanceWorkspace({
         }
         setPathIntermediary({ ownerPartyId, intermediaryPartyId });
       }
-      await moveOwner(ownerPartyId, intermediaryPartyId);
+      await moveOwner(ownerPartyId, intermediaryPartyId, {
+        addOwnerRole: Boolean(view.ownerToAddId),
+      });
       setPathIntermediary(undefined);
       setView(view.returnTo);
       return;
     }
     const intermediary = await createParty(requestBody);
-    if (
-      view.id === 'add-intermediary' &&
-      (view.ownerToAddId || view.continueWithNewOwner)
-    ) {
+    if (view.id === 'add-intermediary' && view.continueWithNewOwner) {
       if (!intermediary?.id) {
         throw new Error(
           'The intermediary ownership path could not be correlated.'
@@ -765,7 +807,6 @@ export function ApprovedClientMaintenanceWorkspace({
         parentPartyId: intermediary.id,
         natureOfOwnership: 'Indirect',
         allowedRoles: ['BENEFICIAL_OWNER'],
-        initialPartyId: view.ownerToAddId,
         returnTo: view.returnTo,
       });
       return;
@@ -807,8 +848,11 @@ export function ApprovedClientMaintenanceWorkspace({
       typeof updateClientTasks
     >[0]['questionResponses']
   ) => {
-    await updateClientTasks({ questionResponses });
+    const outstanding = await updateClientTasks({ questionResponses });
+    // Like onboarding, stay while the answers have opened up further questions.
+    if (outstanding?.questionIds?.length) return 'more' as const;
     setView(view.id === 'questions' ? view.returnTo : { id: 'review' });
+    return 'done' as const;
   };
 
   const saveAttestations = async (
@@ -1022,13 +1066,13 @@ export function ApprovedClientMaintenanceWorkspace({
   const controllerCount = projectedIndividuals.filter((party) =>
     party.roles?.includes('CONTROLLER')
   ).length;
+  // Any approved person can take over; an indirect owner keeps their ownership path.
   const controllerReplacementCandidates =
     view.id === 'controller-replacement'
       ? projectedIndividuals.filter(
           (party) =>
             Boolean(party.id) &&
             party.id !== view.outgoingPartyId &&
-            (party.parentPartyId === client.partyId || !party.parentPartyId) &&
             !party.roles?.includes('CONTROLLER') &&
             client.parties?.some(
               (approvedParty) => approvedParty.id === party.id
@@ -1168,43 +1212,33 @@ export function ApprovedClientMaintenanceWorkspace({
         (party) => party.id === ownershipMoveParty.parentPartyId
       )
     : undefined;
-  const ownershipMoveDestinations =
+  const ownershipMoveParentPartyId =
+    ownershipMoveParty?.parentPartyId ?? client.partyId;
+  const ownershipMoveNodes: OwnershipPickerNode[] =
     ownershipMovePartyId && client.partyId
-      ? getOwnershipMoveDestinationIds(ownershipMovePartyId).map((partyId) => {
+      ? getEligibleOwnershipParents({
+          partyId: ownershipMovePartyId,
+          clientPartyId: client.partyId,
+          parties: currentProjection.proposedClient.parties ?? [],
+        }).map((partyId) => {
           const party = currentProjection.proposedClient.parties?.find(
             (candidate) => candidate.id === partyId
           );
-          return {
-            partyId,
-            name:
-              partyId === client.partyId
-                ? clientOrganizationName
-                : (party?.organizationDetails?.organizationName ??
-                  tString('notProvided')),
-            path:
-              partyId === client.partyId
-                ? tString('ownershipEditor.moveDirectOption')
-                : buildMaintenanceOwnershipPath({
-                    parties: currentProjection.proposedClient.parties ?? [],
-                    clientPartyId: client.partyId!,
-                    clientName: clientOrganizationName,
-                    ownerPartyId: partyId,
-                    fallback: tString('notProvided'),
-                  }).join(' › '),
-            depth:
-              partyId === client.partyId
-                ? 0
-                : Math.max(
-                    0,
-                    buildMaintenanceOwnershipPath({
-                      parties: currentProjection.proposedClient.parties ?? [],
-                      clientPartyId: client.partyId!,
-                      clientName: clientOrganizationName,
-                      ownerPartyId: partyId,
-                      fallback: tString('notProvided'),
-                    }).length - 2
-                  ),
-          };
+          return partyId === client.partyId
+            ? {
+                partyId,
+                name: clientOrganizationName,
+                caption: tString('ownership.clientRoot'),
+                disabled: partyId === ownershipMoveParentPartyId,
+              }
+            : {
+                partyId,
+                parentPartyId: party?.parentPartyId,
+                name:
+                  party?.organizationDetails?.organizationName ??
+                  tString('notProvided'),
+                disabled: partyId === ownershipMoveParentPartyId,
+              };
         })
       : [];
   const canAddBeneficialOwnerRole = Boolean(
@@ -1281,6 +1315,9 @@ export function ApprovedClientMaintenanceWorkspace({
   );
   const removalNeedsReplacementController =
     needsReplacementController(removalTask);
+  const replaceableControllerTask = currentEntityTasks.parties.find((task) =>
+    needsReplacementController(task)
+  );
   const canCancel =
     !verificationMutation.data &&
     activeRequestStatus === 'NEW' &&
@@ -1290,6 +1327,12 @@ export function ApprovedClientMaintenanceWorkspace({
       ...currentEntityTasks.parties,
       ...currentEntityTasks.intermediaryOrganizations,
     ].find((task) => task.partyId === partyId);
+  const getRelatedPartyStatus = (partyId: string) => {
+    const task = findRelatedPartyTask(partyId);
+    return task
+      ? getMaintenancePartyStatus(task, isDocumentDiscoveryPending)
+      : undefined;
+  };
   const isIntermediaryParty = (partyId: string) =>
     Boolean(
       findRelatedPartyTask(partyId)?.proposedParty.roles?.includes(
@@ -1552,6 +1595,38 @@ export function ApprovedClientMaintenanceWorkspace({
           ? () => setView({ id: 'ownership', returnTo: { id: 'profile' } })
           : undefined
       }
+      onEditBusiness={
+        canEditOrganization
+          ? () =>
+              setView({ id: 'edit-organization', returnTo: { id: 'profile' } })
+          : undefined
+      }
+      onAddBeneficialOwner={
+        canManageDirectOwnership && beneficialOwnerCount < 4 && client.partyId
+          ? () =>
+              setView(
+                canManageIndirectOwnership
+                  ? {
+                      id: 'owner-relationship',
+                      mode: 'add-owner',
+                      returnTo: { id: 'profile' },
+                    }
+                  : {
+                      id: 'add-party',
+                      parentPartyId: client.partyId!,
+                      natureOfOwnership: 'Direct',
+                      allowedRoles: ['BENEFICIAL_OWNER'],
+                      returnTo: { id: 'profile' },
+                    }
+              )
+          : undefined
+      }
+      onReplaceController={
+        replaceableControllerTask
+          ? () => setRemovePartyId(replaceableControllerTask.partyId)
+          : undefined
+      }
+      canRestructureOwnership={canManageIndirectOwnership}
       onReviewAndSubmit={() => {
         resetVerificationAttempt();
         setView({ id: 'review' });
@@ -1566,6 +1641,7 @@ export function ApprovedClientMaintenanceWorkspace({
       }}
     />
   );
+  // The overview lists the whole profile itself, so it doesn't need the navigator beside it.
   const isSplitLayout =
     layoutWidth >= 880 && view.id !== 'profile' && view.id !== 'receipt';
   // Deeper pages (edit, documents, add flows) highlight the section they belong to.
@@ -1623,7 +1699,15 @@ export function ApprovedClientMaintenanceWorkspace({
           )}
         >
           {isSplitLayout ? (
-            <aside className="eb-sticky eb-top-4 eb-max-h-[calc(100vh-2rem)] eb-overflow-y-auto">
+            <aside
+              ref={navigatorRef}
+              aria-busy={isBusy || undefined}
+              data-maintenance-busy={isBusy ? '' : undefined}
+              className={cn(
+                'eb-sticky eb-top-4 eb-max-h-[calc(100vh-2rem)] eb-overflow-y-auto eb-transition-opacity motion-reduce:eb-transition-none',
+                isBusy && 'eb-opacity-60'
+              )}
+            >
               <MaintenanceNavigatorSidebar
                 clientName={clientOrganizationName}
                 clientPartyId={client.partyId}
@@ -1634,6 +1718,10 @@ export function ApprovedClientMaintenanceWorkspace({
                   activeRequestStatus || displayedRequestId
                 )}
                 updateScope={updateScope}
+                changeCount={
+                  currentProjection.partyChanges.length +
+                  currentProjection.productChanges.length
+                }
                 isDocumentDiscoveryPending={isDocumentDiscoveryPending}
                 summaryState={getMaintenanceRequestSummaryState({
                   activeRequestStatus,
@@ -1682,909 +1770,961 @@ export function ApprovedClientMaintenanceWorkspace({
             className={cn(
               // Detail pages size to their own column, not the whole component beside the sidebar.
               'eb-min-w-0 eb-@container',
-              isSplitLayout && 'eb-max-h-[calc(100vh-2rem)] eb-overflow-y-auto'
+              isSplitLayout && [
+                'eb-max-h-[calc(100vh-2rem)] eb-overflow-y-auto',
+                // A page with a body keeps its header and footer in view; only the body scrolls.
+                '[&>*:has([data-maintenance-page-body])]:eb-flex [&>*:has([data-maintenance-page-body])]:eb-max-h-[calc(100vh-2rem)] [&>*:has([data-maintenance-page-body])]:eb-flex-col',
+                '[&>*>header]:eb-shrink-0 [&_[data-maintenance-footer]]:eb-shrink-0',
+                '[&_[data-maintenance-page-fill]]:eb-flex [&_[data-maintenance-page-fill]]:eb-min-h-0 [&_[data-maintenance-page-fill]]:eb-flex-1 [&_[data-maintenance-page-fill]]:eb-flex-col',
+              ]
             )}
           >
             <MaintenanceNavigatorVisibleProvider value={isSplitLayout}>
-              {view.id === 'receipt' && verificationMutation.data ? (
-                <MaintenanceReceiptView
-                  requestId={displayedRequestId}
-                  acceptedAt={verificationMutation.data.acceptedAt}
-                  receivedAt={verificationMutation.data.receivedAt}
-                  onReturn={() => setView({ id: 'profile' })}
-                />
-              ) : view.id === 'add-product' ? (
-                <MaintenanceProductAdditionView
-                  isSubmitting={addProductMutation?.isPending ?? false}
-                  error={addProductMutation?.error}
-                  onBack={() => setView({ id: 'profile' })}
-                  onConfirm={confirmProductAddition}
-                />
-              ) : view.id === 'document-discovery' ? (
-                <MaintenanceDocumentDiscoveryView
-                  breadcrumbs={[
-                    profileBreadcrumb(),
-                    { label: tString('flow.preparingRequiredDocuments') },
-                  ]}
-                />
-              ) : view.id === 'profile' ? (
-                profileOverview
-              ) : view.id === 'review' ? (
-                <MaintenanceReviewView
-                  mode="draft"
-                  updateScope={updateScope}
-                  projection={currentProjection}
-                  entityTasks={currentEntityTasks}
-                  requestStatus={activeRequestStatus}
-                  isDocumentDiscoveryPending={isDocumentDiscoveryPending}
-                  documentError={documentRequestsQuery.error}
-                  blockers={submissionBlockers}
-                  fingerprint={reviewFingerprint}
-                  isSubmitting={verificationMutation.isPending}
-                  submissionError={verificationMutation.error}
-                  breadcrumbs={[
-                    profileBreadcrumb(returnFromReview),
-                    { label: tString('submission.reviewTitle') },
-                  ]}
-                  clientPartyId={client.partyId}
-                  canEditParty={canEditReviewParty}
-                  canEditOrganization={canEditOrganization}
-                  canCancelChanges={canCancel}
-                  onOpenParty={(partyId) =>
-                    openParty(partyId, { id: 'review' })
-                  }
-                  onOpenOrganization={() =>
-                    setView({ id: 'organization', returnTo: { id: 'review' } })
-                  }
-                  onEditParty={(partyId) =>
-                    editRelatedParty(partyId, { id: 'review' })
-                  }
-                  onEditOrganization={() =>
-                    setView({
-                      id: 'edit-organization',
-                      returnTo: { id: 'review' },
-                    })
-                  }
-                  onCancelOrganization={() =>
-                    currentEntityTasks.organization.change &&
-                    setCancelTarget({
-                      scope: 'organization',
-                      partyId: currentEntityTasks.organization.change.partyId,
-                    })
-                  }
-                  onCancelParty={(partyId) =>
-                    currentProjection.partyChanges.find(
-                      (change) => change.partyId === partyId
-                    )?.action === 'ADD'
-                      ? discardPendingAddition(partyId, { id: 'review' })
-                      : setCancelTarget({ scope: 'party', partyId })
-                  }
-                  canCancelAll={canCancel}
-                  onCancelAll={() => setCancelTarget({ scope: 'all' })}
-                  onOpenOwnership={
-                    hasOwnershipStructure
-                      ? () =>
-                          setView({
-                            id: 'ownership',
-                            returnTo: { id: 'review' },
-                          })
-                      : undefined
-                  }
-                  isCancellingProduct={cancelProductAdditionMutation.isPending}
-                  productCancellationError={cancelProductAdditionMutation.error}
-                  onCancelProductAddition={
-                    canCancelProductAddition ? cancelProductAddition : undefined
-                  }
-                  onSelectDocument={(partyId, documentRequestId) =>
-                    setView({
-                      id: 'document',
-                      partyId,
-                      documentRequestId,
-                      returnTo: { id: 'review' },
-                    })
-                  }
-                  onSubmit={submitDraft}
-                  onBack={() => setView({ id: 'profile' })}
-                  onCompleteRequirement={(type) => {
-                    if (type === 'questions') {
-                      setView({ id: 'questions', returnTo: { id: 'review' } });
-                    } else if (type === 'attestations') {
+              <MaintenanceBusyProvider value={isBusy}>
+                {view.id === 'receipt' && verificationMutation.data ? (
+                  <MaintenanceReceiptView
+                    requestId={displayedRequestId}
+                    acceptedAt={verificationMutation.data.acceptedAt}
+                    receivedAt={verificationMutation.data.receivedAt}
+                    onReturn={() => setView({ id: 'profile' })}
+                  />
+                ) : view.id === 'add-product' ? (
+                  <MaintenanceProductAdditionView
+                    isSubmitting={addProductMutation?.isPending ?? false}
+                    error={addProductMutation?.error}
+                    onBack={() => setView({ id: 'profile' })}
+                    onConfirm={confirmProductAddition}
+                  />
+                ) : view.id === 'document-discovery' ? (
+                  <MaintenanceDocumentDiscoveryView
+                    breadcrumbs={[
+                      profileBreadcrumb(),
+                      { label: tString('flow.preparingRequiredDocuments') },
+                    ]}
+                  />
+                ) : view.id === 'profile' ? (
+                  <div
+                    ref={overviewRef}
+                    aria-busy={isBusy || undefined}
+                    data-maintenance-busy={isBusy ? '' : undefined}
+                  >
+                    {profileOverview}
+                  </div>
+                ) : view.id === 'review' ? (
+                  <MaintenanceReviewView
+                    mode="draft"
+                    updateScope={updateScope}
+                    projection={currentProjection}
+                    entityTasks={currentEntityTasks}
+                    requestStatus={activeRequestStatus}
+                    isDocumentDiscoveryPending={isDocumentDiscoveryPending}
+                    documentError={documentRequestsQuery.error}
+                    blockers={submissionBlockers}
+                    fingerprint={reviewFingerprint}
+                    isApplyingOwnChange={isApplyingOwnChange}
+                    isSubmitting={verificationMutation.isPending}
+                    submissionError={verificationMutation.error}
+                    breadcrumbs={[
+                      profileBreadcrumb(returnFromReview),
+                      { label: tString('submission.reviewTitle') },
+                    ]}
+                    clientPartyId={client.partyId}
+                    canEditParty={canEditReviewParty}
+                    canEditOrganization={canEditOrganization}
+                    canCancelChanges={canCancel}
+                    onOpenParty={(partyId) =>
+                      openParty(partyId, { id: 'review' })
+                    }
+                    onOpenOrganization={() =>
                       setView({
-                        id: 'attestations',
+                        id: 'organization',
                         returnTo: { id: 'review' },
-                      });
+                      })
                     }
-                  }}
-                />
-              ) : view.id === 'questions' ? (
-                <MaintenanceQuestionsView
-                  questions={questionsQuery?.data ?? []}
-                  isLoading={questionsQuery?.isPending ?? false}
-                  isSubmitting={clientTaskMutation?.isPending ?? false}
-                  error={questionsQuery?.error ?? clientTaskMutation?.error}
-                  breadcrumbs={[
-                    profileBreadcrumb(),
-                    {
-                      label: tString('submission.reviewTitle'),
-                      onSelect: () => setView(view.returnTo),
-                    },
-                    { label: tString('questions.title') },
-                  ]}
-                  onBack={() => setView(view.returnTo)}
-                  onSubmit={saveQuestions}
-                />
-              ) : view.id === 'attestations' ? (
-                <MaintenanceAttestationView
-                  documentIds={client.outstanding?.attestationDocumentIds ?? []}
-                  ipAddress={ipAddress}
-                  isSubmitting={clientTaskMutation?.isPending ?? false}
-                  error={clientTaskMutation?.error}
-                  breadcrumbs={[
-                    profileBreadcrumb(),
-                    {
-                      label: tString('submission.reviewTitle'),
-                      onSelect: () => setView(view.returnTo),
-                    },
-                    { label: tString('attestation.title') },
-                  ]}
-                  onBack={() => setView(view.returnTo)}
-                  onDownload={downloadAttestation}
-                  onSubmit={saveAttestations}
-                />
-              ) : view.id === 'submitted-review' ? (
-                <MaintenanceReviewView
-                  mode="submitted"
-                  updateScope={updateScope}
-                  projection={currentProjection}
-                  entityTasks={currentEntityTasks}
-                  requestStatus={activeRequestStatus}
-                  isDocumentDiscoveryPending={isDocumentDiscoveryPending}
-                  documentError={documentRequestsQuery.error}
-                  blockers={submissionBlockers}
-                  fingerprint={reviewFingerprint}
-                  isSubmitting={false}
-                  submissionError={undefined}
-                  breadcrumbs={[
-                    profileBreadcrumb(),
-                    {
-                      label: tString([
-                        `requestDetails.title.${updateScope}`,
-                      ] as unknown as TemplateStringsArray),
-                    },
-                  ]}
-                  clientPartyId={client.partyId}
-                  onOpenParty={(partyId) =>
-                    openParty(partyId, { id: 'submitted-review' })
-                  }
-                  onOpenOrganization={() =>
-                    setView({
-                      id: 'organization',
-                      returnTo: { id: 'submitted-review' },
-                    })
-                  }
-                  onOpenOwnership={
-                    hasOwnershipStructure
-                      ? () =>
-                          setView({
-                            id: 'ownership',
-                            returnTo: { id: 'submitted-review' },
-                          })
-                      : undefined
-                  }
-                  onSelectDocument={(partyId, documentRequestId) =>
-                    setView({
-                      id: 'document',
-                      partyId,
-                      documentRequestId,
-                      returnTo: { id: 'submitted-review' },
-                    })
-                  }
-                  onSubmit={async () => undefined}
-                  onBack={() => setView({ id: 'profile' })}
-                  onCompleteRequirement={(type) => {
-                    if (type === 'questions') {
+                    onEditParty={(partyId) =>
+                      editRelatedParty(partyId, { id: 'review' })
+                    }
+                    onEditOrganization={() =>
                       setView({
-                        id: 'questions',
-                        returnTo: { id: 'submitted-review' },
-                      });
-                    } else if (type === 'attestations') {
+                        id: 'edit-organization',
+                        returnTo: { id: 'review' },
+                      })
+                    }
+                    onCancelOrganization={() =>
+                      currentEntityTasks.organization.change &&
+                      setCancelTarget({
+                        scope: 'organization',
+                        partyId: currentEntityTasks.organization.change.partyId,
+                      })
+                    }
+                    onCancelParty={(partyId) =>
+                      currentProjection.partyChanges.find(
+                        (change) => change.partyId === partyId
+                      )?.action === 'ADD'
+                        ? discardPendingAddition(partyId, { id: 'review' })
+                        : setCancelTarget({ scope: 'party', partyId })
+                    }
+                    canCancelAll={canCancel}
+                    onCancelAll={() => setCancelTarget({ scope: 'all' })}
+                    onOpenOwnership={
+                      hasOwnershipStructure
+                        ? () =>
+                            setView({
+                              id: 'ownership',
+                              returnTo: { id: 'review' },
+                            })
+                        : undefined
+                    }
+                    isCancellingProduct={
+                      cancelProductAdditionMutation.isPending
+                    }
+                    productCancellationError={
+                      cancelProductAdditionMutation.error
+                    }
+                    onCancelProductAddition={
+                      canCancelProductAddition
+                        ? cancelProductAddition
+                        : undefined
+                    }
+                    onSelectDocument={(partyId, documentRequestId) =>
                       setView({
-                        id: 'attestations',
-                        returnTo: { id: 'submitted-review' },
-                      });
+                        id: 'document',
+                        partyId,
+                        documentRequestId,
+                        returnTo: { id: 'review' },
+                      })
                     }
-                  }}
-                />
-              ) : view.id === 'organization' ? (
-                <MaintenanceOrganizationView
-                  task={currentEntityTasks.organization}
-                  isLoadingDocuments={isDocumentDiscoveryPending}
-                  documentError={documentRequestsQuery.error}
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(
-                      view.returnTo ?? { id: 'profile' }
-                    ),
-                    { label: tString('organization') },
-                  ]}
-                  canEdit={canEditOrganization}
-                  canCancel={
-                    canCancel && Boolean(currentEntityTasks.organization.change)
-                  }
-                  backLabel={getDetailBackLabel(view.returnTo)}
-                  onBack={() => setView(view.returnTo ?? { id: 'profile' })}
-                  onEdit={() =>
-                    setView({
-                      id: 'edit-organization',
-                      returnTo: view,
-                    })
-                  }
-                  onViewRequestDetails={() => {
-                    if (activeRequestStatus === 'NEW') {
-                      resetVerificationAttempt();
-                    }
-                    setView({
-                      id:
-                        activeRequestStatus === 'NEW'
-                          ? 'review'
-                          : 'submitted-review',
-                    });
-                  }}
-                  onCancelChanges={() =>
-                    currentEntityTasks.organization.change &&
-                    setCancelTarget({
-                      scope: 'organization',
-                      partyId: currentEntityTasks.organization.change.partyId,
-                    })
-                  }
-                  onSelectDocument={(documentRequestId) =>
-                    setView({
-                      id: 'document',
-                      documentRequestId,
-                      returnTo: view,
-                    })
-                  }
-                />
-              ) : view.id === 'ownership' && client.partyId ? (
-                <MaintenanceOwnershipView
-                  clientPartyId={client.partyId}
-                  clientName={
-                    currentEntityTasks.organization.party?.organizationDetails
-                      ?.organizationName ?? tString('notProvided')
-                  }
-                  parties={ownershipDisplayParties}
-                  nodeChanges={ownershipChanges.changes}
-                  previousParentIds={ownershipChanges.previousParentIds}
-                  getPartyStatus={(partyId) => {
-                    const task = findRelatedPartyTask(partyId);
-                    return task
-                      ? getMaintenancePartyStatus(
-                          task,
-                          isDocumentDiscoveryPending
-                        )
-                      : undefined;
-                  }}
-                  canCancelPendingRemoval={canCancel}
-                  onCancelPendingRemoval={(partyId) =>
-                    setCancelTarget({ scope: 'party', partyId })
-                  }
-                  breadcrumbs={[
-                    profileBreadcrumb(),
-                    { label: tString('ownership.title') },
-                  ]}
-                  canAddOwner={canManageDirectOwnership}
-                  ownerLimitReached={beneficialOwnerCount >= 4}
-                  canManageIndirectOwnership={canManageIndirectOwnership}
-                  onAddBeneficialOwner={(parentPartyId) => {
-                    if (parentPartyId === client.partyId) {
-                      // With only direct ownership allowed there is nothing to choose.
-                      setView(
-                        canManageIndirectOwnership
-                          ? {
-                              id: 'owner-relationship',
-                              mode: 'add-owner',
-                              returnTo: view,
-                            }
-                          : {
-                              id: 'add-party',
-                              parentPartyId,
-                              natureOfOwnership: 'Direct',
-                              allowedRoles: ['BENEFICIAL_OWNER'],
-                              returnTo: view,
-                            }
-                      );
-                      return;
-                    }
-                    setView({
-                      id: 'add-party',
-                      parentPartyId,
-                      natureOfOwnership: 'Indirect',
-                      allowedRoles: ['BENEFICIAL_OWNER'],
-                      returnTo: view,
-                    });
-                  }}
-                  onAddIntermediary={(parentPartyId) =>
-                    setView({
-                      id: 'add-intermediary',
-                      parentPartyId,
-                      returnTo: view,
-                    })
-                  }
-                  onSelectBusiness={(partyId) =>
-                    partyId === client.partyId
-                      ? setView({ id: 'organization', returnTo: view })
-                      : openParty(partyId, view)
-                  }
-                  onSelectOwner={(partyId) => openParty(partyId, view)}
-                  onMoveParty={setOwnershipMovePartyId}
-                  onInsertIntermediary={(partyId) =>
-                    setView({
-                      id: 'owner-relationship',
-                      mode: 'change-owner-path',
-                      partyId,
-                      returnTo: view,
-                    })
-                  }
-                  canMoveParty={canMoveOwnershipParty}
-                  canRemoveIntermediary={canRemoveIntermediary}
-                  canDiscardPendingParty={canDiscardPendingOwnershipParty}
-                  onRequestRemoveIntermediary={(partyId) =>
-                    setIntermediaryRemovalTarget({ partyId, returnTo: view })
-                  }
-                  onDiscardPendingParty={(partyId) =>
-                    discardPendingAddition(partyId, view)
-                  }
-                  canEditParty={canEditReviewParty}
-                  onEditParty={(partyId) => editRelatedParty(partyId, view)}
-                  canRemovePerson={(partyId) => {
-                    const task = findPersonTask(partyId);
-                    return (
-                      canRemoveRelatedParty(task) ||
-                      needsReplacementController(task)
-                    );
-                  }}
-                  removeRequiresControllerReplacement={(partyId) =>
-                    needsReplacementController(findPersonTask(partyId))
-                  }
-                  onRemovePerson={setRemovePartyId}
-                  backLabel={getDetailBackLabel(view.returnTo)}
-                  onBack={() => setView(view.returnTo)}
-                />
-              ) : view.id === 'controller-replacement' ? (
-                <MaintenanceControllerReplacementView
-                  candidates={controllerReplacementCandidates}
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(view.returnTo),
-                    { label: tString('controllerReplacement.title') },
-                  ]}
-                  onSelectCandidate={async (candidatePartyId) => {
-                    const candidate =
-                      currentProjection.proposedClient.parties?.find(
-                        (party) => party.id === candidatePartyId
-                      );
-                    await applyPartySteps([
+                    onSubmit={submitDraft}
+                    onBack={() => setView({ id: 'profile' })}
+                    onCompleteRequirement={(type) => {
+                      if (type === 'questions') {
+                        setView({
+                          id: 'questions',
+                          returnTo: { id: 'review' },
+                        });
+                      } else if (type === 'attestations') {
+                        setView({
+                          id: 'attestations',
+                          returnTo: { id: 'review' },
+                        });
+                      }
+                    }}
+                  />
+                ) : view.id === 'questions' ? (
+                  <MaintenanceQuestionsView
+                    questions={questionsQuery?.data ?? []}
+                    isLoading={questionsQuery?.isPending ?? false}
+                    isSubmitting={clientTaskMutation?.isPending ?? false}
+                    error={questionsQuery?.error ?? clientTaskMutation?.error}
+                    breadcrumbs={[
+                      profileBreadcrumb(),
                       {
-                        kind: 'update',
-                        partyId: candidatePartyId,
-                        requestBody: {
+                        label: tString('submission.reviewTitle'),
+                        onSelect: () => setView(view.returnTo),
+                      },
+                      { label: tString('questions.title') },
+                    ]}
+                    onBack={() => setView(view.returnTo)}
+                    onSubmit={saveQuestions}
+                  />
+                ) : view.id === 'attestations' ? (
+                  <MaintenanceAttestationView
+                    documents={attestationDocuments}
+                    controller={client.parties?.find(
+                      (party) =>
+                        party.active !== false &&
+                        party.partyType === 'INDIVIDUAL' &&
+                        party.roles?.includes('CONTROLLER')
+                    )}
+                    ipAddress={ipAddress}
+                    isSubmitting={clientTaskMutation?.isPending ?? false}
+                    error={clientTaskMutation?.error}
+                    breadcrumbs={[
+                      profileBreadcrumb(),
+                      {
+                        label: tString('submission.reviewTitle'),
+                        onSelect: () => setView(view.returnTo),
+                      },
+                      { label: tString('attestation.title') },
+                    ]}
+                    onBack={() => setView(view.returnTo)}
+                    onDownload={downloadAttestation}
+                    onSubmit={saveAttestations}
+                  />
+                ) : view.id === 'submitted-review' ? (
+                  <MaintenanceReviewView
+                    mode="submitted"
+                    updateScope={updateScope}
+                    projection={currentProjection}
+                    entityTasks={currentEntityTasks}
+                    requestStatus={activeRequestStatus}
+                    isDocumentDiscoveryPending={isDocumentDiscoveryPending}
+                    documentError={documentRequestsQuery.error}
+                    blockers={submissionBlockers}
+                    fingerprint={reviewFingerprint}
+                    isApplyingOwnChange={isApplyingOwnChange}
+                    isSubmitting={verificationMutation.isPending}
+                    submissionError={verificationMutation.error}
+                    breadcrumbs={[
+                      profileBreadcrumb(),
+                      {
+                        label: tString([
+                          `requestDetails.title.${updateScope}`,
+                        ] as unknown as TemplateStringsArray),
+                      },
+                    ]}
+                    clientPartyId={client.partyId}
+                    onOpenParty={(partyId) =>
+                      openParty(partyId, { id: 'submitted-review' })
+                    }
+                    onOpenOrganization={() =>
+                      setView({
+                        id: 'organization',
+                        returnTo: { id: 'submitted-review' },
+                      })
+                    }
+                    onOpenOwnership={
+                      hasOwnershipStructure
+                        ? () =>
+                            setView({
+                              id: 'ownership',
+                              returnTo: { id: 'submitted-review' },
+                            })
+                        : undefined
+                    }
+                    onSelectDocument={(partyId, documentRequestId) =>
+                      setView({
+                        id: 'document',
+                        partyId,
+                        documentRequestId,
+                        returnTo: { id: 'submitted-review' },
+                      })
+                    }
+                    onSubmit={submitDraft}
+                    onBack={() => setView({ id: 'profile' })}
+                    onCompleteRequirement={(type) => {
+                      if (type === 'questions') {
+                        setView({
+                          id: 'questions',
+                          returnTo: { id: 'submitted-review' },
+                        });
+                      } else if (type === 'attestations') {
+                        setView({
+                          id: 'attestations',
+                          returnTo: { id: 'submitted-review' },
+                        });
+                      }
+                    }}
+                  />
+                ) : view.id === 'organization' ? (
+                  <MaintenanceOrganizationView
+                    task={currentEntityTasks.organization}
+                    isLoadingDocuments={isDocumentDiscoveryPending}
+                    documentError={documentRequestsQuery.error}
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(
+                        view.returnTo ?? { id: 'profile' }
+                      ),
+                      { label: tString('organization') },
+                    ]}
+                    canEdit={canEditOrganization}
+                    canCancel={
+                      canCancel &&
+                      Boolean(currentEntityTasks.organization.change)
+                    }
+                    backLabel={getDetailBackLabel(view.returnTo)}
+                    onBack={() => setView(view.returnTo ?? { id: 'profile' })}
+                    onEdit={() =>
+                      setView({
+                        id: 'edit-organization',
+                        returnTo: view,
+                      })
+                    }
+                    onViewRequestDetails={() => {
+                      if (activeRequestStatus === 'NEW') {
+                        resetVerificationAttempt();
+                      }
+                      setView({
+                        id:
+                          activeRequestStatus === 'NEW'
+                            ? 'review'
+                            : 'submitted-review',
+                      });
+                    }}
+                    onCancelChanges={() =>
+                      currentEntityTasks.organization.change &&
+                      setCancelTarget({
+                        scope: 'organization',
+                        partyId: currentEntityTasks.organization.change.partyId,
+                      })
+                    }
+                    onSelectDocument={(documentRequestId) =>
+                      setView({
+                        id: 'document',
+                        documentRequestId,
+                        returnTo: view,
+                      })
+                    }
+                  />
+                ) : view.id === 'ownership' && client.partyId ? (
+                  <MaintenanceOwnershipView
+                    clientPartyId={client.partyId}
+                    clientName={
+                      currentEntityTasks.organization.party?.organizationDetails
+                        ?.organizationName ?? tString('notProvided')
+                    }
+                    parties={ownershipDisplayParties}
+                    nodeChanges={ownershipChanges.changes}
+                    previousParentIds={ownershipChanges.previousParentIds}
+                    getPartyStatus={getRelatedPartyStatus}
+                    canCancelPendingRemoval={canCancel}
+                    onCancelPendingRemoval={(partyId) =>
+                      setCancelTarget({ scope: 'party', partyId })
+                    }
+                    breadcrumbs={[
+                      profileBreadcrumb(),
+                      { label: tString('ownership.title') },
+                    ]}
+                    canAddOwner={canManageDirectOwnership}
+                    ownerLimitReached={beneficialOwnerCount >= 4}
+                    canManageIndirectOwnership={canManageIndirectOwnership}
+                    onAddBeneficialOwner={(parentPartyId) => {
+                      if (parentPartyId === client.partyId) {
+                        // With only direct ownership allowed there is nothing to choose.
+                        setView(
+                          canManageIndirectOwnership
+                            ? {
+                                id: 'owner-relationship',
+                                mode: 'add-owner',
+                                returnTo: view,
+                              }
+                            : {
+                                id: 'add-party',
+                                parentPartyId,
+                                natureOfOwnership: 'Direct',
+                                allowedRoles: ['BENEFICIAL_OWNER'],
+                                returnTo: view,
+                              }
+                        );
+                        return;
+                      }
+                      setView({
+                        id: 'add-party',
+                        parentPartyId,
+                        natureOfOwnership: 'Indirect',
+                        allowedRoles: ['BENEFICIAL_OWNER'],
+                        returnTo: view,
+                      });
+                    }}
+                    onAddIntermediary={(parentPartyId) =>
+                      setView({
+                        id: 'add-intermediary',
+                        parentPartyId,
+                        returnTo: view,
+                      })
+                    }
+                    onSelectBusiness={(partyId) =>
+                      partyId === client.partyId
+                        ? setView({ id: 'organization', returnTo: view })
+                        : openParty(partyId, view)
+                    }
+                    onSelectOwner={(partyId) => openParty(partyId, view)}
+                    onMoveParty={setOwnershipMovePartyId}
+                    onInsertIntermediary={(partyId) =>
+                      setView({
+                        id: 'owner-relationship',
+                        mode: 'change-owner-path',
+                        partyId,
+                        returnTo: view,
+                      })
+                    }
+                    canMoveParty={canMoveOwnershipParty}
+                    canRemoveIntermediary={canRemoveIntermediary}
+                    canDiscardPendingParty={canDiscardPendingOwnershipParty}
+                    onRequestRemoveIntermediary={(partyId) =>
+                      setIntermediaryRemovalTarget({ partyId, returnTo: view })
+                    }
+                    onDiscardPendingParty={(partyId) =>
+                      discardPendingAddition(partyId, view)
+                    }
+                    canEditParty={canEditReviewParty}
+                    onEditParty={(partyId) => editRelatedParty(partyId, view)}
+                    canRemovePerson={(partyId) => {
+                      const task = findPersonTask(partyId);
+                      return (
+                        canRemoveRelatedParty(task) ||
+                        needsReplacementController(task)
+                      );
+                    }}
+                    removeRequiresControllerReplacement={(partyId) =>
+                      needsReplacementController(findPersonTask(partyId))
+                    }
+                    onRemovePerson={setRemovePartyId}
+                    backLabel={getDetailBackLabel(view.returnTo)}
+                    onBack={() => setView(view.returnTo)}
+                  />
+                ) : view.id === 'controller-replacement' ? (
+                  <MaintenanceControllerReplacementView
+                    candidates={controllerReplacementCandidates}
+                    clientPartyId={client.partyId}
+                    parties={currentProjection.proposedClient.parties ?? []}
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(view.returnTo),
+                      { label: tString('controllerReplacement.title') },
+                    ]}
+                    onSelectCandidate={async (candidatePartyId) => {
+                      const candidate =
+                        currentProjection.proposedClient.parties?.find(
+                          (party) => party.id === candidatePartyId
+                        );
+                      await applyPartySteps([
+                        {
+                          kind: 'update',
+                          partyId: candidatePartyId,
+                          requestBody: {
+                            roles: [
+                              ...new Set([
+                                ...(candidate?.roles ?? []),
+                                'CONTROLLER',
+                              ]),
+                            ],
+                          },
+                        },
+                        {
+                          kind: 'update',
+                          partyId: view.outgoingPartyId,
+                          requestBody: getRetiredPartyUpdate(
+                            view.outgoingPartyId,
+                            view.outgoingControllerRoles
+                          ),
+                        },
+                      ]);
+                      setView(view.returnTo);
+                    }}
+                    onAddNew={() =>
+                      setView({
+                        id: 'add-party',
+                        parentPartyId: client.partyId,
+                        allowedRoles: ['CONTROLLER'],
+                        replacementPartyId: view.outgoingPartyId,
+                        outgoingControllerRoles: view.outgoingControllerRoles,
+                        returnTo: view.returnTo,
+                      })
+                    }
+                    onBack={() => setView(view.returnTo)}
+                  />
+                ) : view.id === 'owner-relationship' && client.partyId ? (
+                  <MaintenanceOwnerRelationshipView
+                    mode={view.mode}
+                    allowsIndirectOwnership={canManageIndirectOwnership}
+                    clientPartyId={client.partyId}
+                    clientName={clientOrganizationName}
+                    ownerName={
+                      view.partyId
+                        ? getMaintenancePartyIdentity(
+                            currentProjection.proposedClient.parties?.find(
+                              (party) => party.id === view.partyId
+                            ) ?? {},
+                            undefined,
+                            tString('notProvided')
+                          ).displayName
+                        : undefined
+                    }
+                    intermediaries={(
+                      currentProjection.proposedClient.parties ?? []
+                    ).filter(
+                      (party) =>
+                        party.active !== false &&
+                        party.roles?.includes('INTERMEDIARY_OWNER')
+                    )}
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(view.returnTo),
+                      { label: tString('ownerRelationship.title') },
+                    ]}
+                    onChooseDirect={async () => {
+                      if (view.mode === 'controller-owner' && view.partyId) {
+                        const party =
+                          currentProjection.proposedClient.parties?.find(
+                            (candidate) => candidate.id === view.partyId
+                          );
+                        await updateParty(view.partyId, {
                           roles: [
                             ...new Set([
-                              ...(candidate?.roles ?? []),
-                              'CONTROLLER',
+                              ...(party?.roles ?? []),
+                              'BENEFICIAL_OWNER',
                             ]),
                           ],
-                        },
-                      },
-                      {
-                        kind: 'update',
-                        partyId: view.outgoingPartyId,
-                        requestBody: getRetiredPartyUpdate(
-                          view.outgoingPartyId,
-                          view.outgoingControllerRoles
-                        ),
-                      },
-                    ]);
-                    setView(view.returnTo);
-                  }}
-                  onAddNew={() =>
-                    setView({
-                      id: 'add-party',
-                      parentPartyId: client.partyId,
-                      allowedRoles: ['CONTROLLER'],
-                      replacementPartyId: view.outgoingPartyId,
-                      outgoingControllerRoles: view.outgoingControllerRoles,
-                      returnTo: view.returnTo,
-                    })
-                  }
-                  onBack={() => setView(view.returnTo)}
-                />
-              ) : view.id === 'owner-relationship' && client.partyId ? (
-                <MaintenanceOwnerRelationshipView
-                  mode={view.mode}
-                  allowsIndirectOwnership={canManageIndirectOwnership}
-                  clientPartyId={client.partyId}
-                  clientName={clientOrganizationName}
-                  ownerName={
-                    view.partyId
-                      ? getMaintenancePartyIdentity(
-                          currentProjection.proposedClient.parties?.find(
-                            (party) => party.id === view.partyId
-                          ) ?? {},
-                          undefined,
-                          tString('notProvided')
-                        ).displayName
-                      : undefined
-                  }
-                  intermediaries={(
-                    currentProjection.proposedClient.parties ?? []
-                  ).filter(
-                    (party) =>
-                      party.active !== false &&
-                      party.roles?.includes('INTERMEDIARY_OWNER')
-                  )}
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(view.returnTo),
-                    { label: tString('ownerRelationship.title') },
-                  ]}
-                  onChooseDirect={async () => {
-                    if (view.mode === 'controller-owner' && view.partyId) {
-                      const party =
-                        currentProjection.proposedClient.parties?.find(
-                          (candidate) => candidate.id === view.partyId
-                        );
-                      await updateParty(view.partyId, {
-                        roles: [
-                          ...new Set([
-                            ...(party?.roles ?? []),
-                            'BENEFICIAL_OWNER',
-                          ]),
-                        ],
-                        individualDetails: { natureOfOwnership: 'Direct' },
+                          individualDetails: { natureOfOwnership: 'Direct' },
+                        });
+                        setView(view.returnTo);
+                        return;
+                      }
+                      setView({
+                        id: 'add-party',
+                        parentPartyId: client.partyId!,
+                        natureOfOwnership: 'Direct',
+                        allowedRoles: ['BENEFICIAL_OWNER'],
+                        returnTo: view.returnTo,
                       });
-                      setView(view.returnTo);
-                      return;
+                    }}
+                    onChooseIntermediary={async (parentPartyId) => {
+                      if (view.mode !== 'add-owner' && view.partyId) {
+                        await moveOwner(view.partyId, parentPartyId, {
+                          addOwnerRole: view.mode === 'controller-owner',
+                        });
+                        setView(view.returnTo);
+                        return;
+                      }
+                      setView({
+                        id: 'add-party',
+                        parentPartyId,
+                        natureOfOwnership: 'Indirect',
+                        allowedRoles: ['BENEFICIAL_OWNER'],
+                        returnTo: view.returnTo,
+                      });
+                    }}
+                    onAddIntermediary={() =>
+                      setView({
+                        id: 'add-intermediary',
+                        parentPartyId: client.partyId!,
+                        ownerToReplaceId:
+                          view.mode === 'change-owner-path'
+                            ? view.partyId
+                            : undefined,
+                        ownerToAddId:
+                          view.mode === 'controller-owner'
+                            ? view.partyId
+                            : undefined,
+                        continueWithNewOwner: view.mode === 'add-owner',
+                        returnTo: view.returnTo,
+                      })
                     }
-                    setView({
-                      id: 'add-party',
-                      parentPartyId: client.partyId!,
-                      natureOfOwnership: 'Direct',
-                      allowedRoles: ['BENEFICIAL_OWNER'],
-                      returnTo: view.returnTo,
-                    });
-                  }}
-                  onChooseIntermediary={async (parentPartyId) => {
-                    if (view.mode === 'change-owner-path' && view.partyId) {
-                      await moveOwner(view.partyId, parentPartyId);
-                      setView(view.returnTo);
-                      return;
+                    onBack={() => setView(view.returnTo)}
+                  />
+                ) : view.id === 'add-intermediary' ? (
+                  <MaintenanceAddIntermediaryView
+                    parentPartyId={view.parentPartyId}
+                    parentIsClient={view.parentPartyId === client.partyId}
+                    isOwnershipPathInsertion={Boolean(
+                      view.ownerToReplaceId ||
+                        view.ownerToAddId ||
+                        view.continueWithNewOwner
+                    )}
+                    pathOwnerName={
+                      view.ownerToReplaceId || view.ownerToAddId
+                        ? getMaintenancePartyIdentity(
+                            currentProjection.proposedClient.parties?.find(
+                              (party) =>
+                                party.id ===
+                                (view.ownerToReplaceId ?? view.ownerToAddId)
+                            ) ?? {},
+                            undefined,
+                            tString('notProvided')
+                          ).displayName
+                        : undefined
                     }
-                    setView({
-                      id: 'add-party',
-                      parentPartyId,
-                      natureOfOwnership: 'Indirect',
-                      allowedRoles: ['BENEFICIAL_OWNER'],
-                      initialPartyId:
-                        view.mode === 'controller-owner'
-                          ? view.partyId
-                          : undefined,
-                      returnTo: view.returnTo,
-                    });
-                  }}
-                  onAddIntermediary={() =>
-                    setView({
-                      id: 'add-intermediary',
-                      parentPartyId: client.partyId!,
-                      ownerToReplaceId:
-                        view.mode === 'change-owner-path'
-                          ? view.partyId
-                          : undefined,
-                      ownerToAddId:
-                        view.mode === 'controller-owner'
-                          ? view.partyId
-                          : undefined,
-                      continueWithNewOwner: view.mode === 'add-owner',
-                      returnTo: view.returnTo,
-                    })
-                  }
-                  onBack={() => setView(view.returnTo)}
-                />
-              ) : view.id === 'add-intermediary' ? (
-                <MaintenanceAddIntermediaryView
-                  parentPartyId={view.parentPartyId}
-                  parentIsClient={view.parentPartyId === client.partyId}
-                  isOwnershipPathInsertion={Boolean(
-                    view.ownerToReplaceId ||
-                      view.ownerToAddId ||
-                      view.continueWithNewOwner
-                  )}
-                  pathOwnerName={
-                    view.ownerToReplaceId || view.ownerToAddId
-                      ? getMaintenancePartyIdentity(
-                          currentProjection.proposedClient.parties?.find(
-                            (party) =>
-                              party.id ===
-                              (view.ownerToReplaceId ?? view.ownerToAddId)
-                          ) ?? {},
-                          undefined,
-                          tString('notProvided')
-                        ).displayName
-                      : undefined
-                  }
-                  isSubmitting={
-                    (createPartyMutation?.isPending ?? false) ||
-                    ownershipOperationsMutation.isPending
-                  }
-                  error={
-                    createPartyMutation?.error ??
-                    (view.ownerToReplaceId
-                      ? ownershipOperationsMutation.error
-                      : undefined)
-                  }
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(view.returnTo),
-                    { label: tString('ownership.addIntermediary') },
-                  ]}
-                  onBack={() => setView(view.returnTo)}
-                  onSave={saveIntermediary}
-                />
-              ) : view.id === 'add-party' &&
-                (view.parentPartyId ?? client.partyId) ? (
-                <MaintenanceAddPartyView
-                  parentPartyId={view.parentPartyId ?? client.partyId!}
-                  natureOfOwnership={view.natureOfOwnership}
-                  isControllerReplacement={Boolean(view.replacementPartyId)}
-                  initialParty={
-                    view.initialPartyId
-                      ? currentProjection.proposedClient.parties?.find(
-                          (party) => party.id === view.initialPartyId
-                        )
-                      : undefined
-                  }
-                  canAlsoBeBeneficialOwner={
-                    hasOwnershipStructure && beneficialOwnerCount < 4
-                  }
-                  allowedRoles={
-                    view.allowedRoles ??
-                    (view.natureOfOwnership === 'Indirect'
-                      ? ['BENEFICIAL_OWNER']
-                      : allowedAddPartyRoles)
-                  }
-                  isSubmitting={createPartyMutation?.isPending ?? false}
-                  mutationError={createPartyMutation?.error}
-                  lockedCountry={
-                    currentEntityTasks.organization.party?.organizationDetails
-                      ?.organizationType === 'SOLE_PROPRIETORSHIP'
-                      ? currentEntityTasks.organization.party
-                          .organizationDetails.countryOfFormation
-                      : undefined
-                  }
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(view.returnTo),
-                    ...((view.parentPartyId ?? client.partyId) !==
-                    client.partyId
-                      ? [
-                          {
-                            label:
-                              currentProjection.proposedClient.parties?.find(
-                                (party) =>
-                                  party.id ===
-                                  (view.parentPartyId ?? client.partyId)
-                              )?.organizationDetails?.organizationName ??
-                              tString('ownership.intermediaryOwner'),
-                          },
-                        ]
-                      : []),
-                    { label: tString('addParty.title') },
-                  ]}
-                  onBack={() => setView(view.returnTo)}
-                  onSave={saveNewParty}
-                />
-              ) : view.id === 'edit-organization' &&
-                editableOrganizationValues &&
-                approvedOrganizationValues ? (
-                <MaintenanceOrganizationEditView
-                  variant={view.partyId ? 'intermediary' : 'client'}
-                  initialValues={editableOrganizationValues}
-                  approvedValues={approvedOrganizationValues}
-                  isSubmitting={updatePartyMutation.isPending}
-                  mutationError={updatePartyMutation.error}
-                  isPendingAddition={Boolean(
-                    view.partyId &&
-                      currentEntityTasks.intermediaryOrganizations.find(
-                        (task) => task.partyId === view.partyId
-                      )?.isPendingAddition
-                  )}
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(view.returnTo),
-                    ...(view.partyId && organizationPartyForEditing
-                      ? [
-                          {
-                            label:
-                              organizationPartyForEditing.organizationDetails
-                                ?.organizationName ?? tString('notProvided'),
-                          },
-                        ]
-                      : []),
-                    { label: tString('placeholders.editBusiness') },
-                  ]}
-                  onBack={() => setView(view.returnTo)}
-                  onSave={saveOrganization}
-                />
-              ) : view.id === 'entity' && selectedIntermediaryTask ? (
-                <MaintenanceOrganizationView
-                  task={selectedIntermediaryTask}
-                  isIntermediary
-                  isLoadingDocuments={isDocumentDiscoveryPending}
-                  documentError={documentRequestsQuery.error}
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(
-                      view.returnTo ?? { id: 'profile' }
-                    ),
-                    {
-                      label:
-                        selectedIntermediaryTask.proposedParty
-                          .organizationDetails?.organizationName ??
-                        tString('notProvided'),
-                    },
-                  ]}
-                  canEdit={
-                    !selectedIntermediaryTask.isUnreviewed &&
-                    (selectedIntermediaryTask.isPendingAddition
-                      ? canMutateDraft
-                      : canEditIntermediary)
-                  }
-                  canCancel={
-                    canCancel && Boolean(selectedIntermediaryTask.change)
-                  }
-                  clientPartyId={client.partyId}
-                  clientName={clientOrganizationName}
-                  ownershipParties={ownershipDisplayParties}
-                  ownershipPath={selectedOwnershipPath}
-                  canRemoveIntermediary={canRemoveIntermediary(view.partyId)}
-                  onChangeConnection={
-                    canMoveOwnershipParty(view.partyId)
-                      ? () => setOwnershipMovePartyId(view.partyId)
-                      : undefined
-                  }
-                  backLabel={getDetailBackLabel(view.returnTo)}
-                  onBack={() => setView(view.returnTo ?? { id: 'profile' })}
-                  onEdit={() =>
-                    setView({
-                      id: 'edit-organization',
-                      partyId: view.partyId,
-                      returnTo: view,
-                    })
-                  }
-                  onViewRequestDetails={() => {
-                    if (activeRequestStatus === 'NEW') {
-                      resetVerificationAttempt();
+                    isSubmitting={
+                      (createPartyMutation?.isPending ?? false) ||
+                      ownershipOperationsMutation.isPending
                     }
-                    setView({
-                      id:
-                        activeRequestStatus === 'NEW'
-                          ? 'review'
-                          : 'submitted-review',
-                    });
-                  }}
-                  onCancelChanges={() =>
-                    selectedIntermediaryTask.isPendingAddition
-                      ? discardPendingAddition(
-                          view.partyId,
-                          view.returnTo ?? { id: 'profile' }
-                        )
-                      : setCancelTarget({
-                          scope: 'party',
-                          partyId: view.partyId,
-                        })
-                  }
-                  onRemoveIntermediary={() =>
-                    setIntermediaryRemovalTarget({
-                      partyId: view.partyId,
-                      returnTo: view.returnTo ?? { id: 'profile' },
-                    })
-                  }
-                  onViewOwnership={
-                    view.returnTo?.id === 'ownership'
-                      ? undefined
-                      : () =>
-                          setView({
-                            id: 'ownership',
-                            // A lateral jump: Back keeps pointing where this page's Back did.
-                            returnTo: view.returnTo ?? { id: 'profile' },
+                    error={
+                      createPartyMutation?.error ??
+                      (view.ownerToReplaceId || view.ownerToAddId
+                        ? ownershipOperationsMutation.error
+                        : undefined)
+                    }
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(view.returnTo),
+                      { label: tString('ownership.addIntermediary') },
+                    ]}
+                    onBack={() => setView(view.returnTo)}
+                    onSave={saveIntermediary}
+                  />
+                ) : view.id === 'add-party' &&
+                  (view.parentPartyId ?? client.partyId) ? (
+                  <MaintenanceAddPartyView
+                    parentPartyId={view.parentPartyId ?? client.partyId!}
+                    natureOfOwnership={view.natureOfOwnership}
+                    connectionName={
+                      !view.parentPartyId ||
+                      view.parentPartyId === client.partyId
+                        ? clientOrganizationName
+                        : currentProjection.proposedClient.parties?.find(
+                            (party) => party.id === view.parentPartyId
+                          )?.organizationDetails?.organizationName
+                    }
+                    isControllerReplacement={Boolean(view.replacementPartyId)}
+                    canAlsoBeBeneficialOwner={
+                      hasOwnershipStructure && beneficialOwnerCount < 4
+                    }
+                    ownershipBusinesses={
+                      view.replacementPartyId && canManageIndirectOwnership
+                        ? (
+                            currentProjection.proposedClient.parties ?? []
+                          ).flatMap((party) =>
+                            party.id &&
+                            party.active !== false &&
+                            party.roles?.includes('INTERMEDIARY_OWNER')
+                              ? [
+                                  {
+                                    partyId: party.id,
+                                    name:
+                                      party.organizationDetails
+                                        ?.organizationName ??
+                                      tString('notProvided'),
+                                  },
+                                ]
+                              : []
+                          )
+                        : undefined
+                    }
+                    allowedRoles={
+                      view.allowedRoles ??
+                      (view.natureOfOwnership === 'Indirect'
+                        ? ['BENEFICIAL_OWNER']
+                        : allowedAddPartyRoles)
+                    }
+                    isSubmitting={createPartyMutation?.isPending ?? false}
+                    mutationError={createPartyMutation?.error}
+                    lockedCountry={
+                      currentEntityTasks.organization.party?.organizationDetails
+                        ?.organizationType === 'SOLE_PROPRIETORSHIP'
+                        ? currentEntityTasks.organization.party
+                            .organizationDetails.countryOfFormation
+                        : undefined
+                    }
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(view.returnTo),
+                      ...((view.parentPartyId ?? client.partyId) !==
+                      client.partyId
+                        ? [
+                            {
+                              label:
+                                currentProjection.proposedClient.parties?.find(
+                                  (party) =>
+                                    party.id ===
+                                    (view.parentPartyId ?? client.partyId)
+                                )?.organizationDetails?.organizationName ??
+                                tString('ownership.intermediaryOwner'),
+                            },
+                          ]
+                        : []),
+                      { label: tString('addParty.title') },
+                    ]}
+                    onBack={() => setView(view.returnTo)}
+                    onSave={saveNewParty}
+                  />
+                ) : view.id === 'edit-organization' &&
+                  editableOrganizationValues &&
+                  approvedOrganizationValues ? (
+                  <MaintenanceOrganizationEditView
+                    variant={view.partyId ? 'intermediary' : 'client'}
+                    initialValues={editableOrganizationValues}
+                    approvedValues={approvedOrganizationValues}
+                    isSubmitting={updatePartyMutation.isPending}
+                    mutationError={updatePartyMutation.error}
+                    isPendingAddition={Boolean(
+                      view.partyId &&
+                        currentEntityTasks.intermediaryOrganizations.find(
+                          (task) => task.partyId === view.partyId
+                        )?.isPendingAddition
+                    )}
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(view.returnTo),
+                      ...(view.partyId && organizationPartyForEditing
+                        ? [
+                            {
+                              label:
+                                organizationPartyForEditing.organizationDetails
+                                  ?.organizationName ?? tString('notProvided'),
+                            },
+                          ]
+                        : []),
+                      { label: tString('placeholders.editBusiness') },
+                    ]}
+                    onBack={() => setView(view.returnTo)}
+                    onSave={saveOrganization}
+                  />
+                ) : view.id === 'entity' && selectedIntermediaryTask ? (
+                  <MaintenanceOrganizationView
+                    task={selectedIntermediaryTask}
+                    isIntermediary
+                    isLoadingDocuments={isDocumentDiscoveryPending}
+                    documentError={documentRequestsQuery.error}
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(
+                        view.returnTo ?? { id: 'profile' }
+                      ),
+                      {
+                        label:
+                          selectedIntermediaryTask.proposedParty
+                            .organizationDetails?.organizationName ??
+                          tString('notProvided'),
+                      },
+                    ]}
+                    canEdit={
+                      !selectedIntermediaryTask.isUnreviewed &&
+                      (selectedIntermediaryTask.isPendingAddition
+                        ? canMutateDraft
+                        : canEditIntermediary)
+                    }
+                    canCancel={
+                      canCancel && Boolean(selectedIntermediaryTask.change)
+                    }
+                    clientPartyId={client.partyId}
+                    clientName={clientOrganizationName}
+                    ownershipParties={ownershipDisplayParties}
+                    ownershipPath={selectedOwnershipPath}
+                    canRemoveIntermediary={canRemoveIntermediary(view.partyId)}
+                    onChangeConnection={
+                      canMoveOwnershipParty(view.partyId)
+                        ? () => setOwnershipMovePartyId(view.partyId)
+                        : undefined
+                    }
+                    backLabel={getDetailBackLabel(view.returnTo)}
+                    onBack={() => setView(view.returnTo ?? { id: 'profile' })}
+                    onEdit={() =>
+                      setView({
+                        id: 'edit-organization',
+                        partyId: view.partyId,
+                        returnTo: view,
+                      })
+                    }
+                    onViewRequestDetails={() => {
+                      if (activeRequestStatus === 'NEW') {
+                        resetVerificationAttempt();
+                      }
+                      setView({
+                        id:
+                          activeRequestStatus === 'NEW'
+                            ? 'review'
+                            : 'submitted-review',
+                      });
+                    }}
+                    onCancelChanges={() =>
+                      selectedIntermediaryTask.isPendingAddition
+                        ? discardPendingAddition(
+                            view.partyId,
+                            view.returnTo ?? { id: 'profile' }
+                          )
+                        : setCancelTarget({
+                            scope: 'party',
+                            partyId: view.partyId,
                           })
-                  }
-                  onSelectDocument={(documentRequestId) =>
-                    setView({
-                      id: 'document',
-                      partyId: view.partyId,
-                      documentRequestId,
-                      returnTo: view,
-                    })
-                  }
-                />
-              ) : view.id === 'entity' && selectedTask ? (
-                <MaintenanceEntityView
-                  task={selectedTask}
-                  canEdit={
-                    !selectedTask.isUnreviewed &&
-                    (selectedTask.isPendingAddition ? canMutateDraft : canEdit)
-                  }
-                  canCancel={canCancel && Boolean(selectedTask.change)}
-                  canRemove={
-                    canRemoveSelectedParty ||
-                    selectedPartyNeedsReplacementController
-                  }
-                  canAddBeneficialOwnerRole={canAddBeneficialOwnerRole}
-                  canManageOwnership={canManageSelectedOwnership}
-                  isLoadingDocuments={isDocumentDiscoveryPending}
-                  documentError={documentRequestsQuery.error}
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(
-                      view.returnTo ?? { id: 'profile' }
-                    ),
-                    { label: selectedPartyName },
-                  ]}
-                  onBack={() => {
-                    if (!view.returnTo || view.returnTo.id === 'profile') {
-                      returnToProfile(view.partyId);
-                      return;
                     }
-                    setView(view.returnTo);
-                  }}
-                  onViewRequestDetails={() => {
-                    if (activeRequestStatus === 'NEW') {
-                      resetVerificationAttempt();
+                    onRemoveIntermediary={() =>
+                      setIntermediaryRemovalTarget({
+                        partyId: view.partyId,
+                        returnTo: view.returnTo ?? { id: 'profile' },
+                      })
                     }
-                    setView({
-                      id:
-                        activeRequestStatus === 'NEW'
-                          ? 'review'
-                          : 'submitted-review',
-                    });
-                  }}
-                  onEdit={() =>
-                    setView({
-                      id: 'edit',
-                      partyId: view.partyId,
-                      returnTo: view,
-                    })
-                  }
-                  onSelectDocument={(documentRequestId) =>
-                    setView({
-                      id: 'document',
-                      partyId: view.partyId,
-                      documentRequestId,
-                      returnTo: view,
-                    })
-                  }
-                  onCancelChanges={() =>
-                    setCancelTarget({
-                      scope: selectedTask.isPendingAddition
-                        ? 'pending-addition'
-                        : 'party',
-                      partyId: view.partyId,
-                    })
-                  }
-                  onRemove={() => setRemovePartyId(view.partyId)}
-                  onChangeConnection={
-                    canMoveOwnershipParty(view.partyId)
-                      ? () => setOwnershipMovePartyId(view.partyId)
-                      : undefined
-                  }
-                  onKeepAsBeneficialOwner={
-                    canKeepReplacedControllerAsOwner
-                      ? keepReplacedControllerAsOwner
-                      : undefined
-                  }
-                  onAddBeneficialOwnerRole={() => {
-                    setView({
-                      id: 'owner-relationship',
-                      mode: 'controller-owner',
-                      partyId: view.partyId,
-                      returnTo: view,
-                    });
-                  }}
-                  onManageOwnership={
-                    !hasOwnershipStructure || view.returnTo?.id === 'ownership'
-                      ? undefined
-                      : () =>
-                          setView({
-                            id: 'ownership',
-                            // A lateral jump: Back keeps pointing where this page's Back did.
-                            returnTo: view.returnTo ?? { id: 'profile' },
-                          })
-                  }
-                  onInsertIntermediary={() => {
-                    setView({
-                      id: 'owner-relationship',
-                      mode: 'change-owner-path',
-                      partyId: view.partyId,
-                      returnTo: view,
-                    });
-                  }}
-                  ownershipPath={selectedOwnershipPath}
-                  backLabel={getDetailBackLabel(view.returnTo)}
-                  removeActionLabel={tString(
-                    selectedPartyNeedsReplacementController
-                      ? 'removeParty.replaceController'
-                      : 'removeParty.action'
-                  )}
-                  requiresControllerReplacement={
-                    selectedPartyNeedsReplacementController
-                  }
-                />
-              ) : view.id === 'edit' && editableName && approvedName ? (
-                <MaintenanceEditView
-                  key={`${view.partyId}-${currentProjection.activeRequestId ?? 'new'}`}
-                  initialValues={editableName}
-                  originalValues={approvedName}
-                  approvedAddresses={
-                    selectedTask?.party.individualDetails?.addresses ?? []
-                  }
-                  approvedIndividualIds={
-                    selectedTask?.party.individualDetails?.individualIds ?? []
-                  }
-                  isSubmitting={updatePartyNameMutation.isPending}
-                  mutationError={updatePartyNameMutation.error}
-                  isPendingAddition={selectedTask?.isPendingAddition}
-                  lockedCountry={
-                    currentEntityTasks.organization.party?.organizationDetails
-                      ?.organizationType === 'SOLE_PROPRIETORSHIP'
-                      ? currentEntityTasks.organization.party
-                          .organizationDetails.countryOfFormation
-                      : undefined
-                  }
-                  breadcrumbs={[
-                    ...getReturnViewBreadcrumbs(view.returnTo),
-                    { label: tString('entity.editDetails') },
-                  ]}
-                  onBack={() => setView(view.returnTo)}
-                  onSave={saveName}
-                />
-              ) : view.id === 'document' &&
-                (selectedTask || selectedIntermediaryTask) ? (
-                <MaintenanceDocumentView
-                  documentRequestId={view.documentRequestId}
-                  documentRequestSummary={selectedDocumentRequest}
-                  entityName={
-                    selectedIntermediaryTask?.party.organizationDetails
-                      ?.organizationName ??
-                    selectedDocumentPartyIdentity?.displayName ??
-                    selectedPartyName
-                  }
-                  previousName={selectedDocumentPartyIdentity?.previousName}
-                  breadcrumbs={[
-                    profileBreadcrumb(),
-                    getReturnViewBreadcrumb(view.returnTo),
-                    { label: tString('document.requirementsTitle') },
-                  ]}
-                  maxFileSizeBytes={docUploadMaxFileSizeBytes}
-                  onBack={() => setView(view.returnTo)}
-                  onComplete={async () => {
-                    await refreshMaintenanceWorkspace();
-                    setView(view.returnTo);
-                  }}
-                />
-              ) : view.id === 'document' && !view.partyId ? (
-                <MaintenanceDocumentView
-                  documentRequestId={view.documentRequestId}
-                  documentRequestSummary={selectedDocumentRequest}
-                  entityName={
-                    currentEntityTasks.organization.party?.organizationDetails
-                      ?.organizationName ?? tString('notProvided')
-                  }
-                  breadcrumbs={[
-                    profileBreadcrumb(),
-                    getReturnViewBreadcrumb(view.returnTo),
-                    { label: tString('document.requirementsTitle') },
-                  ]}
-                  maxFileSizeBytes={docUploadMaxFileSizeBytes}
-                  onBack={() => setView(view.returnTo)}
-                  onComplete={async () => {
-                    await refreshMaintenanceWorkspace();
-                    setView(view.returnTo);
-                  }}
-                />
-              ) : null}
+                    onViewOwnership={
+                      view.returnTo?.id === 'ownership'
+                        ? undefined
+                        : () =>
+                            setView({
+                              id: 'ownership',
+                              // A lateral jump: Back keeps pointing where this page's Back did.
+                              returnTo: view.returnTo ?? { id: 'profile' },
+                            })
+                    }
+                    onSelectDocument={(documentRequestId) =>
+                      setView({
+                        id: 'document',
+                        partyId: view.partyId,
+                        documentRequestId,
+                        returnTo: view,
+                      })
+                    }
+                  />
+                ) : view.id === 'entity' && selectedTask ? (
+                  <MaintenanceEntityView
+                    task={selectedTask}
+                    canEdit={
+                      !selectedTask.isUnreviewed &&
+                      (selectedTask.isPendingAddition
+                        ? canMutateDraft
+                        : canEdit)
+                    }
+                    canCancel={canCancel && Boolean(selectedTask.change)}
+                    canRemove={
+                      canRemoveSelectedParty ||
+                      selectedPartyNeedsReplacementController
+                    }
+                    canAddBeneficialOwnerRole={canAddBeneficialOwnerRole}
+                    canManageOwnership={canManageSelectedOwnership}
+                    isLoadingDocuments={isDocumentDiscoveryPending}
+                    documentError={documentRequestsQuery.error}
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(
+                        view.returnTo ?? { id: 'profile' }
+                      ),
+                      { label: selectedPartyName },
+                    ]}
+                    onBack={() => {
+                      if (!view.returnTo || view.returnTo.id === 'profile') {
+                        returnToProfile(view.partyId);
+                        return;
+                      }
+                      setView(view.returnTo);
+                    }}
+                    onViewRequestDetails={() => {
+                      if (activeRequestStatus === 'NEW') {
+                        resetVerificationAttempt();
+                      }
+                      setView({
+                        id:
+                          activeRequestStatus === 'NEW'
+                            ? 'review'
+                            : 'submitted-review',
+                      });
+                    }}
+                    onEdit={() =>
+                      setView({
+                        id: 'edit',
+                        partyId: view.partyId,
+                        returnTo: view,
+                      })
+                    }
+                    onSelectDocument={(documentRequestId) =>
+                      setView({
+                        id: 'document',
+                        partyId: view.partyId,
+                        documentRequestId,
+                        returnTo: view,
+                      })
+                    }
+                    onCancelChanges={() =>
+                      setCancelTarget({
+                        scope: selectedTask.isPendingAddition
+                          ? 'pending-addition'
+                          : 'party',
+                        partyId: view.partyId,
+                      })
+                    }
+                    onRemove={() => setRemovePartyId(view.partyId)}
+                    onChangeConnection={
+                      canMoveOwnershipParty(view.partyId)
+                        ? () => setOwnershipMovePartyId(view.partyId)
+                        : undefined
+                    }
+                    onKeepAsBeneficialOwner={
+                      canKeepReplacedControllerAsOwner
+                        ? keepReplacedControllerAsOwner
+                        : undefined
+                    }
+                    onAddBeneficialOwnerRole={() => {
+                      setView({
+                        id: 'owner-relationship',
+                        mode: 'controller-owner',
+                        partyId: view.partyId,
+                        returnTo: view,
+                      });
+                    }}
+                    onManageOwnership={
+                      !hasOwnershipStructure ||
+                      view.returnTo?.id === 'ownership'
+                        ? undefined
+                        : () =>
+                            setView({
+                              id: 'ownership',
+                              // A lateral jump: Back keeps pointing where this page's Back did.
+                              returnTo: view.returnTo ?? { id: 'profile' },
+                            })
+                    }
+                    onInsertIntermediary={() => {
+                      setView({
+                        id: 'owner-relationship',
+                        mode: 'change-owner-path',
+                        partyId: view.partyId,
+                        returnTo: view,
+                      });
+                    }}
+                    ownershipPath={selectedOwnershipPath}
+                    backLabel={getDetailBackLabel(view.returnTo)}
+                    removeActionLabel={tString(
+                      selectedPartyNeedsReplacementController
+                        ? 'removeParty.replaceController'
+                        : 'removeParty.action'
+                    )}
+                    requiresControllerReplacement={
+                      selectedPartyNeedsReplacementController
+                    }
+                  />
+                ) : view.id === 'edit' && editableName && approvedName ? (
+                  <MaintenanceEditView
+                    key={`${view.partyId}-${currentProjection.activeRequestId ?? 'new'}`}
+                    initialValues={editableName}
+                    originalValues={approvedName}
+                    approvedAddresses={
+                      selectedTask?.party.individualDetails?.addresses ?? []
+                    }
+                    approvedIndividualIds={
+                      selectedTask?.party.individualDetails?.individualIds ?? []
+                    }
+                    isSubmitting={updatePartyNameMutation.isPending}
+                    mutationError={updatePartyNameMutation.error}
+                    isPendingAddition={selectedTask?.isPendingAddition}
+                    lockedCountry={
+                      currentEntityTasks.organization.party?.organizationDetails
+                        ?.organizationType === 'SOLE_PROPRIETORSHIP'
+                        ? currentEntityTasks.organization.party
+                            .organizationDetails.countryOfFormation
+                        : undefined
+                    }
+                    breadcrumbs={[
+                      ...getReturnViewBreadcrumbs(view.returnTo),
+                      { label: tString('entity.editDetails') },
+                    ]}
+                    onBack={() => setView(view.returnTo)}
+                    onSave={saveName}
+                  />
+                ) : view.id === 'document' &&
+                  (selectedTask || selectedIntermediaryTask) ? (
+                  <MaintenanceDocumentView
+                    documentRequestId={view.documentRequestId}
+                    documentRequestSummary={selectedDocumentRequest}
+                    entityName={
+                      selectedIntermediaryTask?.party.organizationDetails
+                        ?.organizationName ??
+                      selectedDocumentPartyIdentity?.displayName ??
+                      selectedPartyName
+                    }
+                    previousName={selectedDocumentPartyIdentity?.previousName}
+                    breadcrumbs={[
+                      profileBreadcrumb(),
+                      getReturnViewBreadcrumb(view.returnTo),
+                      { label: tString('document.requirementsTitle') },
+                    ]}
+                    maxFileSizeBytes={docUploadMaxFileSizeBytes}
+                    onBack={() => setView(view.returnTo)}
+                    onComplete={async () => {
+                      await refreshMaintenanceWorkspace();
+                      setView(view.returnTo);
+                    }}
+                  />
+                ) : view.id === 'document' && !view.partyId ? (
+                  <MaintenanceDocumentView
+                    documentRequestId={view.documentRequestId}
+                    documentRequestSummary={selectedDocumentRequest}
+                    entityName={
+                      currentEntityTasks.organization.party?.organizationDetails
+                        ?.organizationName ?? tString('notProvided')
+                    }
+                    breadcrumbs={[
+                      profileBreadcrumb(),
+                      getReturnViewBreadcrumb(view.returnTo),
+                      { label: tString('document.requirementsTitle') },
+                    ]}
+                    maxFileSizeBytes={docUploadMaxFileSizeBytes}
+                    onBack={() => setView(view.returnTo)}
+                    onComplete={async () => {
+                      await refreshMaintenanceWorkspace();
+                      setView(view.returnTo);
+                    }}
+                  />
+                ) : null}
+              </MaintenanceBusyProvider>
             </MaintenanceNavigatorVisibleProvider>
           </main>
         </div>
@@ -2656,8 +2796,14 @@ export function ApprovedClientMaintenanceWorkspace({
           ownershipMoveParent?.organizationDetails?.organizationName ??
           clientOrganizationName
         }
-        currentParentIsClient={!ownershipMoveParent}
-        destinations={ownershipMoveDestinations}
+        partyKind={
+          ownershipMoveParty?.roles?.includes('INTERMEDIARY_OWNER')
+            ? 'business'
+            : 'person'
+        }
+        clientPartyId={client.partyId ?? ''}
+        currentParentPartyId={ownershipMoveParentPartyId ?? ''}
+        nodes={ownershipMoveNodes}
         isPending={ownershipOperationsMutation.isPending}
         error={ownershipOperationsMutation.error}
         onOpenChange={(open) => {

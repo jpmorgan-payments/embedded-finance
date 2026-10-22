@@ -1,6 +1,7 @@
 import {
   BuildingIcon,
   FileIcon,
+  MessageSquareTextIcon,
   TagIcon,
   UploadIcon,
   UserIcon,
@@ -30,6 +31,7 @@ import { LinkAccountScreen } from '@/core/OnboardingFlow/screens/LinkAccountScre
 import { OperationalDetailsForm } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm';
 import { OverviewScreen } from '@/core/OnboardingFlow/screens/OverviewScreen/OverviewScreen';
 import { OwnersSectionScreen } from '@/core/OnboardingFlow/screens/OwnersSectionScreen/OwnersSectionScreen';
+import { RequestedQuestionsScreen } from '@/core/OnboardingFlow/screens/RequestedQuestionsScreen/RequestedQuestionsScreen';
 import { ReviewForm } from '@/core/OnboardingFlow/screens/ReviewAndAttestSectionForms/ReviewForm/ReviewForm';
 import { TermsAndConditionsForm } from '@/core/OnboardingFlow/screens/ReviewAndAttestSectionForms/TermsAndConditionsForm/TermsAndConditionsForm';
 import {
@@ -39,9 +41,11 @@ import {
   StepConfig,
 } from '@/core/OnboardingFlow/types/flow.types';
 import {
-  clientHasOutstandingDocRequests,
+  clientHasRequestedDocuments,
+  clientHasRequestedQuestions,
   getActiveOwners,
   getOrganizationParty,
+  isInformationRequestStatus,
   isUSExchangePTC,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 import { getStepperValidation } from '@/core/OnboardingFlow/utils/flowUtils';
@@ -525,6 +529,34 @@ const sectionScreens: SectionScreenConfig[] = [
     },
   },
   {
+    id: 'requested-questions-section',
+    isSection: true,
+    type: 'component',
+    sectionConfig: {
+      labelKey: 'screens.requestedQuestionsSection.label',
+      icon: MessageSquareTextIcon,
+      requirementsListKeys: [
+        'screens.requestedQuestionsSection.requirementsList.0',
+      ],
+      // Request for Information (RFI) questions, raised during review
+      // (INFORMATION_REQUESTED) or after approval (APPROVED). Onboarding
+      // questions use the operational details section instead.
+      statusResolver: (sessionData, clientData) => {
+        if (clientHasRequestedQuestions(clientData)) {
+          return 'not_started';
+        }
+        if (
+          isInformationRequestStatus(clientData) &&
+          sessionData.requestedQuestionsSubmitted
+        ) {
+          return 'completed_disabled';
+        }
+        return 'hidden';
+      },
+    },
+    Component: RequestedQuestionsScreen,
+  },
+  {
     id: 'upload-documents-section',
     isSection: true,
     type: 'component',
@@ -533,17 +565,11 @@ const sectionScreens: SectionScreenConfig[] = [
       icon: UploadIcon,
       onHoldTextKey: 'screens.uploadDocumentsSection.onHoldText',
       statusResolver: (_sessionData, clientData) => {
-        const hasOutstandingDocRequests =
-          clientHasOutstandingDocRequests(clientData);
-
         if (clientData?.status === 'NEW') {
           return 'on_hold';
         }
 
-        if (
-          clientData?.status === 'INFORMATION_REQUESTED' &&
-          hasOutstandingDocRequests
-        ) {
+        if (clientHasRequestedDocuments(clientData)) {
           return 'not_started';
         }
 

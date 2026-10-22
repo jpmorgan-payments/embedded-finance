@@ -24,6 +24,7 @@ import { useMaintenanceFormOptions } from '../hooks/useMaintenanceFormOptions';
 import type { MaintenancePartyCreateRequest } from '../models/maintenanceApi.types';
 import { MaintenanceFormFooter } from './MaintenanceFormFooter';
 import { MaintenanceFormSection } from './MaintenanceFormSection';
+import { MaintenancePageBody } from './MaintenancePageBody';
 
 type Values = {
   organizationName: string;
@@ -210,15 +211,15 @@ export function AddIntermediaryOwnerForm({
   });
 
   return (
-    <div className="eb-px-4 eb-pt-4">
-      {effectiveError &&
-      hasUnmappedApiErrors(effectiveError, INTERMEDIARY_API_FIELD_PATHS) ? (
-        <div className="eb-mb-4">
-          <ServerErrorAlert error={effectiveError as never} />
-        </div>
-      ) : null}
-      <Form {...form}>
-        <form onSubmit={submit}>
+    <Form {...form}>
+      <form onSubmit={submit} data-maintenance-page-fill="">
+        <MaintenancePageBody contentClassName="eb-px-4 eb-pt-4">
+          {effectiveError &&
+          hasUnmappedApiErrors(effectiveError, INTERMEDIARY_API_FIELD_PATHS) ? (
+            <div className="eb-mb-4">
+              <ServerErrorAlert error={effectiveError as never} />
+            </div>
+          ) : null}
           <div className="eb-mx-auto eb-w-full eb-max-w-3xl">
             <MaintenanceFormSection
               title={t('ownership.businessIdentity')}
@@ -359,37 +360,36 @@ export function AddIntermediaryOwnerForm({
               />
             </MaintenanceFormSection>
           </div>
-          <MaintenanceFormFooter
-            sticky
-            leading={
-              <Button
-                type="button"
-                variant="outlineSurface"
-                size="sm"
-                onClick={onCancel}
-                disabled={isSubmitting}
-              >
-                <ArrowLeftIcon />
-                {t('form.back')}
-              </Button>
-            }
-            trailing={
-              <Button
-                type="submit"
-                size="sm"
-                disabled={
-                  isSubmitting || form.watch('countryOfFormation') !== 'US'
-                }
-              >
-                {isSubmitting ? (
-                  <Loader2Icon className="eb-animate-spin" />
-                ) : null}
-                {t('ownership.saveIntermediary')}
-              </Button>
-            }
-          />
-        </form>
-      </Form>
-    </div>
+        </MaintenancePageBody>
+        <MaintenanceFormFooter
+          leading={
+            <Button
+              type="button"
+              variant="outlineSurface"
+              size="sm"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              <ArrowLeftIcon />
+              {t('form.back')}
+            </Button>
+          }
+          trailing={
+            <Button
+              type="submit"
+              size="sm"
+              disabled={
+                isSubmitting || form.watch('countryOfFormation') !== 'US'
+              }
+            >
+              {isSubmitting ? (
+                <Loader2Icon className="eb-animate-spin" />
+              ) : null}
+              {t('ownership.saveIntermediary')}
+            </Button>
+          }
+        />
+      </form>
+    </Form>
   );
 }

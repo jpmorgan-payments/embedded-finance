@@ -2,7 +2,9 @@ import { useTranslationWithTokens } from '@/i18n';
 
 import { cn } from '@/lib/utils';
 
+import type { MaintenanceIndividualId } from '../models/maintenanceApi.types';
 import type { PartyFieldChange } from '../utils/buildMaintenanceProjection';
+import { MaintenanceIdentifierValue } from './MaintenanceIdentifierValue';
 
 type MaintenanceChangeTableProps = {
   changes: PartyFieldChange[];
@@ -42,9 +44,27 @@ export function MaintenanceChangeTable({
           .join(', ')
       : displayValue;
 
+  const renderValue = (
+    change: PartyFieldChange,
+    rawValue: unknown,
+    displayValue: string
+  ) => {
+    const identifier =
+      change.sensitivity === 'masked' && Array.isArray(rawValue)
+        ? (rawValue[0] as MaintenanceIndividualId | undefined)
+        : undefined;
+    return identifier?.value ? (
+      <>
+        {identifier.idType}{' '}
+        <MaintenanceIdentifierValue identifier={identifier} />
+      </>
+    ) : (
+      displayValue
+    );
+  };
   return (
     <div>
-      <div className="eb-hidden eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] eb-gap-3 eb-border-b eb-bg-muted/30 eb-px-4 eb-py-2 @[40rem]:eb-grid">
+      <div className="eb-hidden eb-grid-cols-[minmax(5rem,0.7fr)_minmax(0,1fr)_minmax(0,1fr)] eb-gap-3 eb-border-b eb-bg-muted/20 eb-px-4 eb-py-2 @[40rem]:eb-grid">
         <span className="eb-text-xs eb-font-semibold eb-text-muted-foreground">
           {t('changes.field')}
         </span>
@@ -93,7 +113,7 @@ export function MaintenanceChangeTable({
                 <span className="eb-mb-0.5 eb-block eb-text-xs eb-font-semibold eb-text-muted-foreground @[40rem]:eb-hidden">
                   {t('changes.currentProfile')}
                 </span>
-                {currentValue}
+                {renderValue(change, change.approvedRawValue, currentValue)}
               </dd>
               <dd
                 className={cn(
@@ -105,7 +125,7 @@ export function MaintenanceChangeTable({
                 <span className="eb-mb-0.5 eb-block eb-text-xs eb-font-semibold eb-text-muted-foreground @[40rem]:eb-hidden">
                   {updatedValueLabel}
                 </span>
-                {updatedValue}
+                {renderValue(change, change.proposedRawValue, updatedValue)}
               </dd>
             </div>
           );

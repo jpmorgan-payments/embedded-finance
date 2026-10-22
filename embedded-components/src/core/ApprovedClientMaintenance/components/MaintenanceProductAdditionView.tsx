@@ -5,6 +5,7 @@ import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button } from '@/components/ui';
 
 import { MaintenanceFormFooter } from './MaintenanceFormFooter';
+import { MaintenancePageBody } from './MaintenancePageBody';
 
 export function MaintenanceProductAdditionView({
   isSubmitting,
@@ -35,41 +36,43 @@ export function MaintenanceProductAdditionView({
           {t('productAddition.description')}
         </p>
       </header>
-      {error ? (
-        <div className="eb-border-b eb-p-5">
-          <ServerErrorAlert error={error as never} />
+      <MaintenancePageBody>
+        {error ? (
+          <div className="eb-border-b eb-p-5">
+            <ServerErrorAlert error={error as never} />
+          </div>
+        ) : null}
+        <div>
+          <section
+            aria-labelledby="product-addition-about-heading"
+            className="eb-px-5 eb-py-5"
+          >
+            <h3
+              id="product-addition-about-heading"
+              className="eb-text-sm eb-font-semibold"
+            >
+              {t('productAddition.aboutTitle')}
+            </h3>
+            <p className="eb-mt-1 eb-max-w-2xl eb-text-sm eb-leading-6 eb-text-muted-foreground">
+              {t('productAddition.paymentsDescription')}
+            </p>
+          </section>
+          <section
+            aria-labelledby="product-addition-next-heading"
+            className="eb-border-t eb-bg-muted/20 eb-px-5 eb-py-4"
+          >
+            <h3
+              id="product-addition-next-heading"
+              className="eb-text-sm eb-font-semibold"
+            >
+              {t('productAddition.nextTitle')}
+            </h3>
+            <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+              {t('productAddition.nextDescription')}
+            </p>
+          </section>
         </div>
-      ) : null}
-      <div>
-        <section
-          aria-labelledby="product-addition-about-heading"
-          className="eb-px-5 eb-py-5"
-        >
-          <h3
-            id="product-addition-about-heading"
-            className="eb-text-sm eb-font-semibold"
-          >
-            {t('productAddition.aboutTitle')}
-          </h3>
-          <p className="eb-mt-1 eb-max-w-2xl eb-text-sm eb-leading-6 eb-text-muted-foreground">
-            {t('productAddition.paymentsDescription')}
-          </p>
-        </section>
-        <section
-          aria-labelledby="product-addition-next-heading"
-          className="eb-border-t eb-bg-muted/10 eb-px-5 eb-py-4"
-        >
-          <h3
-            id="product-addition-next-heading"
-            className="eb-text-sm eb-font-semibold"
-          >
-            {t('productAddition.nextTitle')}
-          </h3>
-          <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-            {t('productAddition.nextDescription')}
-          </p>
-        </section>
-      </div>
+      </MaintenancePageBody>
       <MaintenanceFormFooter
         leading={
           <Button

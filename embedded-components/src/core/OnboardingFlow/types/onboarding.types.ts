@@ -335,6 +335,11 @@ export type OnboardingConfigUsedInContext = {
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<Jurisdiction>;
   availableOrganizationTypes?: Array<OrganizationType>;
+  /**
+   * Limit the flow to responding to an information request: the supporting
+   * documents screen, plus the questions screen when the request includes
+   * questions.
+   */
   docUploadOnlyMode?: boolean;
   docUploadMaxFileSizeBytes?: number;
   /** Controls visibility of the linked account section. Use alongside `linkAccountEnabledStatuses` to control which statuses allow linking. */

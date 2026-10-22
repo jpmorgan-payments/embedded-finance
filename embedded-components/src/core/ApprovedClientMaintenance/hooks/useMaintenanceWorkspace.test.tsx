@@ -18,7 +18,14 @@ vi.mock('@/api/use-axios-instance', () => ({
 }));
 
 vi.mock('@/api/generated/smbdo', () => ({
+  getSmbdoGetDocumentDetailQueryKey: (id: string) => [`/documents/${id}`],
+  useSmbdoGetDocumentDetailHook: () => vi.fn(),
   useSmbdoListDocumentRequests: () => ({ data: undefined, error: null }),
+  useSmbdoListQuestions: () => ({
+    data: undefined,
+    status: 'success',
+    error: null,
+  }),
 }));
 
 vi.mock('../clientMaintenanceApi', async (importOriginal) => ({

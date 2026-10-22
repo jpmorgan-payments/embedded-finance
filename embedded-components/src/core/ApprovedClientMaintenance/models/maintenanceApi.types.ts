@@ -143,14 +143,6 @@ export type MaintenanceProductUpdateRequest = {
   }>;
 };
 
-export type MaintenanceQuestion = {
-  id?: string;
-  label: string;
-  description?: string;
-  responseType?: 'boolean' | 'string' | 'number' | 'integer' | 'enum';
-  options?: string[];
-};
-
 export type MaintenanceQuestionResponse = {
   questionId: string;
   values: string[];

@@ -332,7 +332,7 @@ Content tokens allow customization of text and localization:
 }
 ```
 
-For complete content token documentation, see [Embedded Components Content Tokens](../../../embedded-components/README.md#content-tokens).
+For complete content token documentation, see [Embedded Components Content Tokens](../../../embedded-components/README.md#internationalization).
 
 ### Component Properties
 
@@ -692,7 +692,7 @@ Apache License 2.0
 - [URL Size Limits & the Compact `cfg` Parameter](./URL_SIZE_AND_COMPACT_CONFIG.md) — **read this if you get a 403**, or pass more than a small amount of configuration
 - [Embedded Components README](../../../embedded-components/README.md)
 - [Theme Documentation](../../../embedded-components/README.md#theming)
-- [Content Tokens](../../../embedded-components/README.md#content-tokens)
+- [Content Tokens](../../../embedded-components/README.md#internationalization)
 
 ## Support
 

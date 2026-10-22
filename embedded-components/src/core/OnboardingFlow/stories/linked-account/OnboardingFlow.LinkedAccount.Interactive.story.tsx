@@ -102,6 +102,34 @@ async function postVerifyMicrodeposit(
 const getContainer = () =>
   within(document.querySelector('#embedded-component-layout') as HTMLElement);
 
+/**
+ * Reset the db and mark the seeded LLC client APPROVED. Its onboarding
+ * outstanding items are cleared so they don't read as an information request.
+ */
+const seedApprovedLlcClient = async () => {
+  resetDb();
+  const client = db.client.findFirst({
+    where: { id: { equals: '0030000132' } },
+  });
+  if (client) {
+    db.client.update({
+      where: { id: { equals: '0030000132' } },
+      data: {
+        ...client,
+        status: 'APPROVED',
+        outstanding: {
+          attestationDocumentIds: [],
+          documentRequestIds: [],
+          partyIds: [],
+          partyRoles: [],
+          questionIds: [],
+        },
+      },
+    });
+  }
+  return {};
+};
+
 const waitForContainer = async () => {
   await waitFor(
     () => {
@@ -203,24 +231,7 @@ export const _1_LinkAccount_RecipientStateMachine: Story = {
       },
     },
   },
-  loaders: [
-    async () => {
-      resetDb();
-      const client = db.client.findFirst({
-        where: { id: { equals: '0030000132' } },
-      });
-      if (client) {
-        db.client.update({
-          where: { id: { equals: '0030000132' } },
-          data: {
-            ...client,
-            status: 'APPROVED',
-          },
-        });
-      }
-      return {};
-    },
-  ],
+  loaders: [seedApprovedLlcClient],
   play: async ({ step }) => {
     await waitForContainer();
     const container = getContainer();
@@ -433,24 +444,7 @@ export const _2_LinkAccount_PrefillSummaryThreeAcknowledgements: Story = {
       },
     },
   },
-  loaders: [
-    async () => {
-      resetDb();
-      const client = db.client.findFirst({
-        where: { id: { equals: '0030000132' } },
-      });
-      if (client) {
-        db.client.update({
-          where: { id: { equals: '0030000132' } },
-          data: {
-            ...client,
-            status: 'APPROVED',
-          },
-        });
-      }
-      return {};
-    },
-  ],
+  loaders: [seedApprovedLlcClient],
   play: async ({ step }) => {
     await waitForContainer();
     const container = getContainer();
@@ -577,24 +571,7 @@ export const _2b_LinkAccount_EditableWithReviewAcknowledgements: Story = {
       },
     },
   },
-  loaders: [
-    async () => {
-      resetDb();
-      const client = db.client.findFirst({
-        where: { id: { equals: '0030000132' } },
-      });
-      if (client) {
-        db.client.update({
-          where: { id: { equals: '0030000132' } },
-          data: {
-            ...client,
-            status: 'APPROVED',
-          },
-        });
-      }
-      return {};
-    },
-  ],
+  loaders: [seedApprovedLlcClient],
   play: async ({ step }) => {
     await waitForContainer();
     const container = getContainer();

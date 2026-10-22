@@ -45,8 +45,11 @@ import {
   buildIndividualPartyUpdate,
   type IndividualMaintenanceValues,
 } from '../utils/buildPartyNameUpdate';
+import { maskIdentifier } from '../utils/identifierDisplay';
 import { MaintenanceFormFooter } from './MaintenanceFormFooter';
 import { MaintenanceFormSection } from './MaintenanceFormSection';
+import { MaintenanceIdentifierValue } from './MaintenanceIdentifierValue';
+import { MaintenancePageBody } from './MaintenancePageBody';
 
 type PartyChangeEditorProps = {
   initialValues: IndividualMaintenanceValues;
@@ -397,7 +400,7 @@ export function PartyChangeEditor({
       ? {
           originalValue: t('editor.originalValue', {
             value: approvedValues.individualId.value
-              ? `${identityContent.idValue[approvedValues.individualId.idType] ?? approvedValues.individualId.idType} ••••${approvedValues.individualId.value.slice(-4)}`
+              ? `${identityContent.idValue[approvedValues.individualId.idType] ?? approvedValues.individualId.idType} ${maskIdentifier(approvedValues.individualId)}`
               : tString('notProvided'),
           }),
           label: t('editor.restoreIdentification'),
@@ -466,21 +469,20 @@ export function PartyChangeEditor({
   });
 
   return (
-    <div className="eb-px-4 eb-pt-4">
-      {mutationError &&
-      hasUnmappedApiErrors(mutationError, PARTY_API_FIELD_PATHS) ? (
-        <div className="eb-mb-4">
-          <ServerErrorAlert error={mutationError as never} />
-        </div>
-      ) : null}
-      {formError ? (
-        <Alert variant="warning" noTitle className="eb-mb-4">
-          <AlertDescription>{formError}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      <Form {...form}>
-        <form onSubmit={submit}>
+    <Form {...form}>
+      <form onSubmit={submit} data-maintenance-page-fill="">
+        <MaintenancePageBody contentClassName="eb-px-4 eb-pt-4">
+          {mutationError &&
+          hasUnmappedApiErrors(mutationError, PARTY_API_FIELD_PATHS) ? (
+            <div className="eb-mb-4">
+              <ServerErrorAlert error={mutationError as never} />
+            </div>
+          ) : null}
+          {formError ? (
+            <Alert variant="warning" noTitle className="eb-mb-4">
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          ) : null}
           <fieldset
             className="eb-mx-auto eb-w-full eb-max-w-3xl"
             disabled={isSubmitting}
@@ -598,9 +600,13 @@ export function PartyChangeEditor({
                   </p>
                   <ProfileReadonlyValue
                     value={
-                      approvedValues.individualId.value
-                        ? `••••${approvedValues.individualId.value.slice(-4)}`
-                        : tString('notProvided')
+                      approvedValues.individualId.value ? (
+                        <MaintenanceIdentifierValue
+                          identifier={approvedValues.individualId}
+                        />
+                      ) : (
+                        tString('notProvided')
+                      )
                     }
                   />
                   <p className="eb-text-xs eb-text-muted-foreground">
@@ -710,10 +716,7 @@ export function PartyChangeEditor({
                   phoneNumber: getNestedRestoreAction(
                     'phone.phoneNumber',
                     currentValues.phone?.phoneNumber ?? '',
-                    approvedValues.phone.phoneNumber,
                     approvedValues.phone.phoneNumber
-                      ? `••••${approvedValues.phone.phoneNumber.slice(-4)}`
-                      : ''
                   ),
                 }}
               />
@@ -825,35 +828,34 @@ export function PartyChangeEditor({
               </div>
             </MaintenanceFormSection>
           </fieldset>
+        </MaintenancePageBody>
 
-          <MaintenanceFormFooter
-            sticky
-            leading={
-              <Button
-                type="button"
-                variant="outlineSurface"
-                size="sm"
-                onClick={onDiscard}
-                disabled={isSubmitting}
-              >
-                {t('editor.cancelEditing')}
-              </Button>
-            }
-            trailing={
-              <Button
-                type="submit"
-                size="sm"
-                disabled={isSubmitting || !hasChanges}
-              >
-                {isSubmitting ? (
-                  <Loader2Icon className="eb-animate-spin" />
-                ) : null}
-                {t('editor.save')}
-              </Button>
-            }
-          />
-        </form>
-      </Form>
-    </div>
+        <MaintenanceFormFooter
+          leading={
+            <Button
+              type="button"
+              variant="outlineSurface"
+              size="sm"
+              onClick={onDiscard}
+              disabled={isSubmitting}
+            >
+              {t('editor.cancelEditing')}
+            </Button>
+          }
+          trailing={
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSubmitting || !hasChanges}
+            >
+              {isSubmitting ? (
+                <Loader2Icon className="eb-animate-spin" />
+              ) : null}
+              {t('editor.save')}
+            </Button>
+          }
+        />
+      </form>
+    </Form>
   );
 }

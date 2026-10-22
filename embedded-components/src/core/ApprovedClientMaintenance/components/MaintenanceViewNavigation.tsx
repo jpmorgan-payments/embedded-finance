@@ -19,6 +19,7 @@ export function MaintenanceViewNavigation({
   return (
     <nav
       aria-label={backLabel}
+      data-maintenance-footer=""
       className="eb-flex eb-flex-wrap eb-items-center eb-justify-between eb-gap-3 eb-border-t eb-bg-background eb-px-4 eb-py-4"
     >
       <Button

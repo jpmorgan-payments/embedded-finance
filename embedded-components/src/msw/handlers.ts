@@ -251,6 +251,9 @@ export const handlers = [
       const outstandingQuestionSet = new Set(
         updatedClient.outstanding.questionIds || []
       );
+      const mockQuestionIds = new Set(
+        efClientQuestionsMock.questions.map((question) => question.id)
+      );
       efClientQuestionsMock.questions.forEach((question) => {
         if (!question.subQuestions?.length) return;
         const parentAnswers = answersById.get(question.id) || [];
@@ -259,7 +262,13 @@ export const handlers = [
             String(subQuestion.anyValuesMatch)
           );
           (subQuestion.questionIds || []).forEach((childId) => {
-            if (revealed && !isQuestionAnswered(childId)) {
+            // Children the mock can't serve from GET /questions would leave
+            // the form waiting on a question it can never show.
+            if (
+              revealed &&
+              !isQuestionAnswered(childId) &&
+              mockQuestionIds.has(childId)
+            ) {
               outstandingQuestionSet.add(childId);
             } else {
               outstandingQuestionSet.delete(childId);
@@ -268,6 +277,16 @@ export const handlers = [
         });
       });
       updatedClient.outstanding.questionIds = [...outstandingQuestionSet];
+
+      // An information request is fulfilled once every requested question and
+      // document has been provided; the client then returns to review.
+      if (
+        updatedClient.status === 'INFORMATION_REQUESTED' &&
+        updatedClient.outstanding.questionIds.length === 0 &&
+        (updatedClient.outstanding.documentRequestIds || []).length === 0
+      ) {
+        updatedClient.status = 'REVIEW_IN_PROGRESS';
+      }
     }
 
     // Handle adding new attestations if present
@@ -569,6 +588,8 @@ export const handlers = [
         // Check if there are any remaining document requests
         const hasOutstandingDocRequests =
           updatedClient.outstanding.documentRequestIds.length > 0;
+        const hasOutstandingQuestions =
+          (updatedClient.outstanding.questionIds || []).length > 0;
 
         // Check if there are any parties with outstanding validation
         const parties = updatedClient.parties
@@ -585,8 +606,14 @@ export const handlers = [
 
         if (!hasOutstandingDocRequests) {
           if (client.status === 'INFORMATION_REQUESTED') {
-            updatedClient.status = 'REVIEW_IN_PROGRESS';
-          } else if (!hasPartyValidationPending) {
+            // Questions in the same information request must be answered too.
+            if (!hasOutstandingQuestions) {
+              updatedClient.status = 'REVIEW_IN_PROGRESS';
+            }
+          } else if (
+            client.status !== 'APPROVED' &&
+            !hasPartyValidationPending
+          ) {
             updatedClient.status = 'REVIEW_IN_PROGRESS';
           }
         }

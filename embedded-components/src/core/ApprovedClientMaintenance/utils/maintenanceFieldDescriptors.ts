@@ -6,6 +6,7 @@ import type {
   MaintenanceParty,
   MaintenancePhone,
 } from '../models/maintenanceApi.types';
+import { formatPhone, maskIdentifier } from './identifierDisplay';
 
 export type EditablePartyField =
   | 'organizationName'
@@ -160,7 +161,7 @@ const individualIdsDescriptor: MaintenanceFieldDescriptor = {
     if (!Array.isArray(value)) return '';
     const identity = value[0] as MaintenanceIndividualId | undefined;
     return identity?.value
-      ? `${identity.idType ?? ''} ••••${identity.value.slice(-4)}`.trim()
+      ? `${identity.idType ?? ''} ${maskIdentifier(identity)}`.trim()
       : '';
   },
 };
@@ -168,7 +169,7 @@ const individualIdsDescriptor: MaintenanceFieldDescriptor = {
 const phoneDescriptor: MaintenanceFieldDescriptor = {
   field: 'phone',
   labelKey: 'individualDetails.phone',
-  sensitivity: 'masked',
+  sensitivity: 'public',
   isPresent: (party) => hasOwn(party.individualDetails, 'phone'),
   read: (party) => party.individualDetails?.phone,
   write: (party, value) => {
@@ -178,13 +179,10 @@ const phoneDescriptor: MaintenanceFieldDescriptor = {
       phone: structuredClone(value as MaintenancePhone),
     };
   },
-  format: (value) => {
-    if (Array.isArray(value) || typeof value !== 'object') return '';
-    const phone = value as MaintenancePhone;
-    return phone.phoneNumber
-      ? `${phone.countryCode ?? ''} ••••${phone.phoneNumber.slice(-4)}`.trim()
-      : '';
-  },
+  format: (value) =>
+    Array.isArray(value) || typeof value !== 'object'
+      ? ''
+      : formatPhone(value as MaintenancePhone),
 };
 
 const addressDescriptor: MaintenanceFieldDescriptor = {
@@ -225,7 +223,7 @@ const organizationIdsDescriptor: MaintenanceFieldDescriptor = {
     if (!Array.isArray(value)) return '';
     const identity = value[0] as MaintenanceIndividualId | undefined;
     return identity?.value
-      ? `${identity.idType ?? ''} ••••${identity.value.slice(-4)}`.trim()
+      ? `${identity.idType ?? ''} ${maskIdentifier(identity)}`.trim()
       : '';
   },
 };
@@ -233,7 +231,7 @@ const organizationIdsDescriptor: MaintenanceFieldDescriptor = {
 const organizationPhoneDescriptor: MaintenanceFieldDescriptor = {
   field: 'organizationPhone',
   labelKey: 'organizationDetails.phone',
-  sensitivity: 'masked',
+  sensitivity: 'public',
   isPresent: (party) => hasOwn(party.organizationDetails, 'phone'),
   read: (party) => party.organizationDetails?.phone,
   write: (party, value) => {
@@ -285,7 +283,7 @@ export const MAINTENANCE_FIELD_DESCRIPTORS: MaintenanceFieldDescriptor[] = [
     'nameSuffix',
     'individualDetails.nameSuffix'
   ),
-  stringField('individualDetails', 'birthDate', 'editor.birthDate', 'masked'),
+  stringField('individualDetails', 'birthDate', 'editor.birthDate'),
   stringField(
     'individualDetails',
     'countryOfResidence',
@@ -308,14 +306,6 @@ export const MAINTENANCE_FIELD_DESCRIPTORS: MaintenanceFieldDescriptor[] = [
   individualAddressDescriptor,
   rolesDescriptor,
 ];
-
-const birthDateDescriptor = MAINTENANCE_FIELD_DESCRIPTORS.find(
-  (descriptor) => descriptor.field === 'birthDate'
-);
-if (birthDateDescriptor) {
-  birthDateDescriptor.format = (value) =>
-    typeof value === 'string' && value ? '••••••••' : '';
-}
 
 export const getMaintenanceFieldDescriptor = (field: EditablePartyField) =>
   MAINTENANCE_FIELD_DESCRIPTORS.find(

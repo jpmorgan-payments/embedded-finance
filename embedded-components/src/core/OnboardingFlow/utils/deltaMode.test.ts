@@ -365,4 +365,13 @@ describe('isDeltaModeActive', () => {
   it('is false when the controller party does not exist', () => {
     expect(isDeltaModeActive(true, noControllerClient)).toBe(false);
   });
+
+  it('is false once the client has been submitted', () => {
+    expect(
+      isDeltaModeActive(true, {
+        ...richClient,
+        status: 'INFORMATION_REQUESTED',
+      })
+    ).toBe(false);
+  });
 });

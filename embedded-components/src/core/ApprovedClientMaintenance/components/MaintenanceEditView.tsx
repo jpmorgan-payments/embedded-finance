@@ -70,7 +70,7 @@ export function MaintenanceEditView({
           {t('nameEditor.editDescription')}
         </p>
       </header>
-      <div className="eb-w-full">
+      <div className="eb-w-full" data-maintenance-page-fill="">
         <PartyChangeEditor
           initialValues={initialValues}
           approvedValues={originalValues}

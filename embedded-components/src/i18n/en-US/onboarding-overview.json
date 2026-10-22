@@ -243,6 +243,11 @@
     "uploadDocument": "Upload Document",
     "addAnotherDocument": "Add another document",
     "removeDocument": "Remove document {{number}}",
+    "requestedQuestions": {
+      "title": "Questions for you",
+      "description": "We also need answers to a few questions about your business.",
+      "answerQuestions": "Answer questions"
+    },
     "partyCard": {
       "statusLabels": {
         "pending": "Pending",
@@ -431,7 +436,10 @@
           "description": "Thank you for your submission. We’re reviewing your information and will let you know if we need any additional details or documentation."
         },
         "informationRequested": {
-          "description": "We're having trouble verifying your business. Please provide supporting documentation."
+          "description": "We're having trouble verifying your business. Please provide supporting documentation.",
+          "questions": "We need a little more information to verify your business. Please answer the questions below.",
+          "documentsAndQuestions": "We need a little more information to verify your business. Please answer the questions and provide the supporting documents below.",
+          "responseReceived": "Thank you, we've received everything we asked for. We're reviewing it and will let you know if we need anything else."
         },
         "declined": {
           "title": "Application declined",
@@ -439,7 +447,13 @@
         },
         "approved": {
           "title": "Business Verification Complete!",
-          "description": "Your business details have been verified"
+          "description": "Your business details have been verified",
+          "informationRequested": {
+            "title": "We need a few more details",
+            "documents": "Your business is still verified and your account remains active. To keep your business information up to date, please provide the supporting documents below.",
+            "questions": "Your business is still verified and your account remains active. To keep your business information up to date, please answer the questions below.",
+            "documentsAndQuestions": "Your business is still verified and your account remains active. To keep your business information up to date, please answer the questions and provide the supporting documents below."
+          }
         },
         "businessTypeLabel": "Your selected business type",
         "ptcLabel": "Publicly traded",
@@ -649,6 +663,20 @@
       "label": "Supporting documents",
       "onHoldText": "We'll let you know if any documents are needed"
     },
+    "requestedQuestionsSection": {
+      "label": "Additional information",
+      "requirementsList": [
+        "Answers to questions from our review team"
+      ]
+    },
+    "requestedQuestions": {
+      "title": "Additional information",
+      "description": "Our review team needs answers to the following questions about your business.",
+      "submit": "Submit answers",
+      "submitAndContinue": "Submit answers and continue to documents",
+      "noQuestions": "There are no questions waiting for your answer.",
+      "followUpQuestions": "Based on your answers, we need a little more information. Please answer the new questions below."
+    },
     "operationalDetails": {
       "title": "Operational details",
       "description": "Please answer these additional questions to help us understand your business operations.",
@@ -667,7 +695,9 @@
       "invalidFormat": "Invalid format",
       "numberFormat": "Must be a number",
       "wholeNumber": "Enter a whole dollar amount (no cents)",
-      "maxItems": "Cannot exceed {{maxItems}} items"
+      "maxItems": "Cannot exceed {{maxItems}} items",
+      "minLength": "Enter at least {{minLength}} characters",
+      "maxLength": "Enter no more than {{maxLength}} characters"
     }
   },
   "fields": {

@@ -8,8 +8,8 @@ This recipe provides guidelines for integrating with the **List Transactions API
 >
 > - [List Transactions API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/transactions#/operations/getTransactions)
 > - [Get Transaction Details API](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/embedded-payments/transactions#/operations/getTransaction)
-> - [Manage and Display Transactions (How-To)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2)
-> - [Notification Subscriptions (How-To)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/manage-notifications)
+> - [Manage and Display Transactions (How-To)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/manage-transactions/view-and-display-transactions)
+> - [Notification Subscriptions (How-To)](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/notifications)
 
 ---
 
@@ -382,7 +382,7 @@ Instead of polling `GET /transactions`, subscribe to **transaction webhooks** (`
 | `TRANSACTION_FAILED` | Transaction failed to process |
 | `TRANSACTION_CHANGE_REQUESTED` | Notification of Change — recipient info needs correction |
 
-See the [Notification Subscriptions How-To](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/manage-notifications) and the [Webhook Integration Recipe](./WEBHOOK_INTEGRATION_RECIPE.md) for details.
+See the [Notification Subscriptions How-To](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/notification-subscriptions/how-to/notifications) and the [Webhook Integration Recipe](./WEBHOOK_INTEGRATION_RECIPE.md) for details.
 
 #### Combined Pattern: Webhook + Periodic Sync
 
@@ -409,7 +409,7 @@ The API does not expose a sort parameter. Transactions can be sorted client-side
 - **`postingVersion`** (descending) — chronological order of account updates
 - **`createdAt`** (descending) — order of creation
 
-As documented in the [Manage and Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2) how-to, `effectiveDate` + `postingVersion` is the recommended sort order for ledger-style views.
+As documented in the [Manage and Display Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/manage-transactions/view-and-display-transactions) how-to, `effectiveDate` + `postingVersion` is the recommended sort order for ledger-style views.
 
 ```typescript
 const sortedItems = [...(data?.items ?? [])].sort((a, b) => {

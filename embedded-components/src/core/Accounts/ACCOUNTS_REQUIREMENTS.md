@@ -2,7 +2,7 @@
 
 > **Documentation References:**
 >
-> - [JPMorgan Embedded Payments - Add Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/add-account)
+> - [JPMorgan Embedded Payments - Add Account](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/accounts/account-setup/create-accounts)
 >
 > **API References:**
 >

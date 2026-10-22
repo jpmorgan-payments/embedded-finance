@@ -1,40 +1,56 @@
-import { useEffect, useRef, useState } from 'react';
-import { useTranslationWithTokens } from '@/i18n';
-import { Loader2Icon } from 'lucide-react';
-
-import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import {
-  Button,
-  Input,
-  Label,
-  RadioGroup,
-  RadioGroupItem,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui';
+  Fragment,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import { useTranslationWithTokens } from '@/i18n';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { InfoIcon, Loader2Icon } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-import type {
-  MaintenanceQuestion,
-  MaintenanceQuestionResponse,
-} from '../models/maintenanceApi.types';
+import type { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Form } from '@/components/ui/form';
+import { ServerErrorAlert } from '@/components/ServerErrorAlert';
+import { Button, Separator } from '@/components/ui';
+import { createDynamicZodSchema } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm.schema';
+import { QuestionField } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/QuestionField';
+import {
+  getChildQuestions,
+  isQuestionVisible,
+  isTopLevelQuestion,
+} from '@/core/OnboardingFlow/utils/questionTree';
+
+import type { MaintenanceQuestionResponse } from '../models/maintenanceApi.types';
 import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
-import { MaintenanceSection } from './MaintenanceSection';
+import { MaintenanceFormFooter } from './MaintenanceFormFooter';
+import { MaintenancePageBody } from './MaintenancePageBody';
 
 type MaintenanceQuestionsViewProps = {
-  questions: MaintenanceQuestion[];
+  /** The outstanding question tree, as loaded for onboarding. */
+  questions: QuestionResponse[];
   breadcrumbs: MaintenanceBreadcrumbItem[];
   isLoading: boolean;
   isSubmitting: boolean;
   error?: unknown;
   onBack: () => void;
-  onSubmit: (responses: MaintenanceQuestionResponse[]) => Promise<void>;
+  /** Resolves `more` when the answers opened up further questions to stay for. */
+  onSubmit: (
+    responses: MaintenanceQuestionResponse[]
+  ) => Promise<'done' | 'more'>;
 };
+
+const hasAnswer = (value: unknown) =>
+  Array.isArray(value)
+    ? value.some((item) => String(item ?? '').trim() !== '')
+    : String(value ?? '').trim() !== '';
 
 export function MaintenanceQuestionsView({
   questions,
@@ -49,22 +65,73 @@ export function MaintenanceQuestionsView({
     'approved-client-maintenance'
   );
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [hasNewQuestions, setHasNewQuestions] = useState(false);
 
   useEffect(() => {
     headingRef.current?.focus();
   }, []);
 
-  const responses = questions.flatMap((question) => {
-    const value = question.id ? values[question.id]?.trim() : undefined;
-    return question.id && value
-      ? [{ questionId: question.id, values: [value] }]
-      : [];
+  const schema = useMemo(
+    () =>
+      questions.length > 0 ? createDynamicZodSchema(questions) : z.object({}),
+    [questions]
+  );
+  const form = useForm({ resolver: zodResolver(schema), mode: 'onBlur' });
+  const values = form.watch();
+
+  // Visibility follows the same parent-answer rules as onboarding, read from live form state.
+  const isVisible = (question: QuestionResponse) =>
+    isQuestionVisible(
+      question,
+      questions,
+      (questionId) => values[`question_${questionId}`]
+    );
+  const visibleQuestions = questions.filter(
+    (question) => question.id && isVisible(question)
+  );
+  const topLevelQuestions = questions.filter((question) =>
+    isTopLevelQuestion(question, questions)
+  );
+  const getVisibleFollowUps = (parentId: string | undefined) =>
+    getChildQuestions(parentId, questions).filter(isVisible);
+  // A question counts once with its follow-ups, so opening one never grows the total.
+  const isFullyAnswered = (question: QuestionResponse): boolean =>
+    hasAnswer(values[`question_${question.id}`]) &&
+    getVisibleFollowUps(question.id).every(isFullyAnswered);
+  const answeredCount = topLevelQuestions.filter(isFullyAnswered).length;
+
+  const submit = form.handleSubmit(async (formValues) => {
+    const responses = visibleQuestions.flatMap((question) => {
+      const value = formValues[`question_${question.id}`];
+      return question.id && hasAnswer(value)
+        ? [
+            {
+              questionId: question.id,
+              values: (Array.isArray(value) ? value : [value]).map(String),
+            },
+          ]
+        : [];
+    });
+    setHasNewQuestions((await onSubmit(responses)) === 'more');
   });
-  const isComplete =
-    questions.length > 0 && responses.length === questions.length;
-  const progress =
-    questions.length > 0 ? (responses.length / questions.length) * 100 : 0;
+
+  const renderFollowUps = (parentId: string | undefined): ReactNode => {
+    const followUps = getVisibleFollowUps(parentId);
+    if (followUps.length === 0) return null;
+    return (
+      <div
+        data-question-follow-ups=""
+        className="eb-mt-4 eb-space-y-4 eb-border-l-2 eb-pl-4 eb-duration-200 eb-animate-in eb-fade-in-0 motion-reduce:eb-animate-none"
+      >
+        {followUps.map((followUp) => (
+          <div key={followUp.id} data-question-id={followUp.id}>
+            <QuestionField question={followUp} />
+            {renderFollowUps(followUp.id)}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background">
@@ -84,170 +151,88 @@ export function MaintenanceQuestionsView({
           {t('questions.description')}
         </p>
       </header>
-      <MaintenanceSection
-        id="maintenance-questions-heading"
-        title={t('questions.sectionTitle')}
-        caption={t('sectionCaption.requirements')}
-        tone="warning"
-        footer={
-          <div className="eb-flex eb-flex-wrap eb-justify-between eb-gap-2">
-            <Button variant="outlineSurface" size="sm" onClick={onBack}>
-              {t('questions.cancel')}
-            </Button>
-            <Button
-              size="sm"
-              disabled={!isComplete || isSubmitting}
-              onClick={() => onSubmit(responses)}
-            >
-              {isSubmitting ? (
-                <Loader2Icon className="eb-animate-spin" />
-              ) : null}
-              {t('questions.save')}
-            </Button>
-          </div>
-        }
-      >
-        {error ? (
-          <div className="eb-p-4">
-            <ServerErrorAlert error={error as never} />
-          </div>
-        ) : isLoading ? (
-          <p className="eb-p-4 eb-text-sm eb-text-muted-foreground">
-            {t('questions.loading')}
-          </p>
-        ) : questions.length === 0 ? (
-          <div className="eb-p-4">
-            <p className="eb-text-sm eb-font-medium">
-              {t('questions.emptyTitle')}
-            </p>
-            <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-              {t('questions.emptyDescription')}
-            </p>
-          </div>
-        ) : (
-          <div>
-            <div className="eb-border-b eb-bg-muted/20 eb-px-4 eb-py-3">
-              <div className="eb-flex eb-items-center eb-justify-between eb-gap-3 eb-text-xs">
-                <span className="eb-font-medium">
+      <Form {...form}>
+        <form
+          data-maintenance-page-fill=""
+          noValidate
+          onSubmit={(event) => void submit(event)}
+        >
+          <MaintenancePageBody contentClassName="eb-space-y-5 eb-px-4 eb-py-5 @[40rem]:eb-px-5">
+            {hasNewQuestions ? (
+              <Alert variant="informative" noTitle>
+                <InfoIcon className="eb-size-4" />
+                <AlertDescription>
+                  {t('questions.newQuestions')}
+                </AlertDescription>
+              </Alert>
+            ) : null}
+            {error ? <ServerErrorAlert error={error as never} /> : null}
+            {isLoading ? (
+              <p className="eb-flex eb-items-center eb-gap-2 eb-text-sm eb-text-muted-foreground">
+                <Loader2Icon className="eb-size-4 eb-animate-spin" />
+                {t('questions.loading')}
+              </p>
+            ) : questions.length === 0 ? (
+              <div>
+                <p className="eb-text-sm eb-font-medium">
+                  {t('questions.emptyTitle')}
+                </p>
+                <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+                  {t('questions.emptyDescription')}
+                </p>
+              </div>
+            ) : (
+              <>
+                <p
+                  data-question-count=""
+                  aria-live="polite"
+                  className="eb-text-sm eb-font-medium eb-tabular-nums"
+                >
                   {t('questions.progress', {
-                    answered: responses.length,
-                    total: questions.length,
+                    answered: answeredCount,
+                    total: topLevelQuestions.length,
                   })}
-                </span>
-                <span className="eb-text-muted-foreground">
-                  {Math.round(progress)}%
-                </span>
-              </div>
-              <div
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={questions.length}
-                aria-valuenow={responses.length}
-                className="eb-mt-2 eb-h-1.5 eb-overflow-hidden eb-rounded-full eb-bg-muted"
+                </p>
+                <div className="eb-space-y-6">
+                  {topLevelQuestions.map((question, index) => (
+                    <Fragment key={question.id ?? `question-${index}`}>
+                      {index > 0 ? <Separator /> : null}
+                      <div data-question-id={question.id}>
+                        <QuestionField question={question} />
+                        {renderFollowUps(question.id)}
+                      </div>
+                    </Fragment>
+                  ))}
+                </div>
+              </>
+            )}
+          </MaintenancePageBody>
+          <MaintenanceFormFooter
+            leading={
+              <Button
+                type="button"
+                variant="outlineSurface"
+                size="sm"
+                onClick={onBack}
               >
-                <div
-                  className="eb-h-full eb-rounded-full eb-bg-primary eb-transition-[width]"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-            <div className="eb-space-y-4 eb-p-4">
-              {questions.map((question) => {
-                if (!question.id) return null;
-                const labelId = `question-${question.id}-label`;
-                return (
-                  <div
-                    key={question.id}
-                    className="eb-space-y-3 eb-rounded-md eb-border eb-p-4"
-                  >
-                    <Label
-                      id={labelId}
-                      htmlFor={`question-${question.id}`}
-                      className="eb-text-sm eb-font-semibold eb-leading-5"
-                    >
-                      {question.label}
-                    </Label>
-                    {question.description ? (
-                      <p className="eb-text-xs eb-text-muted-foreground">
-                        {question.description}
-                      </p>
-                    ) : null}
-                    {question.options?.length ? (
-                      <Select
-                        value={values[question.id] ?? ''}
-                        onValueChange={(value) =>
-                          setValues((current) => ({
-                            ...current,
-                            [question.id!]: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger
-                          id={`question-${question.id}`}
-                          aria-labelledby={labelId}
-                        >
-                          <SelectValue
-                            placeholder={tString('questions.select')}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {question.options.map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : question.responseType === 'boolean' ? (
-                      <RadioGroup
-                        aria-labelledby={labelId}
-                        value={values[question.id] ?? ''}
-                        onValueChange={(value) =>
-                          setValues((current) => ({
-                            ...current,
-                            [question.id!]: value,
-                          }))
-                        }
-                        className="eb-grid eb-gap-2 @[40rem]:eb-grid-cols-2"
-                      >
-                        {[
-                          ['true', t('questions.yes')],
-                          ['false', t('questions.no')],
-                        ].map(([value, label]) => (
-                          <label
-                            key={value as string}
-                            className="eb-flex eb-cursor-pointer eb-items-center eb-gap-2 eb-rounded-md eb-border eb-p-3 has-[[data-state=checked]]:eb-border-primary has-[[data-state=checked]]:eb-bg-accent/40"
-                          >
-                            <RadioGroupItem value={value as string} />
-                            {label}
-                          </label>
-                        ))}
-                      </RadioGroup>
-                    ) : (
-                      <Input
-                        id={`question-${question.id}`}
-                        type={
-                          question.responseType === 'number' ||
-                          question.responseType === 'integer'
-                            ? 'number'
-                            : 'text'
-                        }
-                        value={values[question.id] ?? ''}
-                        onChange={(event) =>
-                          setValues((current) => ({
-                            ...current,
-                            [question.id!]: event.target.value,
-                          }))
-                        }
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </MaintenanceSection>
+                {t('questions.cancel')}
+              </Button>
+            }
+            trailing={
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isLoading || questions.length === 0 || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <Loader2Icon className="eb-animate-spin" />
+                ) : null}
+                {t('questions.save')}
+              </Button>
+            }
+          />
+        </form>
+      </Form>
     </div>
   );
 }

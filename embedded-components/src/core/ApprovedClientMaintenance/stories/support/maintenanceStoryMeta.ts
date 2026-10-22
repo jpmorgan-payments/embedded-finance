@@ -1,7 +1,8 @@
 import { createElement } from 'react';
-import type { Decorator } from '@storybook/react-vite';
+import type { Decorator, Meta } from '@storybook/react-vite';
 
 import type { BaseStoryArgs } from '../../../../../.storybook/preview';
+import { ApprovedClientMaintenance } from '../../ApprovedClientMaintenance';
 import type { ApprovedClientMaintenanceProps } from '../../ApprovedClientMaintenance.types';
 import { FULL_ELIGIBILITY } from './maintenanceStoryClients';
 import {
@@ -48,3 +49,13 @@ export const maintenanceStoryArgTypes = {
 export const withScenario = (scenario: MaintenanceStoryScenario) => ({
   msw: { handlers: createMaintenanceStoryHandlers(scenario) },
 });
+
+/** Everything a maintenance story file shares except its `title`. */
+export const maintenanceStoryMetaBase = {
+  component: ApprovedClientMaintenance,
+  decorators: [maintenanceStoryDecorator],
+  parameters: { layout: 'padded' },
+  args: maintenanceStoryArgs,
+  argTypes: maintenanceStoryArgTypes,
+  render: (args) => createElement(ApprovedClientMaintenance, args),
+} satisfies Omit<Meta<MaintenanceStoryArgs>, 'title'>;

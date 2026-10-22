@@ -186,8 +186,12 @@ const convertThemeVariablesToCssVariables = (
   return cssVariables;
 };
 
+// Values are emitted raw into a <style> element; drop any that could escape the declaration or element.
+const UNSAFE_CSS_VALUE = /[<>{};\\]|\/\*/;
+
 const cssVariablesObjectToString = (variables: CSSVariables) =>
   Object.entries(variables)
+    .filter(([, value]) => !UNSAFE_CSS_VALUE.test(String(value)))
     .map(([name, value]) => `${name}: ${value};`)
     .join('');
 

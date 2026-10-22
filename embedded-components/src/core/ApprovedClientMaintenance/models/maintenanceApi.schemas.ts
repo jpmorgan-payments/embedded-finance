@@ -190,37 +190,3 @@ export const maintenanceDocumentRequestListSchema = z
       .default([]),
   })
   .passthrough();
-
-export const maintenanceQuestionListSchema = z
-  .object({
-    questions: z
-      .array(
-        z
-          .object({
-            id: z.string().optional(),
-            content: z
-              .array(
-                z.object({
-                  label: z.string(),
-                  description: z.string().optional(),
-                  locale: z.string(),
-                })
-              )
-              .optional(),
-            description: z.string().optional(),
-            responseSchema: z
-              .object({
-                items: z
-                  .object({
-                    type: z.string().optional(),
-                    enum: z.array(z.string()).optional(),
-                  })
-                  .optional(),
-              })
-              .optional(),
-          })
-          .passthrough()
-      )
-      .default([]),
-  })
-  .passthrough();

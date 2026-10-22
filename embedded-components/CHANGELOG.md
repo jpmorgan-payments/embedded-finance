@@ -2,6 +2,33 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.19] - 2026-10-22
+
+### Changes
+
+#### Features
+
+- **client-maintenance:** add stories for outstanding questions
+- **onboarding:** implement support for RFI
+- **onboarding:** answer questions raised in information requests
+- **onboarding:** validate question response length limits
+- **client-maintenance:** redesign business profile overview and review page
+- **client-maintenance:** pause navigation while changes save and refine sidebar
+- **client-maintenance:** redesign attestation as a signing sheet prefilled with the controller
+- **client-maintenance:** reuse onboarding question tree for outstanding questions
+- **client-maintenance:** let a replacement controller own through an intermediary
+- **client-maintenance:** reserve accent fills for page-level status
+- **client-maintenance:** add shared tree connectors and ownership picker
+- **client-maintenance:** scroll page content between a fixed header and footer
+- **client-maintenance:** show birth dates and reveal masked identifiers on request
+- **css:** add validation to filter unsafe CSS values in theme conversion
+
+#### Bug Fixes
+
+- **dropzone:** keep size error when other files in the same drop are accepted
+- **onboarding:** default document upload limit to 2 MB
+- **client-maintenance:** route clients with unreviewed parties to onboarding
+
 ## [0.17.18] - 2026-10-13
 
 ### Changes

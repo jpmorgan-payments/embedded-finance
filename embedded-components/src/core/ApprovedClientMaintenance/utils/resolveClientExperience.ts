@@ -4,6 +4,7 @@ import {
   type MaintenanceClient,
   type MaintenanceParty,
 } from '../models/maintenanceApi.types';
+import { getUnreviewedPartyIds } from './getUnreviewedPartyIds';
 
 export type ClientExperienceResolution =
   | { kind: 'onboarding' }
@@ -36,6 +37,10 @@ export function resolveClientExperience({
     isActiveMaintenanceStatus(request.status)
   );
   if (hasActiveMaintenance) return { kind: 'maintenance' };
+
+  if (getUnreviewedPartyIds(client, maintenanceParties ?? []).size > 0) {
+    return { kind: 'onboarding' };
+  }
 
   const hasMaintenanceHistory = requests.some((request) =>
     isTerminalMaintenanceStatus(request.status)

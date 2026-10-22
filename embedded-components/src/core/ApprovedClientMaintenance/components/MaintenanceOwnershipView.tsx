@@ -19,6 +19,7 @@ import {
   MaintenanceOwnershipTree,
   type OwnershipNodeAction,
 } from './MaintenanceOwnershipTree';
+import { MaintenancePageBody } from './MaintenancePageBody';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
 
 export function MaintenanceOwnershipView({
@@ -203,27 +204,29 @@ export function MaintenanceOwnershipView({
           {t('ownership.description')}
         </p>
       </header>
-      <section
-        className="eb-border-b eb-p-4 @[40rem]:eb-p-5"
-        aria-label={tString('ownership.title')}
-      >
-        <MaintenanceOwnershipTree
-          clientPartyId={clientPartyId}
-          clientName={clientName}
-          parties={parties}
-          nodeChanges={nodeChanges}
-          previousParentIds={previousParentIds}
-          getPartyStatus={getPartyStatus}
-          canAddBeneficialOwner={canAddOwner}
-          canAddIntermediary={canManageIndirectOwnership}
-          ownerLimitReached={ownerLimitReached}
-          getPartyActions={getPartyActions}
-          onSelectOwner={onSelectOwner}
-          onSelectBusiness={onSelectBusiness}
-          onAddBeneficialOwner={onAddBeneficialOwner}
-          onAddIntermediary={onAddIntermediary}
-        />
-      </section>
+      <MaintenancePageBody>
+        <section
+          className="eb-p-4 @[40rem]:eb-p-5"
+          aria-label={tString('ownership.title')}
+        >
+          <MaintenanceOwnershipTree
+            clientPartyId={clientPartyId}
+            clientName={clientName}
+            parties={parties}
+            nodeChanges={nodeChanges}
+            previousParentIds={previousParentIds}
+            getPartyStatus={getPartyStatus}
+            canAddBeneficialOwner={canAddOwner}
+            canAddIntermediary={canManageIndirectOwnership}
+            ownerLimitReached={ownerLimitReached}
+            getPartyActions={getPartyActions}
+            onSelectOwner={onSelectOwner}
+            onSelectBusiness={onSelectBusiness}
+            onAddBeneficialOwner={onAddBeneficialOwner}
+            onAddIntermediary={onAddIntermediary}
+          />
+        </section>
+      </MaintenancePageBody>
       <MaintenanceViewNavigation backLabel={backLabel} onBack={onBack} />
     </div>
   );

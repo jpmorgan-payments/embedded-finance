@@ -54,14 +54,11 @@ Embedded Payments provides webhook notifications for the following event categor
 | `ACCOUNT_CREATED` | New account successfully created | Medium |
 | `ACCOUNT_CLOSED` | Account has been closed | Medium |
 | `ACCOUNT_OVERDRAWN` | Account has negative balance | High |
-| `RECIPIENT_ACCOUNT_VALIDATION` | Subscription event type for all recipient validation events (see granular types below) | Medium |
-| `RECIPIENT_READY_FOR_VALIDATION` | Microdeposits sent, ready for verification | Medium |
-| `RECIPIENT_READY_FOR_VALIDATION_REMINDER` | Validation expires in 3 days | Medium |
-| `RECIPIENT_READY_FOR_VALIDATION_EXPIRED` | Validation window closed | Medium |
+| `RECIPIENT_ACCOUNT_VALIDATION` | Linked account microdeposit validation: ready to verify, 3 days left, or window expired (see below) | Medium |
 | `RECIPIENT_UPDATED` | Recipient banking info updated after a Notification of Change (NOC) | Medium |
 | `THRESHOLD_LIMIT` | Program-level negative balance limits reached | Critical |
 
-> **Note**: When creating a webhook subscription, use `RECIPIENT_ACCOUNT_VALIDATION` as the `eventType`. The granular event types (`RECIPIENT_READY_FOR_VALIDATION`, `RECIPIENT_READY_FOR_VALIDATION_REMINDER`, `RECIPIENT_READY_FOR_VALIDATION_EXPIRED`) appear in the notification payloads you receive.
+> **Note**: `RECIPIENT_ACCOUNT_VALIDATION` is both the `eventType` you subscribe to and the `eventType` you receive. It replaced `RECIPIENT_READY_FOR_VALIDATION`, `RECIPIENT_READY_FOR_VALIDATION_REMINDER` and `RECIPIENT_READY_FOR_VALIDATION_EXPIRED` ([Embedded Payments changelog](https://developer.payments.jpmorgan.com/api/embedded-finance-solutions/embedded-payments/changelog), April 30, 2025). Tell the three cases apart with `status` and `daysUntilExpiry` in the recipient payload, as shown in [Recipient (Linked Account) Events](#recipient-linked-account-events--ux-recommendations).
 
 ## Personas and UX Patterns
 
@@ -147,10 +144,12 @@ Embedded Payments provides webhook notifications for the following event categor
 
 | Events | Description | Suggested UX Approach |
 |--------|-------------|----------------------|
-| **Ready for validation** | Microdeposits sent | "Check your bank and verify amounts." Provide verification form. |
-| **Validation reminder** | 17 days elapsed, 3 days remaining | Urgent reminder with deadline. Prominent verification CTA. |
-| **Validation expired** | 20 days passed without verification | Expiry notice. Guide to restart process. |
-| **Recipient updated (NOC)** | Recipient banking info auto-corrected after NOC | Confirmation that recipient details were updated. Show old vs new values if available. Prompt to review linked account. |
+| **Ready for validation** | Microdeposits sent. `RECIPIENT_ACCOUNT_VALIDATION` with `status: READY_FOR_VALIDATION` | "Check your bank and verify amounts." Provide verification form. |
+| **Validation reminder** | 17 days elapsed, 3 days remaining. `RECIPIENT_ACCOUNT_VALIDATION` with `status: READY_FOR_VALIDATION` and `daysUntilExpiry: 3` | Urgent reminder with deadline. Prominent verification CTA. |
+| **Validation expired** | 20 days passed without verification. `RECIPIENT_ACCOUNT_VALIDATION` with `status: INACTIVE` and `daysUntilExpiry: 0` | Expiry notice. Guide to restart process. |
+| **Recipient updated (NOC)** | Recipient banking info auto-corrected after NOC. `RECIPIENT_UPDATED` | Confirmation that recipient details were updated. Show old vs new values if available. Prompt to review linked account. |
+
+> **Note**: Because one event type covers all three validation cases, branch on `status` and `daysUntilExpiry` rather than on `eventType`, and confirm the current state with `GET /recipients/{id}` before changing what your client sees.
 
 #### Core UX Principles
 

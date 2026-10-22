@@ -325,6 +325,8 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
         if (props.onDrop) {
           props.onDrop(acceptedFiles, fileRejections, event);
         } else {
+          // Clear before processing so size errors from this drop stay visible
+          setErrorMessage('');
           // Handle file compression if needed
           const processedFiles = await handleFileCompression(acceptedFiles);
 
@@ -336,7 +338,6 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
 
             onChange?.(newFiles);
             setFilesUploaded(newFiles);
-            setErrorMessage('');
           }
 
           if (fileRejections.length > 0) {

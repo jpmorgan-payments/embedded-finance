@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   extractQuestionIdFromMessage,
   formatErrorMessage,
-} from './OperationalDetailsForm';
+} from './questionForm';
 
 describe('OperationalDetailsForm helpers', () => {
   describe('extractQuestionIdFromMessage', () => {

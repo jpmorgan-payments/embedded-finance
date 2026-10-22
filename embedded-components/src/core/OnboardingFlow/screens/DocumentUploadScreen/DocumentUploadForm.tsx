@@ -25,7 +25,10 @@ import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUn
 import { getPartyName } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { DocumentRequestCard } from './DocumentRequestCard';
-import { UploadedDocument } from './documentUploadUtils';
+import {
+  DEFAULT_MAX_FILE_SIZE_BYTES,
+  UploadedDocument,
+} from './documentUploadUtils';
 
 type DocumentRequirements = NonNullable<
   DocumentRequestResponse['requirements']
@@ -235,8 +238,10 @@ function computeActiveRequirements(
  */
 export const DocumentUploadForm = () => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
-  const { clientData, docUploadMaxFileSizeBytes = 2 * 1024 * 1024 } =
-    useOnboardingContext();
+  const {
+    clientData,
+    docUploadMaxFileSizeBytes = DEFAULT_MAX_FILE_SIZE_BYTES,
+  } = useOnboardingContext();
   const queryClient = useQueryClient();
 
   const { goTo, goBack, editingPartyIds } = useFlowContext();

@@ -81,6 +81,7 @@ export type SectionScreenId =
   | 'owners-section'
   | 'additional-questions-section'
   | 'review-attest-section'
+  | 'requested-questions-section'
   | 'upload-documents-section';
 
 export type ScreenConfig = StaticScreenConfig | SectionScreenConfig;
@@ -198,6 +199,8 @@ export type FlowSessionData = {
   isPTCQuestionAnswered?: boolean;
   /** Delta mode: which Overview view the user last selected ('delta' pending-fields vs 'full' section list). */
   overviewViewMode?: 'delta' | 'full';
+  /** Set once the user has answered every question in an information request this session. */
+  requestedQuestionsSubmitted?: boolean;
 };
 
 export type StepperStepProps = {

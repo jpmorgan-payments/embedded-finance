@@ -1,6 +1,10 @@
 import { v5 as uuidv5 } from 'uuid';
 
-import type { DocumentRequestResponse } from '@/api/generated/smbdo.schemas';
+import type {
+  DocumentRequestResponse,
+  QuestionResponse,
+} from '@/api/generated/smbdo.schemas';
+import { isTopLevelQuestion } from '@/core/OnboardingFlow/utils/questionTree';
 
 import type { MaintenanceClient } from '../models/maintenanceApi.types';
 import type { MaintenanceProjection } from './buildMaintenanceProjection';
@@ -114,7 +118,9 @@ export function getMaintenanceSubmissionBlockers(
   client: MaintenanceClient,
   projection: MaintenanceProjection,
   documentRequests: DocumentRequestResponse[],
-  isDocumentDiscoveryPending: boolean
+  isDocumentDiscoveryPending: boolean,
+  /** The loaded question tree, so follow-ups count with the question that opened them. */
+  questions: QuestionResponse[] = []
 ): MaintenanceSubmissionBlocker[] {
   const blockers: MaintenanceSubmissionBlocker[] = [];
   const outstanding = client.outstanding;
@@ -127,7 +133,15 @@ export function getMaintenanceSubmissionBlockers(
   }
   if (projection.hasConflicts) addBlocker('conflict', 1);
   addBlocker('unresolved', projection.unresolvedProposals.length);
-  addBlocker('questions', outstanding?.questionIds?.length ?? 0);
+  addBlocker(
+    'questions',
+    (outstanding?.questionIds ?? []).filter((questionId) => {
+      const question = questions.find(
+        (candidate) => candidate.id === questionId
+      );
+      return !question || isTopLevelQuestion(question, questions);
+    }).length
+  );
   addBlocker('parties', getOutstandingPartyRequirements(projection).length);
   addBlocker('roles', outstanding?.partyRoles?.length ?? 0);
   addBlocker('attestations', outstanding?.attestationDocumentIds?.length ?? 0);

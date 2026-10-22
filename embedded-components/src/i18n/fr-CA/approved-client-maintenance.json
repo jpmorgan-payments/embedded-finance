@@ -14,7 +14,7 @@
     "default": "Examinez l'état du profil et effectuez les actions disponibles avant de continuer.",
     "INFORMATION_REQUESTED": {
       "title": "Le profil du client nécessite des renseignements supplémentaires",
-      "description": "Fournissez les éléments demandés afin que l'examen de vos changements soumis puisse se poursuivre."
+      "description": "Fournissez les éléments demandés afin que l'examen de votre demande de maintenance puisse se poursuivre."
     },
     "REVIEW_IN_PROGRESS": {
       "title": "Le profil du client est en cours d'examen",
@@ -33,13 +33,46 @@
       "product": "Mise à niveau du produit",
       "combined": "Mise à niveau du produit et demande de maintenance"
     },
-    "requestDetails": "Détails de la demande"
+    "changesReady_one": "{{count}} changement prêt pour l'examen",
+    "changesReady_other": "{{count}} changements prêts pour l'examen",
+    "changesSaved_one": "{{count}} changement enregistré",
+    "changesSaved_other": "{{count}} changements enregistrés",
+    "requirementsHint": "Certains éléments sont requis avant de soumettre."
+  },
+  "home": {
+    "changesTitle": "Apporter un changement",
+    "changesCaption": "Commencez ici un changement courant, ou sélectionnez un élément du profil pour le consulter ou le modifier.",
+    "tasks": {
+      "editBusiness": {
+        "title": "Mettre à jour les renseignements de l'entreprise",
+        "description": "Corrigez le nom, l'adresse ou les coordonnées de l'entreprise."
+      },
+      "addOwner": {
+        "title": "Ajouter un bénéficiaire effectif",
+        "description": "Une personne qui détient maintenant 25 % ou plus de l'entreprise."
+      },
+      "replaceController": {
+        "title": "Remplacer le contrôleur",
+        "description": "Confiez la gestion du profil de l'entreprise à une autre personne."
+      }
+    },
+    "ownershipEntry": {
+      "editable": "Voyez qui détient l'entreprise, et ajoutez, déplacez ou retirez les entreprises par lesquelles les propriétaires détiennent leur participation.",
+      "readOnly": "Voyez qui détient l'entreprise et comment la participation est détenue."
+    }
+  },
+  "upgrade": {
+    "eyebrow": "Offert à cette entreprise",
+    "description": {
+      "LIMITED_DDA": "Ajoutez le sous-produit DDA limitée à Embedded Payments.",
+      "LIMITED_DDA_PAYMENTS": "Ajoutez des capacités de paiement à votre sous-produit DDA limitée existant."
+    }
   },
   "products": "Produits",
   "product": "Produit",
   "subProduct": "Sous-produit",
   "people": "Parties liées",
-  "peopleDescription": "Rôles clés et entreprises intermédiaires",
+  "peopleDescription": "Qui gère et détient l'entreprise",
   "peopleAreas": {
     "controller": "Contrôleur",
     "controllerCaption": "Principal contact de gestion",
@@ -51,7 +84,6 @@
     "ownershipCaption_other": "{{count}} bénéficiaires effectifs détenant au moins 25 %"
   },
   "sectionCaption": {
-    "organization": "Entité juridique au dossier",
     "profileDetails": "Valeurs approuvées au dossier",
     "updates": "Les changements s’appliquent à votre profil une fois soumis et approuvés.",
     "partyUpdates": {
@@ -115,7 +147,7 @@
   "notProvided": "S.O.",
   "flow": {
     "title": "Profil de l'entreprise",
-    "changeSet": "ID de la demande : {{requestId}}",
+    "changeSet": "Référence {{requestId}}",
     "moreActions": "Autres actions",
     "documentsNeeded": "Documents requis",
     "uploadDocuments": "Téléverser les documents",
@@ -194,7 +226,7 @@
       "combined": "Mise à niveau du produit et demande de maintenance"
     },
     "description": {
-      "maintenance": "Les changements de l’entreprise et des parties liées de cette demande, et ce qu’il vous reste à fournir.",
+      "maintenance": "Les changements de l’entreprise et des parties liées de cette demande de maintenance, et ce qu’il vous reste à fournir.",
       "product": "La mise à niveau du produit que vous avez soumise, et ce qu’il vous reste à fournir.",
       "combined": "La mise à niveau du produit et les changements du profil que vous avez soumis, et ce qu’il vous reste à fournir."
     },
@@ -267,7 +299,7 @@
     "jobTitle": "Titre du poste",
     "email": "Courriel",
     "phone": "Téléphone",
-    "ownership": "Relation de propriété",
+    "ownership": "Nature de la propriété",
     "roles": "Rôles dans ce profil",
     "identification": "Pièce d'identité gouvernementale",
     "address": "Adresse résidentielle"
@@ -294,6 +326,8 @@
     "replacementDescription": "Choisissez le nouveau contrôleur. Il remplace le contrôleur actuel.",
     "beneficialOwnerDescription": "Ajoutez une personne qui détient directement au moins 25 % de l'entreprise.",
     "indirectOwnerDescription": "Ajoutez la personne qui détient ultimement au moins 25 % par l'intermédiaire de cette entreprise.",
+    "connectionDirect": "Détient {{name}} directement",
+    "connectionIndirect": "Détient par l'intermédiaire de {{name}}",
     "caption": "Identité et propriété",
     "role": "Rôle",
     "roleDescription": "Choisissez la responsabilité de cette personne au sein de l'entreprise.",
@@ -312,8 +346,14 @@
     "ssn": "Numéro de sécurité sociale",
     "residentialAddress": "Adresse résidentielle",
     "addressDescription": "Saisissez l'adresse où cette personne réside actuellement.",
-    "alsoBeneficialOwner": "Cette personne est aussi bénéficiaire effectif direct",
-    "alsoBeneficialOwnerDescription": "Une fois approuvé, cette personne sera contrôleur et bénéficiaire effectif direct.",
+    "alsoBeneficialOwner": "Cette personne est aussi bénéficiaire effectif",
+    "alsoBeneficialOwnerDescription": "Une fois approuvé, cette personne sera contrôleur et bénéficiaire effectif.",
+    "ownershipPath": {
+      "label": "Comment la participation est détenue",
+      "description": "La plupart des propriétaires la détiennent directement. Choisissez une entreprise seulement si la participation est détenue par son entremise.",
+      "direct": "Directement dans votre entreprise",
+      "through": "Par l'entremise de {{name}}"
+    },
     "roles": {
       "CONTROLLER": "Contrôleur",
       "BENEFICIAL_OWNER": "Bénéficiaire effectif"
@@ -375,8 +415,10 @@
     "moveTitle": "Modifier le lien de propriété de {{name}}",
     "moveDescriptionDirect": "{{name}} détient votre entreprise directement. Choisissez l’entreprise par laquelle la participation est détenue.",
     "moveDescriptionIndirect": "{{name}} détient sa participation par {{currentParentName}}. Choisissez un autre lien.",
-    "moveDirectOption": "Détient votre entreprise directement",
     "moveConfirm": "Mettre à jour le lien",
+    "moveCurrent": "Position actuelle",
+    "moveResult": "Nouvelle position",
+    "moveDestinationLabel": "Choisissez un nouveau lien",
     "retryRemaining": "Réessayer les changements restants",
     "moveNotRecorded": "Le lien n’a pas été mis à jour.",
     "cancel": "Annuler"
@@ -429,34 +471,35 @@
   "questions": {
     "title": "Questions supplémentaires",
     "description": "Répondez aux questions requises afin que l'examen puisse se poursuivre.",
-    "sectionTitle": "Questions",
     "loading": "Chargement des questions",
     "progress": "{{answered}} sur {{total}} répondues",
+    "newQuestions": "Vos réponses ont ouvert quelques questions de plus. Répondez-y pour continuer.",
     "emptyTitle": "Les questions n'ont pas pu être chargées",
     "emptyDescription": "Retournez à l'examen et réessayez. La soumission demeure indisponible jusqu'à ce que toutes les questions demandées soient retournées.",
-    "select": "Sélectionnez une réponse",
-    "yes": "Oui",
-    "no": "Non",
     "cancel": "Retour à l'examen",
     "save": "Enregistrer les réponses"
   },
   "attestation": {
     "title": "Examiner et attester",
-    "description": "Examinez chaque document requis et confirmez les renseignements ci-dessous.",
-    "sectionTitle": "Attestation",
+    "description": "Ouvrez chaque document, puis signez ci-dessous pour en attester le contenu.",
     "document": "Document d'attestation {{number}}",
-    "documentsTitle": "Examiner les documents requis",
-    "documentsDescription": "Ouvrez chaque document avant de saisir les renseignements sur la personne qui fait cette attestation.",
-    "progress": "{{reviewed}} sur {{total}} examinés",
-    "review": "Examiner le document",
-    "opened": "Examiné",
-    "signerTitle": "Personne qui fait cette attestation",
-    "signerDescription": "Saisissez votre nom légal et votre rôle au sein de l'entreprise.",
-    "signerLocked": "Examinez chaque document requis pour déverrouiller les renseignements du signataire.",
+    "documentsTitle": "Documents",
+    "progress": "{{opened}} sur {{total}} ouverts",
+    "open": "Ouvrir",
+    "download": "Télécharger {{name}}",
+    "opened": "Ouvert",
+    "notOpened": "Pas encore ouvert",
+    "popupBlocked": "Votre navigateur a empêché l'ouverture du document dans un nouvel onglet. Autorisez les fenêtres contextuelles pour ce site ou téléchargez-le.",
+    "signatureTitle": "Signature",
+    "date": "Date",
+    "signerTitle": "Signataire",
+    "signerFromController": "Rempli à partir du contrôleur de l'entreprise. Modifiez-le si une autre personne signe.",
+    "signerDescription": "Saisissez le nom légal et le titre du poste de la personne qui signe.",
+    "editSigner": "Modifier",
     "designation": "Titre du poste",
-    "designationPlaceholder": "Par exemple, PDG, contrôleur ou associé",
-    "designationDescription": "Utilisez votre titre ou votre rôle au sein de l'entreprise.",
-    "confirmation": "J'ai examiné les documents requis et j'atteste que les renseignements sont complets et exacts.",
+    "designationDescription": "Son titre ou son rôle au sein de l'entreprise, comme PDG ou associé.",
+    "confirmation": "J'ai lu chaque document ci-dessus et j'en atteste le contenu.",
+    "confirmationLocked": "Ouvrez d'abord chaque document.",
     "cancel": "Retour à l'examen",
     "save": "Soumettre l'attestation"
   },
@@ -528,27 +571,29 @@
   "ownerRelationship": {
     "title": "Lien de propriété",
     "addTitle": "Ajouter un bénéficiaire effectif",
-    "addDescription": "Choisissez d’abord si ce propriétaire détient sa participation directement ou par l’intermédiaire d’une entreprise.",
+    "addDescription": "Une personne qui détient 25 % ou plus de l'entreprise, directement ou par l'intermédiaire d'autres entreprises.",
     "controllerTitle": "Ajouter le rôle de bénéficiaire effectif",
-    "controllerDescription": "Choisissez comment {{name}} détient sa participation.",
-    "changeTitle": "Choisir où {{name}} est lié",
+    "controllerDescription": "{{name}} reste le contrôleur et figure aussi comme bénéficiaire effectif.",
+    "changeTitle": "Modifier la façon dont {{name}} détient l'entreprise",
     "changeDescription": "Choisissez l’entreprise par laquelle la personne détient sa participation, ou ajoutez-en une nouvelle.",
     "newOwner": "le nouveau propriétaire",
-    "directTitle": "Détient directement votre entreprise",
-    "directDescription": "Choisissez cette option lorsqu'aucune autre entreprise ne se trouve entre le propriétaire et le client.",
-    "directPath": "Résultat : Entreprise cliente → Propriétaire",
-    "indirectTitle": "Détient par l'intermédiaire d'une autre entreprise",
-    "indirectDescription": "Choisissez cette option lorsque la participation est détenue par une entreprise intermédiaire. Sélectionnez une entreprise existante ou ajoutez d'abord l'intermédiaire.",
-    "chooseBusiness": "Entreprises existantes",
+    "newOwnerNode": "Nouveau propriétaire",
+    "connectionQuestion": "Comment la propriété de l'entreprise est-elle détenue par {{name}}?",
+    "directTitle": "Directement",
+    "directDescription": "La participation dans votre entreprise est détenue à titre personnel.",
+    "indirectTitle": "Par l'intermédiaire d'une autre entreprise",
+    "indirectDescription": "La participation est détenue par une ou plusieurs entreprises intermédiaires.",
+    "businessQuestion": "Quelle entreprise relie {{name}} à votre entreprise?",
     "addBusiness": "Ajouter une nouvelle entreprise intermédiaire",
-    "changeFirstBusinessDescription": "Il n’y a encore aucune entreprise intermédiaire. Ajoutez l’entreprise qui se trouve entre {{name}} et votre entreprise."
+    "addBusinessDescription": "Vous saisirez ses renseignements à l'étape suivante.",
+    "changeFirstBusinessDescription": "Il n’y a encore aucune entreprise intermédiaire. Ajoutez l’entreprise qui se trouve entre {{name}} et votre entreprise.",
+    "continue": "Continuer"
   },
   "controllerReplacement": {
     "title": "Choisir un contrôleur de remplacement",
-    "description": "Sélectionnez une personne existante directement liée à cette entreprise ou ajoutez une nouvelle personne.",
+    "description": "Sélectionnez une personne existante du profil de l'entreprise ou ajoutez une nouvelle personne.",
     "existingTitle": "Utiliser une personne existante",
     "existingDescription": "Ses rôles actuels et les renseignements de son profil seront conservés.",
-    "selectDescription": "Désigner cette personne comme contrôleur",
     "emptyTitle": "Aucune personne existante n’est disponible",
     "emptyDescription": "Ajoutez une nouvelle personne pour poursuivre le remplacement du contrôleur.",
     "addNew": "Ajouter une nouvelle personne"
@@ -596,6 +641,8 @@
   "submission": {
     "draftExplanation": "Vos changements en attente sont enregistrés et n'ont pas été soumis pour examen.",
     "reviewAndSubmit": "Examiner et soumettre",
+    "blockedHint": "La soumission sera possible une fois tous les éléments ci-dessus terminés.",
+    "confirmHint": "Confirmez les deux déclarations pour soumettre.",
     "backToProfile": "Retour au profil de l'entreprise",
     "reviewTitle": "Examinez vos changements",
     "reviewDescription": {
@@ -605,7 +652,7 @@
     },
     "submittedChangesTitle": "Changements soumis",
     "submittedChangesDescription": "Voici les changements en cours d'examen.",
-    "reviewUpdated": "Les changements en attente ont été mis à jour pendant votre examen. Examinez les derniers changements avant de confirmer.",
+    "reviewUpdated": "Ces changements ont été mis à jour pendant votre examen. Vérifiez les derniers changements, puis confirmez de nouveau.",
     "profileUpdates": "Changements du profil",
     "edit": "Modifier",
     "returnToProfile": "Retour au profil de l'entreprise",
@@ -727,8 +774,6 @@
     "contactTitle": "Coordonnées",
     "contactDescription": "Vérifiez ou mettez à jour la meilleure adresse courriel et le meilleur numéro de téléphone pour cette personne.",
     "phoneCountryCode": "Indicatif de pays",
-    "personalDetailsTitle": "Renseignements personnels",
-    "personalDetailsDescription": "Les dates de naissance sont masquées partout à l'extérieur de ce formulaire.",
     "dbaName": "Nom commercial",
     "addresses": "Adresse de l'entreprise",
     "address": {

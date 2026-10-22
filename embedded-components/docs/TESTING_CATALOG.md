@@ -6,7 +6,7 @@ This document describes test cases created to guide Sandbox testing of Embedded 
 > All data is mock data and should not be used in production.
 
 > [!NOTE]
-> **Integration types covered:** This test catalog covers both **API-only integration** and **Partially Hosted UI integration**. For details on the Partially Hosted UI integration pattern (iframe-based onboarding, document upload, payments, and more), see the [Hosted Onboarding UI Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md).
+> **Integration types covered:** This test catalog covers both **API-only integration** and **Partially Hosted UI integration**. For details on the Partially Hosted UI integration pattern (iframe-based onboarding, document upload, payments, and more), see the [Hosted Onboarding UI Integration Guide](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md).
 
 > [!NOTE]
 > **Pre-created resources for exploration:** J.P. Morgan will share pre-created Client IDs in `APPROVED` state along with other pre-created resources (accounts, linked accounts, etc.) for your team to explore and test against without needing to complete the full onboarding flow first. Contact your J.P. Morgan implementation representative for these details.

@@ -18,11 +18,16 @@ export function MaintenanceDocumentRequestRow({
   return (
     <button
       type="button"
-      className="eb-flex eb-w-full eb-items-center eb-gap-3 eb-bg-warning-accent eb-px-4 eb-py-3.5 eb-text-left hover:eb-bg-warning-accent/70 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring disabled:eb-cursor-default"
+      className="eb-flex eb-w-full eb-items-center eb-gap-3 eb-bg-background eb-px-4 eb-py-3 eb-text-left hover:eb-bg-muted/40 focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring disabled:eb-cursor-default"
       onClick={() => documentRequest.id && onSelect(documentRequest.id)}
       disabled={!documentRequest.id || isComplete}
     >
-      <FileTextIcon className="eb-size-5 eb-shrink-0 eb-text-warning" />
+      <span
+        aria-hidden="true"
+        className="eb-flex eb-size-8 eb-shrink-0 eb-items-center eb-justify-center eb-rounded-full eb-bg-warning-accent eb-text-warning-foreground"
+      >
+        <FileTextIcon className="eb-size-4" />
+      </span>
       <span className="eb-min-w-0 eb-flex-1">
         <span className="eb-block eb-text-sm eb-font-medium">
           {t('entity.documentRequest')}

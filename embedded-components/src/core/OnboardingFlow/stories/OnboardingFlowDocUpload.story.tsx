@@ -15,7 +15,13 @@ import type { OnboardingFlowProps } from '../types/onboarding.types';
 import {
   commonArgs,
   commonArgTypes,
+  defaultHandlers as dbBackedHandlers,
+  DEFAULT_CLIENT_ID,
+  mockClientApprovedWithOutstandingItems,
+  mockClientInfoRequestedQuestionsOnly,
+  mockClientInfoRequestedWithQuestions,
   OnboardingFlowTemplate,
+  resetAndSeedClient,
 } from './story-utils';
 
 type OnboardingFlowStoryArgs = OnboardingFlowProps & BaseStoryArgs;
@@ -54,6 +60,11 @@ const defaultHandlers = [
     return HttpResponse.json({
       ...efClientCorpEBMock,
       status: 'INFORMATION_REQUESTED',
+      outstanding: {
+        ...efClientCorpEBMock.outstanding,
+        attestationDocumentIds: [],
+        questionIds: [],
+      },
     });
   }),
   http.get('/document-requests/68805', () => {
@@ -119,7 +130,7 @@ type Story = StoryObj<OnboardingFlowStoryArgs>;
  * Standard document upload flow with multiple document requests.
  */
 export const DocsRequested: Story = {
-  name: 'Documents Requested',
+  name: 'Documents requested',
   parameters: {
     msw: {
       handlers: [
@@ -154,7 +165,7 @@ export const DocsRequested: Story = {
  * Document request that requires multiple documents to be uploaded.
  */
 export const DocsRequestedMultipleDocsInRequirement: Story = {
-  name: 'Multiple Docs Required',
+  name: 'Documents requested — multiple per requirement',
   parameters: {
     msw: {
       handlers: [
@@ -283,7 +294,7 @@ export const DocsRequestedMultipleDocsInRequirement: Story = {
  * Empty state when no documents are requested.
  */
 export const NoDocsRequested: Story = {
-  name: 'No Documents Requested',
+  name: 'No documents requested',
   parameters: {
     msw: {
       handlers: [
@@ -306,12 +317,97 @@ export const NoDocsRequested: Story = {
   },
 };
 
+// =============================================================================
+// Information requests with questions (MSW db-backed)
+// =============================================================================
+
+/**
+ * **Information requested — documents + questions**
+ *
+ * The information request asks for documents and answers to questions. A
+ * "Questions for you" card links to the questions screen; the client returns
+ * to review once every document is submitted and every question answered.
+ */
+export const DocsAndQuestionsRequested: Story = {
+  name: 'Information requested — documents + questions',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientInfoRequestedWithQuestions,
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  parameters: {
+    msw: {
+      handlers: dbBackedHandlers,
+    },
+  },
+  args: {
+    clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
+/**
+ * **Information requested — questions only**
+ *
+ * The information request contains only questions, so there is nothing to
+ * upload and no "no document requests" error is shown.
+ */
+export const QuestionsOnlyRequested: Story = {
+  name: 'Information requested — questions only',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientInfoRequestedQuestionsOnly,
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  parameters: {
+    msw: {
+      handlers: dbBackedHandlers,
+    },
+  },
+  args: {
+    clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
+/**
+ * **Approved — outstanding items (documents + questions)**
+ *
+ * A request for information raised after approval. The status stays
+ * `APPROVED`; the outstanding document and questions are still collected here.
+ */
+export const ApprovedWithOutstandingItems: Story = {
+  name: 'Approved — outstanding items (documents + questions)',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientApprovedWithOutstandingItems,
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  parameters: {
+    msw: {
+      handlers: dbBackedHandlers,
+    },
+  },
+  args: {
+    clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
+// =============================================================================
+// Loading & error states
+// =============================================================================
+
 /**
  * **Loading State**
  *
  * Loading state while fetching document requests (10 second delay).
  */
 export const LoadingState: Story = {
+  name: 'Loading',
   parameters: {
     msw: {
       handlers: [
@@ -336,6 +432,7 @@ export const LoadingState: Story = {
  * Error state when fetching document requests fails.
  */
 export const ErrorOnGet: Story = {
+  name: 'Error — loading document requests',
   parameters: {
     msw: {
       handlers: [
@@ -357,6 +454,7 @@ export const ErrorOnGet: Story = {
  * State when no clientId is provided.
  */
 export const NoClientFound: Story = {
+  name: 'Error — no client ID',
   args: {
     clientId: '',
   },
@@ -368,7 +466,7 @@ export const NoClientFound: Story = {
  * Error state when document upload fails.
  */
 export const ErrorOnUploadDocument: Story = {
-  name: 'Error on Upload',
+  name: 'Error — uploading a document',
   parameters: {
     msw: {
       handlers: [
@@ -403,7 +501,7 @@ export const ErrorOnUploadDocument: Story = {
  * Error state when document submission fails.
  */
 export const ErrorOnSubmitDocument: Story = {
-  name: 'Error on Submit',
+  name: 'Error — submitting a document request',
   parameters: {
     msw: {
       handlers: [

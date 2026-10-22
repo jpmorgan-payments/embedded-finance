@@ -17,6 +17,7 @@ import {
   DEFAULT_CLIENT_ID,
   defaultHandlers,
   mockClientInfoRequested,
+  mockClientInfoRequestedWithQuestions,
   mockClientNew,
   OnboardingFlowTemplate,
   resetAndSeedClient,
@@ -174,7 +175,7 @@ export const LinkBankAccount: Story = {
 
 /** INFORMATION_REQUESTED + outstanding doc requests — upload section timeline entry. */
 export const UploadDocumentsInformationRequested: Story = {
-  name: 'Upload documents section (information requested)',
+  name: 'Information requested — supporting documents',
   loaders: [
     () => resetAndSeedClient(mockClientInfoRequested, DEFAULT_CLIENT_ID),
   ],
@@ -182,6 +183,23 @@ export const UploadDocumentsInformationRequested: Story = {
     ...commonArgs,
     clientId: DEFAULT_CLIENT_ID,
     flowEntry: { screenId: 'upload-documents-section' },
+  },
+};
+
+/** INFORMATION_REQUESTED + outstanding questions — opens the questions screen. */
+export const RequestedQuestionsInformationRequested: Story = {
+  name: 'Information requested — additional information (questions)',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientInfoRequestedWithQuestions,
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: { screenId: 'requested-questions-section' },
   },
 };
 

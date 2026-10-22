@@ -491,9 +491,11 @@ const FlowRenderer: React.FC = React.memo(() => {
   useEffect(() => {
     if (
       docUploadOnlyMode &&
-      !['upload-documents-section', 'document-upload-form'].includes(
-        currentScreenId
-      )
+      ![
+        'upload-documents-section',
+        'document-upload-form',
+        'requested-questions-section',
+      ].includes(currentScreenId)
     ) {
       goTo('upload-documents-section', { resetHistory: true });
     } else if (
@@ -770,11 +772,16 @@ const FlowRenderer: React.FC = React.memo(() => {
     currentScreenId,
   });
 
+  // Delta only covers pre-submission completion; information requests on a
+  // submitted client use the regular section timeline.
+  const isClientSubmitted = !!clientData?.status && clientData.status !== 'NEW';
+
   const deltaTimelineSections: TimelineSection[] | undefined = (() => {
     const onOverview = currentScreenId === 'overview';
     const onReviewAttest = currentScreenId === 'review-attest-section';
     const showDeltaTimeline =
       deltaModeActive &&
+      !isClientSubmitted &&
       (onOverview || onReviewAttest) &&
       sessionData.overviewViewMode !== 'full';
     if (!showDeltaTimeline) {

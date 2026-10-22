@@ -1,7 +1,15 @@
 import { act } from 'react';
 import { render as testingLibraryRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type MockInstance,
+} from 'vitest';
 import { render, screen, waitFor } from '@test-utils';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
@@ -298,6 +306,46 @@ describe('Dropzone', () => {
         ).toBeInTheDocument();
       });
     });
+
+    it('keeps the size error when other files in the same drop are accepted', async () => {
+      const { onChange } = renderDropzone({
+        multiple: true,
+        fileMaxSize: 1 * 1024 * 1024,
+      });
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      const smallPdf = pdfFile();
+      await dropFiles(input, [smallPdf, largeFile()]);
+
+      await waitFor(() => {
+        expect(onChange).toHaveBeenCalledWith([smallPdf]);
+      });
+      expect(
+        screen.getByText(/File size exceeds the maximum allowed size/i)
+      ).toBeInTheDocument();
+    });
+
+    it('clears a previous size error when the next drop is accepted', async () => {
+      renderDropzone({ multiple: true, fileMaxSize: 1 * 1024 * 1024 });
+
+      const input = document.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      await dropFiles(input, [largeFile()]);
+      expect(
+        await screen.findByText(/File size exceeds the maximum allowed size/i)
+      ).toBeInTheDocument();
+
+      await dropFiles(input, [pdfFile()]);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText(/File size exceeds the maximum allowed size/i)
+        ).not.toBeInTheDocument();
+      });
+    });
   });
 
   // ─── Compression ─────────────────────────────────────────────────────────
@@ -390,6 +438,57 @@ describe('Dropzone', () => {
         expect(
           screen.getByText(/File size exceeds the maximum allowed size/i)
         ).toBeInTheDocument();
+      });
+    });
+
+    describe('size limit applies to the compressed file', () => {
+      let fetchSpy: MockInstance | undefined;
+      afterEach(() => fetchSpy?.mockRestore());
+
+      // jsdom's File can't read the Blob from Node 22's fetch, so use a jsdom Blob.
+      const compressTo = (bytes: number) => {
+        fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+          blob: async () => new Blob([new Uint8Array(bytes)]),
+        } as Response);
+        return vi.fn(async () => 'data:image/jpeg;base64,');
+      };
+
+      it('accepts an oversized original that compresses under the limit', async () => {
+        const { onChange } = renderDropzone({
+          compressionFunc: compressTo(300 * 1024),
+          compressibleExtensions: ['.png'],
+          fileMaxSize: 2 * 1024 * 1024,
+        });
+
+        const input = document.querySelector(
+          'input[type="file"]'
+        ) as HTMLInputElement;
+        await dropFiles(input, [largeFile()]);
+
+        await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+        const [[accepted]] = onChange.mock.calls[0];
+        expect(accepted.size).toBe(300 * 1024);
+        expect(
+          screen.queryByText(/exceeds the maximum allowed size/i)
+        ).not.toBeInTheDocument();
+      });
+
+      it('rejects a file whose compressed output still exceeds the limit', async () => {
+        const { onChange } = renderDropzone({
+          compressionFunc: compressTo(3 * 1024 * 1024),
+          compressibleExtensions: ['.png'],
+          fileMaxSize: 2 * 1024 * 1024,
+        });
+
+        const input = document.querySelector(
+          'input[type="file"]'
+        ) as HTMLInputElement;
+        await dropFiles(input, [largeFile()]);
+
+        expect(
+          await screen.findByText(/Even after compression/i)
+        ).toBeInTheDocument();
+        expect(onChange).not.toHaveBeenCalled();
       });
     });
   });

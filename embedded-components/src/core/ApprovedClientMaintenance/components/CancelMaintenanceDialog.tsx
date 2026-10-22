@@ -314,7 +314,7 @@ export function CancelMaintenanceDialog({
         ) : displayed.kind === 'controller-replacement' ? (
           <p
             data-discard-reason=""
-            className="eb-rounded-md eb-border eb-bg-muted/30 eb-px-3 eb-py-2 eb-text-sm"
+            className="eb-rounded-md eb-border eb-bg-muted/20 eb-px-3 eb-py-2 eb-text-sm"
           >
             {t('cancel.controllerReplacement.reason')}
           </p>

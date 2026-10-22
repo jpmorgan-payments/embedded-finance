@@ -1,12 +1,14 @@
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 import { ClientStatus } from '@/api/generated/smbdo.schemas';
+import { clientHasOpenInformationRequest } from '@/core/OnboardingFlow/utils/dataUtils';
 
 /**
  * SMBDO OpenAPI `ClientStatus` (`embedded-finance-pub-smbdo` ClientStatus schema):
  * APPROVED, DECLINED, INFORMATION_REQUESTED, NEW, REVIEW_IN_PROGRESS, SUSPENDED, TERMINATED.
  *
  * Leave/back prompts (`alertOnExit` / `alertOnPreviousStep`) apply only while the application
- * is in an editable pipeline state: draft (`NEW`) or responding to requests (`INFORMATION_REQUESTED`).
+ * is in an editable pipeline state: draft (`NEW`), responding to requests (`INFORMATION_REQUESTED`),
+ * or an `APPROVED` client responding to an open information request.
  * For every other status, sections are treated as read-only or terminal from a host UX perspective,
  * so we suppress unsaved-change prompts.
  *
@@ -17,6 +19,12 @@ export function shouldSuppressOnboardingLeaveWarnings(
 ): boolean {
   const status = clientData?.status;
   if (status === undefined) {
+    return false;
+  }
+  if (
+    status === ClientStatus.APPROVED &&
+    clientHasOpenInformationRequest(clientData)
+  ) {
     return false;
   }
   return (

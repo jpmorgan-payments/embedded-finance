@@ -120,6 +120,35 @@ describe('ClientExperience', () => {
     expect(screen.getByText('Initial onboarding')).toBeInTheDocument();
   });
 
+  test('routes an approved client with an unreviewed party to onboarding', () => {
+    const onExperienceResolved = vi.fn();
+    useMaintenanceWorkspace.mockReturnValue(
+      createWorkspace({
+        ...approvedClient,
+        parties: [
+          {
+            id: 'party-1',
+            active: true,
+            profileStatus: 'NEW',
+            roles: ['CONTROLLER'],
+            updateRequest: { action: 'ADD', status: 'TERMINATED' },
+          },
+        ],
+      })
+    );
+
+    render(
+      <ClientExperience
+        onboarding={onboardingOptions}
+        maintenance={maintenanceOptions}
+        onExperienceResolved={onExperienceResolved}
+      />
+    );
+
+    expect(screen.getByText('Initial onboarding')).toBeInTheDocument();
+    expect(onExperienceResolved).toHaveBeenCalledWith({ kind: 'onboarding' });
+  });
+
   test('blocks routing when maintenance discovery is incomplete', () => {
     const workspace = createWorkspace(approvedClient);
     workspace.maintenanceQuery.isSuccess = false;

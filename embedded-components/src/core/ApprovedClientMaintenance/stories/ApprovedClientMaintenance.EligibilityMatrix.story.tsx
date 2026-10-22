@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { ApprovedClientMaintenance } from '../ApprovedClientMaintenance';
 import { APPROVED_CLIENT_MAINTENANCE_OPERATIONS } from '../ApprovedClientMaintenance.types';
 import {
   CANADIAN_CORPORATION,
@@ -8,9 +7,7 @@ import {
   LLC_WITH_MIXED_OWNERSHIP,
 } from './support/maintenanceStoryClients';
 import {
-  maintenanceStoryArgs,
-  maintenanceStoryArgTypes,
-  maintenanceStoryDecorator,
+  maintenanceStoryMetaBase,
   withScenario,
   type MaintenanceStoryArgs,
 } from './support/maintenanceStoryMeta';
@@ -23,15 +20,11 @@ import {
  */
 const meta: Meta<MaintenanceStoryArgs> = {
   title: 'Draft/ApprovedClientMaintenance/Eligibility matrix',
-  component: ApprovedClientMaintenance,
-  decorators: [maintenanceStoryDecorator],
+  ...maintenanceStoryMetaBase,
   parameters: {
     layout: 'padded',
     ...withScenario({ client: LLC_WITH_MIXED_OWNERSHIP }),
   },
-  args: maintenanceStoryArgs,
-  argTypes: maintenanceStoryArgTypes,
-  render: (args) => <ApprovedClientMaintenance {...args} />,
 };
 
 export default meta;

@@ -21,6 +21,7 @@ import type {
   OrganizationMaintenanceEntityTask,
   PartyMaintenanceEntityTask,
 } from '../utils/buildMaintenanceEntityTasks';
+import { formatPhone } from '../utils/identifierDisplay';
 import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
@@ -29,7 +30,9 @@ import { MaintenanceChangeStatusIcon } from './MaintenanceChangeStatusIcon';
 import { MaintenanceChangeTable } from './MaintenanceChangeTable';
 import { MaintenanceDetailsGroup } from './MaintenanceDetailsGroup';
 import { MaintenanceDocumentRequestRow } from './MaintenanceDocumentRequestRow';
+import { MaintenanceIdentifierValue } from './MaintenanceIdentifierValue';
 import { MaintenanceIntermediaryOwnershipSection } from './MaintenanceIntermediaryOwnershipSection';
+import { MaintenancePageBody } from './MaintenancePageBody';
 import { MaintenanceSection } from './MaintenanceSection';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
 
@@ -63,9 +66,6 @@ const formatEnumLabel = (value: string) =>
     .split('_')
     .join(' ')
     .replace(/^./, (character) => character.toUpperCase());
-
-const maskIdentifier = (value?: string) =>
-  value ? `••••${value.slice(-4)}` : undefined;
 
 export function MaintenanceOrganizationView({
   task,
@@ -191,11 +191,14 @@ export function MaintenanceOrganizationView({
         ]),
     {
       label: t('onboarding-overview:fields.organizationIdEin.label'),
-      value: organization?.organizationIds?.[0]
-        ? `${organization.organizationIds[0].idType ?? ''} ${
-            maskIdentifier(organization.organizationIds[0].value) ?? ''
-          }`.trim()
-        : undefined,
+      value: organization?.organizationIds?.[0]?.value ? (
+        <>
+          {organization.organizationIds[0].idType}{' '}
+          <MaintenanceIdentifierValue
+            identifier={organization.organizationIds[0]}
+          />
+        </>
+      ) : undefined,
     },
   ];
   const operationsDetails = [
@@ -222,9 +225,7 @@ export function MaintenanceOrganizationView({
     },
     {
       label: t('organizationDetails.phone'),
-      value: organization?.phone?.phoneNumber
-        ? `${organization.phone.countryCode ?? ''} ••••${organization.phone.phoneNumber.slice(-4)}`.trim()
-        : undefined,
+      value: formatPhone(organization?.phone) || undefined,
     },
     {
       label: t('onboarding-overview:fields.organizationAddress.label.default'),
@@ -279,13 +280,15 @@ export function MaintenanceOrganizationView({
           <ServerErrorAlert error={documentError as never} />
         </div>
       ) : task.unresolvedDocumentRequestIds.length > 0 ? (
-        <Alert variant="warning" noTitle className="eb-m-4">
-          <AlertDescription>
-            {t('documents.unresolved', {
-              count: task.unresolvedDocumentRequestIds.length,
-            })}
-          </AlertDescription>
-        </Alert>
+        <div className="eb-p-4">
+          <Alert variant="warning" noTitle>
+            <AlertDescription>
+              {t('documents.unresolved', {
+                count: task.unresolvedDocumentRequestIds.length,
+              })}
+            </AlertDescription>
+          </Alert>
+        </div>
       ) : null}
       {!isLoadingDocuments && task.documentRequests.length > 0 ? (
         <ul className="eb-divide-y">
@@ -310,19 +313,19 @@ export function MaintenanceOrganizationView({
     <div
       className={cn(
         'eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background',
-        isPendingAddition && 'eb-border-informative/60',
+        isPendingAddition && 'eb-border-informative/50',
         isPendingRemoval && 'eb-border-destructive/50',
-        isUnreviewed && 'eb-border-warning/60'
+        isUnreviewed && 'eb-border-warning/50'
       )}
     >
       <header
         className={cn(
           'eb-border-b eb-px-4 eb-py-4',
           isPendingAddition &&
-            'eb-border-informative/50 eb-bg-informative-accent/40',
+            'eb-border-informative/50 eb-bg-informative-accent',
           isPendingRemoval &&
-            'eb-border-destructive/50 eb-bg-destructive-accent/40',
-          isUnreviewed && 'eb-border-warning/50 eb-bg-warning-accent/40'
+            'eb-border-destructive/50 eb-bg-destructive-accent',
+          isUnreviewed && 'eb-border-warning/50 eb-bg-warning-accent'
         )}
       >
         <MaintenanceBreadcrumb
@@ -449,164 +452,162 @@ export function MaintenanceOrganizationView({
         </div>
       </header>
 
-      {task.change && !isPendingAddition && !isPendingRemoval ? (
-        <MaintenanceSection
-          id="organization-updates-heading"
-          title={updateHeading}
-          icon={
-            <MaintenanceChangeStatusIcon
-              status={updateStatus}
-              className="eb-size-4 eb-shrink-0"
-            />
-          }
-          caption={updateCaption}
-          tone={
-            updateStatus === 'NEW' || updateStatus === 'REVIEW_IN_PROGRESS'
-              ? 'informative'
-              : updateStatus === 'INFORMATION_REQUESTED'
-                ? 'warning'
-                : 'default'
-          }
-          divided
-          unframed
-          actions={
-            updateStatus === 'NEW' ? (
-              <>
-                {canEdit ? (
-                  <Button variant="outlineSurface" size="sm" onClick={onEdit}>
-                    <PencilIcon />
-                    {t('changes.editDraft')}
-                  </Button>
-                ) : null}
-                {canCancel ? (
-                  <Button
-                    variant="outlineSurface"
-                    size="sm"
-                    className="eb-border-destructive/50 eb-text-destructive hover:eb-bg-destructive-accent hover:eb-text-destructive"
-                    onClick={onCancelChanges}
-                  >
-                    <Undo2Icon />
-                    {t('cancel.discardChanges')}
-                  </Button>
-                ) : null}
-              </>
-            ) : undefined
-          }
-          afterContent={
-            <Button
-              variant="outlineSurface"
-              size="sm"
-              onClick={onViewRequestDetails}
-            >
-              {t('requestDetails.viewFullRequest')}
-              <ArrowRightIcon />
-            </Button>
-          }
-        >
-          <div className="eb-overflow-hidden eb-rounded-md eb-border eb-bg-background">
-            <MaintenanceChangeTable
-              changes={task.change.fieldChanges}
-              mode={updateStatus === 'NEW' ? 'draft' : 'submitted'}
-            />
-          </div>
-          {hasRequirements ? (
-            <div className="eb-mt-4">
-              <div className="eb-overflow-hidden eb-rounded-md eb-border eb-border-warning/50 eb-bg-background">
-                {requirementsContent}
-              </div>
-            </div>
-          ) : null}
-        </MaintenanceSection>
-      ) : null}
-
-      {(!task.change || isPendingRemoval) &&
-      !isPendingAddition &&
-      hasRequirements ? (
-        <MaintenanceSection
-          id="organization-requirements-heading"
-          title={t('entity.documentRequest')}
-          tone="warning"
-          divided
-        >
-          {requirementsContent}
-        </MaintenanceSection>
-      ) : null}
-
-      <section
-        aria-labelledby="organization-details-heading"
-        className={
-          isPendingAddition
-            ? 'eb-bg-informative-accent/10 eb-px-4 eb-py-5'
-            : 'eb-border-t eb-px-4 eb-py-5'
-        }
-      >
-        <div className="eb-flex eb-flex-wrap eb-items-start eb-justify-between eb-gap-3 eb-pb-2">
-          <h3
-            id="organization-details-heading"
-            className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider"
+      <MaintenancePageBody>
+        {task.change && !isPendingAddition && !isPendingRemoval ? (
+          <MaintenanceSection
+            id="organization-updates-heading"
+            title={updateHeading}
+            icon={
+              <MaintenanceChangeStatusIcon
+                status={updateStatus}
+                className="eb-size-4 eb-shrink-0"
+              />
+            }
+            caption={updateCaption}
+            tone={
+              updateStatus === 'NEW' || updateStatus === 'REVIEW_IN_PROGRESS'
+                ? 'informative'
+                : updateStatus === 'INFORMATION_REQUESTED'
+                  ? 'warning'
+                  : 'default'
+            }
+            divided
+            unframed
+            actions={
+              updateStatus === 'NEW' ? (
+                <>
+                  {canEdit ? (
+                    <Button variant="outlineSurface" size="sm" onClick={onEdit}>
+                      <PencilIcon />
+                      {t('changes.editDraft')}
+                    </Button>
+                  ) : null}
+                  {canCancel ? (
+                    <Button
+                      variant="outlineSurface"
+                      size="sm"
+                      className="eb-border-destructive/50 eb-text-destructive hover:eb-bg-destructive-accent hover:eb-text-destructive"
+                      onClick={onCancelChanges}
+                    >
+                      <Undo2Icon />
+                      {t('cancel.discardChanges')}
+                    </Button>
+                  ) : null}
+                </>
+              ) : undefined
+            }
+            afterContent={
+              <Button
+                variant="outlineSurface"
+                size="sm"
+                onClick={onViewRequestDetails}
+              >
+                {t('requestDetails.viewFullRequest')}
+                <ArrowRightIcon />
+              </Button>
+            }
           >
-            {isPendingAddition
-              ? t('pendingAddition.businessDetailsTitle')
-              : t('organizationDetails.title')}
-          </h3>
-        </div>
-        <div className="eb-mt-2">
-          <MaintenanceDetailsGroup
-            title={t('organizationDetails.identityGroup')}
-            details={identityDetails}
-            notProvided={tString('notProvided')}
-            unframed
-          />
-          <MaintenanceDetailsGroup
-            title={t('organizationDetails.registrationGroup')}
-            details={registrationDetails}
-            notProvided={tString('notProvided')}
-            unframed
-          />
-          {!isIntermediary ? (
+            <div className="eb-overflow-hidden eb-rounded-md eb-border eb-bg-background">
+              <MaintenanceChangeTable
+                changes={task.change.fieldChanges}
+                mode={updateStatus === 'NEW' ? 'draft' : 'submitted'}
+              />
+            </div>
+            {hasRequirements ? (
+              <div className="eb-mt-4">
+                <div className="eb-overflow-hidden eb-rounded-md eb-border eb-bg-background">
+                  {requirementsContent}
+                </div>
+              </div>
+            ) : null}
+          </MaintenanceSection>
+        ) : null}
+
+        {(!task.change || isPendingRemoval) &&
+        !isPendingAddition &&
+        hasRequirements ? (
+          <MaintenanceSection
+            id="organization-requirements-heading"
+            title={t('entity.documentRequest')}
+            tone="warning"
+            divided
+          >
+            {requirementsContent}
+          </MaintenanceSection>
+        ) : null}
+
+        <section
+          aria-labelledby="organization-details-heading"
+          className={cn('eb-px-4 eb-py-5', !isPendingAddition && 'eb-border-t')}
+        >
+          <div className="eb-flex eb-flex-wrap eb-items-start eb-justify-between eb-gap-3 eb-pb-2">
+            <h3
+              id="organization-details-heading"
+              className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider"
+            >
+              {isPendingAddition
+                ? t('pendingAddition.businessDetailsTitle')
+                : t('organizationDetails.title')}
+            </h3>
+          </div>
+          <div className="eb-mt-2">
             <MaintenanceDetailsGroup
-              title={t('organizationDetails.operationsGroup')}
-              details={operationsDetails}
+              title={t('organizationDetails.identityGroup')}
+              details={identityDetails}
               notProvided={tString('notProvided')}
               unframed
             />
-          ) : null}
-          <MaintenanceDetailsGroup
-            title={
-              isIntermediary
-                ? t('ownership.legalAddress')
-                : t('organizationDetails.contactGroup')
-            }
-            details={isIntermediary ? legalAddressDetails : contactDetails}
-            notProvided={tString('notProvided')}
-            unframed
+            <MaintenanceDetailsGroup
+              title={t('organizationDetails.registrationGroup')}
+              details={registrationDetails}
+              notProvided={tString('notProvided')}
+              unframed
+            />
+            {!isIntermediary ? (
+              <MaintenanceDetailsGroup
+                title={t('organizationDetails.operationsGroup')}
+                details={operationsDetails}
+                notProvided={tString('notProvided')}
+                unframed
+              />
+            ) : null}
+            <MaintenanceDetailsGroup
+              title={
+                isIntermediary
+                  ? t('ownership.legalAddress')
+                  : t('organizationDetails.contactGroup')
+              }
+              details={isIntermediary ? legalAddressDetails : contactDetails}
+              notProvided={tString('notProvided')}
+              unframed
+            />
+          </div>
+        </section>
+        {isIntermediary &&
+        clientPartyId &&
+        clientName &&
+        displayedParty?.id &&
+        ownershipParties ? (
+          <MaintenanceIntermediaryOwnershipSection
+            clientName={clientName}
+            intermediaryPartyId={displayedParty.id}
+            parties={ownershipParties}
+            ownershipPath={ownershipPath}
+            onViewOwnership={onViewOwnership}
+            onChangeConnection={onChangeConnection}
           />
-        </div>
-      </section>
-      {isIntermediary &&
-      clientPartyId &&
-      clientName &&
-      displayedParty?.id &&
-      ownershipParties ? (
-        <MaintenanceIntermediaryOwnershipSection
-          clientName={clientName}
-          intermediaryPartyId={displayedParty.id}
-          parties={ownershipParties}
-          ownershipPath={ownershipPath}
-          onViewOwnership={onViewOwnership}
-          onChangeConnection={onChangeConnection}
-        />
-      ) : null}
-      {isPendingAddition && hasRequirements ? (
-        <MaintenanceSection
-          id="organization-pending-requirements-heading"
-          title={t('entity.documentRequest')}
-          tone="warning"
-          divided
-        >
-          {requirementsContent}
-        </MaintenanceSection>
-      ) : null}
+        ) : null}
+        {isPendingAddition && hasRequirements ? (
+          <MaintenanceSection
+            id="organization-pending-requirements-heading"
+            title={t('entity.documentRequest')}
+            tone="warning"
+            divided
+          >
+            {requirementsContent}
+          </MaintenanceSection>
+        ) : null}
+      </MaintenancePageBody>
       <MaintenanceViewNavigation backLabel={backLabel} onBack={onBack} />
     </div>
   );

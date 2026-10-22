@@ -2,7 +2,7 @@
 
 > **Documentation References:**
 >
-> - [JPMorgan Embedded Payments - Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/embedded-payments/how-to/manage-display-transactions-v2)
+> - [JPMorgan Embedded Payments - Transactions](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/manage-transactions/view-and-display-transactions)
 >
 > **API References:**
 >
@@ -292,9 +292,9 @@ interface TransactionsDisplayRef {
 
 ## Storybook Reference
 
-- **Live stories**: [TransactionsDisplay — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay--default)
-- **Error stories**: [TransactionsDisplay Errors](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay-errors--default)
-- **Transaction Details**: [TransactionDetailsSheet](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay-transactiondetailssheet--default)
+- **Live stories**: [TransactionsDisplay — Storybook](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay--with-account-ids-prop)
+- **Error stories**: [TransactionsDisplay Errors](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay-errors--error-500)
+- **Transaction Details**: [TransactionDetailsSheet](https://storybook.embedded-finance-dev.com/?path=/story/core-transactionsdisplay-transactiondetailssheet--complete-transaction)
 - **Showcase demo**: [Embedded Finance Showcase](https://embedded-finance-dev.com/sellsense-demo)
 
 Storybook stories serve as living documentation and implementation recipes. Each story demonstrates a specific scenario (table vs card layout, PAYIN/PAYOUT indicators, pagination, filtering, error states) that maps directly to the functional requirements above.

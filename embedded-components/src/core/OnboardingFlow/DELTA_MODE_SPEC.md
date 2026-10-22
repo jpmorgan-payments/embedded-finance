@@ -42,6 +42,7 @@ Delta mode is **active** only when all of the following hold:
 
 - Host set `deltaMode` to enabled (`true` or `{ enabled: true }`).
 - A client ID is present and client data has loaded.
+- Client status is `NEW` (or not yet set). Once submitted, outstanding questions belong to an information request, which uses the regular overview and the **Additional information** section instead. The overview and sidebar also stop showing the delta view if the latched session's client is submitted.
 - A **controller party exists** with details. Delta is a "fill in the last few fields" path; if the controller party is absent (or has no `individualDetails`), the entire controller section is still outstanding, so the pending-field count is treated as `Infinity` and the client is ineligible.
 - Organization type is known (so the flow would otherwise land on overview, not gateway).
 - Doc-upload-only mode is **not** enabled.

@@ -124,7 +124,8 @@ export const MONEY_INPUT_QUESTION_IDS = ['30005']; // Add more IDs as needed
 const buildStringValueSchema = (
   itemEnum: string[] | undefined,
   itemPattern: string | undefined,
-  requiredMsg: string
+  requiredMsg: string,
+  lengthLimits: { minLength?: number; maxLength?: number } = {}
 ): z.ZodTypeAny => {
   if (itemEnum) {
     if (itemEnum.length > 0) {
@@ -135,7 +136,23 @@ const buildStringValueSchema = (
     return z.string().min(1, requiredMsg);
   }
 
-  const stringSchema = z.string().min(1, requiredMsg);
+  let stringSchema = z.string().min(1, requiredMsg);
+  if (lengthLimits.minLength && lengthLimits.minLength > 1) {
+    stringSchema = stringSchema.min(
+      lengthLimits.minLength,
+      i18n.t('onboarding-overview:additionalQuestions.validation.minLength', {
+        minLength: lengthLimits.minLength,
+      })
+    );
+  }
+  if (lengthLimits.maxLength) {
+    stringSchema = stringSchema.max(
+      lengthLimits.maxLength,
+      i18n.t('onboarding-overview:additionalQuestions.validation.maxLength', {
+        maxLength: lengthLimits.maxLength,
+      })
+    );
+  }
   if (itemPattern) {
     return stringSchema.refine(
       (val) => new RegExp(itemPattern).test(val),
@@ -185,7 +202,10 @@ const buildScalarValueSchema = (
         message: i18n.t('validation:common.invalidOption'),
       });
     case 'string':
-      return buildStringValueSchema(itemEnum, itemPattern, requiredMsg);
+      return buildStringValueSchema(itemEnum, itemPattern, requiredMsg, {
+        minLength: question?.responseSchema?.items?.minLength,
+        maxLength: question?.responseSchema?.items?.maxLength,
+      });
     case 'integer':
       return z
         .string()

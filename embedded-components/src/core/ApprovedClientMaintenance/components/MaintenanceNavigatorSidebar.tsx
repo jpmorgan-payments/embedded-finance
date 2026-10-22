@@ -1,12 +1,9 @@
 import type { ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  type LucideIcon,
-} from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui';
 
 import { useMaintenancePartyCaption } from '../hooks/useMaintenancePartyCaption';
 import {
@@ -21,7 +18,6 @@ import {
 } from '../utils/getMaintenancePartyStatus';
 import type { MaintenanceRequestSummaryState } from '../utils/getMaintenanceRequestSummaryState';
 import { getMaintenancePartyIdentity } from '../utils/maintenanceDisplay';
-import type { MaintenanceStatusTone } from '../utils/maintenanceStatusTone';
 import { MaintenanceEntityMedallion } from './MaintenanceEntityMedallion';
 import { MaintenancePartyStatusPill } from './MaintenancePartyStatusLabel';
 
@@ -34,27 +30,20 @@ export type MaintenanceNavigatorTarget =
 
 function NavItem({
   entityKind,
-  icon,
-  tone: toneOverride,
   label,
   caption,
   status,
-  showChevron = false,
   isActive,
   onClick,
 }: {
   entityKind: 'person' | 'business' | 'structure';
-  icon?: LucideIcon;
-  tone?: MaintenanceStatusTone;
   label: string;
   caption?: ReactNode;
   status?: MaintenancePartyStatus;
-  /** Signals a destination that is not self-evidently a link, such as the request row. */
-  showChevron?: boolean;
   isActive: boolean;
   onClick: () => void;
 }) {
-  const tone = toneOverride ?? getMaintenanceMedallionTone(status);
+  const tone = getMaintenanceMedallionTone(status);
 
   return (
     <li>
@@ -62,7 +51,7 @@ function NavItem({
         type="button"
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          'eb-group eb-relative eb-flex eb-w-full eb-items-start eb-gap-2.5 eb-rounded-md eb-py-1.5 eb-pl-2.5 eb-pr-2 eb-text-left eb-transition-colors hover:eb-bg-muted focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring',
+          'eb-group eb-relative eb-flex eb-w-full eb-items-start eb-gap-2.5 eb-px-4 eb-py-2 eb-text-left eb-transition-colors hover:eb-bg-muted focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring',
           !caption && 'eb-items-center',
           isActive && 'eb-bg-accent hover:eb-bg-accent'
         )}
@@ -76,7 +65,6 @@ function NavItem({
         ) : null}
         <MaintenanceEntityMedallion
           kind={entityKind}
-          icon={icon}
           tone={tone}
           size="sm"
           className={cn(
@@ -105,12 +93,6 @@ function NavItem({
             <MaintenancePartyStatusPill status={status} className="eb-mt-1.5" />
           ) : null}
         </span>
-        {showChevron ? (
-          <ChevronRightIcon
-            aria-hidden="true"
-            className="group-hover:eb-translate-x-0.5 eb-size-4 eb-shrink-0 eb-self-center eb-text-muted-foreground eb-transition-transform"
-          />
-        ) : null}
       </button>
     </li>
   );
@@ -125,6 +107,7 @@ export function MaintenanceNavigatorSidebar({
   hasActiveUpdate,
   summaryState,
   updateScope,
+  changeCount,
   isDocumentDiscoveryPending,
   onNavigate,
   onReviewAndSubmit,
@@ -138,6 +121,8 @@ export function MaintenanceNavigatorSidebar({
   hasActiveUpdate: boolean;
   summaryState: MaintenanceRequestSummaryState;
   updateScope: MaintenanceUpdateScope;
+  /** Parties and products changed in the request. */
+  changeCount: number;
   isDocumentDiscoveryPending: boolean;
   onNavigate: (target: MaintenanceNavigatorTarget) => void;
   onReviewAndSubmit: () => void;
@@ -158,6 +143,12 @@ export function MaintenanceNavigatorSidebar({
     (target.kind !== 'party' ||
       (activeTarget.kind === 'party' &&
         activeTarget.partyId === target.partyId));
+  const isRequestActive = isActive({ kind: 'request' });
+  // Only a submitted request is waiting on the reviewer rather than the user.
+  const awaitsUser = summaryState !== 'submitted';
+  const toneDotClass = requestSummary.needsAttention
+    ? 'eb-bg-warning'
+    : 'eb-bg-informative';
 
   const describeParty = useMaintenancePartyCaption(clientPartyId);
   const relatedPartyTasks = [
@@ -171,21 +162,22 @@ export function MaintenanceNavigatorSidebar({
       aria-label={tString('navigator.label')}
       className="eb-overflow-hidden eb-rounded eb-border eb-bg-background"
     >
-      <div className="eb-px-2 eb-py-2">
+      {/* Leaves the drilldown for the overview, which has no sidebar, so it reads as a way back. */}
+      <div className="eb-border-b eb-border-border eb-bg-muted/20 eb-px-1.5 eb-py-1.5">
         <button
           type="button"
-          className="eb-flex eb-w-full eb-items-center eb-gap-2 eb-rounded-md eb-px-3 eb-py-1.5 eb-text-left eb-text-sm eb-text-muted-foreground hover:eb-bg-muted hover:eb-text-foreground focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring"
+          data-navigator-exit=""
+          className="eb-group eb-flex eb-w-full eb-items-center eb-gap-2 eb-rounded-md eb-px-2.5 eb-py-1.5 eb-text-left eb-text-sm eb-font-medium eb-text-muted-foreground eb-transition-colors hover:eb-bg-muted hover:eb-text-foreground focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-inset focus-visible:eb-ring-ring"
           onClick={() => onNavigate({ kind: 'overview' })}
         >
-          <ChevronLeftIcon
-            className="eb-size-4 eb-shrink-0"
+          <ArrowLeftIcon
             aria-hidden="true"
+            className="group-hover:eb--translate-x-0.5 eb-size-4 eb-shrink-0 eb-transition-transform motion-reduce:eb-transition-none"
           />
-          {t('flow.title')}
+          {tString('flow.title')}
         </button>
       </div>
-
-      <ul className="eb-space-y-0.5 eb-border-t eb-border-border eb-px-2 eb-py-2">
+      <ul className="eb-py-2">
         <NavItem
           entityKind="business"
           label={clientName}
@@ -208,14 +200,14 @@ export function MaintenanceNavigatorSidebar({
       </ul>
 
       {relatedPartyTasks.length > 0 ? (
-        <div className="eb-border-t eb-border-border eb-px-2 eb-py-2">
-          <p className="eb-flex eb-items-center eb-justify-between eb-px-2.5 eb-pb-1 eb-pt-1 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-muted-foreground">
+        <div className="eb-border-t eb-border-border eb-py-2">
+          <p className="eb-flex eb-items-center eb-justify-between eb-px-4 eb-pb-1 eb-pt-1 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-muted-foreground">
             {t('people')}
             <span className="eb-rounded-full eb-bg-muted eb-px-1.5 eb-text-[0.6875rem] eb-font-medium eb-tabular-nums eb-tracking-normal">
               {relatedPartyTasks.length}
             </span>
           </p>
-          <ul className="eb-space-y-0.5">
+          <ul>
             {relatedPartyTasks.map((task) => (
               <NavItem
                 key={task.partyId}
@@ -249,31 +241,104 @@ export function MaintenanceNavigatorSidebar({
       {hasActiveUpdate ? (
         <div
           data-navigator-request-state={summaryState}
-          className="eb-border-t eb-border-border eb-px-2 eb-py-2"
+          className={cn(
+            'eb-border-t',
+            isRequestActive
+              ? 'eb-border-border'
+              : requestSummary.needsAttention
+                ? 'eb-border-warning/50'
+                : 'eb-border-informative/50'
+          )}
         >
-          <p className="eb-px-2.5 eb-pb-1 eb-pt-1 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-muted-foreground">
-            {t([
-              `navigator.requestHeading.${updateScope}`,
-            ] as unknown as TemplateStringsArray)}
-          </p>
-          <ul>
-            <NavItem
-              entityKind="structure"
-              icon={requestSummary.Icon}
-              tone={requestSummary.needsAttention ? 'warning' : 'informative'}
-              label={tString(
-                isDraftRequest
-                  ? 'submission.reviewAndSubmit'
-                  : 'navigator.requestDetails'
+          {/* The open request page carries the status banner, so the card steps back to the nav's active style. */}
+          <section
+            aria-labelledby="navigator-request-heading"
+            data-navigator-request-cta=""
+            className={cn(
+              'eb-relative eb-px-4 eb-pb-4 eb-pt-3',
+              isRequestActive
+                ? 'eb-bg-accent'
+                : requestSummary.needsAttention
+                  ? 'eb-bg-warning-accent'
+                  : 'eb-bg-informative-accent'
+            )}
+          >
+            {isRequestActive ? (
+              <span
+                aria-hidden="true"
+                data-navigator-active-marker=""
+                className="eb-absolute eb-inset-y-3 eb-left-0 eb-w-0.5 eb-rounded-full eb-bg-primary"
+              />
+            ) : null}
+            <p className="eb-flex eb-items-center eb-gap-2 eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider eb-text-muted-foreground">
+              {awaitsUser ? (
+                <span
+                  aria-hidden="true"
+                  className="eb-relative eb-flex eb-size-2"
+                >
+                  {isRequestActive ? null : (
+                    <span
+                      className={cn(
+                        'eb-absolute eb-inline-flex eb-size-full eb-animate-ping eb-rounded-full eb-opacity-60 motion-reduce:eb-animate-none',
+                        toneDotClass
+                      )}
+                    />
+                  )}
+                  <span
+                    className={cn(
+                      'eb-relative eb-inline-flex eb-size-2 eb-rounded-full',
+                      toneDotClass
+                    )}
+                  />
+                </span>
+              ) : (
+                <requestSummary.Icon
+                  aria-hidden="true"
+                  className="eb-size-3.5 eb-shrink-0 eb-text-informative"
+                />
               )}
-              caption={requestSummary.title}
-              showChevron
-              isActive={isActive({ kind: 'request' })}
+              {t([
+                `navigator.requestHeading.${updateScope}`,
+              ] as unknown as TemplateStringsArray)}
+            </p>
+            <h3
+              id="navigator-request-heading"
+              className="eb-mt-2 eb-text-sm eb-font-semibold eb-leading-5"
+            >
+              {isDraftRequest && changeCount > 0
+                ? t(
+                    requestSummary.needsAttention
+                      ? 'navigator.changesSaved'
+                      : 'navigator.changesReady',
+                    { count: changeCount }
+                  )
+                : requestSummary.title}
+            </h3>
+            {summaryState === 'draft' ? null : (
+              <p className="eb-mt-0.5 eb-text-xs eb-leading-4 eb-text-muted-foreground">
+                {summaryState === 'draftRequirements'
+                  ? t('navigator.requirementsHint')
+                  : requestSummary.description}
+              </p>
+            )}
+            <Button
+              size="sm"
+              variant={isRequestActive || !awaitsUser ? 'outline' : 'default'}
+              aria-current={isRequestActive ? 'page' : undefined}
+              className="eb-group eb-mt-3 eb-w-full eb-shadow-sm"
               onClick={
                 isDraftRequest ? onReviewAndSubmit : onViewRequestDetails
               }
-            />
-          </ul>
+            >
+              {isDraftRequest
+                ? t('submission.reviewAndSubmit')
+                : requestSummary.actionLabel}
+              <ArrowRightIcon
+                aria-hidden="true"
+                className="group-hover:eb-translate-x-0.5 eb-transition-transform"
+              />
+            </Button>
+          </section>
         </div>
       ) : null}
     </nav>

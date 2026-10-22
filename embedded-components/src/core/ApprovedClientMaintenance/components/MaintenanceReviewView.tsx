@@ -8,6 +8,7 @@ import {
   Clock3Icon,
   FileTextIcon,
   Loader2Icon,
+  LockIcon,
   NetworkIcon,
   PencilIcon,
   PencilLineIcon,
@@ -53,6 +54,7 @@ import {
 } from './MaintenanceBreadcrumb';
 import { MaintenanceChangeTable } from './MaintenanceChangeTable';
 import { MaintenanceDocumentRequestRow } from './MaintenanceDocumentRequestRow';
+import { MaintenancePageBody } from './MaintenancePageBody';
 import { MaintenancePartyStatusPill } from './MaintenancePartyStatusLabel';
 import { MaintenanceReviewChangeRow } from './MaintenanceReviewChangeRow';
 import { MaintenanceSection } from './MaintenanceSection';
@@ -103,7 +105,11 @@ const CHANGE_GROUPS = [
     iconClassName: 'eb-text-destructive',
   },
   // Parties with requested documents but no change of their own.
-  { id: 'documents', Icon: FileTextIcon, iconClassName: 'eb-text-warning' },
+  {
+    id: 'documents',
+    Icon: FileTextIcon,
+    iconClassName: 'eb-text-warning-foreground',
+  },
 ] as const;
 
 type MaintenanceReviewViewProps = {
@@ -116,6 +122,8 @@ type MaintenanceReviewViewProps = {
   documentError?: unknown;
   blockers: MaintenanceSubmissionBlocker[];
   fingerprint: string;
+  /** True while one of the user's own changes is saving and refreshing the request. */
+  isApplyingOwnChange?: boolean;
   isSubmitting: boolean;
   submissionError?: unknown;
   breadcrumbs: MaintenanceBreadcrumbItem[];
@@ -165,6 +173,7 @@ export function MaintenanceReviewView({
   documentError,
   blockers,
   fingerprint,
+  isApplyingOwnChange = false,
   isSubmitting,
   submissionError,
   breadcrumbs,
@@ -204,6 +213,7 @@ export function MaintenanceReviewView({
   );
   const [wasUpdated, setWasUpdated] = useState(false);
   const previousFingerprintRef = useRef(fingerprint);
+  const wasApplyingOwnChangeRef = useRef(isApplyingOwnChange);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -215,9 +225,13 @@ export function MaintenanceReviewView({
       previousFingerprintRef.current = fingerprint;
       setIsInformationConfirmed(false);
       setIsOwnershipConfirmed(false);
-      setWasUpdated(true);
+      // The user's own discard or edit isn't news; only changes from elsewhere are.
+      if (!isApplyingOwnChange && !wasApplyingOwnChangeRef.current) {
+        setWasUpdated(true);
+      }
     }
-  }, [fingerprint]);
+    wasApplyingOwnChangeRef.current = isApplyingOwnChange;
+  }, [fingerprint, isApplyingOwnChange]);
 
   const localSubmissionError =
     submissionError instanceof MaintenanceSubmissionError
@@ -339,6 +353,15 @@ export function MaintenanceReviewView({
     hasPartyRequirements ||
     hasIntermediaryRequirements;
   const isSubmissionBlocked = hasRequirements || blockers.length > 0;
+  // A returned request is submitted again once its tasks are done.
+  const canSubmit =
+    mode === 'draft' || requestStatus === 'INFORMATION_REQUESTED';
+  const isConfirmed = isInformationConfirmed && isOwnershipConfirmed;
+  const submitHint = isSubmissionBlocked
+    ? t('submission.blockedHint')
+    : !isConfirmed
+      ? t('submission.confirmHint')
+      : undefined;
   const requestActivityDates = projection.partyChanges
     .map((change) => change.proposal.updateRequest?.submittedAt)
     .filter((submittedAt): submittedAt is string => Boolean(submittedAt))
@@ -420,10 +443,7 @@ export function MaintenanceReviewView({
     );
     const unresolvedCount = task.unresolvedDocumentRequestIds.length;
     return (
-      <ul
-        data-review-documents=""
-        className="eb-divide-y eb-border-t eb-border-warning/50"
-      >
+      <ul data-review-documents="" className="eb-divide-y eb-border-t">
         {openRequests.map((documentRequest) => (
           <li key={documentRequest.id}>
             <MaintenanceDocumentRequestRow
@@ -435,7 +455,7 @@ export function MaintenanceReviewView({
           </li>
         ))}
         {unresolvedCount > 0 ? (
-          <li className="eb-bg-warning-accent eb-px-4 eb-py-3 eb-text-sm">
+          <li className="eb-px-4 eb-py-3 eb-text-sm eb-text-muted-foreground">
             {t('documents.unresolved', { count: unresolvedCount })}
           </li>
         ) : null}
@@ -689,7 +709,7 @@ export function MaintenanceReviewView({
         </div>
       ) : null}
       <div className="eb-space-y-3 eb-px-4 eb-py-3.5">
-        {mode === 'draft' ? (
+        {canSubmit ? (
           <p className="eb-text-sm eb-text-muted-foreground">
             {t('submission.remainingLead')}
           </p>
@@ -840,215 +860,239 @@ export function MaintenanceReviewView({
         ) : null}
       </header>
 
-      {mode === 'submitted' ? (
-        <section
-          aria-labelledby="maintenance-request-status-heading"
-          className={cn(
-            'eb-flex eb-items-start eb-gap-3 eb-border-b eb-px-4 eb-py-3.5',
-            requestStatus === 'INFORMATION_REQUESTED'
-              ? 'eb-border-warning/50 eb-bg-warning-accent'
-              : 'eb-border-informative/50 eb-bg-informative-accent'
-          )}
-        >
-          {requestStatus === 'INFORMATION_REQUESTED' ? (
-            <AlertCircleIcon className="eb-mt-0.5 eb-size-4 eb-shrink-0 eb-text-warning" />
-          ) : (
-            <Clock3Icon className="eb-mt-0.5 eb-size-4 eb-shrink-0 eb-text-informative" />
-          )}
-          <div className="eb-min-w-0">
-            <h3
-              id="maintenance-request-status-heading"
-              className="eb-text-sm eb-font-semibold eb-leading-5"
-            >
-              {submittedSummary.title}
-            </h3>
-            <p className="eb-mt-0.5 eb-text-sm eb-leading-5 eb-text-muted-foreground">
-              {submittedSummary.description}
-            </p>
-          </div>
-        </section>
-      ) : null}
-
-      {wasUpdated ? (
-        <Alert variant="informative" noTitle className="eb-m-4 eb-mb-0">
-          <AlertDescription>{t('submission.reviewUpdated')}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      {projection.productChanges.length > 0 ? (
-        <MaintenanceSection
-          id="review-product-heading"
-          title={t('submission.productTitle')}
-        >
-          <ul className="eb-divide-y">
-            {projection.productChanges.map(renderProductRow)}
-          </ul>
-        </MaintenanceSection>
-      ) : null}
-
-      <MaintenanceSection
-        id="review-updates-heading"
-        title={t('submission.profileUpdates')}
-        caption={t('sectionCaption.updates')}
-        divided={projection.productChanges.length > 0}
-        unframed
-        afterContent={
-          onOpenOwnership ? (
-            <Button
-              variant="outlineSurface"
-              size="sm"
-              data-review-ownership-link=""
-              onClick={onOpenOwnership}
-            >
-              <NetworkIcon />
-              {t('ownership.viewStructure')}
-            </Button>
-          ) : undefined
-        }
-      >
-        {changeRows.length > 0 ? (
-          <div className="eb-space-y-5">
-            {CHANGE_GROUPS.map(({ id, Icon, iconClassName }) => {
-              const rows = changeRows.filter((row) => row.group === id);
-              if (rows.length === 0) return null;
-              return (
-                <section
-                  key={id}
-                  aria-labelledby={`review-${id}-heading`}
-                  data-review-group={id}
-                >
-                  <h4
-                    id={`review-${id}-heading`}
-                    className="eb-mb-2 eb-flex eb-items-center eb-gap-1.5 eb-text-sm eb-font-semibold"
-                  >
-                    <Icon
-                      aria-hidden="true"
-                      className={cn('eb-size-4', iconClassName)}
-                    />
-                    {t([
-                      `submission.groups.${id}`,
-                    ] as unknown as TemplateStringsArray)}
-                    <span className="eb-font-normal eb-tabular-nums eb-text-muted-foreground">
-                      {rows.length}
-                    </span>
-                  </h4>
-                  <ul className="eb-divide-y eb-overflow-hidden eb-rounded-md eb-border eb-bg-background">
-                    {rows.map((row) => row.node)}
-                  </ul>
-                </section>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="eb-text-sm eb-text-muted-foreground">
-            {t(
-              projection.productChanges.length > 0
-                ? 'submission.noProfileChanges'
-                : 'submission.noChanges'
+      <MaintenancePageBody>
+        {mode === 'submitted' ? (
+          <section
+            aria-labelledby="maintenance-request-status-heading"
+            className={cn(
+              'eb-flex eb-items-start eb-gap-3 eb-border-b eb-px-4 eb-py-3.5',
+              requestStatus === 'INFORMATION_REQUESTED'
+                ? 'eb-border-warning/50 eb-bg-warning-accent'
+                : 'eb-border-informative/50 eb-bg-informative-accent'
             )}
-          </p>
-        )}
-      </MaintenanceSection>
-
-      {mode === 'draft' ? (
-        <MaintenanceSection
-          id="review-ready-heading"
-          title={t('submission.sectionTitle')}
-          divided
-          footer={
-            <div className="eb-flex eb-justify-end">
-              <Button
-                size="sm"
-                onClick={() => onSubmit(fingerprint)}
-                disabled={
-                  !isInformationConfirmed ||
-                  !isOwnershipConfirmed ||
-                  isSubmissionBlocked ||
-                  isSubmitting
-                }
+          >
+            {requestStatus === 'INFORMATION_REQUESTED' ? (
+              <AlertCircleIcon className="eb-mt-0.5 eb-size-4 eb-shrink-0 eb-text-warning-foreground" />
+            ) : (
+              <Clock3Icon className="eb-mt-0.5 eb-size-4 eb-shrink-0 eb-text-informative" />
+            )}
+            <div className="eb-min-w-0">
+              <h3
+                id="maintenance-request-status-heading"
+                className="eb-text-sm eb-font-semibold eb-leading-5"
               >
-                {isSubmitting ? (
-                  <Loader2Icon className="eb-animate-spin" />
-                ) : (
-                  <SendIcon />
-                )}
-                {t('submission.submitForReview')}
-              </Button>
+                {submittedSummary.title}
+              </h3>
+              <p className="eb-mt-0.5 eb-text-sm eb-leading-5 eb-text-muted-foreground">
+                {submittedSummary.description}
+              </p>
             </div>
+          </section>
+        ) : null}
+
+        {wasUpdated ? (
+          <div data-review-updated-notice="" className="eb-px-4 eb-pt-4">
+            <Alert variant="informative" noTitle>
+              <AlertDescription>
+                {t('submission.reviewUpdated')}
+              </AlertDescription>
+            </Alert>
+          </div>
+        ) : null}
+
+        {projection.productChanges.length > 0 ? (
+          <MaintenanceSection
+            id="review-product-heading"
+            title={t('submission.productTitle')}
+            unframed
+          >
+            <ul className="eb-space-y-3">
+              {projection.productChanges.map(renderProductRow)}
+            </ul>
+          </MaintenanceSection>
+        ) : null}
+
+        <MaintenanceSection
+          id="review-updates-heading"
+          title={t('submission.profileUpdates')}
+          caption={t('sectionCaption.updates')}
+          divided={projection.productChanges.length > 0}
+          unframed
+          afterContent={
+            onOpenOwnership ? (
+              <Button
+                variant="outlineSurface"
+                size="sm"
+                data-review-ownership-link=""
+                onClick={onOpenOwnership}
+              >
+                <NetworkIcon />
+                {t('ownership.viewStructure')}
+              </Button>
+            ) : undefined
           }
         >
-          {/* Confirmations only appear once there is nothing left to complete. */}
-          {isSubmissionBlocked ? (
-            requirementsContent
+          {changeRows.length > 0 ? (
+            <div className="eb-space-y-5">
+              {CHANGE_GROUPS.map(({ id, Icon, iconClassName }) => {
+                const rows = changeRows.filter((row) => row.group === id);
+                if (rows.length === 0) return null;
+                return (
+                  <section
+                    key={id}
+                    aria-labelledby={`review-${id}-heading`}
+                    data-review-group={id}
+                  >
+                    <h4
+                      id={`review-${id}-heading`}
+                      className="eb-mb-2 eb-flex eb-items-center eb-gap-1.5 eb-text-sm eb-font-semibold"
+                    >
+                      <Icon
+                        aria-hidden="true"
+                        className={cn('eb-size-4', iconClassName)}
+                      />
+                      {t([
+                        `submission.groups.${id}`,
+                      ] as unknown as TemplateStringsArray)}
+                      <span className="eb-font-normal eb-tabular-nums eb-text-muted-foreground">
+                        {rows.length}
+                      </span>
+                    </h4>
+                    <ul className="eb-space-y-3">
+                      {rows.map((row) => row.node)}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
           ) : (
-            <div className="eb-px-4 eb-py-3.5">
-              <p className="eb-text-sm eb-text-muted-foreground">
-                {t([
-                  `submission.lockWarning.${updateScope}`,
-                ] as unknown as TemplateStringsArray)}
-              </p>
-              <p className="eb-mt-2 eb-text-xs eb-leading-5 eb-text-muted-foreground">
-                {t('submission.confirmationDescription')}
-              </p>
-              <div className="eb-mt-4 eb-space-y-3">
-                <div className="eb-flex eb-items-start eb-gap-2">
-                  <Checkbox
-                    id="maintenance-information-confirmation"
-                    checked={isInformationConfirmed}
-                    onCheckedChange={(checked) =>
-                      setIsInformationConfirmed(checked === true)
-                    }
-                    disabled={isSubmitting}
-                  />
-                  <Label
-                    htmlFor="maintenance-information-confirmation"
-                    className="eb-text-sm eb-font-normal eb-leading-5"
+            <p className="eb-text-sm eb-text-muted-foreground">
+              {t(
+                projection.productChanges.length > 0
+                  ? 'submission.noProfileChanges'
+                  : 'submission.noChanges'
+              )}
+            </p>
+          )}
+        </MaintenanceSection>
+
+        {canSubmit ? (
+          <MaintenanceSection
+            id="review-ready-heading"
+            title={
+              mode === 'draft'
+                ? t('submission.sectionTitle')
+                : t('requestDetails.actionRequired')
+            }
+            caption={
+              mode === 'draft' ? undefined : t('sectionCaption.requirements')
+            }
+            tone={mode === 'draft' ? 'default' : 'warning'}
+            divided
+            footer={
+              <div className="eb-flex eb-flex-col eb-gap-3 sm:eb-flex-row sm:eb-items-center">
+                {submitHint ? (
+                  <p
+                    data-submission-hint=""
+                    className="eb-flex eb-items-center eb-gap-1.5 eb-text-xs eb-text-muted-foreground"
                   >
-                    {t('submission.informationConfirmation')}
-                  </Label>
-                </div>
-                <div className="eb-flex eb-items-start eb-gap-2">
-                  <Checkbox
-                    id="maintenance-ownership-confirmation"
-                    checked={isOwnershipConfirmed}
-                    onCheckedChange={(checked) =>
-                      setIsOwnershipConfirmed(checked === true)
-                    }
-                    disabled={isSubmitting}
-                  />
-                  <Label
-                    htmlFor="maintenance-ownership-confirmation"
-                    className="eb-text-sm eb-font-normal eb-leading-5"
-                  >
-                    {t('submission.ownershipConfirmation')}
-                  </Label>
+                    <LockIcon
+                      aria-hidden="true"
+                      className="eb-size-3.5 eb-shrink-0"
+                    />
+                    {submitHint}
+                  </p>
+                ) : null}
+                <Button
+                  className="eb-w-full sm:eb-ml-auto sm:eb-w-auto"
+                  onClick={() => onSubmit(fingerprint)}
+                  disabled={!isConfirmed || isSubmissionBlocked || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <Loader2Icon className="eb-animate-spin" />
+                  ) : (
+                    <SendIcon />
+                  )}
+                  {t('submission.submitForReview')}
+                </Button>
+              </div>
+            }
+          >
+            {/* Confirmations only appear once there is nothing left to complete. */}
+            {isSubmissionBlocked ? (
+              requirementsContent
+            ) : (
+              <div className="eb-px-4 eb-py-3.5">
+                <p className="eb-text-sm eb-text-muted-foreground">
+                  {t([
+                    `submission.lockWarning.${updateScope}`,
+                  ] as unknown as TemplateStringsArray)}
+                </p>
+                <p className="eb-mt-2 eb-text-xs eb-leading-5 eb-text-muted-foreground">
+                  {t('submission.confirmationDescription')}
+                </p>
+                <div className="eb-mt-4 eb-space-y-3 eb-rounded-md eb-border eb-border-border eb-bg-muted/20 eb-p-4">
+                  <div className="eb-flex eb-items-start eb-gap-2">
+                    <Checkbox
+                      id="maintenance-information-confirmation"
+                      className="eb-mt-0.5"
+                      checked={isInformationConfirmed}
+                      onCheckedChange={(checked) =>
+                        setIsInformationConfirmed(checked === true)
+                      }
+                      disabled={isSubmitting}
+                    />
+                    <Label
+                      htmlFor="maintenance-information-confirmation"
+                      className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground"
+                    >
+                      {t('submission.informationConfirmation')}
+                    </Label>
+                  </div>
+                  <div className="eb-flex eb-items-start eb-gap-2">
+                    <Checkbox
+                      id="maintenance-ownership-confirmation"
+                      className="eb-mt-0.5"
+                      checked={isOwnershipConfirmed}
+                      onCheckedChange={(checked) =>
+                        setIsOwnershipConfirmed(checked === true)
+                      }
+                      disabled={isSubmitting}
+                    />
+                    <Label
+                      htmlFor="maintenance-ownership-confirmation"
+                      className="eb-cursor-pointer eb-text-sm eb-font-normal eb-leading-relaxed eb-text-foreground"
+                    >
+                      {t('submission.ownershipConfirmation')}
+                    </Label>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-          {localSubmissionError ? (
-            <div className="eb-px-4 eb-pb-3.5">
-              <Alert variant="warning" noTitle>
-                <AlertDescription>{localSubmissionError}</AlertDescription>
-              </Alert>
-            </div>
-          ) : submissionError ? (
-            <div className="eb-px-4 eb-pb-3.5">
-              <ServerErrorAlert error={submissionError as never} />
-            </div>
-          ) : null}
-        </MaintenanceSection>
-      ) : showRequirements ? (
-        <MaintenanceSection
-          id="review-requirements-heading"
-          title={t('requestDetails.actionRequired')}
-          caption={t('sectionCaption.requirements')}
-          tone="warning"
-          divided
-        >
-          {requirementsContent}
-        </MaintenanceSection>
-      ) : null}
+            )}
+            {localSubmissionError ? (
+              <div className="eb-px-4 eb-pb-3.5">
+                <Alert variant="warning" noTitle>
+                  <AlertDescription>{localSubmissionError}</AlertDescription>
+                </Alert>
+              </div>
+            ) : submissionError ? (
+              <div className="eb-px-4 eb-pb-3.5">
+                <ServerErrorAlert error={submissionError as never} />
+              </div>
+            ) : null}
+          </MaintenanceSection>
+        ) : showRequirements ? (
+          <MaintenanceSection
+            id="review-requirements-heading"
+            title={t('requestDetails.actionRequired')}
+            caption={t('sectionCaption.requirements')}
+            tone="warning"
+            divided
+          >
+            {requirementsContent}
+          </MaintenanceSection>
+        ) : null}
+      </MaintenancePageBody>
       {onBack ? (
         <MaintenanceViewNavigation
           backLabel={tString('submission.backToProfile')}

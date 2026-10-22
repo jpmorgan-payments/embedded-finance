@@ -65,9 +65,10 @@ export const efClientQuestionsMock = {
       responseSchema: {
         type: 'array',
         minItems: 1,
+        maxItems: 10,
         items: {
           type: 'string',
-          _enum: [
+          enum: [
             'Cuba',
             'Iran',
             'North Korea',

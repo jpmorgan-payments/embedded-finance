@@ -522,13 +522,13 @@ onboardingUI.subscribe((event) => {
 
 **Constructor Parameters:**
 
-| Parameter          | Type     | Required | Description                                                                                                                                                                          |
-| ------------------ | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sessionToken`     | `string` | Yes      | JWT token from session transfer API                                                                                                                                                  |
-| `experienceType`   | `string` | No       | Type of hosted experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'`                                              |
-| `theme`            | `object` | No       | Theme customization object (see [Embedded Components Theme Docs](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming))             |
-| `contentTokens`    | `object` | No       | Content localization tokens (see [Embedded Components Content Tokens](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#content-tokens)) |
-| `iframeAttributes` | `object` | No       | Additional iframe attributes (e.g., `{ allowfullscreen: true }`)                                                                                                                     |
+| Parameter          | Type     | Required | Description                                                                                                                                                                                |
+| ------------------ | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sessionToken`     | `string` | Yes      | JWT token from session transfer API                                                                                                                                                        |
+| `experienceType`   | `string` | No       | Type of hosted experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'`                                                    |
+| `theme`            | `object` | No       | Theme customization object (see [Embedded Components Theme Docs](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming))                   |
+| `contentTokens`    | `object` | No       | Content localization tokens (see [Embedded Components Content Tokens](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#internationalization)) |
+| `iframeAttributes` | `object` | No       | Additional iframe attributes (e.g., `{ allowfullscreen: true }`)                                                                                                                           |
 
 **Theme Object Structure:**
 
