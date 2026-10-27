@@ -127,7 +127,7 @@ Key rules:
 
 ## TanStack Router — Zod Schema Validation
 
-All search parameters are validated with Zod at the route level:
+All search parameters are validated with Zod at the route level. This app uses **Zod v4** (`zod@^4`), while `embedded-components` is still on Zod v3, so don't share schema objects between them. Use `z.enum(MyTsEnum)` for TypeScript enums (`z.nativeEnum` is deprecated in v4).
 
 ```typescript
 const sellsenseDemoSearchSchema = z.object({

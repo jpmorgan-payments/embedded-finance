@@ -15,7 +15,7 @@ import { LandingPageExperiment } from '../experiments/landing-page/constants';
 
 // Define search param schema with validation
 const indexSearchSchema = z.object({
-  experiment: z.nativeEnum(LandingPageExperiment).optional(),
+  experiment: z.enum(LandingPageExperiment).optional(),
 });
 
 export const Route = createFileRoute('/')({
