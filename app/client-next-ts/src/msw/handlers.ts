@@ -71,6 +71,7 @@ function initialLinkedAccountRecipientStatus(
   if (
     testDemoScenarioHeader === 'happy-path' ||
     testDemoScenarioHeader === 'happy-path-ptc' ||
+    testDemoScenarioHeader === 'happy-path-non-us' ||
     testDemoScenarioHeader === 'happy-path-approved' ||
     testDemoScenarioHeader === 'doc-request' ||
     testDemoScenarioHeader === 'linked-account-active' ||
@@ -997,6 +998,7 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       if (
         body?.testDemoScenario === 'happy-path' ||
         body?.testDemoScenario === 'happy-path-ptc' ||
+        body?.testDemoScenario === 'happy-path-non-us' ||
         body?.testDemoScenario === 'happy-path-approved' ||
         body?.testDemoScenario === 'doc-request' ||
         body?.testDemoScenario === 'linked-account-approved' ||
@@ -1005,7 +1007,8 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
         body?.testDemoScenario === 'naics-codes-onboarding' ||
         body?.testDemoScenario === 'naics-codes-dashboard' ||
         body?.testDemoScenario === 'naics-codes-doc-request' ||
-        body?.testDemoScenario === 'delta-sole-owner'
+        body?.testDemoScenario === 'delta-sole-owner' ||
+        body?.testDemoScenario === 'delta-non-us'
       ) {
         // Isolated from SellSense: those apps never send `testDemoScenario`.
         const bundleId = parseTestScenarioBundleId(body.testScenarioBundle);
@@ -1113,7 +1116,9 @@ export const createHandlers = (apiUrl: string): RequestHandler[] => [
       if (
         (testDemoScenario === 'happy-path' ||
           testDemoScenario === 'happy-path-ptc' ||
-          testDemoScenario === 'delta-sole-owner') &&
+          testDemoScenario === 'happy-path-non-us' ||
+          testDemoScenario === 'delta-sole-owner' ||
+          testDemoScenario === 'delta-non-us') &&
         getTestScenarioClientIds().includes(clientId)
       ) {
         const delayMs = 3000;
