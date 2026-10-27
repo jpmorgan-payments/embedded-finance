@@ -141,7 +141,7 @@
     "usa-states": "^0.0.6",
     "uuid": "^14.0.1",
     "vaul": "^1.1.2",
-    "zod": "^3.25.76",
+    "zod": "^4.6.7",
     "zod-i18n-map": "^2.27.0"
   },
   "devDependencies": {
