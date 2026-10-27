@@ -8,6 +8,11 @@ import type { ThemeOption } from '@/components/sellsense/use-sellsense-themes';
 import { TEST_SCENARIO_2_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-2-theme';
 import { TEST_SCENARIO_3_THEME_VARIABLES } from '@/components/test-scenario/test-scenario-3-theme';
 import { TEST_SCENARIO_5_NAICS_CODES } from '@/components/test-scenario/test-scenario-naics-codes';
+import { TEST_SCENARIO_7_DASHBOARD_ACCOUNT_ID } from '@/mocks/testScenario7Dashboard.mock';
+import {
+  TEST_SCENARIO_7_CHINA_ORGANIZATION_TYPE,
+  TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID,
+} from '@/mocks/testScenarioBigSellerClient.mock';
 import { TEST_SCENARIO_BUNDLE_DELTA_MODE_CLIENT_ID } from '@/mocks/testScenarioDeltaModeClient.mock';
 import { TEST_SCENARIO_BUNDLE_FASTER_FULFILMENT_CLIENT_ID } from '@/mocks/testScenarioFasterFulfilmentClient.mock';
 import { TEST_SCENARIO_BUNDLE_HEALTH_BENEFIT_CLIENT_ID } from '@/mocks/testScenarioHealthBenefitClient.mock';
@@ -24,6 +29,7 @@ export const TEST_SCENARIO_ROUTE_BY_BUNDLE = {
   'test-scenario-4': '/test-scenario-4',
   'test-scenario-5': '/test-scenario-5',
   'test-scenario-6': '/test-scenario-6',
+  'test-scenario-7': '/test-scenario-7',
 } as const satisfies Record<TestScenarioBundleId, string>;
 
 /** Default registered/corp organization types offered on most demo bundles. */
@@ -46,9 +52,12 @@ export type TestScenarioLoginProfile = {
   onboardingFlow?: Pick<
     OnboardingFlowProps,
     | 'availableOrganizationTypes'
+    | 'experimental_availableCountriesOfFormation'
+    | 'experimental_organizationTypesByCountryOfFormation'
     | 'enablePubliclyTradedCompanies'
     | 'deltaMode'
     | 'skipTermsDocumentAcknowledgment'
+    | 'flowEntry'
   >;
 };
 
@@ -93,6 +102,8 @@ export type TestScenarioBundleConfig = {
   > & {
     readonlyFields?: TestScenarioReadonlyFieldsConfig;
   };
+  /** Default `TestScenarioDashboard` props (e.g. `accountIds`) for dashboard logins. */
+  dashboard?: Record<string, unknown>;
   loginProfiles: TestScenarioLoginProfile[];
 };
 
@@ -166,7 +177,7 @@ function buildContentTokens(fieldLabels: {
 }
 
 /**
- * Multi-link demo bundles (`test-scenario-2`, `test-scenario-4`): optional login that seeds three
+ * Multi-link demo bundles (`test-scenario-2`, `test-scenario-4`, `test-scenario-7`): optional login that seeds three
  * LINKED_ACCOUNT rows (see `applyTestDemoScenario`). Other logins start with zero linked recipients.
  */
 const MULTI_LINK_START_PROFILES: TestScenarioLoginProfile[] = [
@@ -285,6 +296,140 @@ const SCENARIO_4_PROFILES: TestScenarioLoginProfile[] = [
   },
   ...OPERATOR_PROFILES.filter((p) => p.email !== 'happy-path@demo.test'),
   ...MULTI_LINK_START_PROFILES,
+];
+
+/** Business fields locked once pre-populated (same list as `/test-scenario`). */
+const PREPOPULATED_BUSINESS_READONLY_FIELDS = [
+  'organizationTypeHierarchy',
+  'organizationName',
+  'dbaName',
+  'organizationIdEin',
+  'organizationIdRegistration',
+  'organizationDescription',
+  'industry',
+] as const;
+
+/** Retail / general merchandise NAICS for `/test-scenario-7`. */
+const TEST_SCENARIO_7_NAICS_CODES = [
+  '455219',
+  '455110',
+  '455211',
+  '459999',
+  '423990',
+  '424990',
+] as const;
+
+/**
+ * Made-up China entity types for the `/test-scenario-7` China logins; the API has no
+ * non-US organization types yet.
+ */
+const TEST_SCENARIO_7_ORGANIZATION_TYPES_BY_COUNTRY: OnboardingFlowProps['experimental_organizationTypesByCountryOfFormation'] =
+  {
+    CN: [
+      {
+        value: TEST_SCENARIO_7_CHINA_ORGANIZATION_TYPE,
+        label: 'Wholly foreign-owned enterprise (WFOE)',
+        description: 'Limited company owned entirely by foreign investors',
+        generalOrganizationType: 'REGISTERED_BUSINESS',
+      },
+      {
+        value: 'CN_LIMITED_LIABILITY_COMPANY',
+        label: 'Limited liability company',
+        description: 'Owned by 1 to 50 shareholders',
+        generalOrganizationType: 'REGISTERED_BUSINESS',
+      },
+      {
+        value: 'CN_COMPANY_LIMITED_BY_SHARES',
+        label: 'Company limited by shares',
+        generalOrganizationType: 'REGISTERED_BUSINESS',
+      },
+      {
+        value: 'CN_PARTNERSHIP_ENTERPRISE',
+        label: 'Partnership enterprise',
+        generalOrganizationType: 'REGISTERED_BUSINESS',
+      },
+    ],
+  };
+
+/** Experimental props for logins seeded with the China-formed business. */
+const TEST_SCENARIO_7_CHINA_FORMATION_PROPS = {
+  experimental_availableCountriesOfFormation: ['US', 'CN'],
+  experimental_organizationTypesByCountryOfFormation:
+    TEST_SCENARIO_7_ORGANIZATION_TYPES_BY_COUNTRY,
+} satisfies TestScenarioLoginProfile['onboardingFlow'];
+
+/** `/test-scenario-7`: `/test-scenario-4` logins plus a business formed outside the US. */
+const SCENARIO_7_PROFILES: TestScenarioLoginProfile[] = [
+  {
+    email: 'happy-path-ptc@demo.test',
+    label: 'Happy path \u2013 PTC (Nasdaq seed, enablePubliclyTradedCompanies)',
+    scenario: 'happy-path-ptc',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: true,
+    },
+  },
+  {
+    email: 'happy-path@demo.test',
+    label:
+      'Happy path \u2013 C-corp, no PTC in mock or component (same business data)',
+    scenario: 'happy-path',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+    },
+  },
+  {
+    email: 'non-us-business@demo.test',
+    label:
+      'Happy path \u2013 business formed in China (pre-populated; opens on Business identity with China and a business registration ID)',
+    scenario: 'happy-path-non-us',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+      ...TEST_SCENARIO_7_CHINA_FORMATION_PROPS,
+      flowEntry: {
+        screenId: 'business-section',
+        stepperStepId: 'business-identity',
+      },
+    },
+  },
+  {
+    email: 'delta-sole-owner@demo.test',
+    label:
+      'Delta mode \u2013 sole owner-operator (combined controller/owner; SSN, birthdate, contact, and sanctions outstanding)',
+    scenario: 'delta-sole-owner',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+      deltaMode: {
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      },
+      skipTermsDocumentAcknowledgment: true,
+    },
+  },
+  {
+    email: 'delta-china@demo.test',
+    label:
+      'Delta mode \u2013 business formed in China, nearly everything pre-populated (controller passport and sanctions questions outstanding)',
+    scenario: 'delta-non-us',
+    onboardingFlow: {
+      enablePubliclyTradedCompanies: false,
+      ...TEST_SCENARIO_7_CHINA_FORMATION_PROPS,
+      deltaMode: {
+        enabled: true,
+        maxPendingFields: 5,
+        defaultControllerNotAnOwner: true,
+      },
+      skipTermsDocumentAcknowledgment: true,
+    },
+  },
+  ...OPERATOR_PROFILES.filter((p) => p.email !== 'happy-path@demo.test'),
+  ...MULTI_LINK_START_PROFILES,
+  {
+    email: 'dashboard-approved@demo.test',
+    label:
+      'Approved client \u2013 skip onboarding and open payments account dashboard (balances, statement of transactions, recipients)',
+    scenario: 'naics-codes-dashboard',
+  },
 ];
 
 const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
@@ -551,6 +696,45 @@ const BUNDLES: Record<TestScenarioBundleId, TestScenarioBundleConfig> = {
       skipTermsDocumentAcknowledgment: true,
     },
     loginProfiles: SCENARIO_6_PROFILES,
+  },
+  'test-scenario-7': {
+    id: 'test-scenario-7',
+    headerOrgDisplayName: 'Big Seller Corp',
+    theme: 'Empty',
+    contentTokens: buildContentTokens({
+      controllerJobTitle: 'Role',
+      controllerJobTitleDescription: 'Role details',
+    }),
+    showLinkAccountStep: true,
+    clientId: TEST_SCENARIO_BUNDLE_BIG_SELLER_CLIENT_ID,
+    linkAccountStepOptions: {
+      completionMode: 'editable',
+      allowMultipleAccounts: true,
+      existingAccountsDisplay: 'compact',
+      initialValues: {},
+      bankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH', 'WIRE', 'RTP'],
+          allowMultiple: true,
+          defaultSelected: ['ACH'],
+        },
+      },
+    },
+    onboardingFlow: {
+      availableProducts: ['EMBEDDED_PAYMENTS'],
+      availableJurisdictions: ['US'],
+      availableOrganizationTypes: [...TEST_SCENARIO_CORP_ORGANIZATION_TYPES],
+      enablePubliclyTradedCompanies: false,
+      disclosureConfig: { platformName: 'Platform, Inc.' },
+      hideLinkedAccountRemoval: false,
+      priorityIndustryCodes: [...TEST_SCENARIO_7_NAICS_CODES],
+      readonlyFields: {
+        fields: PREPOPULATED_BUSINESS_READONLY_FIELDS,
+        mode: 'whenPopulated',
+      },
+    },
+    dashboard: { accountIds: [TEST_SCENARIO_7_DASHBOARD_ACCOUNT_ID] },
+    loginProfiles: SCENARIO_7_PROFILES,
   },
 };
 
