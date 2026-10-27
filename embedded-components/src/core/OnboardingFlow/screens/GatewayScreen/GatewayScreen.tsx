@@ -54,6 +54,7 @@ import {
 
 import {
   GatewayScreenFormSchema,
+  GatewayScreenFormSchemaWithHostOrganizationTypes,
   refineGatewaySchema,
 } from './GatewayScreen.schema';
 
@@ -126,11 +127,23 @@ export const GatewayScreen = () => {
     onPostPartySettled,
     availableOrganizationTypes,
     enablePubliclyTradedCompanies,
+    experimental_availableCountriesOfFormation: availableCountriesOfFormation,
+    experimental_organizationTypesByCountryOfFormation:
+      organizationTypesByCountryOfFormation,
   } = useOnboardingContext();
   const { goTo, sessionData, updateSessionData, setIsFormSubmitting } =
     useFlowContext();
 
-  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
+
+  const offersNonUsFormation = !!availableCountriesOfFormation?.some(
+    (code) => code !== 'US'
+  );
+  const usesHostOrganizationTypes =
+    offersNonUsFormation && !!organizationTypesByCountryOfFormation;
 
   const stockExchangeOptions = useStockExchangeOptions().flatMap((group) =>
     group.options.map((opt) => ({ ...opt, group: group.label }))
@@ -139,11 +152,20 @@ export const GatewayScreen = () => {
   const form = useFormWithFilters({
     clientData,
     screenId: 'gateway',
-    schema: GatewayScreenFormSchema,
+    // Same shape as GatewayScreenFormSchema; only the organization type check is relaxed.
+    schema: (usesHostOrganizationTypes
+      ? GatewayScreenFormSchemaWithHostOrganizationTypes
+      : GatewayScreenFormSchema) as typeof GatewayScreenFormSchema,
     refineSchemaFn: enablePubliclyTradedCompanies
       ? refineGatewaySchema
       : undefined,
-    defaultValues: {},
+    defaultValues: {
+      countryOfFormation:
+        availableCountriesOfFormation?.length &&
+        !availableCountriesOfFormation.includes('US')
+          ? availableCountriesOfFormation[0]
+          : 'US',
+    },
   });
 
   const { isDirty } = useFormState({ control: form.control });
@@ -153,6 +175,10 @@ export const GatewayScreen = () => {
 
   // PTC status cannot be reverted once set (API cannot remove publiclyTraded)
   const isPTCLocked = !!existingOrgParty?.organizationDetails?.publiclyTraded;
+
+  // The API validates stored IDs against the country, so it can't change once an ID exists.
+  const isCountryOfFormationLocked =
+    !!existingOrgParty?.organizationDetails?.organizationIds?.length;
 
   const [isFormPopulated, setIsFormPopulated] = useState(false);
 
@@ -177,6 +203,20 @@ export const GatewayScreen = () => {
         !formValues.isPTCOrSubsidiary
       ) {
         formValues.isPTCOrSubsidiary = 'none';
+      }
+
+      // Host-defined types aren't in the built-in hierarchy, so restore their group from config.
+      const hierarchy = formValues.organizationTypeHierarchy;
+      if (hierarchy && !hierarchy.generalOrganizationType) {
+        const hostOption = organizationTypesByCountryOfFormation?.[
+          formValues.countryOfFormation ?? ''
+        ]?.find(
+          (option) => option.value === hierarchy.specificOrganizationType
+        );
+        if (hostOption) {
+          hierarchy.generalOrganizationType =
+            hostOption.generalOrganizationType;
+        }
       }
 
       form.reset(shapeFormValuesBySchema(formValues, GatewayScreenFormSchema));
@@ -319,9 +359,14 @@ export const GatewayScreen = () => {
     const orgTypeUnchanged =
       submittableValues.organizationTypeHierarchy.specificOrganizationType ===
       existingOrgParty.organizationDetails?.organizationType;
+    const countryUnchanged =
+      !submittableValues.countryOfFormation ||
+      submittableValues.countryOfFormation ===
+        existingOrgParty.organizationDetails?.countryOfFormation;
 
     if (
       orgTypeUnchanged &&
+      countryUnchanged &&
       isPtcUnchanged(hasPTC, submittableValues, existingOrgParty)
     ) {
       handleNext();
@@ -423,9 +468,18 @@ export const GatewayScreen = () => {
     const ptcStatus = values.isPTCOrSubsidiary;
     const hasPTC = ptcStatus === 'ptc' || ptcStatus === 'subsidiary';
 
+    const offersCountryOfFormation =
+      offersNonUsFormation &&
+      values.organizationTypeHierarchy.generalOrganizationType !==
+        'SOLE_PROPRIETORSHIP';
+
     // Prepare values with derived isSubsidiary and without PTC fields if not applicable
     const submittableValues: GatewaySubmittableValues = {
       ...values,
+      // Empty values are left out of the request, keeping the US default.
+      countryOfFormation: offersCountryOfFormation
+        ? values.countryOfFormation
+        : '',
       isSubsidiary: deriveIsSubsidiary(hasPTC, ptcStatus),
       tickerSymbol: hasPTC ? values.tickerSymbol : '',
       stockExchange: hasPTC ? values.stockExchange : '',
@@ -459,8 +513,33 @@ export const GatewayScreen = () => {
     createOrganizationParty(submittableValues, defaultPartyData);
   });
 
+  const getHostOrganizationTypeOptions = (country: string) =>
+    usesHostOrganizationTypes
+      ? organizationTypesByCountryOfFormation?.[country]
+      : undefined;
+
   // Calculate available general organization types based on available specific types
-  const getAvailableGeneralOrgTypes = (): GeneralOrganizationType[] => {
+  const getAvailableGeneralOrgTypes = (
+    country: string
+  ): GeneralOrganizationType[] => {
+    const hostOptions = getHostOrganizationTypeOptions(country);
+    const offersSoleProp =
+      country === 'US' &&
+      (availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST).includes(
+        'SOLE_PROPRIETORSHIP'
+      );
+    if (hostOptions) {
+      return (
+        Object.keys(ORG_TYPE_MAPPING) as GeneralOrganizationType[]
+      ).filter((generalType) =>
+        generalType === 'SOLE_PROPRIETORSHIP'
+          ? offersSoleProp
+          : hostOptions.some(
+              (option) => option.generalOrganizationType === generalType
+            )
+      );
+    }
+
     const availableGeneralTypes: GeneralOrganizationType[] = [];
 
     // Iterate through each general organization type
@@ -480,10 +559,42 @@ export const GatewayScreen = () => {
     });
 
     // Return available types or all types as fallback
-    return availableGeneralTypes.length
+    const generalTypes = availableGeneralTypes.length
       ? availableGeneralTypes
       : (Object.keys(ORG_TYPE_MAPPING) as GeneralOrganizationType[]);
+    // Sole proprietorships can only be formed in the US.
+    return country === 'US'
+      ? generalTypes
+      : generalTypes.filter((type) => type !== 'SOLE_PROPRIETORSHIP');
   };
+
+  const getSpecificOrgTypeOptions = (
+    country: string,
+    generalType: Exclude<GeneralOrganizationType, 'SOLE_PROPRIETORSHIP'>
+  ) => {
+    const hostOptions = getHostOrganizationTypeOptions(country);
+    if (hostOptions) {
+      return hostOptions
+        .filter((option) => option.generalOrganizationType === generalType)
+        .map(({ value, label, description }) => ({
+          value,
+          label,
+          description,
+        }));
+    }
+    return (availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST)
+      .filter((type) => ORG_TYPE_MAPPING[generalType].includes(type))
+      .map((type) => ({
+        value: type as string,
+        label: t(`organizationTypes.${type}`),
+        description: t(`organizationTypeDescriptions.${type}`),
+      }));
+  };
+
+  const selectedCountryOfFormation = form.watch('countryOfFormation');
+  const countryOfFormation = offersNonUsFormation
+    ? selectedCountryOfFormation || 'US'
+    : 'US';
 
   const selectedGeneralOrganizationType = form.watch(
     'organizationTypeHierarchy.generalOrganizationType'
@@ -511,6 +622,15 @@ export const GatewayScreen = () => {
       selectedSpecificOrganizationType as OrganizationType
     );
 
+  const clearPtcFields = () => {
+    if (isPTCLocked) return;
+    form.setValue('isPTCOrSubsidiary', '');
+    form.setValue('isSubsidiary', '');
+    form.setValue('tickerSymbol', '');
+    form.setValue('stockExchange', '');
+    form.setValue('stockExchangeName', '');
+  };
+
   const handleGeneralOrganizationTypeChange = (value: string) => {
     // Handle SOLE_PROPRIETORSHIP special case
     if (value === 'SOLE_PROPRIETORSHIP') {
@@ -519,24 +639,41 @@ export const GatewayScreen = () => {
         'SOLE_PROPRIETORSHIP'
       );
       // Clear PTC fields since sole props can't be PTCs (unless locked)
-      if (!isPTCLocked) {
-        form.setValue('isPTCOrSubsidiary', '');
-        form.setValue('isSubsidiary', '');
-        form.setValue('tickerSymbol', '');
-        form.setValue('stockExchange', '');
-        form.setValue('stockExchangeName', '');
-      }
+      clearPtcFields();
       return;
     }
 
     // Otherwise, clear the specific organization type and PTC fields
     form.setValue('organizationTypeHierarchy.specificOrganizationType', '');
-    if (!isPTCLocked) {
-      form.setValue('isPTCOrSubsidiary', '');
-      form.setValue('isSubsidiary', '');
-      form.setValue('tickerSymbol', '');
-      form.setValue('stockExchange', '');
-      form.setValue('stockExchangeName', '');
+    clearPtcFields();
+  };
+
+  // Business types depend on the country, so drop a selection the new country doesn't offer.
+  const handleCountryOfFormationChange = (country: string) => {
+    const generalType = form.getValues(
+      'organizationTypeHierarchy.generalOrganizationType'
+    );
+    const specificType = form.getValues(
+      'organizationTypeHierarchy.specificOrganizationType'
+    );
+    if (!generalType) return;
+
+    if (!getAvailableGeneralOrgTypes(country).includes(generalType)) {
+      form.setValue('organizationTypeHierarchy.generalOrganizationType', '');
+      form.setValue('organizationTypeHierarchy.specificOrganizationType', '');
+      clearPtcFields();
+      return;
+    }
+
+    if (
+      generalType !== 'SOLE_PROPRIETORSHIP' &&
+      specificType &&
+      !getSpecificOrgTypeOptions(country, generalType).some(
+        (option) => option.value === specificType
+      )
+    ) {
+      form.setValue('organizationTypeHierarchy.specificOrganizationType', '');
+      clearPtcFields();
     }
   };
 
@@ -604,17 +741,46 @@ export const GatewayScreen = () => {
                 </AlertDescription>
               </Alert>
             )}
+            {offersNonUsFormation && (
+              <OnboardingFormField
+                control={form.control}
+                disableFieldRuleMapping
+                name="countryOfFormation"
+                type="combobox"
+                description={t('screens.gateway.countryOfFormationDescription')}
+                options={(availableCountriesOfFormation ?? []).map((code) => ({
+                  value: code,
+                  searchValue: `[${code}] ${tString([`common:countries.${code}`] as unknown as TemplateStringsArray)}`,
+                  label: (
+                    <span>
+                      <span className="eb-font-medium">[{code}]</span>{' '}
+                      {t([
+                        `common:countries.${code}`,
+                      ] as unknown as TemplateStringsArray)}
+                    </span>
+                  ),
+                }))}
+                onChange={handleCountryOfFormationChange}
+                readonly={isCountryOfFormationLocked}
+                required
+                disabled={isFormDisabled}
+              />
+            )}
             <OnboardingFormField
               control={form.control}
               disableFieldRuleMapping
               name="organizationTypeHierarchy.generalOrganizationType"
               type="radio-group-blocks"
-              options={getAvailableGeneralOrgTypes().map((type) => ({
-                value: type,
-                label: t([`generalOrganizationTypes.${type}`]),
-                description: t([`generalOrganizationTypeDescriptions.${type}`]),
-                disabled: isPTCLocked && type === 'SOLE_PROPRIETORSHIP',
-              }))}
+              options={getAvailableGeneralOrgTypes(countryOfFormation).map(
+                (type) => ({
+                  value: type,
+                  label: t([`generalOrganizationTypes.${type}`]),
+                  description: t([
+                    `generalOrganizationTypeDescriptions.${type}`,
+                  ]),
+                  disabled: isPTCLocked && type === 'SOLE_PROPRIETORSHIP',
+                })
+              )}
               onChange={handleGeneralOrganizationTypeChange}
               required
               disabled={isFormDisabled}
@@ -633,17 +799,10 @@ export const GatewayScreen = () => {
                 description={t([
                   `fields.organizationTypeHierarchy.specificOrganizationType.description.${selectedGeneralOrganizationType}`,
                 ])}
-                options={(availableOrganizationTypes ?? ORGANIZATION_TYPE_LIST)
-                  .filter((type) =>
-                    ORG_TYPE_MAPPING[selectedGeneralOrganizationType].includes(
-                      type
-                    )
-                  )
-                  .map((type) => ({
-                    value: type,
-                    label: t(`organizationTypes.${type}`),
-                    description: t(`organizationTypeDescriptions.${type}`),
-                  }))}
+                options={getSpecificOrgTypeOptions(
+                  countryOfFormation,
+                  selectedGeneralOrganizationType
+                )}
                 required
                 disabled={isFormDisabled}
               />

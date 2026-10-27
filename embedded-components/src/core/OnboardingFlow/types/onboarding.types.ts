@@ -6,6 +6,7 @@ import {
   ClientResponse,
   ClientStatus,
   ClientVerificationResponse,
+  CountryCodeIsoAlpha2,
   OrganizationType,
   PartyResponse,
   SchemasApiError,
@@ -46,6 +47,20 @@ export type OnboardingFlowEntry = {
 };
 
 export type Jurisdiction = 'US' | 'CA';
+
+/**
+ * @experimental Preview only — the API does not accept non-US countries of
+ * formation yet. A host-defined legal entity type offered on the gateway for a
+ * country of formation.
+ */
+export type ExperimentalOrganizationTypeOption = {
+  /** Sent as `organizationDetails.organizationType`; may be a value the API doesn't support yet. */
+  value: string;
+  label: string;
+  description?: string;
+  /** Gateway business-type group the option is listed under. */
+  generalOrganizationType: 'REGISTERED_BUSINESS' | 'OTHER';
+};
 
 /**
  * Host-supplied values for the optional link-account step.
@@ -335,6 +350,45 @@ export type OnboardingConfigUsedInContext = {
   availableProducts: Array<ClientProduct>;
   availableJurisdictions: Array<Jurisdiction>;
   availableOrganizationTypes?: Array<OrganizationType>;
+  /**
+   * @experimental Preview only — the API does not accept non-US countries of
+   * formation yet, so submitting one fails against a real backend.
+   *
+   * Countries a business may select as its country of formation. When omitted
+   * or US-only, the flow is unchanged.
+   *
+   * - The gateway asks for the country first, then the business type.
+   * - Sole proprietorships are only offered for the US.
+   * - Business → Identity shows the country read-only. A business formed outside
+   *   the US enters a business registration ID (`BUSINESS_REGISTRATION_ID`,
+   *   issuer = country of formation) instead of an EIN.
+   * - Independent of `availableJurisdictions`; the organization is still created
+   *   with jurisdiction `US`.
+   *
+   * @example
+   * ```tsx
+   * <OnboardingFlow experimental_availableCountriesOfFormation={['US', 'CN']} />
+   * ```
+   */
+  experimental_availableCountriesOfFormation?: readonly CountryCodeIsoAlpha2[];
+  /**
+   * @experimental Preview only — used with
+   * {@link OnboardingConfigUsedInContext.experimental_availableCountriesOfFormation}.
+   *
+   * Legal entity types offered on the gateway for each country of formation.
+   * Countries without an entry use `availableOrganizationTypes`. The library
+   * ships no per-country defaults.
+   *
+   * @example
+   * ```tsx
+   * experimental_organizationTypesByCountryOfFormation={{
+   *   CN: [{ value: 'CN_WFOE', label: 'Wholly foreign-owned enterprise', generalOrganizationType: 'REGISTERED_BUSINESS' }],
+   * }}
+   * ```
+   */
+  experimental_organizationTypesByCountryOfFormation?: Partial<
+    Record<CountryCodeIsoAlpha2, readonly ExperimentalOrganizationTypeOption[]>
+  >;
   /**
    * Limit the flow to responding to an information request: the supporting
    * documents screen, plus the questions screen when the request includes

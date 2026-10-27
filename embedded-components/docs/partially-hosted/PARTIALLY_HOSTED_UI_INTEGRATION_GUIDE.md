@@ -1142,6 +1142,40 @@ if (onboardingIframe && onboardingIframe.contentWindow) {
   - `frame-src <onboarding-provider-domain.com>;` Restricts where iframes can be
     loaded from on your pages.
 
+#### Allowed Embedding Origins
+
+The Onboarding UI can only be framed by origins on your platform's allowlist.
+It is enforced with a `Content-Security-Policy: frame-ancestors` header on the
+onboarding page, so browsers refuse to load it inside any other parent page.
+Provide separate lists for non-production and production.
+
+Each entry is one of:
+
+- **Exact origin**, e.g. `https://app.partner.com`: allows only that host.
+- **Subdomain wildcard**, e.g. `https://*.partner.com`: allows every subdomain
+  at any depth (e.g. `client1.partner.com`, `eu.client1.partner.com`), but
+  **not** `partner.com` itself. List the bare domain separately if it also
+  embeds the Onboarding UI.
+
+Use a subdomain wildcard when each of your clients gets its own subdomain under
+a domain you own, so onboarding a new client does not require an allowlist
+change.
+
+Rules:
+
+- **HTTPS only.** `http://` entries are ignored in production.
+- **Ports.** An entry without a port only matches the default port (443). Add
+  the port (e.g. `https://*.partner.com:8443`) if you serve from another one.
+- **Only wildcard a domain you fully control.** Every matching subdomain —
+  including any that users or third parties can create, and any dangling DNS
+  record — can frame the Onboarding UI, post messages (including a session
+  token) to it, and receive the events it sends.
+- **Not accepted:** `*`, scheme-only entries (`https:`), top-level or public
+  suffix wildcards (`*.com`, `*.co.uk`), and shared hosting domains
+  (`*.netlify.app`, `*.vercel.app`, `*.azurewebsites.net`, `*.herokuapp.com`,
+  `*.github.io`). If your clients are hosted on such a platform, list each host
+  as an exact origin.
+
 ### 6.2. `postMessage` Security
 
 - **Always validate `event.origin`:** This is the most critical check when

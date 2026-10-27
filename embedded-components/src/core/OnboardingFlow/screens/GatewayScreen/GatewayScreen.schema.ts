@@ -44,6 +44,8 @@ export const GatewayScreenFormSchema = z.object({
         message: i18n.t('common:validation.required'),
       }),
   }),
+  // Offered only when OnboardingFlow `experimental_availableCountriesOfFormation` includes a non-US country.
+  countryOfFormation: z.string().default(''),
   // PTC fields — conditionally validated via refineGatewaySchema
   isPTCOrSubsidiary: z.string().default(''),
   isSubsidiary: z.string().default(''),
@@ -51,6 +53,20 @@ export const GatewayScreenFormSchema = z.object({
   stockExchange: z.string().default(''),
   stockExchangeName: z.string().default(''),
 });
+
+/**
+ * Accepts host-defined organization types from
+ * `experimental_organizationTypesByCountryOfFormation`, which may not be API enum values.
+ */
+export const GatewayScreenFormSchemaWithHostOrganizationTypes =
+  GatewayScreenFormSchema.extend({
+    organizationTypeHierarchy:
+      GatewayScreenFormSchema.shape.organizationTypeHierarchy.extend({
+        specificOrganizationType: z.string().refine((val) => val !== '', {
+          message: i18n.t('common:validation.required'),
+        }),
+      }),
+  });
 
 /**
  * Refinement for PTC fields:

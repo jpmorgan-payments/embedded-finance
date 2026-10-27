@@ -44,6 +44,7 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
+import { useOrganizationTypeLabel } from '@/core/OnboardingFlow/hooks/useOrganizationTypeLabel';
 import { useStableStepSchemas } from '@/core/OnboardingFlow/hooks/useStableStepSchemas';
 import { useQuestionTree } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/useQuestionTree';
 import {
@@ -867,6 +868,7 @@ const GatewayReviewCard: React.FC<{
 }> = ({ clientData, onChangeClick }) => {
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
   const { enablePubliclyTradedCompanies } = useOnboardingContext();
+  const getOrganizationTypeLabel = useOrganizationTypeLabel();
   const orgParty = getOrganizationParty(clientData);
   const orgType = orgParty?.organizationDetails?.organizationType;
   const publiclyTraded = orgParty?.organizationDetails?.publiclyTraded;
@@ -908,9 +910,7 @@ const GatewayReviewCard: React.FC<{
           <p className="eb-text-label eb-font-label eb-text-label-foreground">
             {t('fields.organizationTypeHierarchy.label', 'Legal structure')}
           </p>
-          <p className="eb-text-sm">
-            {t(`organizationTypes.${orgType}`, orgType)}
-          </p>
+          <p className="eb-text-sm">{getOrganizationTypeLabel(orgType)}</p>
         </div>
 
         {ptcValue !== 'none' && publiclyTraded && (
