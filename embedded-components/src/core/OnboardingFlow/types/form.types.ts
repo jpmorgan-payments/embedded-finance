@@ -269,7 +269,10 @@ type FieldConfigurationGeneric<
       saveResponseInContext?: never;
       path: string;
       fromResponseFn?: (val: any) => T | undefined;
-      toRequestFn?: (val: OnboardingFormValuesSubmit[K]) => any;
+      toRequestFn?: (
+        val: OnboardingFormValuesSubmit[K],
+        values?: Partial<OnboardingFormValuesSubmit>
+      ) => any;
     } & BaseFieldConfiguration<T, IsSubfield>)
   | ({
       key?: K; // phantom property

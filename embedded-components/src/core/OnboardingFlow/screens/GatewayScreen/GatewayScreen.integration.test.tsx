@@ -519,6 +519,136 @@ describe('GatewayScreen (integration)', () => {
   });
 
   // =========================================================================
+  // Country of formation (experimental_availableCountriesOfFormation)
+  // =========================================================================
+
+  describe('country of formation', () => {
+    const cnWfoe = {
+      value: 'CN_WFOE',
+      label: 'Wholly foreign-owned enterprise',
+      generalOrganizationType: 'REGISTERED_BUSINESS',
+    } as const;
+
+    async function selectCountry(code: string) {
+      const [countryCombo] = screen.getAllByRole('combobox');
+      await user.click(countryCombo);
+      await user.click(
+        await screen.findByRole('option', { name: new RegExp(`\\[${code}\\]`) })
+      );
+    }
+
+    async function selectRegisteredType(name: RegExp) {
+      await user.click(
+        screen.getByRole('radio', { name: /registered business/i })
+      );
+      const combos = await screen.findAllByRole('combobox');
+      await user.click(combos[combos.length - 1]);
+      await user.click(await screen.findByRole('option', { name }));
+    }
+
+    function postedOrganizationDetails() {
+      const postArg = gwCtx.postMutate.mock.calls[0][0] as {
+        data?: {
+          parties?: Array<{
+            organizationDetails?: {
+              countryOfFormation?: string;
+              organizationType?: string;
+            };
+          }>;
+        };
+      };
+      return postArg.data?.parties?.[0]?.organizationDetails;
+    }
+
+    async function submit() {
+      await user.click(screen.getByRole('button', { name: /get started/i }));
+      await waitFor(() => {
+        expect(gwCtx.postMutate).toHaveBeenCalled();
+      });
+    }
+
+    test('is not offered without non-US countries configured', async () => {
+      renderGateway();
+
+      await selectRegisteredType(/limited liability company/i);
+
+      expect(screen.queryByText(/country of registration/i)).toBeNull();
+    });
+
+    test('asks for the country first and creates the client with it', async () => {
+      renderGateway({
+        experimental_availableCountriesOfFormation: ['US', 'CN'],
+      });
+
+      expect(
+        await screen.findByText(/country of registration/i)
+      ).toBeInTheDocument();
+      await selectCountry('CN');
+      await selectRegisteredType(/limited liability company/i);
+      await submit();
+
+      expect(postedOrganizationDetails()).toMatchObject({
+        countryOfFormation: 'CN',
+        organizationType: 'LIMITED_LIABILITY_COMPANY',
+      });
+    });
+
+    test('only offers sole proprietorship for the US', async () => {
+      renderGateway({
+        experimental_availableCountriesOfFormation: ['US', 'CN'],
+      });
+
+      expect(
+        await screen.findByRole('radio', { name: /i'm the sole owner/i })
+      ).toBeInTheDocument();
+
+      await selectCountry('CN');
+
+      expect(
+        screen.queryByRole('radio', { name: /i'm the sole owner/i })
+      ).toBeNull();
+    });
+
+    test('offers host-defined entity types for a configured country', async () => {
+      renderGateway({
+        experimental_availableCountriesOfFormation: ['US', 'CN'],
+        experimental_organizationTypesByCountryOfFormation: { CN: [cnWfoe] },
+      });
+
+      await selectCountry('CN');
+      await selectRegisteredType(/wholly foreign-owned enterprise/i);
+      await submit();
+
+      expect(postedOrganizationDetails()).toMatchObject({
+        countryOfFormation: 'CN',
+        organizationType: 'CN_WFOE',
+      });
+    });
+
+    test('clears a business type the new country does not offer', async () => {
+      renderGateway({
+        experimental_availableCountriesOfFormation: ['US', 'CN'],
+        experimental_organizationTypesByCountryOfFormation: { CN: [cnWfoe] },
+      });
+
+      await selectRegisteredType(/limited liability company/i);
+      const combos = screen.getAllByRole('combobox');
+      expect(combos[combos.length - 1]).toHaveTextContent(
+        /limited liability company/i
+      );
+
+      await selectCountry('CN');
+
+      await waitFor(() => {
+        const updatedCombos = screen.getAllByRole('combobox');
+        expect(updatedCombos[updatedCombos.length - 1]).not.toHaveTextContent(
+          /limited liability company/i
+        );
+      });
+    });
+  });
+
+  // =========================================================================
   // PTC Feature Flag Enabled
   // =========================================================================
 

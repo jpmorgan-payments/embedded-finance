@@ -2,6 +2,14 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.17.20] - 2026-10-27
+
+### Changes
+
+#### Features
+
+- **onboarding:** implement optional non-us countryOfFormation feature
+
 ## [0.17.19] - 2026-10-22
 
 ### Changes

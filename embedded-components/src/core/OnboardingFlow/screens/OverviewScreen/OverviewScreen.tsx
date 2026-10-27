@@ -51,6 +51,7 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import { useOrganizationTypeLabel } from '@/core/OnboardingFlow/hooks/useOrganizationTypeLabel';
 import { ExistingLinkedAccountsList } from '@/core/OnboardingFlow/screens/LinkAccountScreen/components/ExistingLinkedAccountsList';
 import { LinkAccountFormPanel } from '@/core/OnboardingFlow/screens/LinkAccountScreen/LinkAccountFormPanel';
 import {
@@ -256,8 +257,9 @@ const BusinessTypeNewSection = () => {
     useOnboardingContext();
   const { goTo } = useFlowContext();
   const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const getOrganizationTypeLabel = useOrganizationTypeLabel();
 
-  const organizationTypeText = t(`organizationTypes.${organizationType!}`);
+  const organizationTypeText = getOrganizationTypeLabel(organizationType!);
 
   const orgParty = getOrganizationParty(clientData);
   const publiclyTraded = enablePubliclyTradedCompanies

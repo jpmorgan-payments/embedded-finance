@@ -1,6 +1,6 @@
 {
   "name": "@jpmorgan-payments/embedded-finance-components",
-  "version": "0.17.19",
+  "version": "0.17.20",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -166,8 +166,8 @@
     "@types/react-dom": "^18.3.0",
     "@types/react-window": "^1",
     "@vitejs/plugin-react": "^6.0.3",
-    "@vitest/coverage-v8": "^4.1.10",
-    "@vitest/ui": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.12",
+    "@vitest/ui": "^4.1.11",
     "ajv": "^8.20.0",
     "autoprefixer": "^10.5.4",
     "baseline-browser-mapping": "^2.11.1",
@@ -205,7 +205,7 @@
     "vite": "^8.3.4",
     "vite-plugin-dts": "^5.0.3",
     "vite-plugin-lib-inject-css": "^2.2.2",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   },
   "optionalDependencies": {
     "@ast-grep/napi-linux-x64-gnu": "0.36.3",
@@ -242,7 +242,7 @@
     "esbuild": "0.28.1",
     "fast-uri": "3.1.7",
     "linkify-it": "5.0.2",
-    "markdown-it": "14.3.2",
+    "markdown-it": "14.3.3",
     "follow-redirects": "1.16.1",
     "postcss-selector-parser": "7.1.6",
     "@babel/core": "7.29.7",

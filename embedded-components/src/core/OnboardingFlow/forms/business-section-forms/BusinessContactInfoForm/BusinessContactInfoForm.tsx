@@ -24,6 +24,8 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
 
   const organizationPhoneType = form.watch('organizationPhone.phoneType');
   const organizationPhoneNumber = form.watch('organizationPhone.phoneNumber');
+  const addressCountry = form.watch('organizationAddress.country');
+  const addressLine = form.watch('organizationAddress.primaryAddressLine');
 
   useEffect(() => {
     if (organizationPhoneNumber && organizationPhoneType !== 'BUSINESS_PHONE') {
@@ -31,6 +33,18 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- default the phone type only when the number/type change; form is read as latest and intentionally excluded
   }, [organizationPhoneNumber, organizationPhoneType]);
+
+  // A new business address starts in the country of formation (the field default is US).
+  useEffect(() => {
+    if (
+      countryOfFormation &&
+      !addressLine &&
+      addressCountry !== countryOfFormation
+    ) {
+      form.setValue('organizationAddress.country', countryOfFormation);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- form is read as latest and intentionally excluded
+  }, [countryOfFormation, addressCountry, addressLine]);
 
   return (
     <div className="eb-mt-6 eb-space-y-6">
@@ -41,7 +55,9 @@ export const BusinessContactInfoForm: FormStepComponent = () => {
       />
       <AddressFields
         addressName="organizationAddress"
-        countryReadonly={!!countryOfFormation}
+        countryReadonly={
+          !!countryOfFormation && addressCountry === countryOfFormation
+        }
       />
     </div>
   );

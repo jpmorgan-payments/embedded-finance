@@ -2,11 +2,33 @@ import { z } from 'zod';
 
 import { getEinValidationIssue } from '@/core/ClientProfile/schemas/isValidEin';
 import { COUNTRIES_OF_FORMATION } from '@/core/OnboardingFlow/consts';
+import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
+import { getOrganizationParty } from '@/core/OnboardingFlow/utils/dataUtils';
 import { useGetValidationMessage } from '@/core/OnboardingFlow/utils/formUtils';
 import { NAME_PATTERN } from '@/core/OnboardingFlow/utils/validationPatterns';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const SPECIAL_CHARS_PATTERN = /[()_/@&+%#;,.: '-]/;
+// Allowed characters for organization ID values (OAS OrganizationIdentityDto.value).
+const ORGANIZATION_ID_PATTERN = /^[A-Za-z0-9/.\s+&-]*$/;
+
+/**
+ * Countries the business may select as its country of formation, from the
+ * `experimental_availableCountriesOfFormation` prop. `undefined` means the default (US only).
+ * Sole proprietorships are always formed in the US.
+ */
+export const useAllowedCountriesOfFormation = ():
+  | readonly string[]
+  | undefined => {
+  const { clientData, experimental_availableCountriesOfFormation } =
+    useOnboardingContext();
+  const isSoleProp =
+    getOrganizationParty(clientData)?.organizationDetails?.organizationType ===
+    'SOLE_PROPRIETORSHIP';
+  return !isSoleProp && experimental_availableCountriesOfFormation?.length
+    ? experimental_availableCountriesOfFormation
+    : undefined;
+};
 
 // const OrganizationIdSchema = z
 //   .object({
@@ -119,6 +141,7 @@ const SPECIAL_CHARS_PATTERN = /[()_/@&+%#;,.: '-]/;
 
 export const useBusinessIdentityFormSchema = () => {
   const v = useGetValidationMessage();
+  const allowedCountries = useAllowedCountriesOfFormation();
   return z.object({
     organizationName: z
       .string()
@@ -171,7 +194,13 @@ export const useBusinessIdentityFormSchema = () => {
         (val) => COUNTRIES_OF_FORMATION.includes(val),
         v('countryOfFormation', 'invalid')
       )
-      .refine((val) => val === 'US', v('countryOfFormation', 'usOnly')),
+      .refine(
+        (val) =>
+          allowedCountries ? allowedCountries.includes(val) : val === 'US',
+        allowedCountries
+          ? v('countryOfFormation', 'notAvailable')
+          : v('countryOfFormation', 'usOnly')
+      ),
     organizationIdEin: z
       .string()
       .min(1, v('organizationIdEin', 'required'))
@@ -184,6 +213,15 @@ export const useBusinessIdentityFormSchema = () => {
         (val) => getEinValidationIssue(val) !== 'invalidValue',
         v('organizationIdEin', 'invalidValue')
       ),
+    // Required only for non-US businesses (see refineBusinessIdentityFormSchema).
+    organizationIdRegistration: z
+      .string()
+      .max(100, v('organizationIdRegistration', 'maxLength'))
+      .refine(
+        (val) => ORGANIZATION_ID_PATTERN.test(val),
+        v('organizationIdRegistration', 'pattern')
+      )
+      .optional(),
     solePropHasEin: z
       .string()
       .refine(
@@ -204,7 +242,38 @@ export const refineBusinessIdentityFormSchema = (
 ) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: i18n hook used inside a schema-refine helper invoked during render; tracked as debt.
   const v = useGetValidationMessage();
-  return schema.superRefine((values, context) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- same render-time helper as above.
+  const allowedCountries = useAllowedCountriesOfFormation();
+  const { organizationIdEin } = schema.shape;
+  // When non-US formation is allowed, the EIN is validated only for US businesses.
+  const collectsRegistrationId =
+    !!organizationIdEin && !!allowedCountries?.some((code) => code !== 'US');
+  const baseSchema: z.ZodObject<Record<string, z.ZodTypeAny>> =
+    collectsRegistrationId
+      ? schema.extend({ organizationIdEin: z.string().optional() })
+      : schema;
+
+  return baseSchema.superRefine((values, context) => {
+    if (collectsRegistrationId) {
+      if ((values.countryOfFormation ?? 'US') === 'US') {
+        organizationIdEin
+          .safeParse(values.organizationIdEin)
+          .error?.issues.forEach((issue) => {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: issue.message,
+              path: ['organizationIdEin', ...issue.path],
+            });
+          });
+      } else if (!values.organizationIdRegistration) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: v('organizationIdRegistration', 'required'),
+          path: ['organizationIdRegistration'],
+        });
+      }
+    }
+
     if (
       values.countryOfFormation === 'US' &&
       values.solePropHasEin === 'yes' &&

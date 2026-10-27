@@ -980,7 +980,23 @@ export const OnboardingFlowTemplate: React.FC<OnboardingFlowProps> = (args) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  return <OnboardingFlow height={`${containerHeight}px`} {...args} />;
+  const { experimental_availableCountriesOfFormation, ...flowArgs } = args;
+  const countriesArg: unknown = experimental_availableCountriesOfFormation;
+  const countries =
+    typeof countriesArg === 'string'
+      ? countriesArg
+          .split(',')
+          .map((country) => country.trim().toUpperCase())
+          .filter(Boolean)
+      : experimental_availableCountriesOfFormation;
+
+  return (
+    <OnboardingFlow
+      height={`${containerHeight}px`}
+      {...flowArgs}
+      experimental_availableCountriesOfFormation={countries}
+    />
+  );
 };
 
 // ============================================================================
@@ -1045,6 +1061,14 @@ export const commonArgsWithCallbacks: Partial<OnboardingFlowProps> = {
  * Storybook controls and documentation for OnboardingFlow stories.
  */
 export const commonArgTypes = {
+  experimental_availableCountriesOfFormation: {
+    control: { type: 'text' as const },
+    description:
+      'Experimental preview. Comma-separated ISO 3166-1 alpha-2 codes available for business formation',
+    table: {
+      category: 'Configuration',
+    },
+  },
   availableProducts: {
     control: { type: 'check' as const },
     options: ['MERCHANT_SERVICES', 'EMBEDDED_PAYMENTS'],
