@@ -21,21 +21,24 @@ describe('ExperiencesSection', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders seven experience cards', () => {
+  it('renders nine experience cards', () => {
     render(<ExperiencesSection />);
     const demoButtons = screen.getAllByTitle('View Live Demo');
-    expect(demoButtons.length).toBe(7);
+    expect(demoButtons.length).toBe(9);
   });
 
-  it('renders correct status badges for experiences', () => {
+  it('renders status badges that match the library status', () => {
     render(<ExperiencesSection />);
-    const testingBadges = screen.getAllByText('Testing');
-    // Five experiences are in Testing, one (Onboarding) is Available, and Client Details is In Progress
-    expect(testingBadges.length).toBe(5);
-    expect(screen.getByText('Available')).toBeInTheDocument();
+    // Onboarding, Linked Accounts, and Recipients are stable
+    expect(screen.getAllByText('Available')).toHaveLength(3);
+    // Payouts, Transactions, Accounts, and Client Details are in testing
+    expect(screen.getAllByText('Testing')).toHaveLength(4);
+    expect(screen.getAllByText('Beta')).toHaveLength(1);
+    expect(screen.getAllByText('In Progress')).toHaveLength(1);
+    expect(screen.queryByText('Coming Soon')).not.toBeInTheDocument();
   });
 
-  it('renders Client Details as the seventh card with correct title and description', () => {
+  it('renders Client Details card with correct title and description', () => {
     render(<ExperiencesSection />);
     expect(screen.getByText('Client Details')).toBeInTheDocument();
     expect(
@@ -73,10 +76,40 @@ describe('ExperiencesSection', () => {
     ).toBeInTheDocument();
   });
 
+  it.each([
+    [/^cross-border fx payouts$/i, /paymentflowfx component/i],
+    [/^approved client maintenance$/i, /approvedclientmaintenance component/i],
+  ])(
+    'opens a dedicated code example for %s',
+    async (cardTitle, exampleTitle) => {
+      const user = userEvent.setup();
+      render(<ExperiencesSection />);
+      await user.click(screen.getByRole('button', { name: cardTitle }));
+      const dialog = screen.getByRole('dialog');
+      expect(within(dialog).getByText(exampleTitle)).toBeInTheDocument();
+    }
+  );
+
+  it('opens the FX SellSense scenario and the client maintenance Storybook demo', async () => {
+    const open = vi.fn();
+    vi.stubGlobal('open', open);
+    const user = userEvent.setup();
+    render(<ExperiencesSection />);
+
+    const demoButtons = screen.getAllByTitle('View Live Demo');
+    await user.click(demoButtons[4]);
+    await user.click(demoButtons[8]);
+
+    expect(open.mock.calls.map((call) => call[0])).toEqual([
+      '/sellsense-demo?fullscreen=true&component=recipients&scenario=Seller%20with%20FX%20Payments&theme=Empty',
+      'https://storybook.embedded-finance-dev.com/?path=/story/draft-approvedclientmaintenance--default',
+    ]);
+  });
+
   it('each card has demo and github links', () => {
     render(<ExperiencesSection />);
-    expect(screen.getAllByTitle('View Live Demo').length).toBe(7);
-    expect(screen.getAllByTitle('View Source Code').length).toBe(7);
+    expect(screen.getAllByTitle('View Live Demo').length).toBe(9);
+    expect(screen.getAllByTitle('View Source Code').length).toBe(9);
   });
 
   it('opens current Embedded Payments API documentation URLs', async () => {
@@ -86,7 +119,7 @@ describe('ExperiencesSection', () => {
     render(<ExperiencesSection />);
 
     const docsButtons = screen.getAllByTitle('View API Documentation');
-    expect(docsButtons).toHaveLength(7);
+    expect(docsButtons).toHaveLength(9);
 
     for (const button of docsButtons) {
       await user.click(button);
@@ -97,8 +130,10 @@ describe('ExperiencesSection', () => {
       `${DOCS_ROOT}/capabilities/external-accounts/add-linked-account`,
       `${DOCS_ROOT}/capabilities/external-accounts/third-party-recipient`,
       `${DOCS_ROOT}/capabilities/transactions/payouts/overview`,
+      `${DOCS_ROOT}/capabilities/transactions/payouts/how-to/cross-border-fx-payout`,
       `${DOCS_ROOT}/capabilities/transactions/manage-transactions/view-and-display-transactions`,
       `${DOCS_ROOT}/capabilities/accounts/account-setup/create-accounts`,
+      `${DOCS_ROOT}/capabilities/onboard-a-client`,
       `${DOCS_ROOT}/capabilities/onboard-a-client`,
     ]);
   });
@@ -109,9 +144,9 @@ describe('ExperiencesSection', () => {
     const user = userEvent.setup();
     render(<ExperiencesSection />);
 
-    await user.click(screen.getAllByTitle('View Source Code')[5]);
-    await user.click(screen.getAllByTitle('View Implementation Recipe')[5]);
-    await user.click(screen.getAllByTitle('View NPM Components')[5]);
+    await user.click(screen.getAllByTitle('View Source Code')[6]);
+    await user.click(screen.getAllByTitle('View Implementation Recipe')[6]);
+    await user.click(screen.getAllByTitle('View NPM Components')[6]);
 
     expect(open.mock.calls.map((call) => call[0])).toEqual([
       'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/Accounts',
