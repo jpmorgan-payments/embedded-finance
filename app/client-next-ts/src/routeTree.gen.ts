@@ -22,6 +22,7 @@ import { Route as TestScenario3RouteImport } from './routes/test-scenario-3'
 import { Route as TestScenario2RouteImport } from './routes/test-scenario-2'
 import { Route as TestScenarioRouteImport } from './routes/test-scenario'
 import { Route as StoriesRouteImport } from './routes/stories'
+import { Route as SpotlightRouteImport } from './routes/spotlight'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as SellsenseDemoRouteImport } from './routes/sellsense-demo'
 import { Route as RepoEvolutionRouteImport } from './routes/repo-evolution'
@@ -106,6 +107,11 @@ const TestScenarioRoute = TestScenarioRouteImport.update({
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SpotlightRoute = SpotlightRouteImport.update({
+  id: '/spotlight',
+  path: '/spotlight',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SolutionsRoute = SolutionsRouteImport.update({
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/repo-evolution': typeof RepoEvolutionRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/spotlight': typeof SpotlightRoute
   '/stories': typeof StoriesRouteWithChildren
   '/test-scenario': typeof TestScenarioRouteWithChildren
   '/test-scenario-2': typeof TestScenario2Route
@@ -261,6 +268,7 @@ export interface FileRoutesByTo {
   '/repo-evolution': typeof RepoEvolutionRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/spotlight': typeof SpotlightRoute
   '/test-scenario-2': typeof TestScenario2Route
   '/test-scenario-3': typeof TestScenario3Route
   '/test-scenario-4': typeof TestScenario4Route
@@ -295,6 +303,7 @@ export interface FileRoutesById {
   '/repo-evolution': typeof RepoEvolutionRoute
   '/sellsense-demo': typeof SellsenseDemoRoute
   '/solutions': typeof SolutionsRoute
+  '/spotlight': typeof SpotlightRoute
   '/stories': typeof StoriesRouteWithChildren
   '/test-scenario': typeof TestScenarioRouteWithChildren
   '/test-scenario-2': typeof TestScenario2Route
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/repo-evolution'
     | '/sellsense-demo'
     | '/solutions'
+    | '/spotlight'
     | '/stories'
     | '/test-scenario'
     | '/test-scenario-2'
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/repo-evolution'
     | '/sellsense-demo'
     | '/solutions'
+    | '/spotlight'
     | '/test-scenario-2'
     | '/test-scenario-3'
     | '/test-scenario-4'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/repo-evolution'
     | '/sellsense-demo'
     | '/solutions'
+    | '/spotlight'
     | '/stories'
     | '/test-scenario'
     | '/test-scenario-2'
@@ -436,6 +448,7 @@ export interface RootRouteChildren {
   RepoEvolutionRoute: typeof RepoEvolutionRoute
   SellsenseDemoRoute: typeof SellsenseDemoRoute
   SolutionsRoute: typeof SolutionsRoute
+  SpotlightRoute: typeof SpotlightRoute
   StoriesRoute: typeof StoriesRouteWithChildren
   TestScenarioRoute: typeof TestScenarioRouteWithChildren
   TestScenario2Route: typeof TestScenario2Route
@@ -542,6 +555,13 @@ declare module '@tanstack/react-router' {
       path: '/stories'
       fullPath: '/stories'
       preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/spotlight': {
+      id: '/spotlight'
+      path: '/spotlight'
+      fullPath: '/spotlight'
+      preLoaderRoute: typeof SpotlightRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/solutions': {
@@ -732,6 +752,7 @@ const rootRouteChildren: RootRouteChildren = {
   RepoEvolutionRoute: RepoEvolutionRoute,
   SellsenseDemoRoute: SellsenseDemoRoute,
   SolutionsRoute: SolutionsRoute,
+  SpotlightRoute: SpotlightRoute,
   StoriesRoute: StoriesRouteWithChildren,
   TestScenarioRoute: TestScenarioRouteWithChildren,
   TestScenario2Route: TestScenario2Route,
