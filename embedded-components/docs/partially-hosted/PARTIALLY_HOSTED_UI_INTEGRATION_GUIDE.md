@@ -379,6 +379,8 @@ available through partially hosted URLs.
 | `linkAccountBankFormConfigOverride`    | `object`                                | `{}`              | Partially overrides linked-account bank form configuration, such as available payment methods and account-holder defaults.                       |
 | `hideRemoveRecipient`                  | `boolean`                               | `false`           | Hides Remove actions in standalone linked-account cards and table rows. This is separate from onboarding's `hideLinkedAccountRemoval` property.  |
 
+When `linkAccountBankFormConfigOverride.paymentMethods.available` is set, it also limits which payment methods can be added after creation (Edit and the "Add Wire / RTP" card action). For example, `["ACH"]` prevents adding Wire or RTP later; methods an account already has are kept.
+
 **Example — standalone linked-account list:**
 
 ```javascript

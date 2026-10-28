@@ -10,7 +10,10 @@ import {
 import { TranslationResult, useTranslationWithTokens } from '@/i18n';
 import { AlertTriangleIcon } from 'lucide-react';
 
-import { Recipient } from '@/api/generated/ep-recipients.schemas';
+import {
+  Recipient,
+  RoutingInformationTransactionType,
+} from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { ApiError } from '@/api/generated/smbdo.schemas';
 import type { ErrorType } from '@/api/use-axios-instance';
@@ -48,6 +51,7 @@ import { RecipientI18nNamespace, SupportedRecipientType } from '../../types';
 import {
   BankAccountForm,
   createCustomConfig,
+  restrictPaymentMethods,
   useLinkedAccountConfig,
   useLinkedAccountEditConfig,
   useRecipientConfig,
@@ -109,6 +113,17 @@ export interface RecipientFormDialogProps {
    * Storybook / hosts can expose alternate `paymentMethods.available` sets without forking the dialog.
    */
   linkAccountBankFormConfigOverride?: Partial<BankAccountFormConfig>;
+
+  /**
+   * **Edit** mode only: payment methods the user may add to the recipient.
+   * Methods the recipient already has always stay available. Omit to offer
+   * every method in the edit config.
+   *
+   * `BaseRecipientsWidget` sets this from
+   * `linkAccountBankFormConfigOverride.paymentMethods.available` so a platform
+   * restricted at create time (e.g. ACH only) cannot add other methods later.
+   */
+  allowedPaymentMethods?: readonly RoutingInformationTransactionType[];
 
   /**
    * Enable cross-border (FX) recipient capture (FR-FX-10). When true for
@@ -331,6 +346,7 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   linkAccountReviewAcknowledgements,
   showLinkAccountAcknowledgementsIntro = false,
   linkAccountBankFormConfigOverride,
+  allowedPaymentMethods,
   internationalMode = false,
   supportedCurrencies,
   currencyLabels,
@@ -374,12 +390,16 @@ export const RecipientFormDialog: FC<RecipientFormDialogProps> = ({
   const recipientEditConfig = useRecipientEditConfig();
 
   // Select config based on recipientType and mode
-  const baseConfig = selectBankAccountConfig(recipientType, mode, {
+  const selectedConfig = selectBankAccountConfig(recipientType, mode, {
     recipientCreate: recipientCreateConfig,
     recipientEdit: recipientEditConfig,
     linkedAccountCreate: linkedAccountCreateConfig,
     linkedAccountEdit: linkedAccountEditConfig,
   });
+  const baseConfig =
+    mode === 'edit'
+      ? restrictPaymentMethods(selectedConfig, allowedPaymentMethods, recipient)
+      : selectedConfig;
 
   const config = useMemo(() => {
     if (!isInternational) return baseConfig;

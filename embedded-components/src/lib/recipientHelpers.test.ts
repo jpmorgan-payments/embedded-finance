@@ -191,6 +191,18 @@ describe('recipientHelpers', () => {
       } as unknown as Recipient;
       expect(needsAdditionalRouting(recipient)).toBe(false);
     });
+
+    it('returns false when every missing method is outside the allowed list', () => {
+      expect(needsAdditionalRouting(mockIndividualRecipient, ['ACH'])).toBe(
+        false
+      );
+    });
+
+    it('returns true when an allowed method is missing', () => {
+      expect(
+        needsAdditionalRouting(mockIndividualRecipient, ['ACH', 'RTP'])
+      ).toBe(true);
+    });
   });
 
   describe('getMissingPaymentMethods', () => {
@@ -205,6 +217,15 @@ describe('recipientHelpers', () => {
       const missing = getMissingPaymentMethods(mockBusinessRecipient);
       expect(missing).toContain('Wire');
       expect(missing).toContain('RTP');
+    });
+
+    it('only reports missing methods that are allowed', () => {
+      expect(getMissingPaymentMethods(mockBusinessRecipient, ['ACH'])).toEqual(
+        []
+      );
+      expect(
+        getMissingPaymentMethods(mockBusinessRecipient, ['ACH', 'RTP'])
+      ).toEqual(['RTP']);
     });
   });
 

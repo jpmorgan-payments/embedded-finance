@@ -1,10 +1,12 @@
 import { server } from '@/msw/server';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
+import type { BankAccountFormConfig } from '@/core/RecipientWidgets/components/BankAccountForm';
 
 import { BaseRecipientsWidget } from './BaseRecipientsWidget';
 
@@ -123,6 +125,76 @@ describe('BaseRecipientsWidget', () => {
       expect(screen.getByText(/John Doe/i)).toBeInTheDocument();
     });
     expect(screen.getByText(/Jane Smith/i)).toBeInTheDocument();
+  });
+
+  it('applies the create payment-method restriction to post-creation actions', async () => {
+    server.use(
+      http.get('*/recipients', () =>
+        HttpResponse.json({
+          recipients: [mockRecipient],
+          metadata: { total_items: 1, total_pages: 1 },
+          page: 0,
+          limit: 10,
+        })
+      )
+    );
+    const user = userEvent.setup({ pointerEventsCheck: 0 });
+
+    renderWidget({
+      viewMode: 'cards',
+      linkAccountBankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH', 'RTP'],
+          allowMultiple: true,
+          defaultSelected: ['ACH'],
+        } as BankAccountFormConfig['paymentMethods'],
+      },
+    });
+
+    const addRouting = await screen.findByRole('button', {
+      name: /^add rtp routing information/i,
+    });
+    expect(
+      screen.queryByRole('button', { name: /add wire or rtp/i })
+    ).not.toBeInTheDocument();
+
+    await user.click(addRouting);
+
+    expect(
+      await screen.findByRole('checkbox', { name: /Real-Time Payments/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: /Wire/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('hides add routing when linked accounts are restricted to ACH', async () => {
+    server.use(
+      http.get('*/recipients', () =>
+        HttpResponse.json({
+          recipients: [mockRecipient],
+          metadata: { total_items: 1, total_pages: 1 },
+          page: 0,
+          limit: 10,
+        })
+      )
+    );
+
+    renderWidget({
+      viewMode: 'cards',
+      linkAccountBankFormConfigOverride: {
+        paymentMethods: {
+          available: ['ACH'],
+          allowMultiple: false,
+          defaultSelected: ['ACH'],
+        } as BankAccountFormConfig['paymentMethods'],
+      },
+    });
+
+    await screen.findByText(/John Doe/i);
+    expect(
+      screen.queryByRole('button', { name: /routing information/i })
+    ).not.toBeInTheDocument();
   });
 
   it('shows error state on API failure', async () => {

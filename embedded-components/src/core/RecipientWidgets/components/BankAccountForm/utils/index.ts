@@ -3,3 +3,4 @@
  */
 
 export { createCustomConfig } from './createCustomConfig';
+export { restrictPaymentMethods } from './restrictPaymentMethods';

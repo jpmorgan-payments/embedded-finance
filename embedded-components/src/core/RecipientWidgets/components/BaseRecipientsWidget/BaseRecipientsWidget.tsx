@@ -35,6 +35,7 @@ import {
 import type {
   ApiError,
   GetAllRecipientsParams,
+  RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
 import type { TransactionResponseV3 } from '@/api/generated/ep-transactions-v3.schemas';
 import type {
@@ -252,6 +253,11 @@ export interface BaseRecipientsWidgetProps
   showLinkAccountAcknowledgementsIntro?: boolean;
   /**
    * Optional merge on top of linked-account create config (`LINKED_ACCOUNT` create dialog only).
+   *
+   * When `paymentMethods.available` is set, it also limits what can be added
+   * after creation: the edit dialog and the "Add Wire / RTP" card action only
+   * offer those methods (methods an account already has are kept). For
+   * example, `available: ['ACH']` prevents adding Wire or RTP later.
    */
   linkAccountBankFormConfigOverride?: Partial<BankAccountFormConfig>;
 
@@ -629,6 +635,7 @@ interface RecipientsListContentProps {
   childHeadingLevel: HeadingLevelProps['headingLevel'];
   hideRemoveRecipient: boolean;
   showRecipientCurrency: boolean;
+  allowedPaymentMethods?: readonly RoutingInformationTransactionType[];
   effectiveRenderPaymentAction: (recipient: Recipient) => React.ReactNode;
   cardHandlers: RecipientCardHandlers;
   // Table pagination
@@ -660,6 +667,7 @@ const RecipientsListContent: React.FC<RecipientsListContentProps> = ({
   childHeadingLevel,
   hideRemoveRecipient,
   showRecipientCurrency,
+  allowedPaymentMethods,
   effectiveRenderPaymentAction,
   cardHandlers,
   pagination,
@@ -689,6 +697,7 @@ const RecipientsListContent: React.FC<RecipientsListContentProps> = ({
       headingLevel={childHeadingLevel}
       hideRemoveRecipient={hideRemoveRecipient}
       showRecipientCurrency={showRecipientCurrency}
+      allowedPaymentMethods={allowedPaymentMethods}
       className={cn({ 'eb-border-b-0': isCompact && isLast })}
     />
   );
@@ -1231,6 +1240,12 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
     setIsEditDialogOpen(true);
   }, []);
 
+  // A platform restricted at create time must not gain other methods via edit.
+  const allowedPaymentMethods =
+    recipientType === 'LINKED_ACCOUNT'
+      ? linkAccountBankFormConfigOverride?.paymentMethods?.available
+      : undefined;
+
   // Handle edit dialog state changes
   const handleEditDialogOpenChange = React.useCallback((open: boolean) => {
     setIsEditDialogOpen(open);
@@ -1338,6 +1353,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
           onRecipientSettled={handleEditSettled}
           recipientType={recipientType}
           i18nNamespace={config.i18nNamespace}
+          allowedPaymentMethods={allowedPaymentMethods}
         />
       )}
 
@@ -1504,6 +1520,7 @@ export const BaseRecipientsWidget: React.FC<BaseRecipientsWidgetProps> = ({
               childHeadingLevel={childHeadingLevel}
               hideRemoveRecipient={hideRemoveRecipient}
               showRecipientCurrency={shouldShowRecipientCurrency}
+              allowedPaymentMethods={allowedPaymentMethods}
               effectiveRenderPaymentAction={effectiveRenderPaymentAction}
               cardHandlers={{
                 onEditRecipient: handleEditRecipient,

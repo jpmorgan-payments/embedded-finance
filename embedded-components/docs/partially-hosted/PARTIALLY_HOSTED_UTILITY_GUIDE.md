@@ -25,11 +25,11 @@ A lightweight, framework-agnostic JavaScript utility library for embedding JPMor
 
 The `experienceType` parameter controls which hosted UI is rendered inside the iframe:
 
-| Experience Type | Description |
-|----------------|-------------|
-| `HOSTED_ONBOARDING_UI` | Full onboarding flow for new clients |
-| `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process |
-| `HOSTED_LINKED_ACCOUNTS_UI` | Standalone linked bank account management, including microdeposit verification |
+| Experience Type                   | Description                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| `HOSTED_ONBOARDING_UI`            | Full onboarding flow for new clients                                           |
+| `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process                                 |
+| `HOSTED_LINKED_ACCOUNTS_UI`       | Standalone linked bank account management, including microdeposit verification |
 
 > **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
 
@@ -40,8 +40,10 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 ```html
 <script type="module">
   import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
-  
-  const ui = new PartiallyHostedUIComponent({ /* config */ });
+
+  const ui = new PartiallyHostedUIComponent({
+    /* config */
+  });
 </script>
 ```
 
@@ -50,7 +52,9 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 ```html
 <script src="./partially-hosted-ui-component.js"></script>
 <script>
-  const ui = new PartiallyHostedUIComponent({ /* config */ });
+  const ui = new PartiallyHostedUIComponent({
+    /* config */
+  });
 </script>
 ```
 
@@ -59,7 +63,9 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 ```javascript
 const PartiallyHostedUIComponent = require('./partially-hosted-ui-component.js');
 
-const ui = new PartiallyHostedUIComponent({ /* config */ });
+const ui = new PartiallyHostedUIComponent({
+  /* config */
+});
 ```
 
 ## Quick Start
@@ -67,49 +73,49 @@ const ui = new PartiallyHostedUIComponent({ /* config */ });
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Onboarding Integration</title>
-</head>
-<body>
-  <!-- Container for the hosted UI -->
-  <div id="onboarding-container"></div>
+  <head>
+    <title>Onboarding Integration</title>
+  </head>
+  <body>
+    <!-- Container for the hosted UI -->
+    <div id="onboarding-container"></div>
 
-  <script type="module">
-    import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
+    <script type="module">
+      import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
 
-    // Initialize
-    const ui = new PartiallyHostedUIComponent({
-      sessionToken: 'your-jwt-token-from-backend',
-      experienceType: 'HOSTED_ONBOARDING_UI',
-      theme: {
-        colorScheme: 'light',
-        variables: {
-          primaryColor: '#0070f3',
-          fontFamily: 'system-ui, sans-serif'
+      // Initialize
+      const ui = new PartiallyHostedUIComponent({
+        sessionToken: 'your-jwt-token-from-backend',
+        experienceType: 'HOSTED_ONBOARDING_UI',
+        theme: {
+          colorScheme: 'light',
+          variables: {
+            primaryColor: '#0070f3',
+            fontFamily: 'system-ui, sans-serif',
+          },
+        },
+        contentTokens: {
+          locale: 'en-US',
+          brandName: 'Your Platform',
+        },
+        componentProperties: {
+          showLinkAccountStep: true,
+        },
+      });
+
+      // Subscribe to events
+      ui.subscribe((event) => {
+        console.log('Event:', event.message, event.payload);
+
+        if (event.message === 'OnboardingComplete') {
+          // Handle completion
         }
-      },
-      contentTokens: {
-        locale: 'en-US',
-        brandName: 'Your Platform'
-      },
-      componentProperties: {
-        showLinkAccountStep: true
-      }
-    });
+      });
 
-    // Subscribe to events
-    ui.subscribe((event) => {
-      console.log('Event:', event.message, event.payload);
-      
-      if (event.message === 'OnboardingComplete') {
-        // Handle completion
-      }
-    });
-
-    // Mount to DOM
-    ui.mount('onboarding-container');
-  </script>
-</body>
+      // Mount to DOM
+      ui.mount('onboarding-container');
+    </script>
+  </body>
 </html>
 ```
 
@@ -118,23 +124,24 @@ const ui = new PartiallyHostedUIComponent({ /* config */ });
 ### Constructor
 
 ```javascript
-new PartiallyHostedUIComponent(config)
+new PartiallyHostedUIComponent(config);
 ```
 
 **Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `config.sessionToken` | `string` | ✅ Yes | JWT session token from your backend |
-| `config.experienceType` | `string` | ❌ No | Type of experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'` |
-| `config.baseUrl` | `string` | ❌ No | Base URL for hosted UI (default: production URL) |
-| `config.theme` | `object` | ❌ No | Theme configuration object |
-| `config.contentTokens` | `object` | ❌ No | Content localization tokens |
-| `config.componentProperties` | `object` | ❌ No | JSON-serializable props supported by the selected experience |
-| `config.iframeAttributes` | `object` | ❌ No | Additional iframe HTML attributes |
-| `config.debug` | `boolean` | ❌ No | Enable debug logging (default: `false`) |
+| Parameter                    | Type      | Required | Description                                                                                                                      |
+| ---------------------------- | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `config.sessionToken`        | `string`  | ✅ Yes   | JWT session token from your backend                                                                                              |
+| `config.experienceType`      | `string`  | ❌ No    | Type of experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'` |
+| `config.baseUrl`             | `string`  | ❌ No    | Base URL for hosted UI (default: production URL)                                                                                 |
+| `config.theme`               | `object`  | ❌ No    | Theme configuration object                                                                                                       |
+| `config.contentTokens`       | `object`  | ❌ No    | Content localization tokens                                                                                                      |
+| `config.componentProperties` | `object`  | ❌ No    | JSON-serializable props supported by the selected experience                                                                     |
+| `config.iframeAttributes`    | `object`  | ❌ No    | Additional iframe HTML attributes                                                                                                |
+| `config.debug`               | `boolean` | ❌ No    | Enable debug logging (default: `false`)                                                                                          |
 
 **Throws:**
+
 - `Error` if `sessionToken` is not provided
 
 ### Methods
@@ -148,9 +155,11 @@ ui.mount('container-id');
 ```
 
 **Parameters:**
+
 - `targetElementId` (string) - ID of the DOM element to mount into
 
 **Throws:**
+
 - `Error` if element not found
 - `Error` if already mounted
 
@@ -180,9 +189,11 @@ unsubscribe();
 ```
 
 **Parameters:**
+
 - `callback` (Function) - Event handler `(event: object) => void`
 
 **Returns:**
+
 - `Function` - Unsubscribe function
 
 **Event Structure:**
@@ -206,12 +217,13 @@ Dynamically update the theme (requires iframe reload).
 ui.updateTheme({
   colorScheme: 'dark',
   variables: {
-    primaryColor: '#1a73e8'
-  }
+    primaryColor: '#1a73e8',
+  },
 });
 ```
 
 **Parameters:**
+
 - `theme` (object) - Theme configuration to merge with existing
 
 ---
@@ -223,11 +235,12 @@ Dynamically update content tokens (requires iframe reload).
 ```javascript
 ui.updateContentTokens({
   locale: 'es-ES',
-  brandName: 'Su Plataforma'
+  brandName: 'Su Plataforma',
 });
 ```
 
 **Parameters:**
+
 - `contentTokens` (object) - Content tokens to merge with existing
 
 ---
@@ -239,11 +252,12 @@ Dynamically merge component properties and reload the iframe.
 ```javascript
 ui.updateComponentProperties({
   mode: 'single',
-  hideRemoveRecipient: true
+  hideRemoveRecipient: true,
 });
 ```
 
 **Parameters:**
+
 - `componentProperties` (object) - Serializable properties to merge with the current configuration
 
 ---
@@ -300,15 +314,15 @@ The theme object supports the following structure:
     primaryColor: string,        // e.g., '#0070f3'
     backgroundColor: string,      // e.g., '#ffffff'
     textColor: string,           // e.g., '#000000'
-    
+
     // Typography
     fontFamily: string,          // e.g., 'system-ui, sans-serif'
     fontSize: string,            // e.g., '16px'
-    
+
     // Spacing & Layout
     borderRadius: string,        // e.g., '8px'
     spacing: string,             // e.g., '16px'
-    
+
     // Additional custom tokens...
   }
 }
@@ -355,8 +369,8 @@ const onboardingUI = new PartiallyHostedUIComponent({
   sessionToken,
   experienceType: 'HOSTED_ONBOARDING_UI',
   componentProperties: {
-    showLinkAccountStep: true
-  }
+    showLinkAccountStep: true,
+  },
 });
 ```
 
@@ -369,21 +383,23 @@ and microdeposit verification actions can appear on the onboarding Overview.
 Choose `HOSTED_LINKED_ACCOUNTS_UI` to render `LinkedAccountWidget` as a
 separate hosted experience.
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `mode` | `'list' \| 'single'` | `'list'` | Shows all accounts or limits the experience to one active account. |
-| `viewMode` | `'cards' \| 'compact-cards' \| 'table'` | `'compact-cards'` | Account display layout. |
-| `scrollable` | `boolean` | `false` | Enables a height-constrained virtualized list. |
-| `scrollableMaxHeight` | `number \| string` | `'400px'` | Maximum height when `scrollable` is enabled. |
-| `pageSize` | `number` | `10` | Accounts requested per page. |
-| `paginationStyle` | `'loadMore' \| 'pages'` | `'pages'` | Pagination for card views; tables always use pages. |
-| `hideCreateButton` | `boolean` | `false` | Hides the Link New Account action. |
-| `showPaymentFees` | `boolean` | `false` | Shows fees in the default payment review flow. |
-| `showRejectedAccounts` | `boolean` | `false` | Shows recently rejected accounts in a collapsible section. |
-| `linkAccountReviewAcknowledgements` | `Array<{ id, labelKey, linkHrefs? }>` | `[]` | Required host-defined acknowledgement rows in the create dialog. |
-| `showLinkAccountAcknowledgementsIntro` | `boolean` | `false` | Shows lead-in copy above configured acknowledgements. |
-| `linkAccountBankFormConfigOverride` | `object` | `{}` | Partially overrides bank form payment-method and account-holder configuration. |
-| `hideRemoveRecipient` | `boolean` | `false` | Hides standalone card and table Remove actions. Onboarding uses `hideLinkedAccountRemoval` instead. |
+| Property                               | Type                                    | Default           | Description                                                                                         |
+| -------------------------------------- | --------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------- |
+| `mode`                                 | `'list' \| 'single'`                    | `'list'`          | Shows all accounts or limits the experience to one active account.                                  |
+| `viewMode`                             | `'cards' \| 'compact-cards' \| 'table'` | `'compact-cards'` | Account display layout.                                                                             |
+| `scrollable`                           | `boolean`                               | `false`           | Enables a height-constrained virtualized list.                                                      |
+| `scrollableMaxHeight`                  | `number \| string`                      | `'400px'`         | Maximum height when `scrollable` is enabled.                                                        |
+| `pageSize`                             | `number`                                | `10`              | Accounts requested per page.                                                                        |
+| `paginationStyle`                      | `'loadMore' \| 'pages'`                 | `'pages'`         | Pagination for card views; tables always use pages.                                                 |
+| `hideCreateButton`                     | `boolean`                               | `false`           | Hides the Link New Account action.                                                                  |
+| `showPaymentFees`                      | `boolean`                               | `false`           | Shows fees in the default payment review flow.                                                      |
+| `showRejectedAccounts`                 | `boolean`                               | `false`           | Shows recently rejected accounts in a collapsible section.                                          |
+| `linkAccountReviewAcknowledgements`    | `Array<{ id, labelKey, linkHrefs? }>`   | `[]`              | Required host-defined acknowledgement rows in the create dialog.                                    |
+| `showLinkAccountAcknowledgementsIntro` | `boolean`                               | `false`           | Shows lead-in copy above configured acknowledgements.                                               |
+| `linkAccountBankFormConfigOverride`    | `object`                                | `{}`              | Partially overrides bank form payment-method and account-holder configuration.                      |
+| `hideRemoveRecipient`                  | `boolean`                               | `false`           | Hides standalone card and table Remove actions. Onboarding uses `hideLinkedAccountRemoval` instead. |
+
+When `linkAccountBankFormConfigOverride.paymentMethods.available` is set, it also limits which payment methods can be added after creation (Edit and the "Add Wire / RTP" card action). For example, `["ACH"]` prevents adding Wire or RTP later; methods an account already has are kept.
 
 **Example — compact linked-account list:**
 
@@ -394,8 +410,8 @@ const linkedAccountsUI = new PartiallyHostedUIComponent({
   componentProperties: {
     mode: 'list',
     viewMode: 'compact-cards',
-    pageSize: 10
-  }
+    pageSize: 10,
+  },
 });
 
 linkedAccountsUI.mount('linked-accounts-container');
@@ -409,8 +425,8 @@ const linkedAccountsUI = new PartiallyHostedUIComponent({
   experienceType: 'HOSTED_LINKED_ACCOUNTS_UI',
   componentProperties: {
     mode: 'single',
-    hideRemoveRecipient: true
-  }
+    hideRemoveRecipient: true,
+  },
 });
 ```
 
@@ -433,22 +449,22 @@ You can pass additional HTML attributes for the iframe:
 
 ### Lifecycle Events
 
-| Event Message | Namespace | Description |
-|---------------|-----------|-------------|
-| `Mounted` | `lifecycle` | Component mounted successfully |
-| `Unmounted` | `lifecycle` | Component unmounted |
-| `IframeLoaded` | `lifecycle` | Iframe content loaded |
-| `IframeLoadError` | `lifecycle` | Iframe failed to load |
+| Event Message     | Namespace   | Description                    |
+| ----------------- | ----------- | ------------------------------ |
+| `Mounted`         | `lifecycle` | Component mounted successfully |
+| `Unmounted`       | `lifecycle` | Component unmounted            |
+| `IframeLoaded`    | `lifecycle` | Iframe content loaded          |
+| `IframeLoadError` | `lifecycle` | Iframe failed to load          |
 
 ### Onboarding Events
 
 Events from the hosted UI (received via postMessage):
 
-| Event Message | Namespace | Description |
-|---------------|-----------|-------------|
+| Event Message        | Namespace    | Description               |
+| -------------------- | ------------ | ------------------------- |
 | `OnboardingComplete` | `onboarding` | User completed onboarding |
-| `OnboardingError` | `onboarding` | Error during onboarding |
-| `SessionExpired` | `session` | Session token expired |
+| `OnboardingError`    | `onboarding` | Error during onboarding   |
+| `SessionExpired`     | `session`    | Session token expired     |
 
 **Note:** Actual event messages depend on the hosted UI implementation and should be documented separately.
 
@@ -458,6 +474,7 @@ Events from the hosted UI (received via postMessage):
 
 ```jsx
 import { useEffect, useRef, useState } from 'react';
+
 import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
 
 function OnboardingComponent({ sessionToken }) {
@@ -470,7 +487,7 @@ function OnboardingComponent({ sessionToken }) {
       sessionToken,
       experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
       theme: { colorScheme: 'light' },
-      debug: true
+      debug: true,
     });
 
     ui.subscribe((event) => {
@@ -556,7 +573,7 @@ import PartiallyHostedUIComponent from './partially-hosted-ui-component.mjs';
       <div *ngIf="status === 'complete'">✓ Onboarding Complete!</div>
       <div id="onboarding-container"></div>
     </div>
-  `
+  `,
 })
 export class OnboardingComponent implements OnInit, OnDestroy {
   private ui: any;
@@ -568,7 +585,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     this.ui = new PartiallyHostedUIComponent({
       sessionToken: 'your-token',
       experienceType: 'HOSTED_DOC_UPLOAD_ONBOARDING_UI',
-      theme: { colorScheme: 'light' }
+      theme: { colorScheme: 'light' },
     });
 
     this.ui.subscribe((event: any) => {
@@ -593,6 +610,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 ### Iframe Sandbox
 
 The library automatically applies these sandbox attributes:
+
 - `allow-scripts` - Required for hosted UI functionality
 - `allow-same-origin` - Required for storage and API access
 - `allow-forms` - Required for form submission
@@ -650,7 +668,7 @@ Enable detailed logging:
 ```javascript
 const ui = new PartiallyHostedUIComponent({
   sessionToken: 'token',
-  debug: true  // Enables console.log for all operations
+  debug: true, // Enables console.log for all operations
 });
 ```
 
@@ -677,6 +695,7 @@ ui.refresh();
 - Edge 90+
 
 Requires:
+
 - ES6+ support
 - `URLSearchParams` API
 - `postMessage` API
