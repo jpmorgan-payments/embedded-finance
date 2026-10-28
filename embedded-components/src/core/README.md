@@ -8,16 +8,18 @@ This directory contains the main embedded banking components organized by functi
 
 Exported from `src/index.tsx`:
 
-| Directory               | Components                                | Notes                                                                                      |
-| ----------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `OnboardingFlow/`       | `OnboardingFlow`                          | Stable; optional PTC via `enablePubliclyTradedCompanies`; delta completion via `deltaMode` |
-| `PaymentFlow/`          | `PaymentFlow`, `PaymentFlowInline`        | Domestic USD payments                                                                      |
-| `PaymentFlowFX/`        | `PaymentFlowFX`, `PaymentFlowFXInline`    | **Beta** — cross-border / FX payouts                                                       |
-| `Accounts/`             | `Accounts`                                | In testing                                                                                 |
-| `ClientDetails/`        | `ClientDetails`                           | In testing                                                                                 |
-| `RecipientWidgets/`     | `LinkedAccountWidget`, `RecipientsWidget` | Stable                                                                                     |
-| `TransactionsDisplay/`  | `TransactionsDisplay`                     | In testing                                                                                 |
-| `EBComponentsProvider/` | `EBComponentsProvider`                    | Required wrapper for all components                                                        |
+| Directory                    | Components                                | Notes                                                                                      |
+| ---------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `OnboardingFlow/`            | `OnboardingFlow`                          | Stable; optional PTC via `enablePubliclyTradedCompanies`; delta completion via `deltaMode` |
+| `PaymentFlow/`               | `PaymentFlow`, `PaymentFlowInline`        | In testing — domestic USD payments                                                         |
+| `PaymentFlowFX/`             | `PaymentFlowFX`, `PaymentFlowFXInline`    | **Beta** — cross-border / FX payouts                                                       |
+| `Accounts/`                  | `Accounts`                                | In testing                                                                                 |
+| `ClientDetails/`             | `ClientDetails`                           | In testing                                                                                 |
+| `RecipientWidgets/`          | `LinkedAccountWidget`, `RecipientsWidget` | Stable                                                                                     |
+| `TransactionsDisplay/`       | `TransactionsDisplay`                     | In testing                                                                                 |
+| `ApprovedClientMaintenance/` | `ApprovedClientMaintenance`               | **In progress** — post-approval maintenance (Storybook `Draft/`)                           |
+| `ClientExperience/`          | `ClientExperience`                        | **In progress** — routes to `OnboardingFlow` or `ApprovedClientMaintenance`                |
+| `EBComponentsProvider/`      | `EBComponentsProvider`                    | Required wrapper for all components                                                        |
 
 ### Internal / not yet public
 

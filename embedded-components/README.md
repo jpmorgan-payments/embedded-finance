@@ -140,15 +140,19 @@ graph TB
 
 The library currently provides the following components:
 
-| Component            | Description                                            | Status     |
-| -------------------- | ------------------------------------------------------ | ---------- |
-| EBComponentsProvider | Provider wrapper for all embedded components           | Stable     |
-| OnboardingFlow       | Modern onboarding experience                           | Stable     |
-| Accounts             | Account management and display                         | In Testing |
-| ClientDetails        | Detailed client information (identity, ownership, KYC) | In Testing |
-| LinkedAccountWidget  | External bank account linking with microdeposits       | Stable     |
-| RecipientsWidget     | Payment recipient management (NEW)                     | Stable     |
-| TransactionsDisplay  | Transaction history and display                        | In Testing |
+| Component                 | Description                                                        | Status      |
+| ------------------------- | ------------------------------------------------------------------ | ----------- |
+| EBComponentsProvider      | Provider wrapper for all embedded components                       | Stable      |
+| OnboardingFlow            | Modern onboarding experience                                       | Stable      |
+| LinkedAccountWidget       | External bank account linking with microdeposits                   | Stable      |
+| RecipientsWidget          | Payment recipient management                                       | Stable      |
+| Accounts                  | Account management and display                                     | In Testing  |
+| ClientDetails             | Detailed client information (identity, ownership, KYC)             | In Testing  |
+| PaymentFlow               | Domestic payouts (ACH, RTP, Wire) from Embedded Payments accounts  | In Testing  |
+| TransactionsDisplay       | Transaction history and display                                    | In Testing  |
+| PaymentFlowFX             | Cross-border FX payouts with exchange rate quotes                  | Beta        |
+| ApprovedClientMaintenance | Post-approval profile, ownership, and product maintenance          | In Progress |
+| ClientExperience          | Routes a client to `OnboardingFlow` or `ApprovedClientMaintenance` | In Progress |
 
 ### EBComponentsProvider
 
