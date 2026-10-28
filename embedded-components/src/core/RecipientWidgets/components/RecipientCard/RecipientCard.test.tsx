@@ -76,6 +76,44 @@ const mockReadyForValidationRecipient: Recipient = {
 };
 
 describe('RecipientCard', () => {
+  describe('add routing action', () => {
+    it('offers Wire and RTP by default when both are missing', () => {
+      render(<RecipientCard recipient={mockActiveRecipient} />);
+
+      expect(
+        screen.getByRole('button', {
+          name: /add wire or rtp routing information/i,
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('is hidden when the platform only allows ACH', () => {
+      render(
+        <RecipientCard
+          recipient={mockActiveRecipient}
+          allowedPaymentMethods={['ACH']}
+        />
+      );
+
+      expect(
+        screen.queryByRole('button', { name: /routing information/i })
+      ).not.toBeInTheDocument();
+    });
+
+    it('only offers the allowed missing method', () => {
+      render(
+        <RecipientCard
+          recipient={mockActiveRecipient}
+          allowedPaymentMethods={['ACH', 'RTP']}
+        />
+      );
+
+      expect(
+        screen.getByRole('button', { name: /^add rtp routing information/i })
+      ).toBeInTheDocument();
+    });
+  });
+
   it('should render active recipient with account details', () => {
     render(<RecipientCard recipient={mockActiveRecipient} />);
 

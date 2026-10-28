@@ -25,7 +25,7 @@ export {
   PREFILL_DISPLAY_RECIPIENT_ID,
   transformBankAccountFormToRecipientPayload,
 } from './BankAccountForm.utils';
-export { createCustomConfig } from './utils';
+export { createCustomConfig, restrictPaymentMethods } from './utils';
 
 // Types
 export type {

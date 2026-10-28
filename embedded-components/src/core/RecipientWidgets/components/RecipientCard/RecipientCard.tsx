@@ -14,6 +14,7 @@ import {
   canVerifyMicrodeposits,
   getMissingPaymentMethods,
   getRecipientDisplayName,
+  needsAdditionalRouting,
 } from '@/lib/recipientHelpers';
 import type { HeadingLevel } from '@/lib/types/headingLevel.types';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ import {
   ApiError,
   MicrodepositVerificationResponse,
   Recipient,
+  RoutingInformationTransactionType,
 } from '@/api/generated/ep-recipients.schemas';
 import { Button } from '@/components/ui/button';
 import {
@@ -139,6 +141,13 @@ export interface RecipientCardProps {
    * @default true
    */
   allowDetailedPaymentMethods?: boolean;
+
+  /**
+   * Payment methods the user may add after creation. When set, the
+   * "Add Wire / RTP" action only offers methods in this list and is hidden
+   * when none are missing. Omit to offer every addable method.
+   */
+  allowedPaymentMethods?: readonly RoutingInformationTransactionType[];
 }
 
 /** Compute the label for the "add routing" button based on missing methods. */
@@ -163,6 +172,7 @@ interface AddRoutingButtonProps {
   onRecipientSettled?: (recipient?: Recipient, error?: ApiError) => void;
   recipientType: SupportedRecipientType;
   i18nNamespace: RecipientI18nNamespace;
+  allowedPaymentMethods?: readonly RoutingInformationTransactionType[];
 }
 
 /** Button that lets the user add missing routing information for a recipient. */
@@ -173,10 +183,14 @@ const AddRoutingButton: React.FC<AddRoutingButtonProps> = ({
   onRecipientSettled,
   recipientType,
   i18nNamespace,
+  allowedPaymentMethods,
 }) => {
   const { t } = useTranslationWithTokens(i18nNamespace);
   const displayName = getRecipientDisplayName(recipient);
-  const missingPaymentMethods = getMissingPaymentMethods(recipient);
+  const missingPaymentMethods = getMissingPaymentMethods(
+    recipient,
+    allowedPaymentMethods
+  );
   const labelSuffix = getAddRoutingSuffix(missingPaymentMethods);
   const buttonClass = isExpanded
     ? ADD_ROUTING_BUTTON_EXPANDED_CLASS
@@ -215,6 +229,7 @@ const AddRoutingButton: React.FC<AddRoutingButtonProps> = ({
       onRecipientSettled={onRecipientSettled}
       recipientType={recipientType}
       i18nNamespace={i18nNamespace}
+      allowedPaymentMethods={allowedPaymentMethods}
     >
       <Button
         variant="ghost"
@@ -681,6 +696,7 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
   showAccountToggle,
   showPaymentMethods,
   allowDetailedPaymentMethods,
+  allowedPaymentMethods,
 }) => {
   const { t } = useTranslationWithTokens(i18nNamespace);
 
@@ -733,16 +749,18 @@ export const RecipientCard: React.FC<RecipientCardProps> = ({
     />
   ) : undefined;
 
-  const renderAddRoutingButton = (isExpanded: boolean) => (
-    <AddRoutingButton
-      recipient={recipient}
-      isExpanded={isExpanded}
-      onEditRecipient={onEditRecipient}
-      onRecipientSettled={onRecipientSettled}
-      recipientType={recipientType}
-      i18nNamespace={i18nNamespace}
-    />
-  );
+  const renderAddRoutingButton = (isExpanded: boolean) =>
+    needsAdditionalRouting(recipient, allowedPaymentMethods) ? (
+      <AddRoutingButton
+        recipient={recipient}
+        isExpanded={isExpanded}
+        onEditRecipient={onEditRecipient}
+        onRecipientSettled={onRecipientSettled}
+        recipientType={recipientType}
+        i18nNamespace={i18nNamespace}
+        allowedPaymentMethods={allowedPaymentMethods}
+      />
+    ) : null;
 
   return (
     <RecipientAccountDisplayCard

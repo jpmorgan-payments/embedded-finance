@@ -334,6 +334,74 @@ describe('RecipientFormDialog linked-account payment methods', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('limits edit to the allowed payment methods but keeps existing ones', () => {
+    render(
+      <RecipientFormDialog
+        mode="edit"
+        open
+        recipientType="LINKED_ACCOUNT"
+        i18nNamespace="linked-accounts"
+        recipient={linkedAccount}
+        allowedPaymentMethods={['ACH']}
+      />
+    );
+
+    expect(screen.getByRole('checkbox', { name: /Wire/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: /Real-Time Payments/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers no other methods when an ACH-only account is restricted to ACH', () => {
+    const achOnlyAccount = {
+      ...linkedAccount,
+      account: {
+        ...linkedAccount.account,
+        routingInformation: [
+          {
+            routingNumber: '021000021',
+            transactionType: 'ACH',
+            routingCodeType: 'USABA',
+          },
+        ],
+      },
+    } as unknown as Recipient;
+
+    render(
+      <RecipientFormDialog
+        mode="edit"
+        open
+        recipientType="LINKED_ACCOUNT"
+        i18nNamespace="linked-accounts"
+        recipient={achOnlyAccount}
+        allowedPaymentMethods={['ACH']}
+      />
+    );
+
+    expect(
+      screen.queryByRole('checkbox', { name: /Wire/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: /Real-Time Payments/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers every method in edit when no restriction is given', () => {
+    render(
+      <RecipientFormDialog
+        mode="edit"
+        open
+        recipientType="LINKED_ACCOUNT"
+        i18nNamespace="linked-accounts"
+        recipient={linkedAccount}
+      />
+    );
+
+    expect(
+      screen.getByRole('checkbox', { name: /Real-Time Payments/i })
+    ).toBeInTheDocument();
+  });
+
   it('submits every payment method selected through the widget create override', async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
     const onRecipientSettled = vi.fn();

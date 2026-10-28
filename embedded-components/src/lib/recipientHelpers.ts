@@ -53,36 +53,45 @@ export function canMakePayment(recipient: Recipient): boolean {
   return recipient.status === 'ACTIVE';
 }
 
+/** Payment methods that can be added to a recipient after creation, with display labels. */
+const ADDABLE_PAYMENT_METHODS = [
+  ['WIRE', 'Wire'],
+  ['RTP', 'RTP'],
+] as const;
+
 /**
  * Check if recipient needs additional routing information (Wire/RTP)
  * Returns true if account is active but missing Wire or RTP
+ *
+ * @param allowedPaymentMethods - When provided, only these methods count as addable
+ *   (e.g. a platform restricted to ACH has nothing to add).
  */
-export function needsAdditionalRouting(recipient: Recipient): boolean {
+export function needsAdditionalRouting(
+  recipient: Recipient,
+  allowedPaymentMethods?: readonly string[]
+): boolean {
   if (recipient.status !== 'ACTIVE') return false;
 
-  const methods = getSupportedPaymentMethods(recipient);
-  const hasWire = methods.includes('WIRE');
-  const hasRTP = methods.includes('RTP');
-
-  // Can add routing if either Wire or RTP is missing
-  return !hasWire || !hasRTP;
+  return getMissingPaymentMethods(recipient, allowedPaymentMethods).length > 0;
 }
 
 /**
  * Get the missing payment methods that can be added
+ *
+ * @param allowedPaymentMethods - When provided, methods outside this list are never
+ *   reported as missing.
  */
-export function getMissingPaymentMethods(recipient: Recipient): string[] {
+export function getMissingPaymentMethods(
+  recipient: Recipient,
+  allowedPaymentMethods?: readonly string[]
+): string[] {
   const methods = getSupportedPaymentMethods(recipient);
-  const missing: string[] = [];
 
-  if (!methods.includes('WIRE')) {
-    missing.push('Wire');
-  }
-  if (!methods.includes('RTP')) {
-    missing.push('RTP');
-  }
-
-  return missing;
+  return ADDABLE_PAYMENT_METHODS.filter(
+    ([type]) =>
+      !methods.includes(type) &&
+      (!allowedPaymentMethods || allowedPaymentMethods.includes(type))
+  ).map(([, label]) => label);
 }
 
 /**
