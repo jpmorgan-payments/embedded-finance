@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { cn } from './utils';
+import { cn, formatIsoDate } from './utils';
+
+describe('formatIsoDate', () => {
+  it('formats YYYY-MM-DD without timezone drift', () => {
+    expect(formatIsoDate('2026-04-15')).toBe('April 15, 2026');
+    expect(formatIsoDate('2026-01-01')).toBe('January 1, 2026');
+  });
+
+  it('supports short month names', () => {
+    expect(formatIsoDate('2026-10-15', 'short')).toBe('Oct 15, 2026');
+  });
+});
 
 describe('cn utility function', () => {
   it('should merge class names correctly', () => {
