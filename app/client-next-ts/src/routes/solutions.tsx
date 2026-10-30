@@ -230,14 +230,6 @@ function SolutionsPage() {
                                 backgroundRepeat: 'no-repeat',
                               }}
                             ></div>
-                            {/* COMING SOON tag for JPM Hosted */}
-                            {groupKey === 'hosted' && (
-                              <div className="absolute right-3 top-3">
-                                <span className="inline-flex items-center rounded-full bg-gray-600 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
-                                  Coming Soon
-                                </span>
-                              </div>
-                            )}
                           </div>
                           <div className="flex flex-1 flex-col justify-center p-4">
                             <h2 className="mb-2 text-center font-heading text-page-body font-semibold text-sp-ink">
