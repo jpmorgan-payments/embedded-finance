@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Box,
   Building2,
+  ClipboardCheck,
   ExternalLink,
   FileText,
   Github,
+  Globe,
   Link,
   Play,
   Receipt,
@@ -19,6 +21,35 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { CodeExamplesModal } from './code-examples-modal';
+
+const STATUS_STYLES = {
+  available: { label: 'Available', className: 'bg-green-100 text-green-800' },
+  beta: { label: 'Beta', className: 'bg-purple-100 text-purple-800' },
+  testing: { label: 'Testing', className: 'bg-yellow-100 text-yellow-800' },
+  'in progress': {
+    label: 'In Progress',
+    className: 'bg-blue-100 text-blue-800',
+  },
+} as const;
+
+type ExperienceStatus = keyof typeof STATUS_STYLES;
+
+interface Experience {
+  id: string;
+  title: string;
+  description: string;
+  icon: ReactNode;
+  status: ExperienceStatus;
+  demoUrl: string;
+  githubUrl: string;
+  steps: string[];
+  npmUrl: string;
+  recipeUrl: string;
+  docsUrl: string;
+}
+
+const NPM_PACKAGE_URL =
+  'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components';
 
 export function ExperiencesSection() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,7 +66,7 @@ export function ExperiencesSection() {
     setModalOpen(true);
   };
 
-  const experiences = [
+  const experiences: Experience[] = [
     {
       id: 'onboarding',
       title: 'Client Onboarding (KYC/KYB)',
@@ -66,7 +97,7 @@ export function ExperiencesSection() {
       description:
         'Connect external bank accounts using Account Validation Service with microdeposits verification for secure account linking.',
       icon: <Link className="h-5 w-5" />,
-      status: 'testing',
+      status: 'available',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#4-linkedaccountwidget',
       demoUrl:
@@ -90,7 +121,7 @@ export function ExperiencesSection() {
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <UserCheck className="h-5 w-5" />,
-      status: 'testing',
+      status: 'available',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipientswidget',
       demoUrl:
@@ -127,12 +158,34 @@ export function ExperiencesSection() {
         'Create payment request with recipient and amount',
         'Submit transaction with reference ID and memo',
       ],
-      npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components',
+      npmUrl: NPM_PACKAGE_URL,
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/PaymentFlow/REQUIREMENTS.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/payouts/overview',
+    },
+    {
+      id: 'payments-fx',
+      title: 'Cross-border FX Payouts',
+      description:
+        'Pay international recipients in their local currency from Embedded Payments accounts, with real-time, rate sheet, or provider exchange rates.',
+      icon: <Globe className="h-5 w-5" />,
+      status: 'beta',
+      demoUrl:
+        '/sellsense-demo?fullscreen=true&component=recipients&scenario=Seller%20with%20FX%20Payments&theme=Empty',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/PaymentFlowFX',
+      steps: [
+        'Add an international recipient with local bank details',
+        'Choose the target currency and get an exchange rate',
+        'Review the converted amount, fees, and rate expiry',
+        'Submit the payout and confirm its status',
+      ],
+      npmUrl: NPM_PACKAGE_URL,
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/transactions/payouts/how-to/cross-border-fx-payout',
     },
     {
       id: 'transactions',
@@ -186,7 +239,7 @@ export function ExperiencesSection() {
       description:
         'View comprehensive client information for fully onboarded clients: identity, ownership, verification status, and organization details with summary, accordion, and cards view modes.',
       icon: <UserCircle className="h-5 w-5" />,
-      status: 'in progress',
+      status: 'testing',
       demoUrl:
         '/sellsense-demo?fullscreen=true&component=client-details&theme=Empty',
       githubUrl:
@@ -197,10 +250,32 @@ export function ExperiencesSection() {
         'Drill down into sections for detailed information',
         'Display status indicators and organization details',
       ],
-      npmUrl:
-        'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components',
+      npmUrl: NPM_PACKAGE_URL,
       recipeUrl:
         'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/src/core/ClientDetails/stories/Docs.mdx',
+      docsUrl:
+        'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
+    },
+    {
+      id: 'client-maintenance',
+      title: 'Approved Client Maintenance',
+      description:
+        'Let approved clients keep their business, controller, and owners current, request the Limited DDA Payments product, and answer outstanding questions, then review and attest.',
+      icon: <ClipboardCheck className="h-5 w-5" />,
+      status: 'in progress',
+      demoUrl:
+        'https://storybook.embedded-finance-dev.com/?path=/story/draft-approvedclientmaintenance--default',
+      githubUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/tree/main/embedded-components/src/core/ApprovedClientMaintenance',
+      steps: [
+        'Check which maintenance operations the client is eligible for',
+        'Edit business details, the controller, and owners',
+        'Answer outstanding questions and upload requested documents',
+        'Review the changes, attest, and track verification status',
+      ],
+      npmUrl: NPM_PACKAGE_URL,
+      recipeUrl:
+        'https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/docs/APPROVED_CLIENT_MAINTENANCE_RECIPE.md',
       docsUrl:
         'https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client',
     },
@@ -261,23 +336,9 @@ export function ExperiencesSection() {
                       </CardTitle>
                       <div className="ml-2 flex flex-shrink-0 items-center gap-1">
                         <span
-                          className={`rounded-page-sm px-1.5 py-0.5 text-xs font-medium ${
-                            exp.status === 'available'
-                              ? 'bg-green-100 text-green-800'
-                              : exp.status === 'testing'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : exp.status === 'in progress'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-orange-100 text-orange-800'
-                          }`}
+                          className={`rounded-page-sm px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[exp.status].className}`}
                         >
-                          {exp.status === 'available'
-                            ? 'Available'
-                            : exp.status === 'testing'
-                              ? 'Testing'
-                              : exp.status === 'in progress'
-                                ? 'In Progress'
-                                : 'Coming Soon'}
+                          {STATUS_STYLES[exp.status].label}
                         </span>
                         {exp.npmUrl && (
                           <Box className="h-3 w-3 text-sp-brand" />
