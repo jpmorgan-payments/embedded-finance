@@ -24,3 +24,15 @@ export function formatChange(change: number): string {
   if (pct === 0) return '0%';
   return `${change > 0 ? '+' : '−'}${pct}%`;
 }
+
+const compact = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
+/** Axis-friendly numbers: `950`, `1.2K`, `14K`. */
+export const formatCompact = (n: number) => compact.format(n);
+
+/** `Oct 26 – Nov 1` without the year, for dense tables. */
+export const formatWeek = (start: string, end: string) =>
+  `${formatShortDay(start)} – ${formatShortDay(end)}`;

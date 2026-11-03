@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { categorizeReferrer, summarizeReferrers } from './referrers';
+import {
+  categorizeReferrer,
+  CATEGORY_COLOR,
+  REFERRER_BANDS,
+  referrerTrend,
+  summarizeReferrers,
+} from './referrers';
 
 describe('categorizeReferrer', () => {
   it.each([
@@ -63,5 +69,58 @@ describe('summarizeReferrers', () => {
       { date: null, site: 'github.com', count: 28, uniques: 21 },
     ]);
     expect(s).toMatchObject({ basis: 'last-seen', asOf: null, total: 28 });
+  });
+});
+
+describe('referrerTrend', () => {
+  const rows = [
+    { date: '2026-10-01', site: 'github.com', count: 10, uniques: 4 },
+    { date: '2026-10-01', site: 'Google', count: 3, uniques: 2 },
+    {
+      date: '2026-10-01',
+      site: 'wiki.secret.jpmchase.net',
+      count: 2,
+      uniques: 1,
+    },
+    { date: '2026-10-03', site: 'chatgpt.com', count: 5, uniques: 5 },
+  ];
+  const allDays = ['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04'];
+
+  it('sums referrals per band for each collected day', () => {
+    const trend = referrerTrend(
+      rows,
+      allDays,
+      new Set(['2026-10-01', '2026-10-02', '2026-10-03'])
+    )!;
+    expect(trend.map((p) => p.date)).toEqual(allDays);
+    expect(trend[0]).toMatchObject({
+      total: 15,
+      github: 10,
+      search: 3,
+      intranet: 2,
+      ai: 0,
+    });
+    // Collected without referrers counts as zero; not collected stays empty.
+    expect(trend[1]).toMatchObject({ total: 0, github: 0 });
+    expect(trend[2]).toMatchObject({ total: 5, ai: 5 });
+    expect(trend[3]).toMatchObject({ total: null, github: null });
+  });
+
+  it('returns null when the source keeps no dates', () => {
+    expect(
+      referrerTrend(
+        [{ date: null, site: 'github.com', count: 1, uniques: 1 }],
+        allDays,
+        new Set(allDays)
+      )
+    ).toBeNull();
+  });
+
+  it('gives every category a fixed band color', () => {
+    expect(CATEGORY_COLOR.internal).toBe(CATEGORY_COLOR.partner);
+    expect(CATEGORY_COLOR.social).toBe(CATEGORY_COLOR['chat-email']);
+    expect(new Set(REFERRER_BANDS.map((b) => b.color)).size).toBe(
+      REFERRER_BANDS.length
+    );
   });
 });

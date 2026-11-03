@@ -1,6 +1,7 @@
 import { inRange, workweekSplit, yearOverYear, type Gap } from './derive';
 import { formatChange, formatNumber, formatSpan } from './format';
 import type { RepoView } from './repo-view';
+import { weeklyTotals, weekOverWeek } from './weekly';
 
 export interface Highlight {
   id: string;
@@ -23,6 +24,22 @@ function overlaps(a: Gap, b: Gap) {
 /** A few short, verifiable statements; every number comes straight from the data. */
 export function buildHighlights(repos: RepoView[]): Highlight[] {
   const out: Highlight[] = [];
+
+  for (const repo of repos) {
+    if (!repo.daily) continue;
+    const weeks = weeklyTotals(repo.daily);
+    let index = weeks.length - 1;
+    while (index >= 0 && !weeks[index].complete) index -= 1;
+    const change = weekOverWeek(weeks, index);
+    if (change === null) continue;
+    const week = weeks[index];
+    out.push({
+      id: `week-${repo.source.id}`,
+      tone: Math.abs(change) < 0.05 ? 'info' : change > 0 ? 'up' : 'down',
+      text: `${repo.source.label}, week of ${formatSpan(week.start, week.end)}: ${formatNumber(week.views)} views versus ${formatNumber(weeks[index - 1].views)} the week before (${formatChange(change)}).`,
+    });
+  }
+
   const withViews = repos.filter((r) => r.latestViews);
 
   if (withViews.length >= 2) {

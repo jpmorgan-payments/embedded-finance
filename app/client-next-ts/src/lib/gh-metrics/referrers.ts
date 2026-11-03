@@ -128,3 +128,94 @@ export function summarizeReferrers(rows: ReferrerRow[]): ReferrerSummary {
     sitesEverSeen: new Set(rows.map((r) => r.site)).size,
   };
 }
+
+/**
+ * Coarser groups for charts over time. Seven bands keep the stacked chart
+ * readable; intranet groups merge into one band (still totals only).
+ */
+export type ReferrerBand =
+  'github' | 'jpm' | 'search' | 'ai' | 'social-chat' | 'intranet' | 'other';
+
+/** Fixed order and color per band - color follows the band, never its rank. */
+export const REFERRER_BANDS: readonly {
+  band: ReferrerBand;
+  label: string;
+  color: string;
+}[] = [
+  { band: 'github', label: 'GitHub', color: '#2a78d6' },
+  { band: 'jpm', label: 'J.P. Morgan', color: '#eb6834' },
+  { band: 'search', label: 'Search', color: '#1baf7a' },
+  { band: 'ai', label: 'AI assistants', color: '#eda100' },
+  { band: 'social-chat', label: 'Social & chat', color: '#e87ba4' },
+  { band: 'intranet', label: 'Intranets', color: '#008300' },
+  { band: 'other', label: 'Other', color: '#a3a29b' },
+];
+
+const BAND_OF: Record<ReferrerCategory, ReferrerBand> = {
+  github: 'github',
+  jpm: 'jpm',
+  search: 'search',
+  ai: 'ai',
+  social: 'social-chat',
+  'chat-email': 'social-chat',
+  internal: 'intranet',
+  partner: 'intranet',
+  other: 'other',
+};
+
+export function referrerBand(category: ReferrerCategory): ReferrerBand {
+  return BAND_OF[category];
+}
+
+export const CATEGORY_COLOR = Object.fromEntries(
+  (Object.keys(BAND_OF) as ReferrerCategory[]).map((c) => [
+    c,
+    REFERRER_BANDS.find((b) => b.band === BAND_OF[c])!.color,
+  ])
+) as Record<ReferrerCategory, string>;
+
+export type ReferrerTrendPoint = { date: string; total: number | null } & {
+  [band in ReferrerBand]: number | null;
+};
+
+/**
+ * GitHub's 14-day referral counts per band for each collected day, or `null`
+ * when the source keeps no dates. `collectedDays` are days a traffic snapshot
+ * exists: a collected day without referrer rows counts as zero referrals,
+ * any other day stays empty.
+ */
+export function referrerTrend(
+  rows: ReferrerRow[],
+  allDays: string[],
+  collectedDays: Set<string>
+): ReferrerTrendPoint[] | null {
+  if (!rows.some((r) => r.date !== null)) return null;
+  const byDay = new Map<string, ReferrerTrendPoint>();
+  const empty = (date: string, value: number | null): ReferrerTrendPoint => ({
+    date,
+    total: value,
+    github: value,
+    jpm: value,
+    search: value,
+    ai: value,
+    'social-chat': value,
+    intranet: value,
+    other: value,
+  });
+
+  for (const date of allDays) {
+    byDay.set(date, empty(date, collectedDays.has(date) ? 0 : null));
+  }
+  for (const row of rows) {
+    if (!row.date) continue;
+    let point = byDay.get(row.date);
+    if (!point || point.total === null) {
+      point = empty(row.date, 0);
+      byDay.set(row.date, point);
+    }
+    const band = referrerBand(categorizeReferrer(row.site));
+    point[band] = (point[band] ?? 0) + row.count;
+    point.total = (point.total ?? 0) + row.count;
+  }
+  return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date));
+}

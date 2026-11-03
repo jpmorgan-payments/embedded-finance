@@ -114,6 +114,17 @@ export function DataQuality({
               added up from the daily counts.
             </li>
             <li>
+              GitHub's traffic API returns a per-day breakdown with every 14-day
+              total, but the unicorn-finance and ai collectors keep only the
+              totals. That is why exact weeks, the weekday pattern and daily
+              charts exist for embedded-finance only; their week-by-week table
+              uses the 14-day total at each week's end instead.
+            </li>
+            <li>
+              Weeks run Monday to Sunday (UTC). Unique visitors and cloners per
+              day are shown as a median because they can't be added up.
+            </li>
+            <li>
               Days the collector missed are left blank, not shown as zero. A
               14-day total is shown only when all 14 days were collected.
             </li>
