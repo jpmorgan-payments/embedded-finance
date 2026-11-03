@@ -31,8 +31,9 @@ npm run format:check    # Check formatting (CI)
 > and syntactic-only. Type safety is owned by `npm run typecheck` (ESLint is _not_
 > type-aware), and the slow Tailwind / `eb-` prefix rules are opt-in via
 > `npm run lint:styles` (`ESLINT_STYLES=1`). Together this cut clean lint time ~10x
-> (≈429s → ≈41s). See the `eslint.config.mjs` header and BACKLOG **BL-505** for
-> the full rationale, tech-debt burn-down, and next-wave backlog.
+> (≈429s → ≈41s). See the `eslint.config.mjs` header and
+> [TECH_DEBT.md](./TECH_DEBT.md) **BL-505** for the full rationale, tech-debt
+> burn-down, and next-wave backlog.
 
 ## 🔒 Security
 

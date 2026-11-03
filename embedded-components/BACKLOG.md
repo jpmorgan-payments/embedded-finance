@@ -1,1254 +1,507 @@
-# Embedded Components - Development Backlog
+# Embedded Components — Product & Release Backlog
 
-**Last Updated:** May 12, 2026  
-**Status:** Living Document - Updated as work progresses  
-**Source:** UX Testing Report (2025-12-02, 2025-12-09, 2026-01-14, 2026-02-19, 2026-03-06), Development Roadmap, Recent PRs  
-**Reference:** Deployed showcase https://embedded-finance-dev.com/sellsense-demo (onboarding, linked-accounts, recipients, transactions, accounts, make-payment, **client-details**); Storybook https://storybook.embedded-finance-dev.com/
-
-**Re-tested:** February 19, 2026 — Each open item (Priority 1–5, BL-601, BL-723) was re-verified by **code inspection** (embedded-components and app/client-next-ts). All 7 showcase components were **browser-loaded**; UI-visible issues (e.g. filter labels, pagination, Dialog) were confirmed via code (i18n, component TSX). Full one-by-one in-browser click-through for every BL item was not done. See **`docs/ux-testing/2026-02-19/BACKLOG_VERIFICATION.md`** for item-level verdicts and evidence. Only **open** items are listed; completed/fixed items are not retained.
-
-**Updated:** March 6, 2026 — Git analysis of 60+ commits (Feb 22 – Mar 6, 2026) and full browser UX testing session across all 7 components. Key changes this cycle: ClientDetails error/loading states, content tokens architecture, i18n expansion (es-US/fr-CA), ServerErrorAlert pattern, Mock API Editor enhancements, Empty+ a11y theme, session transfer multi-experience support. See **`docs/ux-testing/2026-03-06/`** for browser test results. New items: BL-800+.
-
-**Note on Tracking IDs:** This backlog uses a hierarchical format (BL-001-1, BL-001-1a, etc.) for detailed task breakdown. New items from 2025-12-09 testing use simple sequential IDs (BL-600+). Future backlog updates may migrate to simpler format for consistency.
+**Last verified:** 2026-11-02 against v0.17.18, plus later `develop` changes through v0.17.21 (optional non-US `countryOfFormation`, configuration-restricted edit payment methods, `docs/UX_ATLAS.md`).
+**Updated:** 2026-11-02 for the v0.18.0 work — Zod 4, RFI questions section, guided change requests, searchable question options, document upload and linked-account fixes — and the new BL-909 (one client experience).
+**Method (this cycle):** static code verification by four independent review passes plus a second-opinion review; high-impact claims hand-checked; `npm run lint`, `npm run typecheck` and the full unit suite executed. **No browser re-test this cycle** — last browser pass was 2026-03-06.
+**Companion:** [TECH_DEBT.md](./TECH_DEBT.md) — tooling, dependencies, architecture, typing, test infrastructure (`TD-n`, `BL-50x`).
+**References:** Showcase https://embedded-finance-dev.com/sellsense-demo · Storybook https://storybook.embedded-finance-dev.com/ · Salt patterns https://www.saltdesignsystem.com/salt/patterns/index
 
 ---
 
-## 📑 Tracking ID Index
+## How this backlog works
 
-**ID Range Guidelines:**
-
-- **BL-001 to BL-099:** Priority 1 (Critical UX & Design System Issues)
-- **BL-060 to BL-199:** Priority 2 (High Impact UX Improvements)
-- **BL-100 to BL-199:** Priority 3 (Medium Priority Improvements)
-- **BL-200 to BL-299:** Priority 4 (Technical Debt & Performance)
-- **BL-300 to BL-399:** Priority 5 (Design System Foundation)
-- **BL-400 to BL-599:** Priority 6 (Roadmap Theme Alignment)
-- **BL-500 to BL-599:** Theme 10 (Tech Debt & Dependency Hygiene)
-
-### Quick Reference by Component
-
-**Recipients (DEPRECATED - use RecipientsWidget):**
-
-> ⚠️ The legacy Recipients component is deprecated. Use `RecipientsWidget` for new implementations.
-> Backlog items below are retained for historical reference and ongoing maintenance.
-
-- BL-060: Filter & label standardization
-- BL-061: Pagination text format
-- BL-062: Default rows per page
-- BL-070: Tooltips & help text
-- BL-080: Responsive design improvements
-- BL-402: Theme 0 enhancements (Conditional attributes, edit flows, duplicate detection)
-
-**TransactionsDisplay:**
-
-- BL-050: Data quality & display issues
-- BL-051: Reference ID column
-- BL-052: Missing data handling
-- BL-060: Filter & label standardization
-- BL-070: Tooltips & help text
-- BL-080: Responsive design improvements
-- BL-404: Theme 0 enhancements (Pagination, details attribute mapping, PAYIN/PAYOUT derivation)
-- BL-601: Dialog Description (TransactionDetailsSheet)
-- BL-723: Form fields missing id/name (toolbar filter Selects)
-
-**Accounts:**
-
-- BL-090: Missing action buttons
-- BL-091: UI improvements
-- BL-092: Component review needed
-- BL-405: Theme 0 enhancements (Responsive cards, balance types mapping, masking/toggle)
-
-**LinkedAccountWidget:**
-
-- BL-070: Tooltips & help text
-- BL-401: Theme 0 enhancements (Parity with Recipients, status messaging, microdeposit flows)
-
-**RecipientsWidget:**
-
-- BL-406: Theme 0 enhancements (Compact/virtual list parity, table view refinements, success states)
-- BL-070: Tooltips & help text
-- BL-080: Responsive design improvements
-- BL-310: Header/title consistency
-
-**ClientDetails (fully available as of 2026-03-04):**
-
-- Fullscreen URL: `?component=client-details&theme=Empty`
-- Status updated to 'available' in showcase (Mar 2026)
-- **Implemented:** error/loading states (ServerErrorAlert + useServerError hook), skeleton, content tokens (all 3 locales), improved styling
-- Pending UX audit items: BL-810 (full UX audit), BL-070 (tooltips), BL-310 (header/title), BL-601-2 (dialog descriptions)
-
-**All Components:**
-
-- BL-001: Design system standardization (see re-assessed section below)
-- BL-002: Primary action color standardization
-- BL-009: Footer color standardization
-- BL-070: Tooltips & help text
-- BL-100: Status badge standardization
-- BL-110: Date formatting standardization
-- BL-120: Menu & dialog enhancements
-- BL-200: Console errors & MSW issues
-- BL-220: Performance optimization
-- BL-300: Collection display patterns
-- BL-310: Component header/title format standardization
-- BL-320: Component library creation
-- BL-330: Color palette standardization
-- BL-340: Typography system
-- BL-350: Spacing system
-
-**Tech Debt & Dependencies (Theme 10) — refreshed 2026-07-23:**
-
-- BL-500: Dependency audit & security (ongoing)
-- BL-501: TypeScript — on 5.9.3; TS 6/7 assessed & **deferred** (BL-501-4/5)
-- BL-502: ✅ Build/test infra — Vite 8 (Rolldown) + Vitest 4.1 + Storybook 10.5 **done**
-- BL-503 / BL-507 / BL-508: Dependency updates — **consolidated** current-state assessment (`npm outdated`, 2026-07-23)
-- BL-505: ✅ ESLint **v10** flat config **done** (+ next-wave BL-505-N)
-- BL-506: Tailwind CSS v4 (planned)
-
-Completed items are not listed in this document.
+- **Stable IDs; priority lives in the [Priority index](#priority-index-cross-file), not in the number.** Existing `BL-###` IDs are kept. New prefixes: `REL-n` release gates · `SALT-n` Salt/design-system conformance · `BL-9xx` new product items · `TD-n` (in TECH_DEBT.md).
+- **Closing or merging:** move the ID to the [Closed, merged & transferred register](#closed-merged--transferred-register) with date and evidence (commit/PR). Never delete or reuse an ID — historical UX-testing reports (retired from the tree on 2026-11-02, still in git history) reference them.
+- **Test evidence:** record each verification run as one row in [Verification history](#verification-history); attach detailed evidence (screenshots, logs) to the PR or issue instead of committing per-session report folders. The SALT-1 conformance matrix is a living document in `docs/ux-quality/` (BL-908), not a set of dated reports.
+- **Per item:** Priority · Status · Components · Verified (date/method) · Acceptance criteria.
+- **Out of repo:** items for the showcase app (`app/client-next-ts`) or `app/server-session-transfer` are not tracked here; see the register.
+- Legend — Priority: 🔴 Critical · 🟠 High · 🟡 Medium · 🟢 Low. Status: 📋 Planned · 🚧 In progress · ❓ Needs product decision · ⏸️ Blocked.
 
 ---
 
-## 📋 Backlog Overview
+## Priority index (cross-file)
 
-This backlog consolidates findings from UX testing, development roadmap themes, and recent enhancements. Items are organized by priority and aligned with roadmap themes. This is a **living document** that should be updated as work progresses.
-
-### Status Legend
-
-- 🔴 **Critical** - Blocks user experience or functionality
-- 🟠 **High** - Significant UX impact, should be addressed soon
-- 🟡 **Medium** - Important but not blocking
-- 🟢 **Low** - Nice to have, polish items
-- 🚧 **In Progress** - Currently being worked on
-- 📋 **Planned** - Scheduled for future work
-
-_(Completed items are removed from this document and not listed.)_
-
----
-
-## 🎯 Priority 1: Critical UX & Design System Issues
-
-### 1.1 Design System Standardization 🟠 [BL-001] — Re-assessed January 2026
-
-**Source:** UX Testing Report - Critical Inconsistencies Summary  
-**Theme Alignment:** Theme 6 (Atomic Design), Theme 7 (A11y & UX Testing)  
-**Components Affected:** All  
-**Tracking ID:** BL-001  
-**Reference:** Latest source and deployed showcase (https://embedded-finance-dev.com/sellsense-demo — onboarding, linked-accounts, recipients, transactions, accounts, make-payment)
-
-#### Current State (as of January 2026)
-
-Substantial progress has been made. Re-assessment against latest source and deployed components shows:
-
-- **Button system:** A single shared `Button` component (`@/components/ui/button`) is used across core components. Variants: `default` (primary), `outline`, `secondary`, `ghost`, `link`, `destructive`, `warning`, `input`. All use `eb-` prefixed design tokens.
-- **Theme & tokens:** `EBComponentsProvider` and `convert-theme-to-css-variables` drive primary, secondary, destructive, etc. from `EBTheme` / `EBThemeVariables`. Salt-aligned token naming is in use.
-- **Component usage:** Onboarding, LinkedAccountWidget, RecipientsWidget, TransactionsDisplay, Accounts, PaymentFlow consistently import and use `Button` with semantic variants (e.g. primary submit = `default`, cancel = `outline`, icon actions = `ghost`).
-
-#### Remaining work [BL-001]
-
-- [ ] **BL-001-1:** Document button usage patterns (when to use default vs outline vs ghost vs link) in design system or component docs
-- [ ] **BL-001-2:** Optionally extract `StatusBadge` as a first-class design-system component (Badge exists; status semantics could be standardized)
-- [ ] **BL-001-3:** Ensure Storybook stories showcase button variants where relevant
-
-#### Primary Action Color [BL-002]
-
-- [ ] **BL-002-1:** Confirm single primary action color (theme-driven; ensure all themes define it consistently)
-- [ ] **BL-002-2:** Document primary/secondary semantics in design tokens
-
-#### Footer Color [BL-009]
-
-- [ ] **BL-009-1:** In the **showcase app** (client-next-ts / SellSense), standardize footer color across fullscreen component views (onboarding, linked-accounts, recipients, transactions, accounts, make-payment) if any variance remains.
+| Rank | ID                              | Item                                                                                           | Pri | Where                                                  |
+| ---: | ------------------------------- | ---------------------------------------------------------------------------------------------- | --- | ------------------------------------------------------ |
+|    1 | REL-1                           | Host CSS leakage from published stylesheet                                                     | 🔴  | [§1](#1-release-gates-rel)                             |
+|    2 | REL-2                           | Package entry points (`exports`, raw TS, CJS, native optional deps)                            | 🟠  | [§1](#1-release-gates-rel)                             |
+|    3 | REL-3                           | Release-script provenance & failure gates                                                      | 🟠  | [§1](#1-release-gates-rel)                             |
+|    4 | REL-4                           | Peer-range truth (React 19 claimed, untested)                                                  | 🟠  | [§1](#1-release-gates-rel)                             |
+|    5 | BL-901 + TD-1                   | IndirectOwnership chain validation & data contract                                             | 🟠  | [§2](#2-correctness--functional) · TECH_DEBT §1        |
+|    6 | BL-050-1                        | Currency formatter renders `NaN`                                                               | 🟠  | [§2](#2-correctness--functional)                       |
+|    7 | BL-802-3                        | Runtime en-US fallbacks in es-US/fr-CA                                                         | 🟠  | [§6](#6-i18n--content-tokens)                          |
+|    8 | BL-900                          | ApprovedClientMaintenance API limitations + UI containment                                     | 🟠  | [§2](#2-correctness--functional)                       |
+|    9 | BL-902                          | PaymentFlowFX bounded GA                                                                       | 🟠  | [§2](#2-correctness--functional)                       |
+|   10 | BL-908-0 · TD-5a · TD-7 · TD-11 | UX quality loop pilot · coverage baseline · vuln scanning · test-suite speed (parallel, cheap) | 🟠  | [§4](#4-accessibility) · TECH_DEBT                     |
+|   11 | SALT-1                          | Continuous Salt pattern conformance — baseline in the first BL-908 review run                  | 🟠  | [§3](#3-salt-design-system-conformance--design-system) |
+|   12 | BL-909                          | One client experience: hosted UI, maintenance design language, linked account, content tokens  | 🟠  | [§3](#3-salt-design-system-conformance--design-system) |
+|   13 | Quick wins                      | BL-601-2 · BL-905 · BL-060 · TD-10 · BL-507-A · BL-910-3                                       | 🟡  | various                                                |
+|   14 | TD-2 · BL-505-N5                | Module boundaries · hook-order ratchets                                                        | 🟠  | TECH_DEBT                                              |
+|   15 | Majors                          | React 19 validation → Tailwind 4 → others                                                      | 🟡  | TECH_DEBT §7                                           |
 
 ---
 
-### 1.2 Make Payment Form UX 🟠 [BL-020+] — Re-assessed Jan 2026
+## Component quick reference
 
-**Source:** UX Testing Report - Make Payment Component Analysis  
-**Theme Alignment:** Theme 0 (Functional Enhancements), Theme 7 (A11y & UX Testing)  
-**Components Affected:** PaymentFlow  
-**Tracking IDs:** BL-020, BL-030, BL-031, BL-032, BL-033, BL-040, BL-403
+| Component                              | Public?                                      | Maturity             | Open items                                             |
+| -------------------------------------- | -------------------------------------------- | -------------------- | ------------------------------------------------------ |
+| EBComponentsProvider                   | ✅                                           | GA                   | REL-1, SALT-1                                          |
+| OnboardingFlow                         | ✅                                           | GA                   | BL-400-1, BL-800-3, BL-903, BL-905, BL-909, BL-910, SALT-1 |
+| IndirectOwnership                      | internal (used by OnboardingFlow)            | GA inside Onboarding | BL-901, BL-601-2, TD-1                                 |
+| ApprovedClientMaintenance              | ✅ (`export *`)                              | Draft since v0.17.10 | BL-900, BL-904, BL-909                                 |
+| ClientExperience                       | ✅ (`export *`)                              | Undocumented         | BL-904, BL-909                                         |
+| ClientProfile                          | internal (used by ApprovedClientMaintenance) | —                    | BL-904, TD-2                                           |
+| ClientDetails                          | ✅                                           | GA                   | BL-810                                                 |
+| LinkedAccountWidget / RecipientsWidget | ✅                                           | GA                   | BL-401, BL-402, BL-406, BL-070, BL-120, BL-110         |
+| PaymentFlow / PaymentFlowInline        | ✅                                           | GA                   | BL-020, BL-031–033, BL-040, BL-403, BL-800-1, BL-905   |
+| PaymentFlowFX / PaymentFlowFXInline    | ✅                                           | **Beta**             | BL-902                                                 |
+| TransactionsDisplay                    | ✅                                           | GA                   | BL-050, BL-051, BL-060, BL-062, BL-404, BL-723, BL-812 |
+| Accounts                               | ✅                                           | GA                   | BL-090–092, BL-405, BL-905                             |
+| Shared UI (`src/components/ui`)        | partial                                      | —                    | BL-100, BL-601-2, BL-001                               |
 
-**Re-assessed (Jan 2026):** PaymentFlow uses shared Button, PayeeSelector, ReviewPanel, etc. Field order, tab behavior, fee display, validation, date, and modal a11y are still product/design choices; verify against latest source and deployed make-payment view (embedded-finance-dev.com) for current behavior.
-
-#### Form Field Ordering Consistency [BL-020]
-
-- [ ] **BL-020-1:** Standardize field order between "Select existing" and "Enter details" tabs
-  - [ ] **BL-020-1a:** Recipient selection/details first
-  - [ ] **BL-020-1b:** Payment method second
-  - [ ] **BL-020-1c:** Amount third
-  - [ ] **BL-020-1d:** Optional fields last
-- [ ] **BL-020-2:** Update "Enter details" tab to match "Select existing" tab order
-
-#### Tab Switching Behavior [BL-030]
-
-- [ ] **BL-030-1:** Add confirmation when switching tabs with entered data, OR
-- [ ] **BL-030-2:** Preserve form data when switching tabs
-- [ ] **BL-030-3:** Clear review panel when switching tabs to avoid confusion
-- [ ] **BL-030-4:** Ensure review panel accurately reflects current form state
-
-#### Fee Display Enhancement [BL-031]
-
-- [ ] **BL-031-1:** Make fee information more prominent
-- [ ] **BL-031-2:** Show fee breakdown earlier in the flow
-- [ ] **BL-031-3:** Consider showing estimated fees before amount entry
-- [ ] **BL-031-4:** Improve fee calculation display clarity
-
-#### Form Validation & Feedback [BL-032]
-
-- [ ] **BL-032-1:** Add tooltip explaining why Confirm button is disabled
-- [ ] **BL-032-2:** Show validation errors for missing required fields
-- [ ] **BL-032-3:** Highlight incomplete sections
-- [ ] **BL-032-4:** Add inline field validation feedback
-
-#### Date Selection [BL-033]
-
-- [ ] **BL-033-1:** Add date picker if scheduling future payments is needed, OR
-- [ ] **BL-033-2:** Clarify that payments are immediate (if that's the case)
-- [ ] **BL-033-3:** Make date selection explicit if it's a feature
-
-#### Modal Accessibility [BL-040]
-
-- [ ] **BL-040-1:** Ensure modal has focus trap
-- [ ] **BL-040-2:** Add keyboard navigation support
-- [ ] **BL-040-3:** Add visual indication if content is scrollable
-- [ ] **BL-040-4:** Ensure responsive modal sizing
-
-**Estimated Impact:** High - Improves user flow consistency
+> The legacy `Recipients` component no longer exists; use `RecipientsWidget`.
 
 ---
 
-### 1.3 Data Quality & Display Issues 🟠 [BL-050] — Re-assessed Jan 2026
+## 1. Release gates (REL)
 
-**Source:** UX Testing Report - Transaction Details Modal, Technical Analysis  
-**Theme Alignment:** Theme 0 (Functional Enhancements), Theme 8 (Comprehensive Testing)  
-**Components Affected:** TransactionsDisplay  
-**Tracking ID:** BL-050
+Items that affect every consumer of the published package. Verified 2026-11-02 by inspecting `package.json`, `src/index.css`, `dist/index.css` (build of 2026-10-13), `vite.config.mjs` and the release tooling.
 
-**Re-assessed (Jan 2026):** TransactionDetailsSheet uses `renderField` with `hideEmpty` and `naText`; ledger balance is formatted via `formatNumberToCurrency(transaction.ledgerBalance, ...)`. `formatNumberToCurrency` does not guard against `NaN` — `Intl.NumberFormat().format(NaN)` yields "NaN". Columns use `naText` and optional hiding. Reference ID is a column and filter; Transaction filters have id/name on inputs.
+### REL-1 — Host CSS leakage 🔴 📋
 
-#### Transaction Details Modal [BL-050]
+**Components:** all (published `dist/index.css`)
 
-- [ ] **BL-050-1:** Harden Ledger Balance (and any currency) against NaN/undefined: validate before calling `formatNumberToCurrency`, or extend formatter to return `naText`/hide when not a valid number
-- [ ] **BL-050-2:** Keep "N/A" vs hide approach consistent: `hideEmpty` plus `hasValue` already control visibility; ensure MSW/API provide realistic values where possible
-- [ ] **BL-050-3:** Only show "Show all fields" when there are meaningful extra fields (logic exists; verify against real API shape)
-- [ ] **BL-050-4:** Populate additional fields from API when available
+The published stylesheet contains **unscoped** global rules written in `@layer components` (`src/index.css:8–24`): `*,:before,:after{border-color}`, `body{background-color;font-family;…}`, `menu,ol,ul{list-style-type:none}`, `a{color:inherit;text-decoration:none}`. `tailwindcss-scoped-preflight` only scopes Tailwind preflight to `.eb-component`; it does not touch these hand-written rules. Effect on host pages: links lose colour and underline (WCAG 1.4.1 risk for the host), list markers disappear, and `body` takes the EB background and font.
 
-#### Reference ID Column [BL-051]
+- [ ] **REL-1-1:** Scope the rules to `.eb-component` and to portal containers (dialogs, popovers, toasts).
+- [ ] **REL-1-2:** Regression test against built CSS: a host sibling `<a>`, `<ul>` and `body` keep their computed styles (implemented by BL-908-1).
+- [ ] **REL-1-3:** Note the change in CHANGELOG — hosts may have unknowingly relied on the leak.
 
-- [ ] **BL-051-1:** Populate reference ID from API, or hide column when never available
-- [ ] **BL-051-2:** Confirm behavior with real vs mock data
+### REL-2 — Package entry points 🟠 📋
 
-#### Missing Data Handling [BL-052]
+- [ ] **REL-2-1:** `./i18n/config` exports raw TypeScript (`src/i18n/config.ts`) that also imports the dev-only `lodash`; ship a compiled entry or remove the export.
+- [ ] **REL-2-2:** The `require` condition points at `dist/umd/ef-components.js` under `"type":"module"`; emit a real `.cjs` or drop the condition.
+- [ ] **REL-2-3:** Move the linux-x64 native binaries out of published `optionalDependencies` (CI-only install step).
+- [ ] **REL-2-4:** Gate releases with `publint`, `@arethetypeswrong/cli` and an `npm pack` consumer smoke test (ESM, CJS, types) without transpiling dependency source.
 
-- [ ] **BL-052-1:** Loading/empty: confirm TransactionsDisplay and TransactionDetailsSheet have clear loading and empty states (skeletons and empty messaging exist; validate in UI)
-- [ ] **BL-052-2:** Standardize when to show "N/A" vs omit field (already driven by `hideEmpty` and `hasValue` in details sheet)
+### REL-3 — Release provenance & failure gates 🟠 📋
 
----
+The release tooling bumps the version and publishes without first proving that the tree is clean and up to date or that build and tests pass. It does not reliably stop when a command fails, and it can propagate a release before the release change is merged.
 
-## 🎯 Priority 2: High Impact UX Improvements
+- [ ] **REL-3-1:** Require a clean tree, an up-to-date `develop`, and passing `npm test` + `npm run build` before bumping.
+- [ ] **REL-3-2:** Fail fast on every failing command (check exit codes explicitly).
+- [ ] **REL-3-3:** Publish and propagate only from the merged release commit.
 
-### 2.1 Filter & Label Standardization 🟠 [BL-060] — Re-assessed Jan 2026
+### REL-4 — Peer-range truth 🟠 📋
 
-**Source:** UX Testing Report - Recipients & Transactions Components  
-**Theme Alignment:** Theme 0 (Functional Enhancements)  
-**Components Affected:** Recipients (legacy), RecipientsWidget table (if filters added), TransactionsDisplay  
-**Tracking ID:** BL-060
+`peerDependencies` declares `react` / `react-dom` `^18.2.0 || ^19`, but development, tests and types are React 18.3 only.
 
-**Re-assessed (Jan 2026):** Source shows Transactions uses `transactions.json` "All statuses"/"All types" (lowercase); legacy Recipients uses `recipients.json` "All Types"/"All Status". RecipientsWidget table view (RecipientsTableView/BaseRecipientsWidget) does not expose status/type filters in code — filters apply to legacy Recipients and Transactions only.
+- [ ] **REL-4-1:** Add a React 19 CI lane (runtime + types) **or** narrow the peer range to `^18` until it exists.
+- [ ] **REL-4-2:** Prerequisite work is TD-8 (TECH_DEBT.md); the full migration is BL-507-React19.
 
-#### Filter Labels [BL-060]
+### REL-5 — Bundle size budget 🟡 📋
 
-- [ ] **BL-060-1:** Standardize to "All Statuses" and "All Types" (title case, plural) across components
-- [ ] **BL-060-2:** Update Transactions: `transactions.json` filters.status.all / filters.type.all (currently "All statuses", "All types")
-- [ ] **BL-060-3:** Update legacy Recipients: `recipients.json` filters.status.all / filters.type.all (currently "All Status", "All Types")
+**Absorbs:** BL-220-3, BL-220-4. Last measured build (2026-10-13): ESM **5.78 MB / 1.12 MB gzip**, UMD 6.26 MB; single entry, only React externalized (`vite.config.mjs:111–119`).
 
-**Current state:** Transactions: "All statuses", "All types". Legacy Recipients: "All Types", "All Status". **Remaining:** Pick one convention and apply in both i18n files.
-
-#### Pagination Text Format [BL-061]
-
-- [ ] **BL-061-1:** Standardize pagination copy: either "Showing X to Y of Z" or "X total"
-- [ ] **BL-061-2:** Transactions and RecipientsWidget table use "Showing {{from}} to {{to}} of {{total}}" (DataTablePagination / RecipientsTableView). Legacy Recipients uses "{{count}} row(s) total" (RecipientsPagination).
-
-**Current state:** Transactions + RecipientsWidget table: "Showing X to Y of Z". Legacy Recipients: "X row(s) total". **Remaining:** Decide single pattern and align legacy Recipients if still in use.
-
-#### Default Rows Per Page [BL-062]
-
-- [ ] **BL-062-1:** Standardize default page size (e.g. 10 or 25)
-- [ ] **BL-062-2:** RecipientsWidget/BaseRecipientsWidget default `pageSize = 10`; Transactions default `pageSize: 25`.
-
-**Current state:** RecipientsWidget 10, Transactions 25. **Remaining:** Document or standardize default; hide pagination when only one page exists (RecipientsWidget already does: `totalCount > pagination.pageSize`).
+- [ ] **REL-5-1:** Fresh size report in CI; fail on regressions above an agreed budget.
+- [ ] **REL-5-2:** Measure consumer-side tree-shaken size per component; decide on sub-path entries.
+- [ ] **REL-5-3:** Revisit externalizing heavy runtime deps (to be decided with the dependency owners).
 
 ---
 
-### 2.2 Tooltips & Help Text 🟠 [BL-070] — Re-assessed Jan 2026
+## 2. Correctness & functional
 
-**Source:** UX Testing Report - Multiple Components  
-**Theme Alignment:** Theme 7 (A11y & UX Testing)  
-**Components Affected:** All  
-**Tracking ID:** BL-070
+### BL-901 — IndirectOwnership completion 🟠 📋
 
-**Re-assessed (Jan 2026):** RecipientsWidget/RecipientCard and RecipientsTableView use `aria-label` (e.g. `actions.viewDetails`, `actions.moreActions`, `actions.makePayment`) and Tooltip where needed (e.g. edit-disabled, payment-disabled). Accounts AccountCard uses Popover + `aria-label` for balance-type info (`card.balanceTypeInfoAriaLabel`). Transactions "View" opens TransactionDetailsSheet; toolbar/columns use aria-labels.
+**Absorbs:** BL-400-2. **Related:** TD-1 (data contract). **Source:** `docs/indirect-ownership-recovery-plan.md:90–121`.
 
-- [ ] **BL-070-1:** Ensure every icon-only or ambiguous control has either a visible tooltip or an `aria-label` (and document pattern)
-- [ ] **BL-070-2:** Audit remaining spots: Transactions "View" / columns button, RecipientsWidget "more actions" visibility of purpose (aria exists; add tooltip if UX needs it)
-- [ ] **BL-070-3:** Add help text for complex features where still missing
-- [ ] **BL-070-4:** Confirm all interactive elements have descriptive labels (many already do)
+- [ ] **BL-901-1:** Reject ownership chains that have no terminal beneficial owner (explicitly deferred in the recovery plan).
+- [ ] **BL-901-2:** Standalone ↔ wizard parity: shared detail collection, story parity, remove wizard-only logic (unchecked recovery-plan boxes).
+- [ ] **BL-901-3:** Update the recovery plan's status header (Stage 3 says "implemented (bounded)" while boxes remain unchecked).
 
-**Current state:** RecipientsWidget and Accounts use aria-labels and Popover/tooltips. **Remaining:** Targeted audit for any icon-only buttons still missing tooltip or aria-label; prefer aria-label as baseline.
+### BL-050 — Transaction data quality 🟠 📋
 
----
+**Absorbs:** BL-052. **Components:** TransactionsDisplay.
 
-### 2.3 Responsive Design Improvements 🟠 [BL-080] — Re-assessed Jan 2026
+- [ ] **BL-050-1:** `formatNumberToCurrency` has no NaN/undefined guard (`TransactionsDisplay/utils/formatNumberToCurrency.ts:9–19`); return the `naText` placeholder or hide the field. Unit tests for `NaN`, `undefined`, `null`, strings.
+- [ ] **BL-050-2:** One policy for "N/A" vs hidden (`hideEmpty` / `hasValue` in `TransactionDetailsSheet.tsx:51–62`); document it.
+- [ ] **BL-050-3:** Show "Show all fields" only when hidden fields exist — the toggle is currently unconditional (`TransactionDetailsSheet.tsx:444–451`).
+- [ ] **BL-050-4:** Populate additional fields from the API when available (fixture-driven).
 
-**Source:** UX Testing Report - Recipients Component  
-**Theme Alignment:** Theme 6 (Atomic Design & Performance)  
-**Components Affected:** RecipientsWidget, TransactionsDisplay  
-**Tracking ID:** BL-080
+### BL-900 — ApprovedClientMaintenance: API limitations & UI containment 🟠 📋
 
-**Re-assessed (Jan 2026):** RecipientsWidget supports `viewMode: 'cards' | 'compact-cards' | 'table'` and `scrollable`; compact/table and card layouts exist. TransactionsDisplay has TransactionCard and table; DataTable is used. Accounts uses responsive grid (PR #629).
+**Components:** ApprovedClientMaintenance (public, draft). **Source:** the _Known Limitations_ section of `docs/APPROVED_CLIENT_MAINTENANCE_RECIPE.md`.
 
-#### Table Responsiveness [BL-080]
+The limitations below are **API behaviour**. The component's job is to contain their impact; it cannot fix server behaviour itself.
 
-- [ ] **BL-080-1:** If RecipientsWidget or Transactions table still shows horizontal scroll on small viewports, refine breakpoints or column visibility
-- [ ] **BL-080-2:** Document when to use card vs table on small screens (RecipientsWidget already offers card/table by prop)
-- [ ] **BL-080-3:** Test fullscreen component views (embedded-finance-dev.com) on mobile/tablet and fix any overflow or scroll issues
-- [ ] **BL-080-4:** Ensure Transactions table has a usable small-screen pattern (e.g. card swap or responsive columns)
+| Sub-item | Limitation (API)                                                                                                                | UI containment                                                                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| BL-900-1 | Additions during review: `POST /parties` returns `11902` while a request is `REVIEW_IN_PROGRESS` but still creates the party    | Block every write during review; refetch after failed writes; treat parties without a proposal as unreviewed |
+| BL-900-2 | Discarding a pending `INTERMEDIARY_OWNER` party fails (`11903`); a failed whole-request discard can leave a hidden open request | Warn before adding; treat `TERMINATED` + `NEW` proposals as blocked and point to support                     |
+| BL-900-3 | A never-approved party cannot be removed (`active: false` returns `11911`)                                                      | Route such parties through onboarding as unreviewed                                                          |
+| BL-900-4 | Validation reads the approved record, so a missing now-required field blocks submission after any change                        | Warn before editing a party whose `validationResponse` isn't `VALIDATED`                                     |
+| BL-900-5 | Stale `outstanding.partyRoles` after a discard; a withdrawn product leaves its document request                                 | Don't block on stale role requirements; hide document requests of withdrawn products                         |
+| BL-900-6 | Party document requests are missing from the client document list                                                               | Reconcile both sources in the UI                                                                             |
+| BL-900-7 | Existing values can't be cleared (empty string rejected, `null` ignored)                                                        | Don't offer clearing; ask for a replacement value                                                            |
+| BL-900-8 | No notification type for maintenance requests                                                                                   | Poll request and client status; status-transition fixtures                                                   |
+| BL-900-9 | No version, ETag or snapshot token for concurrent maintenance                                                                   | Review fingerprint plus two consecutive identical reads before attestation and verification                  |
 
-**Current state:** RecipientsWidget has compact-cards and table; Accounts has responsive cards. **Remaining:** Validate on real viewports and document responsive behavior.
+- [ ] **BL-900-10:** Raise each limitation with the API owners; when behaviour changes, update the recipe's Known Limitations table and remove the containment.
+- [ ] **BL-900-11:** Integration tests (MSW) for each containment path.
 
----
+### BL-902 — PaymentFlowFX bounded GA 🟠 📋
 
-### 2.4 Accounts Component Enhancements 🟡 [BL-090] — Re-assessed Jan 2026
+**Replaces:** BL-403-4. **Components:** PaymentFlowFX (Beta). **Sources:** `docs/CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md:351–360`, `src/core/PaymentFlowFX/SPECIFICATION.md:853–878`.
 
-**Source:** UX Testing Report - Accounts Component Analysis  
-**Theme Alignment:** Theme 0 (Functional Enhancements)  
-**Components Affected:** Accounts  
-**Tracking ID:** BL-090
+- [ ] **BL-902-1 (GA gate):** Sign off the supported corridor/currency matrix; minimum-amount and whole-number validation per currency; fee/spread copy; jurisdictional disclosures.
+- [ ] **BL-902-2 (GA gate):** Integration contracts: rate-sheet proxy/base URL, per-currency `countryCode`, purpose-code corridors, account-ID verification.
+- [ ] **BL-902-3 (post-GA, explicit non-goals for v1):** inline unregistered payees, non-USD debit, FX KYC, webhook enrichment.
+- [ ] **BL-902-4 (UX follow-ups):** extraction, mobile summary, balance retry, memo limit, completed-step summaries, auto-advance focus (a11y — prioritise), quick-fill chips.
+- [ ] **BL-902-5:** Mark `@beta` in the public API until GA (TD-6).
 
-**Re-assessed (Jan 2026):** Accounts uses `CardTitle` with `_title ?? t('accounts:titleSingle')` plus "s (N)" for multiple; parent can pass `title`. Balance-type info uses Popover + `card.balanceTypeInfoAriaLabel` and balance-type descriptions in i18n. Responsive layout and grid updated in PR #629.
+### BL-903 — Information requests (RFI) follow-ups 🟡 �
 
-#### Missing Action Buttons [BL-090]
+**Source:** the _Known Limitations_ section of `docs/REQUEST_FOR_INFORMATION_RECIPE.md`. **Done so far:** outstanding questions are classified with the `GET /questions` category filter, and RFI questions get their own **Additional information** section before and after submission (`737b4ee0`); an approved client with an RFI sees it at the top of the maintenance overview (`fff110bc`); BL-903-1 closed (see register).
 
-- [ ] **BL-090-1:** Add "View Transactions" link/button (if product requirement)
-- [ ] **BL-090-2:** Add "Transfer Funds" / "Manage Account" / "Download Statement" only if required by product
+- [ ] **BL-903-2** ⏸️: Party attribution for party-level questions. The API doesn't say which party a question concerns; raise it with the API owners. Until then the question text has to name the party.
+- [ ] **BL-903-3:** Persist completion across sessions — **Additional information** shows as completed only in the session in which it was answered.
 
-#### UI Improvements [BL-091]
+### BL-904 — ClientExperience / ClientProfile release matrix 🟡 🚧
 
-- [ ] **BL-091-1:** Redundant "Accounts" heading is typically from **showcase app** (page title + card title). In component, card title is configurable via `title` prop and defaults to "Your account(s)". App can pass a different title to avoid redundancy.
-- [ ] **BL-091-2:** Card title is already driven by prop/i18n; optional: use account category/name when showing a single account.
-- [ ] **BL-091-3/4:** Info icon next to balance types uses Popover and aria-label; verify in showcase that it’s visible and accessible.
+`ClientExperience` and `ApprovedClientMaintenance` are publicly exported; `ClientProfile` is internal. **Done so far:** ClientExperience stories are grouped by route (Onboarding, Approved profile, Maintenance, Loading and errors) with a story per client and request state, and a test checks each story's routing (`66784ae9`).
 
-#### Component Review [BL-092]
+- [ ] **BL-904-1:** Per component: lifecycle/routing, error states, locales, a11y, Storybook coverage, docs.
+- [ ] **BL-904-2:** Decide GA vs `@beta` and record it (TD-6).
+- [ ] **BL-904-3:** Document the guided change request in `docs/APPROVED_CLIENT_MAINTENANCE_RECIPE.md`: **Request a change** on each profile page, the `changeActions: 'guided' | 'inline'` prop, and the draft change request review. Only `docs/REQUEST_FOR_INFORMATION_RECIPE.md` describes it today.
 
-- [ ] **BL-092-1:** Compare Accounts structure with LinkedAccountWidget/RecipientsWidget for consistency (e.g. empty state, loading, error, refs).
-- [ ] **BL-092-2:** Confirm responsive behavior on embedded-finance-dev.com fullscreen views.
+### BL-400 — OnboardingFlow entity coverage 🟡 🚧
 
----
+- [ ] **BL-400-1:** Entity-specific requirement matrix (legal form × data collected × owner/controller rules) aligned with `docs/UX_ATLAS.md` modules A–F. Done so far: publicly traded companies (`enablePubliclyTradedCompanies`), entity options in `consts/organizationTypeList.ts`, optional non-US `countryOfFormation` (develop, v0.17.20). Remaining: verify government, non-profit, partnership and unincorporated-association paths end to end.
 
-## 🎯 Priority 3: Medium Priority Improvements
+### BL-910 — Refetch bursts after mutations 🟡 🚧
 
-### 3.1 Status Badge Standardization 🟡 [BL-100] — Re-assessed Jan 2026
+**Source:** Dynatrace RUM, 2026-11: document uploads rated FRUSTRATED. After an upload the UI fired 7–8 refetches at once, cancelled 2 and then 4 of them (code 971), and fetched `clients/{id}` twice. **Rule:** a mutation refreshes only what it changed, once, and waits for that before navigating away, because unmounting a screen cancels its in-flight queries. **Done so far:** BL-910-1 and BL-910-2 (see register).
 
-**Source:** UX Testing Report - Multiple Components  
-**Theme Alignment:** Theme 6 (Atomic Design)  
-**Components Affected:** All  
-**Tracking ID:** BL-100
-
-**Re-assessed (Jan 2026):** Badge component exists (`@/components/ui/badge`); Transactions uses `getStatusVariant(status)` and Badge `variant={getStatusVariant(...)}`; direction uses `'default' | 'secondary'`. Recipients and LinkedAccountWidget use status styling. No single StatusBadge semantic wrapper yet.
-
-- [ ] **BL-100-1:** Audit status badge styling (Transactions, RecipientsWidget, LinkedAccountWidget, Accounts) and align variants
-- [ ] **BL-100-2:** Document status → color/variant mapping (e.g. Success/Completed, Pending, Error/Rejected) in design system or component docs
-- [ ] **BL-100-3:** Add hover/contrast if needed for WCAG AA
-- [ ] **BL-100-4:** Optional: introduce a StatusBadge wrapper that maps status to Badge variant + i18n label
+- [ ] **BL-910-3:** `LinkAccountScreen` navigates to the overview as soon as the account is created, while the recipient-list refetch started by `useRecipientForm` is still in flight, so unmounting the screen can cancel it. Wait for the refresh first, as document uploads do.
+- [ ] **BL-910-4:** Guard against regressions: no unscoped `queryClient.invalidateQueries()`, no invalidation in effects keyed on fetched data (review rule or lint, see BL-505-N6). Confirm the upload fix in Dynatrace after release.
 
 ---
 
-### 3.2 Date Formatting Standardization 🟡 [BL-110] — Re-assessed Jan 2026
+## 3. Salt Design System conformance & design system
 
-**Source:** UX Testing Report - Recipient Details Modal  
-**Theme Alignment:** Theme 0 (Functional Enhancements), Theme 2 (i18n)  
-**Components Affected:** All  
-**Tracking ID:** BL-110
+### SALT-1 — Continuous monitoring & assessment against Salt Design System patterns 🟠 🔁 Recurring
 
-**Re-assessed (Jan 2026):** TransactionDetailsSheet uses `useLocale()` and `toLocaleDateString` / `toLocaleString` with locale. RecipientDetailsDialog and other detail views use various date formatting. Theme 2 (i18n) will drive locale-aware formatting.
+**Why:** our design tokens already follow [Salt Design System](https://www.saltdesignsystem.com/) naming (`DESIGN_TOKENS.md`), and `docs/EMBEDDED_FINANCE_PATTERNS.md` is meant to complement Salt patterns. Our components are built on Radix + Tailwind, though, and nothing checks that alignment over time while Salt keeps evolving (28 patterns as of 2026-11-02). Conformance here means **behaviour, structure, content and foundations** (tokens, typography, spacing, density), not adopting Salt React components.
+**Owner:** design-system owner (UX) with a component engineer per area.
+**Absorbs as children:** the design-system items below (BL-001, BL-002, BL-100, BL-300, BL-310, BL-321, BL-323, BL-350).
 
-- [ ] **BL-110-1:** Standardize date/datetime format (e.g. short date vs long, with/without time) and document in design system or i18n guide
-- [ ] **BL-110-2:** Use a shared formatter (e.g. date-fns + locale or Intl + locale) everywhere; ensure Recipient details and Transaction details use same rules
-- [ ] **BL-110-3:** Wire i18n/locale for dates (Theme 2) so format respects user locale
+- [ ] **SALT-1-1 — Conformance matrix:** create `docs/ux-quality/salt-conformance.md` — Salt pattern × component, rated ✅ Conforms · 🟡 Partial · ⚠️ Deviates by design (rationale required) · ❌ Gap · ➖ N/A (host-owned), with a "last assessed" date per row. Each row links the Salt pattern page, the matching `EMBEDDED_FINANCE_PATTERNS.md` entry and the Storybook story.
+- [ ] **SALT-1-2 — Baseline assessment:** done as part of the first BL-908 review run (BL-908-2); results update the matrix. Every ❌, and every ⚠️ without a rationale, becomes a backlog item (`SALT-n`, or linked to an existing BL ID).
+- [ ] **SALT-1-3 — Cadence:** re-assess **quarterly**; also when Salt publishes a new or changed pattern (watch the patterns index and Salt release notes), when a new component ships, or when a component's UX changes significantly.
+- [ ] **SALT-1-4 — PR checklist:** add "Salt pattern(s) applied / deviations documented" to the PR template (CONTRIBUTING.md) for UI changes.
+- [ ] **SALT-1-5 — Automation where feasible:** record Salt patterns per story in `parameters.ux.saltPatterns` (BL-908 L3) so matrix coverage is queryable; check that theme variables keep their Salt characteristic mapping (`DESIGN_TOKENS.md`); reuse the BL-908 axe runs as the accessibility foundation.
+- [ ] **SALT-1-6 — Reporting:** log each assessment in the [Verification history](#verification-history) with a summary score per component.
 
----
+**Initial candidate mapping** (to be confirmed in SALT-1-2):
 
-### 3.3 Menu & Dialog Enhancements 🟡 [BL-120] — Re-assessed Jan 2026
+| Salt pattern                                                                                                                                                                                                                                                                                                                                                                                                                                                | Where it applies here                                                                    | Related items    |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------- |
+| [Wizard](https://www.saltdesignsystem.com/salt/patterns/wizard)                                                                                                                                                                                                                                                                                                                                                                                             | OnboardingFlow stepper, PaymentFlow, PaymentFlowFX, ApprovedClientMaintenance multi-step | BL-020, BL-902-4 |
+| [Forms](https://www.saltdesignsystem.com/salt/patterns/forms)                                                                                                                                                                                                                                                                                                                                                                                               | Onboarding section forms, BankAccountForm, RecipientFormDialog, PaymentFlow              | BL-032, BL-321   |
+| [International address form](https://www.saltdesignsystem.com/salt/patterns/international-address-form)                                                                                                                                                                                                                                                                                                                                                     | Onboarding and intermediary addresses (country-aware rules; HK/SG/AE/QA)                 | BL-400-1         |
+| [International phone number](https://www.saltdesignsystem.com/salt/patterns/international-phone-number-input)                                                                                                                                                                                                                                                                                                                                               | Onboarding phone inputs                                                                  | —                |
+| [Formatted input](https://www.saltdesignsystem.com/salt/patterns/formatted-input)                                                                                                                                                                                                                                                                                                                                                                           | Amounts, routing/account numbers, SSN/EIN, date selector                                 | BL-410-3         |
+| [File upload](https://www.saltdesignsystem.com/salt/patterns/file-upload)                                                                                                                                                                                                                                                                                                                                                                                   | DocumentUploadScreen, `ui/dropzone` (2 MB default)                                       | BL-601-2         |
+| [Content status](https://www.saltdesignsystem.com/salt/patterns/content-status)                                                                                                                                                                                                                                                                                                                                                                             | Loading skeletons, empty states, `ServerErrorAlert`                                      | BL-800           |
+| [Indication](https://www.saltdesignsystem.com/salt/patterns/indication)                                                                                                                                                                                                                                                                                                                                                                                     | Status badges, validation indicators                                                     | BL-100           |
+| [Button bar](https://www.saltdesignsystem.com/salt/patterns/button-bar)                                                                                                                                                                                                                                                                                                                                                                                     | Dialog and step footers (FlowContainer, StepLayout)                                      | BL-001-1         |
+| [Selectable card](https://www.saltdesignsystem.com/salt/patterns/selectable-card)                                                                                                                                                                                                                                                                                                                                                                           | Gateway organization type, payee/account selection                                       | —                |
+| [List filtering](https://www.saltdesignsystem.com/salt/patterns/list-filtering)                                                                                                                                                                                                                                                                                                                                                                             | Transactions toolbar filters                                                             | BL-060           |
+| [Search](https://www.saltdesignsystem.com/salt/patterns/search)                                                                                                                                                                                                                                                                                                                                                                                             | Payee search, industry (NAICS) select, question fields with more than 10 options         | BL-912           |
+| [Metric](https://www.saltdesignsystem.com/salt/patterns/metric)                                                                                                                                                                                                                                                                                                                                                                                             | Accounts balances, ClientDetails QuickStats                                              | BL-091           |
+| [Contact details](https://www.saltdesignsystem.com/salt/patterns/contact-details)                                                                                                                                                                                                                                                                                                                                                                           | ClientDetails / ClientProfile party details                                              | BL-810           |
+| [Header block](https://www.saltdesignsystem.com/salt/patterns/header-block)                                                                                                                                                                                                                                                                                                                                                                                 | Component titles and section headers                                                     | BL-310           |
+| [Menu button](https://www.saltdesignsystem.com/salt/patterns/menu-button)                                                                                                                                                                                                                                                                                                                                                                                   | Recipient / linked-account "more actions"                                                | BL-120           |
+| [Vertical navigation](https://www.saltdesignsystem.com/salt/patterns/vertical-navigation), [Navigation](https://www.saltdesignsystem.com/salt/patterns/navigation)                                                                                                                                                                                                                                                                                          | ApprovedClientMaintenance sidebar, Onboarding overview sections                          | BL-900           |
+| [Breadcrumbs](https://www.saltdesignsystem.com/salt/patterns/breadcrumbs)                                                                                                                                                                                                                                                                                                                                                                                   | ApprovedClientMaintenance page headers; ClientDetails drill-down (if multi-level)        | BL-909, BL-810   |
+| [List builder](https://www.saltdesignsystem.com/salt/patterns/list-builder)                                                                                                                                                                                                                                                                                                                                                                                 | IndirectOwnership chain builder / owners list (candidate)                                | BL-901           |
+| [Comments](https://www.saltdesignsystem.com/salt/patterns/comments), [Announcement dialog](https://www.saltdesignsystem.com/salt/patterns/announcement-dialog)                                                                                                                                                                                                                                                                                              | Information-request questions and responses (candidate)                                  | BL-903           |
+| [Split button](https://www.saltdesignsystem.com/salt/patterns/split-button)                                                                                                                                                                                                                                                                                                                                                                                 | None known                                                                               | —                |
+| [App header](https://www.saltdesignsystem.com/salt/patterns/app-header), [Analytical dashboard](https://www.saltdesignsystem.com/salt/patterns/analytical-dashboard), [Keyboard shortcuts](https://www.saltdesignsystem.com/salt/patterns/keyboard-shortcuts), [Experience customization](https://www.saltdesignsystem.com/salt/patterns/experience-customization), [Preferences dialog](https://www.saltdesignsystem.com/salt/patterns/preferences-dialog) | Likely host-owned / N/A for embedded components — confirm                                | —                |
 
-**Source:** UX Testing Report - Linked Account Manage Menu  
-**Theme Alignment:** Theme 7 (A11y & UX Testing)  
-**Components Affected:** LinkedAccountWidget, RecipientsWidget  
-**Tracking ID:** BL-120
+### Design-system children of SALT-1
 
-**Re-assessed (Jan 2026):** RecipientCard and RecipientsTableView use DropdownMenuTrigger with `aria-label={t('actions.moreActions', { name: displayName })}`. RemoveAccountDialog exists for remove flow. Radix DropdownMenu provides keyboard support (Enter, Escape, arrows) by default.
+- **BL-001 — Button usage** 🟡: shared `Button` variants exist (`src/components/ui/button.tsx:12–37`); primary/secondary semantics documented (`DESIGN_TOKENS.md:96–128`).
+  - [ ] **BL-001-1:** Complete the outline / ghost / link / destructive decision guide (Salt Button bar pattern).
+  - [ ] **BL-001-3:** Storybook story covering all button variants.
+  - [ ] **BL-001-4 (new):** Default icon size in `Button` is 12×12 px (`button.tsx:36`); audit icon-only consumers for legibility and target size.
+- **BL-002 — Primary action colour** 🟢: [ ] **BL-002-1:** Verify every shipped theme defines the primary action colour consistently (documentation part done).
+- **BL-100 — Status semantics (StatusBadge)** 🟠 — **absorbs BL-001-2, BL-320-5, BL-330-2.** A `StatusBadge` with variant mapping and i18n exists in `RecipientWidgets/components/StatusBadge/StatusBadge.tsx:52–69`; ClientDetails exports another `StatusBadge`; Transactions uses `getStatusVariant`.
+  - [ ] **BL-100-1:** Promote one `StatusBadge` to `src/components/ui`; remove duplicates.
+  - [ ] **BL-100-2:** Single status → variant → colour table (Salt Indication pattern), documented in `DESIGN_TOKENS.md`.
+  - [ ] **BL-100-3:** Adopt in TransactionsDisplay, LinkedAccountWidget, ClientDetails, Accounts; verify WCAG AA contrast.
+- **BL-300 — Collection display pattern** 🟡 — **absorbs BL-080, BL-301, BL-322.** Already implemented: Transactions swaps to cards on mobile (`TransactionsDisplay.tsx:215–238`); widgets offer `cards | compact-cards | table`.
+  - [ ] **BL-300-1:** Document when to use cards vs table and the default page sizes (see BL-062).
+  - [ ] **BL-300-2:** Viewport QA on mobile/tablet for all collection components.
+- **BL-310 — Heading contract & typography** 🟡 — **absorbs BL-311-2, BL-340.** Configurable heading levels exist (`Accounts.tsx:37,127–129`; `ClientDetails.tsx:202–210,399–402`).
+  - [ ] **BL-310-1:** Document which components render H1–H4 and expose `title`/`headingLevel` (Salt Header block).
+  - [ ] **BL-310-2:** Typography scale (H1–H4, body, label) documented against Salt text tokens.
+- **BL-321 / BL-323 — Primitive usage docs** 🟢: [ ] Document form primitives (Input, Select, DatePicker, `StandardFormField`) and Card primitives (Salt Forms pattern).
+- **BL-350 — Spacing adoption** 🟢: a spacing token is documented (`DESIGN_TOKENS.md:209–213`). [ ] Audit adoption in high-traffic components; define card/form/table spacing scale.
 
-- [ ] **BL-120-1:** Add visible tooltip to "More actions" trigger (e.g. "Manage account" / "More actions") — aria-label already present
-- [ ] **BL-120-2:** Confirm "Remove Account" uses confirmation (RemoveAccountDialog) before submit
-- [ ] **BL-120-3:** Verify DropdownMenu keyboard behavior (Radix default); fix any custom handling that blocks it
-- [ ] **BL-120-4:** Ensure menu positioning (align="end", collisionBoundary) avoids viewport cutoff on small screens
-- [ ] **BL-120-5:** "View Details" exists where recipient/account details are implemented; add only if product requires it in menu
+### BL-909 — One client experience across onboarding and maintenance 🟠 📋
 
----
+**Why:** `ClientExperience` routes one client between `OnboardingFlow` and `ApprovedClientMaintenance`, and hosts embed these flows through the partially and fully hosted UI. The two flows were built separately and look and read differently. The maintenance UI has the newer page language: a header with breadcrumb and one header action (**Request a change**), a scrolling body with a pinned footer (`MaintenancePageBody`, `MaintenanceFormFooter`), container-query spacing, and one accent for every change step. Onboarding keeps the stepper and `StepLayout`. A client moving between them, or a host embedding both, sees two products.
+**Components:** OnboardingFlow, ApprovedClientMaintenance, ClientExperience, `BankAccountForm` (shared with LinkedAccountWidget). **Related:** SALT-1, BL-805-4, BL-906, TD-2, TD-4.
 
-### 3.4 Timeline & Activity History 🟡 [BL-130] — Re-assessed Jan 2026
-
-**Source:** UX Testing Report - Recipient Details Modal  
-**Theme Alignment:** Theme 0 (Functional Enhancements)  
-**Components Affected:** RecipientsWidget (RecipientDetailsDialog), legacy Recipients  
-**Tracking ID:** BL-130
-
-**Re-assessed (Jan 2026):** Scope is RecipientDetailsDialog (and legacy Recipients detail view). Backlog is about naming and content of a "Timeline" section.
-
-- [ ] **BL-130-1:** If RecipientDetailsDialog has a "Timeline" section with limited events, either add more events from API (e.g. last payment, last updated) or rename to "Created" / "Activity" so copy matches behavior
-- [ ] **BL-130-2:** Extend activity/history to other detail views only if product specifies it
-
----
-
-## 🎯 Priority 4: Technical Debt & Performance
-
-### 4.1 Console Errors & MSW Issues 🟡 [BL-200] — Re-assessed Jan 2026
-
-**Source:** UX Testing Report - Technical Analysis  
-**Theme Alignment:** Theme 8 (Comprehensive Testing)  
-**Components Affected:** All (MSW initialization)  
-**Tracking ID:** BL-200  
-**See also:** BL-603 (same MSW duplicate-party issue)
-
-**Re-assessed (Jan 2026):** Duplicate party creation in MSW is a known init/seed issue; fix in handlers or seed (e.g. idempotent create or single client).
-
-- [ ] **BL-200-1:** Fix duplicate party creation in MSW (parties 2200000111–2200000113; client 0030000134 vs 0030000132) — align with BL-603
-- [ ] **BL-200-2:** Reduce console verbosity in production; optional log levels (debug/info/warn/error)
-- [ ] **BL-200-3:** Minimize MSW logging in production builds
-
----
-
-**Note:** Duplicate API calls observed in the development environment (e.g. tab-switch emulation, MSW) are dev-only behavior and are not tracked in this backlog.
-
----
-
-### 4.2 Performance Optimization 🟢 [BL-220] — Re-assessed Jan 2026
-
-**Source:** UX Testing Report - Performance Metrics  
-**Theme Alignment:** Theme 6 (Atomic Design & Performance)  
-**Components Affected:** All  
-**Tracking ID:** BL-220
-
-**Re-assessed (Jan 2026):** Metrics from mocked/showcase environment; production monitoring and bundle targets remain relevant. Virtualization and lazy patterns already used in RecipientsWidget/LinkedAccountWidget.
-
-- [ ] **BL-220-1:** Monitor production performance (LCP, FID, CLS) on embedded-finance-dev.com and real host apps
-- [ ] **BL-220-2:** Code-split / lazy-load non-critical routes or heavy components if bundles grow
-- [ ] **BL-220-3:** Keep bundle size under target (e.g. 500KB) and set Core Web Vitals targets
-- [ ] **BL-220-4:** Document current baseline (mocked load ~204ms, main chunk timing) and track over time
+- [ ] **BL-909-1 — Design language:** turn the maintenance page language (layout regions, header and breadcrumb, footer actions, spacing, accent, empty and loading states) into shared primitives in `src/components/`, rate them against the Salt Header block, Button bar, Breadcrumbs, Vertical navigation and Content status patterns in the SALT-1 matrix, then apply them to OnboardingFlow screens. Acceptance: both flows use the same primitives in Storybook, and no component imports another component's layout internals.
+- [ ] **BL-909-2 — Hosted UI seamlessness:** one container, height and scroll contract for hosted embeds: no nested scrollbars or doubled padding, and focus and scroll position kept when ClientExperience routes between onboarding and maintenance. Verify in the partially hosted UI at mobile and desktop widths and update `docs/partially-hosted/` (BL-805-4).
+- [ ] **BL-909-3 — Linked account redesign in OnboardingFlow:** rebuild the overview bank-account section and `LinkAccountScreen` on the BL-909-1 primitives, with one card per account, its status, and add, verify and remove actions placed as in maintenance. Today `LinkedBankAccountSection` (`OverviewScreen.tsx`) renders the inline form, a single account or a list of accounts from three separate branches. Keep `linkAccountStepOptions` and `hideLinkedAccountRemoval` behaviour; includes BL-910-3.
+- [ ] **BL-909-4 — Content tokens aligned between onboarding and maintenance:** `approved-client-maintenance` has 738 strings, 63 of which repeat an `onboarding-overview` string word for word (role labels, "Business details", address labels, statuses), and maintenance also reads 184 `onboarding-overview:` keys directly. Agree one vocabulary (for example "change request", party roles, statuses), move shared terms to one namespace, keep flow-specific copy in each flow, and keep content-token overrides and the locale parity test working (with BL-906-1).
+- [ ] **BL-909-5 — Refactor while moving:** extract what both flows share — document upload (`useDocumentRequestUpload`, now in `OnboardingFlow/hooks`), question fields (`QuestionField`), party and ownership display — into domain modules (TD-2-1), and split `ApprovedClientMaintenance.tsx` (3,386 LOC) along the way (TD-4).
 
 ---
 
-## 🎯 Priority 5: Design System Foundation
+## 4. Accessibility
 
-### 5.0 Collection Display Patterns 🟠 [BL-300] — Re-assessed Jan 2026
+### BL-908 — UX quality loop: story-driven UX testing 🟠 📋
 
-**Source:** User Feedback - Missing Consistent Pattern  
-**Theme Alignment:** Theme 6 (Atomic Design & Performance)  
-**Components Affected:** All components displaying collections  
-**Tracking ID:** BL-300
+**Absorbs:** BL-907 (and through it BL-470-4, BL-804-5) and BL-480-2. **Executes:** BL-470-3/5/6 and the REL-1-2 test. **Schedules:** SALT-1 review runs. **Replaces:** the retired `docs/ux-testing/` session process.
 
-**Re-assessed (Jan 2026):** RecipientsWidget and LinkedAccountWidget support `viewMode: 'cards' | 'compact-cards' | 'table'` and `scrollable`; choice is caller-driven. Accounts uses responsive card grid (PR #629). TransactionsDisplay uses table + TransactionCard. So table-vs-cards is often a product/config choice, not a single global rule.
+**Principle:** Storybook stories are the component-level UX scenarios — one definition reused by interaction tests, axe, visual baselines, review walkthroughs and `docs/UX_ATLAS.md` links. Live-API contracts and backend workflows stay out of component stories (BL-430).
 
-#### Collection Display Rules [BL-300]
+**Current state (2026-11-02):** 72 story files / ~446 stories; 7 files have `play()` (42 plays), 4 have assertions, none configure a11y checks. `@storybook/addon-vitest` and `addon-a11y` are installed, but no browser provider is, so story tests cannot run. The preview bypasses unhandled requests (`onUnhandledRequest: 'bypass'`), mounts an MSW health monitor and reads env-based API settings; 6 story files set `dangerouslyIgnoreUnhandledErrors`; plays contain 67 fixed pauses ≥ 100 ms.
 
-- [ ] **BL-300-1:** Document when to use cards vs table (e.g. by count, by viewport, or by product choice) and recommend defaults (e.g. 1–N cards, N+ table, or always table for transactions)
-- [ ] **BL-300-2:** Capture current behavior: RecipientsWidget/LinkedAccountWidget = cards or table via prop; Accounts = cards; Transactions = table (and card in list?). Add to design system or component docs
-- [ ] **BL-300-3:** If a single "collection display" rule is desired, define it and align components; otherwise treat as documented product options
+| Layer                   | What                                                                                                                                                                                                                                                                        | Gate                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| L1 Render + state + axe | Every story renders in real Chromium, reaches an asserted ready state, logs no unexpected `console.error` and makes no unmocked API calls; axe runs at render and at checkpoints (open dialogs, error states)                                                               | Every PR; axe exceptions fingerprinted by story + rule + target    |
+| L2 Journeys             | `play()` tests for the `UX_ATLAS.md` journeys using role/name queries, real keyboard input and focus assertions; a keyboard-only variant for each                                                                                                                           | PR (affected components) + release (all)                           |
+| L3 Coverage contract    | Typed `parameters.ux` (states, journey, Salt patterns, justified n/a) plus a generator over Storybook's `index.json` → component × required-state matrix                                                                                                                    | Every PR, public components                                        |
+| L4 Review runs          | Quarterly and pre-GA: SALT-1 rubric + WCAG 2.2 AA + usability heuristics + content/i18n. Humans judge visuals; agent-assisted checks cover behaviour via DOM/accessibility tree only. Each finding carries story ID, args, precondition, repro and the violated requirement | Produces backlog items; automation failures are triaged separately |
 
-#### Implementation [BL-301]
+- [ ] **BL-908-0 — Pilot (S–M):** ~20 existing stories (async loading, submit errors, dialogs/portals, one onboarding journey, localization). Add `@vitest/browser-playwright` + Chromium; separate `unit` and `storybook` Vitest projects; browser MSW via `mswLoader` with unexpected requests treated as errors; per-story reset of fixtures, query cache, storage and portals; health monitor off in tests. Record cold/warm CI time and flake rate, and choose the axe mode (`error` plus fingerprinted exceptions — `todo` produces no CI output).
+- [ ] **BL-908-1 — Trusted gates (M):** L1 on all stories (fix, or quarantine with owner + date); replace fixed pauses with awaited conditions; audit the 6 `dangerouslyIgnoreUnhandledErrors`; L2 for onboarding submit, link bank account + microdeposits and make payment, each with a keyboard variant; host-integration gate on the built `dist/index.css` including portals (REL-1-2); a small visual baseline (key stories × themes; CI pixel diff, humans adjudicate).
+- [ ] **BL-908-2 — Coverage & review (M):** `parameters.ux` schema + generator; required-state contract for public components; remaining `UX_ATLAS.md` journeys; `docs/ux-quality/README.md` (process, rubric, finding format); first combined review run = SALT-1 baseline + human visual pass.
+- [ ] **BL-908-3 — Breadth (M/L):** risk-based matrix — three locales plus pseudo-localization, two providers with different locales (BL-802-5), content-token overrides, date/currency formats, mobile container widths, 320 px reflow (plus a human 400 % zoom check), focus-visible per theme, reduced motion, realistic error shapes, retries and duplicate submits; Firefox/WebKit journeys nightly; grow the visual baseline before Tailwind 4 (BL-506).
 
-- [ ] **BL-301-1:** Optional: shared `CollectionDisplay` or layout utilities only if multiple components would reuse the same breakpoint/rule logic
-- [ ] **BL-301-2:** Ensure card and table layouts are accessible and responsive; document patterns in Storybook
+**Stop doing:** per-session report folders and committed screenshots; performance metrics against mocks (→ REL-5, BL-450); component UX testing through the hosted showcase.
+**CI cost:** browser and unit jobs run independently; affected-component selection with a full-suite fallback when shared code changes (`components/ui`, provider, i18n, MSW). Unit-suite speed is TD-11.
+**Metrics:** stories reaching their asserted ready state; required-state coverage %; journeys with play tests; axe exceptions (count, age); flake rate; browser-suite duration; open UX findings by severity and age.
 
----
+### BL-601 — Dialog descriptions 🟡 📋
 
-### 5.1 Component Header/Title Format Standardization 🟠 [BL-310] — Re-assessed Jan 2026
+- [ ] **BL-601-2:** Add `DialogDescription` or `aria-describedby` to the 10 `DialogContent` instances and 1 `SheetContent` instance that lack one: `IndirectOwnership/IndirectOwnership.tsx` ×4 (lines 1432, 1839, 2184, 2673), `IndirectOwnership/components/OwnershipCalculationsTooltip/OwnershipCalculationsTooltip.tsx:27`, `src/components/LearnMorePopover/LearnMorePopover.tsx:36`, `src/components/ui/command.tsx:27`, `src/components/ui/dropzone.tsx:624`, `RecipientWidgets/components/RecipientDetailsDialog/RecipientDetailsDialog.tsx:153`, `PaymentFlow/ReviewPanel/ReviewPanelMobile.tsx:99` (Sheet).
+- [ ] **BL-601-3:** Make a description (or explicit `aria-describedby={undefined}` with a reason) part of the dialog usage guideline; enforce through BL-908 axe runs.
 
-**Source:** User Feedback - Different Header/Title Formats  
-**Theme Alignment:** Theme 6 (Atomic Design)  
-**Components Affected:** All components  
-**Tracking ID:** BL-310
+### BL-470 — WCAG 2.1 AA programme 🟡 🚧
 
-**Re-assessed (Jan 2026):** Header/title patterns are partly component-owned and partly from the host (showcase app). Accounts accepts `title` and uses CardTitle; RecipientsWidget/LinkedAccountWidget/TransactionsDisplay typically receive or render a main title; OnboardingFlow uses StepLayout. Redundancy (e.g. "Accounts" twice) often comes from the host rendering both a page title and passing/defaulting the same text into the component.
+- [ ] **BL-470-3:** WCAG 2.1 AA audit per public component (executed in BL-908 review runs; results recorded in the SALT-1 matrix).
+- [ ] **BL-470-5:** Keyboard/focus test matrix (dialogs, menus, steppers, focus return) — automated as BL-908 L2 keyboard variants.
+- [ ] **BL-470-6:** ARIA correctness review.
 
-#### Header/Title Pattern Analysis [BL-310]
+### Targeted a11y items
 
-- [ ] **BL-310-1:** Audit who renders H1 (host vs component) for onboarding, linked-accounts, recipients, transactions, accounts, make-payment in the showcase; document which components expose a `title` or slot
-- [ ] **BL-310-2:** Document current patterns: Page title (H1), section/card title, modal title; recommend heading hierarchy (H1 → H2 → H3)
-- [ ] **BL-310-3:** Define convention for page vs section vs card titles and document in design system or AGENTS/ARCHITECTURE
-- [ ] **BL-310-4:** Optional: introduce PageHeader/SectionHeader/CardTitle/ModalTitle primitives if multiple components would share them
-
-#### Implementation [BL-311]
-
-- [ ] **BL-311-1:** Where redundancy exists (e.g. showcase "Accounts" + card "Accounts"), fix in **showcase** by varying page title or component `title` prop
-- [ ] **BL-311-2:** Ensure components that render headings use semantic levels consistently; add spacing/typography tokens if needed
-
----
-
-### 5.2 Component Library Creation 🟡 [BL-320] — Re-assessed Jan 2026
-
-**Source:** UX Testing Report - Design System Recommendations  
-**Theme Alignment:** Theme 6 (Atomic Design & Performance)  
-**Components Affected:** All  
-**Tracking ID:** BL-320
-
-**Re-assessed (Jan 2026):** Button with variants (default, outline, secondary, ghost, link, destructive, warning) exists and is used; Card/CardHeader/CardTitle/CardContent/CardFooter exist; Table, Select, Input, Label, Form patterns exist. DataTable and pagination are used in Transactions and RecipientsWidget. See BL-001 for button system; BL-100 for StatusBadge.
-
-#### Button Components [BL-320]
-
-- **BL-320-1–4:** Covered by shared Button + variants (see BL-001). Optional: document "Primary/Secondary/Tertiary/Icon" as semantic aliases for default/outline/link/icon.
-- [ ] **BL-320-5:** StatusBadge semantic wrapper (map status → Badge variant + label) — see BL-100.
-
-#### Form / Table / Card [BL-321–323]
-
-- [ ] **BL-321:** Standardize form primitives (Input, Select, DatePicker, FormField) and document usage; many exist in `@/components/ui` and StandardFormField.
-- [ ] **BL-322:** DataTable and Pagination are in use; document table + pagination pattern and optional shared wrapper.
-- [ ] **BL-323:** Card primitives exist; document CardHeader/CardTitle/CardBody/CardFooter usage.
+- [ ] **BL-070** 🟡 — Icon-only controls: targeted audit; `aria-label` is the baseline, tooltip where UX requires it. Labels already present on RecipientCard "more actions" (`RecipientCard.tsx:471`) and the Accounts balance info (`AccountCard.tsx:284`).
+- [ ] **BL-120** 🟡 — Menus: add a visible tooltip to "More actions"; verify menu collision handling on small screens. Remove confirmation (`RecipientCard.tsx:394–408`) and Radix keyboard support already exist.
+- [ ] **BL-040** 🟡 — PaymentFlow modal: Radix focus trap, responsive sizing and an Escape guard during submission exist (`FlowContainer.tsx:112–134`). Remaining: keyboard walkthrough and a visible scroll cue.
+- [ ] **BL-723** 🟢 — Transactions filter Selects: accessible names exist (`TransactionsTableToolbar.tsx:76–78,112–114`); add `id`/`name` for form hygiene only (not a WCAG failure).
+- [ ] **BL-812** 🟢 — "View details" button uses `eb-h-8` (≈ 32 px at default spacing, passes WCAG 2.2 SC 2.5.8). Spacing is theme-configurable, so verify target size across supported themes; a 44 px AAA target is optional. Whole-row click: see the decision queue.
 
 ---
 
-### 5.2 Color Palette Standardization 🟡 [BL-330] — Re-assessed Jan 2026
+## 5. Error handling & feedback
 
-**Source:** UX Testing Report - Design System Recommendations  
-**Theme Alignment:** Theme 2 (i18n & Design Tokens)  
-**Components Affected:** All  
-**Tracking ID:** BL-330
+### BL-800 — Error-surface audit 🟠 🚧
 
-**Re-assessed (Jan 2026):** EBThemeVariables and convert-theme-to-css-variables define primary, secondary, destructive, muted, etc.; Salt-aligned token names in use. Button and UI components consume these via `eb-` tokens. BL-002 and BL-009 cover primary and footer consistency.
+**Absorbs:** BL-811, BL-410-4. The shared pattern (`ServerErrorAlert` + `useServerError`) is already used in 44 core files across Accounts, ApprovedClientMaintenance, ClientDetails, ClientExperience, OnboardingFlow (Gateway, DocumentUpload, OperationalDetails, Overview, OwnersSection, RequestedQuestions, Review, Terms, Stepper, LinkAccount), PaymentFlow wrappers, RecipientWidgets and TransactionsDisplay. The remaining work is to **prove there are no silent failures**, not to apply the component mechanically.
 
-- [ ] **BL-330-1:** Document token → color mapping (primary, secondary, tertiary, status, neutral) in design system
-- [ ] **BL-330-2:** Align status colors (success/pending/error/warning) with Badge/StatusBadge usage (see BL-100)
-- [ ] **BL-330-3:** Footer color consistency is showcase-app concern (BL-009)
+**Acceptance criteria:** every query **and** mutation has visible, localized error UI with retry where meaningful; stale-data behaviour is defined; errors are associated with fields where applicable; focus moves to or announces the error for screen readers.
 
----
-
-### 5.3 Typography System 🟢 [BL-340] — Re-assessed Jan 2026
-
-**Source:** UX Testing Report - Design System Recommendations  
-**Theme Alignment:** Theme 2 (i18n & Design Tokens)  
-**Components Affected:** All  
-**Tracking ID:** BL-340
-
-**Re-assessed (Jan 2026):** EBThemeVariables include contentFontFamily, textHeadingFontFamily; components use `eb-font-*`, `eb-text-*` and Title/Text. Full typography scale and heading hierarchy are not yet documented as tokens.
-
-- [ ] **BL-340-1:** Define and document heading hierarchy (H1–H4) and body/label scales in design tokens or style guide
-- [ ] **BL-340-2:** Ensure typography tokens are used consistently (or document current usage)
+- [ ] **BL-800-1:** PaymentFlow — reads (recipients, accounts, fees) and submit; separate recipient/linked-account failure states exist (`PaymentFlow.tsx:3377–3425`).
+- [ ] **BL-800-3:** OnboardingFlow — trace each remaining API call (formerly BL-811-1/3).
+- [ ] **BL-800-4:** LinkedAccountWidget — create / verify (microdeposits) / remove.
+- [ ] **BL-800-5:** Document the pattern in component docs and add a Storybook error-state story.
+- [ ] **BL-406-3:** RecipientsWidget — visible success feedback after create/edit (a success callback exists, but visible feedback is inconsistent).
 
 ---
 
-### 5.4 Spacing System 🟢 [BL-350] — Re-assessed Jan 2026
+## 6. i18n & content tokens
 
-**Source:** UX Testing Report - Design System Recommendations  
-**Theme Alignment:** Theme 2 (i18n & Design Tokens)  
-**Components Affected:** All  
-**Tracking ID:** BL-350
+### BL-802 — Locale correctness 🟠 🚧
 
-**Re-assessed (Jan 2026):** Spacing is applied via Tailwind `eb-*` utilities and component-level classes; no single spacing scale is documented as design tokens.
+es-US and fr-CA key parity is **done** (11 namespaces × 3 locales, enforced by `src/i18n/config.test.ts`). BL-802-5, -6 and -7 closed 2026-11-02 (see register).
 
-- [ ] **BL-350-1:** Define spacing scale (card, form, table) and document in design tokens or style guide
-- [ ] **BL-350-2:** Optional: introduce spacing tokens and refactor high-traffic components to use them
+- [ ] **BL-802-3:** Runtime fallback check: the parity test excludes `zod` messages; verify no en-US fallbacks at runtime in es-US/fr-CA.
 
----
+### BL-905 — Hardcoded strings & locale leaks 🟡 📋
 
-## 🎯 Priority 6: Roadmap Theme Alignment
+- [ ] **BL-905-1:** 7 hardcoded HTTP-error title/message pairs in `PaymentFlow.tsx:158–191`.
+- [ ] **BL-905-2:** Hardcoded accessible-name prefixes in `AccountCard.tsx:390,537`.
+- [ ] **BL-905-3:** English plural suffix appended to custom/localized titles (`Accounts.tsx:138–141`).
+- [ ] **BL-905-4:** Guard against regressions with the BL-505-N6 hardcoded-JSX-string lint rule (TECH_DEBT.md).
 
-### 6.1 Theme 0: Functional Enhancements (In Progress) [BL-400]
+### BL-110 — Date formatting 🟡 📋
 
-**Source:** Development Roadmap  
-**Status:** 🚧 In Progress  
-**Tracking ID:** BL-400
+Shared recipient formatter exists (`src/lib/recipientHelpers.ts:91–98`), but dates in `RecipientDetailsDialog.tsx:130–133`, `RecipientsTableView.columns.tsx:20–22` and `TransactionCard.tsx:20` use separate implementations that ignore the provider locale; ClientDetails has its own (`formatClientFacing.ts:39`).
 
-#### OnboardingFlow [BL-400]
+- [ ] **BL-110-1:** One shared date/datetime formatter using the provider locale, with a documented format policy (date vs datetime, timezone).
+- [ ] **BL-110-2:** Migrate the call sites above.
 
-- [ ] **BL-400-1:** Add support for new entity types (publicly traded companies, government entities, non-profit entities)
-- [ ] **BL-400-2:** Refine owner/controller flows
-- **March 2026 Progress:** Server error handling added to `OperationalDetailsForm` (additional questions step) — uses `ServerErrorAlert` + `useServerError` pattern. Remaining onboarding forms still need the same treatment (see BL-800).
+### BL-060 — Filter label casing 🟢 ❓
 
-#### LinkedAccountWidget [BL-401]
+Only TransactionsDisplay remains ("All statuses" / "All types", `TransactionsTableToolbar.tsx:82–89,118–125`). [ ] Decide the casing convention and update `transactions.json` in all three locales.
 
-- [ ] **BL-401-2:** Parity with Recipients payment methods
-- [ ] **BL-401-3:** Better status messaging
-- [ ] **BL-401-4:** Robust microdeposit flows (retry/lockout messaging)
+### BL-906 — Content-token rollout checklist 🟢 📋
 
-#### Recipients [BL-402]
+**Absorbs:** BL-420-1, BL-801. **Source:** `docs/CONTENT_TOKENS_ARCHITECTURE.md:599–616`. Aligning onboarding and maintenance vocabulary is BL-909-4.
 
-- [ ] **BL-402-1:** Conditional attributes per payment method (ACH/RTP/WIRE) — **Partial progress Mar 2026:** email removed as required field for RTP (`usePaymentMethodConfig.ts`); payment method content token display fix; further work needed for WIRE-specific fields and ACH-only validations
-- [ ] **BL-402-2:** Edit flows parity + masking
-- [ ] **BL-402-3:** Recipient duplicate detection UX — **Partial progress May 2026:** Schema-level duplicate detection implemented in `BankAccountForm.schema.ts` (validates account number + routing number against `existingAccounts`). OnboardingFlow link-account step auto-detects duplicates and forces editable mode with cleared prefill. i18n messages added (en-US, fr-CA, es-US). Remaining: standalone RecipientsWidget duplicate UX, visual duplicate warning banner
-
-#### RecipientsWidget [BL-406]
-
-- [ ] **BL-406-3:** Success confirmation/feedback after create/edit
-- [ ] **BL-406-4:** Ref-based control (refresh, clear filters, export)
-
-#### PaymentFlow [BL-403]
-
-- [ ] **BL-403-1:** Recipient/method filtering logic
-- [ ] **BL-403-2:** Review fee/time ETA display
-- [ ] **BL-403-3:** Review/confirmation UX
-- [ ] **BL-403-4:** Cross-currency payment support
-
-#### TransactionsDisplay [BL-404]
-
-- [ ] **BL-404-1:** Pagination (in progress)
-- [ ] **BL-404-2:** Review details attribute mapping
-- [ ] **BL-404-3:** Review PAYIN/PAYOUT derivation and counterpart display
-
-#### Accounts [BL-405]
-
-- [ ] **BL-405-2:** Review balance types mapping and tooltips
+- [ ] **BL-906-1:** Naming audit and deprecation policy for tokens.
+- [ ] **BL-906-2:** Debug tooling (attributes/CSS/toolbar) and reference tables.
+- [ ] **BL-906-3:** Regression tests for `AccountCardSkeleton` and status-label token overrides (formerly BL-801-2/3).
+- [ ] **BL-906-4:** Confirm `EBContentTokens` is exported and documented (formerly BL-801-5).
+- [ ] **BL-906-5:** Storybook stories demonstrating content-token overrides per public component (formerly BL-801-4).
 
 ---
 
-### 6.2 Theme 1: Security & Validation (In Progress) [BL-410]
+## 7. Component UX
 
-**Source:** Development Roadmap  
-**Status:** 🚧 In Progress  
-**Tracking ID:** BL-410
+### PaymentFlow
 
-- [ ] **BL-410-1:** OWASP hardening
-  - [ ] **BL-410-1a:** XSS sanitization with dompurify
-  - [ ] **BL-410-1b:** Sensitive-data masking
-  - [ ] **BL-410-1c:** Idempotency keys
-  - [ ] **BL-410-1d:** Auth/CSRF via axios interceptor
-  - [ ] **BL-410-1e:** Throttling on verification flows
-- [ ] **BL-410-2:** Client-side validation: centralize Zod schemas (superset of OAS)
-- [ ] **BL-410-3:** Strict regex for routing/account numbers
-- [ ] **BL-410-4:** Progressive and accessible errors
-- [ ] **BL-410-5:** OAS alignment: verify against latest specs
-- [ ] **BL-410-6:** Prefer generated hooks/types; no ad-hoc fetch clients
+- [ ] **BL-020** 🟡 — **Absorbs BL-030.** PaymentFlow is now a single page with sections (account → payee → method → amount, `PaymentFlow.tsx:833,971,1109,1159`) and a ReviewPanel that validates saved or unsaved recipients (`ReviewPanel.tsx:526,563–586`). Remaining: acceptance tests for section order and for preserving state when users navigate back and forth.
+- [ ] **BL-032** 🟢 — Missing-field collection and section highlighting exist (`ReviewPanel.tsx:563–586`). Remaining: explain why the confirm action is disabled.
+- [ ] **BL-403** 🟡 — Needs acceptance criteria: **BL-403-1** recipient/method eligibility matrix; **BL-403-2** fee/ETA display rules; **BL-403-3** define the review/confirmation UX target. (BL-403-4 → BL-902.)
 
----
+### TransactionsDisplay
 
-### 6.3 Theme 2: i18n & Design Tokens (In Progress) [BL-420]
+- [ ] **BL-051** 🟢 — The reference ID column exists but is hidden by default (`TransactionsDisplay.tsx:88`); validate availability in the real API and decide the default.
+- [ ] **BL-404** 🟡 — **BL-404-1** pagination exists (page size 25); confirm server-side completeness. **BL-404-2** API-to-UI field mapping table. **BL-404-3** PAYIN/PAYOUT derivation fixtures.
 
-**Source:** Development Roadmap  
-**Status:** 🚧 In Progress  
-**Tracking ID:** BL-420
+### Accounts
 
-**March 2026 Progress:**
+- [ ] **BL-091** 🟢 — **BL-091-2** optional: show account category/name as the title for a single account. **BL-091-3** verify the balance-type popover in supported themes.
+- [ ] **BL-092** 🟡 — Concrete parity tests with the widgets (empty, loading, error, refresh ref already exist: `Accounts.tsx:103–120,153–181`) and viewport QA.
+- [ ] **BL-405-2** 🟡 — Define expected balance-type semantics and tooltips (currently "review" with no target).
 
-- ✅ Content token architecture established: `ContentToken.tsx`, `useTranslationWithTokens.tsx`, new `EBContentTokens` type in `EBComponentsProvider`. Architecture documented in `docs/CONTENT_TOKENS_ARCHITECTURE.md`.
-- ✅ i18n circular dependency removed; i18n files reorganized (moved `TransWithTokens`, `useTranslationWithTokens` to `src/i18n/`)
-- ✅ es-US locale files added/expanded: onboarding, onboarding-overview, make-payment, linked-accounts, validation, common
-- ✅ fr-CA locale files added/expanded: onboarding, onboarding-overview, validation
-- ✅ All components updated to use new translation function (single pass)
-- ✅ Content token coverage significantly expanded: onboarding, make-payment/PaymentFlow, client-details, accounts, transactions, linked-accounts
+### LinkedAccountWidget / RecipientsWidget
 
-- [ ] **BL-420-1:** ~~Extract content tokens~~ → **Done** for most components. Remaining: verify complete coverage for TransactionsDisplay (see BL-802), and ensure Storybook preview reflects `contentTokens` prop.
-- [ ] **BL-420-2:** Wire `react-i18next` + `zod-i18n-map`
-- [ ] **BL-420-3:** Expand design tokens for full theming/private labeling
-- [ ] **BL-420-4:** Ensure runtime overrides via `EBComponentsProvider`
+- [ ] **BL-401** 🟡 — **BL-401-2** define the supported payment-rail matrix (develop v0.17.21 restricts edit methods by configuration, `restrictPaymentMethods.ts`); **BL-401-3** list the statuses that still lack messaging; **BL-401-4** microdeposit retry/lockout tests (max-attempt handling exists, `MicrodepositsForm.tsx:95,179–217`).
+- [ ] **BL-402** 🟡 — **BL-402-1** ACH/RTP/WIRE field and validation matrix (method-dependent routing validation exists, `BankAccountForm.schema.ts:287–288`); **BL-402-2** edit-flow parity and masking acceptance matrix; **BL-402-3** standalone RecipientsWidget duplicate UX and banner (schema-level duplicate detection exists, `BankAccountForm.schema.ts:478–510`).
+- [ ] **BL-406-4** ❓ — Ref-based control (refresh, clear filters, export): define a justified imperative API, or drop the item.
+
+### ClientDetails
+
+- [ ] **BL-810** 🟡 — UX audit. Modes are accordion, cards and **summary** (`ClientDetails.tsx:372–402`); SectionDialog descriptions are done. Remaining: **BL-810-1** layout per mode; **-2** interactions; **-3** skeleton layout shift; **-4** error retry test; **-5** icon-only labels; **-7** responsive behaviour; **-8** content-token overrides end to end.
 
 ---
 
-### 6.4 Theme 3: Functional Testing (CAT) (In Progress) [BL-430]
+## 8. Roadmap themes (need acceptance criteria)
 
-**Source:** Development Roadmap  
-**Status:** 🚧 In Progress  
-**Tracking ID:** BL-430
-
-- [ ] **BL-430-1:** Wire environment config for CAT endpoints/headers
-- [ ] **BL-430-2:** Smoke and regression suites against CAT APIs using generated hooks
-- [ ] **BL-430-3:** Record diffs, capture contract mismatches
-
----
-
-### 6.5 Theme 4: React 19 Readiness [BL-440]
-
-**Source:** Development Roadmap  
-**Status:** 📋 Planned  
-**Tracking ID:** BL-440
-
-- [ ] **BL-440-1:** Verify peer compatibility
-- [ ] **BL-440-2:** Incremental adoption plan
-- [ ] **BL-440-3:** Guardrails
-- [ ] **BL-440-4:** Migrate low-risk areas (test environment, Storybook, non-critical flows) first
-- [ ] **BL-440-5:** Keep feature flags
+- **BL-410 — Security & validation** 🟡 🚧. Progress: DOMPurify centralized (`src/lib/utils.ts:195–214`); CSS theme-value filter (`convert-theme-to-css-variables.ts:190`); linear parsing instead of vulnerable regexes (v0.17.9); maintenance idempotency (`useMaintenanceWorkspace.ts:66,233,332–333`).
+  - [ ] **BL-410-1a:** Audit every HTML sink for sanitizer use.
+  - [ ] **BL-410-1b:** Sensitive-field inventory and masking policy (maskers differ: `identifierDisplay.ts:19`, `fieldMap.ts:868`, `AccountCard.tsx:748` — consolidate deliberately).
+  - [ ] **BL-410-1c:** Idempotency keys for which mutations/retries beyond maintenance.
+  - [ ] **BL-410-1d:** Document the host/auth/CSRF boundary (header interceptor at `EBComponentsProvider.tsx:143–178`).
+  - [ ] **BL-410-1e:** Define client-side rate-limit/throttling behaviour (max-attempt handling ≠ throttling).
+  - [ ] **BL-410-2 / -3:** Scope of centralized Zod schemas; routing/account regex cases per country.
+  - [ ] **BL-410-5:** Diff `api-specs/*` against the latest published specs.
+  - [ ] **BL-410-6:** Enforce generated hooks only (lint rule; the only raw `fetch` is a local data-URL conversion in `ui/dropzone.tsx:229`).
+- **BL-420-3 — Design tokens for full private labelling** 🟢: define the concrete token gaps (feeds SALT-1).
+- **BL-430 — CAT functional testing** 🟡: **-1** CAT environment config (endpoints are configurable at `EBComponentsProvider.tsx:70–73`); **-2** smoke/regression suite; **-3** contract-diff capture.
+- **BL-440 — React 19 readiness** → **REL-4** and **TD-8**; **BL-440-1** runtime compatibility matrix; **BL-440-4** migrate low-risk areas first.
+- **BL-450 — RUM & analytics** 🟢: `dispatchUserEvent` handler and lifecycle exist (`src/lib/utils/userTracking.ts:75–208`). **-1** per-component event catalog; **-3** performance-timing utilities.
+- **BL-460 — Atomic design & performance** 🟢: **-1** replace "extract shared atoms" with concrete candidates from TD-2; **-3** optimize only against measured regressions (absorbs BL-220-2). Core Web Vitals targets moved to REL-5.
+- **BL-480 — Testing** → **TD-5a/5b** (coverage) and **BL-908** (story-driven UX testing; absorbs BL-480-2).
+- **BL-490 — Documentation** 🟢: **-1** documentation-readiness checklist per public component (FX recipe is still a draft, `CROSS_BORDER_FX_PAYOUT_CLIENT_RECIPE.md:1`); **-2** agent templates.
+- **BL-805-4** 🟢: Keep `docs/partially-hosted/PARTIALLY_HOSTED_UI_INTEGRATION_GUIDE.md` current for multi-experience session transfer.
+- **BL-200-2** 🟢 — **Absorbs BL-200-3.** MSW `dbLogger` logs whenever `NODE_ENV !== 'test'` (`src/msw/db.ts:14–20`). No mock path from the root barrel was found, so this is Storybook/dev noise only: put it behind an explicit debug flag.
 
 ---
 
-### 6.6 Theme 5: RUM & Analytics [BL-450]
+## 9. Product decision queue
 
-**Source:** Development Roadmap  
-**Status:** 📋 Planned  
-**Tracking ID:** BL-450
-
-- [ ] **BL-450-1:** Standard event catalog per component
-- [ ] **BL-450-2:** Configurable `userEventsHandler` hooks
-- [ ] **BL-450-3:** Perf timing utilities
-
----
-
-### 6.7 Theme 6: Atomic Design & Performance [BL-460]
-
-**Source:** Development Roadmap  
-**Status:** 📋 Planned  
-**Tracking ID:** BL-460
-
-- [ ] **BL-460-1:** Extract shared atoms/molecules/organisms and utilities
-- [ ] **BL-460-2:** Core Web Vitals targets TBD
-- [ ] **BL-460-3:** Apply memoization, virtualization, code-splitting
+| ID       | Decision needed                                               | Current behaviour                                               |
+| -------- | ------------------------------------------------------------- | --------------------------------------------------------------- |
+| BL-031   | Fee breakdown visible by default?                             | Exists; `showFees=false` by default (`ReviewPanel.tsx:339–345`) |
+| BL-033   | Scheduled payments, or immediate only?                        | Immediate only                                                  |
+| BL-062   | One default page size?                                        | RecipientsWidget 10, Transactions 25                            |
+| BL-090   | Accounts actions (view transactions / transfer / statements)? | Refresh only                                                    |
+| BL-060   | Filter label casing                                           | "All statuses" (Transactions)                                   |
+| BL-406-4 | Imperative ref API for widgets?                               | None                                                            |
+| BL-812-3 | Whole-row click in Transactions table?                        | Button only                                                     |
+| BL-804-3 | Ship an accessible theme preset (Empty+) in the library?      | Showcase only                                                   |
 
 ---
 
-### 6.8 Theme 7: A11y & UX Testing [BL-470]
+## Closed, merged & transferred register
 
-**Source:** Development Roadmap, UX Testing Report  
-**Status:** 🚧 In Progress  
-**Tracking ID:** BL-470
+**Closed / merged — 2026-11-02** (evidence: code at v0.17.18):
 
-- [ ] **BL-470-2:** Mitigate found issues (see Priority 1-3 items)
-- [ ] **BL-470-3:** WCAG 2.1 AA compliance
-- [ ] **BL-470-4:** Axe automated tests
-- [ ] **BL-470-5:** Keyboard/focus management
-- [ ] **BL-470-6:** ARIA correctness
+| ID                           | Disposition                                                         | Evidence                                                                         |
+| ---------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| BL-061                       | Done                                                                | Both tables use "Showing X to Y of Z"; legacy Recipients removed                 |
+| BL-130                       | Obsolete                                                            | RecipientDetailsDialog shows Created / Last Updated (`:470–487`)                 |
+| BL-200-1, BL-603             | Done                                                                | Idempotent party upsert, `src/msw/db.ts:275–304`                                 |
+| BL-200-3                     | Merged → BL-200-2                                                   | —                                                                                |
+| BL-420-1, BL-801             | Merged → BL-906                                                     | —                                                                                |
+| BL-420-2                     | Merged → BL-802-5 (done with Zod 4)                                 | `src/i18n/zodErrorMap.ts`                                                        |
+| BL-420-4                     | Done                                                                | Provider `contentTokens`; Storybook overrides (`.storybook/preview.tsx:282–298`) |
+| BL-450-2                     | Done                                                                | `userTracking.ts:75–95`                                                          |
+| BL-800-2                     | Done                                                                | Transactions list + details: localized error + retry                             |
+| BL-802-1, -2, -4             | Done                                                                | Parity test `src/i18n/config.test.ts:67–95`; Storybook locale control            |
+| BL-601-1                     | Done                                                                | `TransactionDetailsSheet.tsx:125–129`                                            |
+| BL-810-6                     | Done                                                                | `SectionDialog.tsx:99–102`                                                       |
+| BL-060-3                     | Obsolete (legacy Recipients removed); BL-060-1/2 continue as BL-060 | —                                                                                |
+| BL-001-2, BL-320-5, BL-330-2 | Merged → BL-100                                                     | —                                                                                |
+| BL-002-2, BL-330-1           | Done                                                                | `DESIGN_TOKENS.md:96–128,181–198`                                                |
+| BL-320-1…4                   | Done                                                                | Shared `Button` variants                                                         |
+| BL-080, BL-301, BL-322       | Merged → BL-300                                                     | —                                                                                |
+| BL-311-2, BL-340             | Merged → BL-310                                                     | —                                                                                |
+| BL-030                       | Merged → BL-020                                                     | —                                                                                |
+| BL-052                       | Merged → BL-050                                                     | —                                                                                |
+| BL-811 (-1, -3)              | Merged → BL-800                                                     | —                                                                                |
+| BL-410-4                     | Merged → BL-800                                                     | —                                                                                |
+| BL-400-2                     | Merged → BL-901                                                     | —                                                                                |
+| BL-403-4                     | Replaced by BL-902                                                  | —                                                                                |
+| BL-470-2                     | Removed (umbrella; concrete items listed)                           | —                                                                                |
+| BL-470-4, BL-804-5           | Merged → BL-907 → BL-908                                            | —                                                                                |
+| BL-907                       | Merged → BL-908 (UX quality loop)                                   | Story tests cannot run yet (no browser provider)                                 |
+| BL-480-2                     | Merged → BL-908                                                     | —                                                                                |
+| BL-440-2, -3, -5             | Merged → REL-4 / TD-8                                               | —                                                                                |
+| BL-460-2, BL-220-3, BL-220-4 | Merged → REL-5                                                      | —                                                                                |
+| BL-220-2                     | Merged → BL-460-3                                                   | —                                                                                |
+| BL-480-1                     | Merged → TD-5a / TD-5b                                              | —                                                                                |
+| BL-500…508                   | Moved to TECH_DEBT.md                                               | —                                                                                |
 
----
+**Transferred to the showcase / session-transfer backlog** (out of repo): BL-009, BL-091-1, BL-311-1, BL-330-3, BL-220-1, BL-803 (all), BL-804-1/2/4, BL-805-1/2/3, BL-811-2, BL-812-2.
 
-### 6.9 Theme 8: Comprehensive Testing [BL-480]
+**Closed — 2026-11-02, v0.18.0** (evidence: commits):
 
-**Source:** Development Roadmap  
-**Status:** 📋 Planned  
-**Tracking ID:** BL-480
-
-- [ ] **BL-480-1:** 90%+ coverage: unit (validators/hooks), component, integration (MSW), E2E for critical paths
-- [ ] **BL-480-2:** Storybook scenarios: loading/error/empty/edge/i18n/theme/a11y
-
----
-
-### 6.10 Theme 9: Documentation & AI Guides [BL-490]
-
-**Source:** Development Roadmap  
-**Status:** 📋 Planned  
-**Tracking ID:** BL-490
-
-- [ ] **BL-490-1:** Per-component docs (usage, configuration, validation, security, a11y, testing, performance)
-- [ ] **BL-490-2:** Enhanced AI agent skills and codegen/dev templates
-
----
-
-### 6.11 Theme 10: Tech Debt & Dependency Hygiene [BL-500]
-
-**Source:** Development Roadmap  
-**Status:** 📋 Planned  
-**Tracking ID:** BL-500
-
-#### Dependency Audit [BL-500]
-
-- [ ] **BL-500-1:** Review and update all package dependencies (runtime and dev) with security-first allowlist
-- [ ] **BL-500-2:** Remove obsolete or unused devDependencies
-- [ ] **BL-500-3:** Consolidate eslint/prettier configs; drop overlapping/legacy rules
-- [ ] **BL-500-4:** Run security audit: `npm audit --audit-level=moderate` and address vulnerabilities
-- [ ] **BL-500-5:** Verify package integrity after recent npm supply chain attacks (eslint-config-prettier, etc.)
-
-#### ESLint Upgrade to v10 [BL-505]
-
-**Delivered Version:** 10.7.0 (flat config) — migrated from 8.53.0
-**Status:** ✅ Core migration DONE (2026-07); follow-up "next wave" tracked below
-**Priority:** 🟠 High
-
-**What shipped:**
-
-- [x] **BL-505-1:** ESLint core + plugins on v10-compatible versions (`eslint@10.7`, `typescript-eslint@8.64` meta package, react / react-hooks / jsx-a11y / import / tailwindcss / storybook updated). Removed the dead `eslint-config-mantine` + airbnb base and the standalone `@typescript-eslint/{parser,eslint-plugin}` (now bundled by the meta package).
-- [x] **BL-505-2:** Migrated to flat config (`eslint.config.mjs`); deleted `.eslintrc.cjs`; `lint` script drops the removed `--ext` flag.
-- [x] **BL-505-3:** Rule triage (see decisions below) — repo lints clean at **0 errors**.
-- [x] **BL-505-4:** `npm run lint` / `npm run lint:fix` verified; added `npm run lint:styles`.
-
-**Non-functional linting decisions (read before changing `eslint.config.mjs`):**
-
-1. **ESLint is NOT type-aware.** `parserOptions.projectService` is intentionally omitted. Type safety is owned by `tsc` (`npm run typecheck`), which already runs in CI ahead of lint. Type-aware linting roughly doubled lint time (429s → 208s when removed) to power a single rule (`no-floating-promises`, only ever a warning).
-2. **Tailwind / eb- prefix rules are opt-in** (`npm run lint:styles`, `ESLINT_STYLES=1`). `eslint-plugin-tailwindcss@3`'s `no-custom-classname` alone was **~65% of total lint time (~119s)**; the plugin targets ESLint ≤9 and is shimmed via `@eslint/compat`. All its rules are non-blocking (`warn`), so they were removed from the hot path. The plugin stays _registered_ so inline `eslint-disable tailwindcss/*` directives remain valid.
-3. **`import/extensions` disabled.** It ran full module resolution per import (**~24% of lint time**) for **0 violations** — TypeScript (no `allowImportingTsExtensions`) + the bundler already reject bad/extensioned paths.
-4. **"Critical errors only" policy.** The modern presets promote ~471 rules to `error` that were warnings under the old base. Only genuine correctness rules stay `error` (`react-hooks/rules-of-hooks`, `@typescript-eslint/no-unused-vars`, `no-constant-binary-expression`, `prefer-const`, `@typescript-eslint/prefer-as-const`, `@typescript-eslint/no-unused-expressions`); everything else (type-strictness, style, a11y) is `warn`. Warnings do not block CI.
-
-**Performance result:** clean `npm run lint` **≈429s → ≈41s (~10×)**; `tsc` typecheck ≈48s runs separately.
-
-**Known tech debt surfaced (burn-down candidates):**
-
-- **~540 non-blocking warnings**, dominated by:
-  - `@typescript-eslint/no-explicit-any` (~412) — replace `any` with real types.
-  - `react-hooks/exhaustive-deps` (~82) — audit effect dependencies.
-  - `@typescript-eslint/ban-ts-comment` (~5), `no-empty-object-type` (~3), `react/display-name` (~9), assorted a11y.
-- **9 ratcheted `react-hooks/rules-of-hooks` violations** (real debt, suppressed inline with `-- pre-existing … tracked as debt`): hooks in a render prop (`OnboardingFormField`), conditional hooks after early returns (`StepperRenderer`, `BankAccountForm`), and i18n hooks inside `refine*FormSchema` helpers.
-
-**Next wave — linting improvements [BL-505-N]:**
-
-- [ ] **BL-505-N1:** Add an opt-in `lint:types` step (type-aware config) restoring `@typescript-eslint/no-floating-promises` (+ `no-misused-promises`, `await-thenable`) for CI/nightly only, without slowing the default lint.
-- [ ] **BL-505-N2:** After Tailwind v4 (BL-506), switch to a fast, ESLint 9/10-native Tailwind linter (the v4 plugin or `eslint-plugin-better-tailwindcss`) and fold the `eb-` prefix check back into the default `lint`.
-- [ ] **BL-505-N3:** Re-introduce import hygiene via `eslint-plugin-import-x` (faster resolver) if extension/cycle checks are wanted back.
-- [ ] **BL-505-N4:** Burn down the warning backlog (start with `no-explicit-any`), then promote burned-down rules from `warn` → `error`.
-- [ ] **BL-505-N5:** Fix the 9 pre-existing `rules-of-hooks` violations and remove the ratchet `eslint-disable` comments.
-- [ ] **BL-505-N6 (proposal):** Custom architectural rules — import boundaries (e.g. `components/ui` must not import from `core`) via `no-restricted-imports`, and an i18n hardcoded-JSX-string check. Wire as `warn` first.
-- [ ] **BL-505-N7:** `no-explicit-any` burn-down — **refactor points** (the subset that can't be typed away with a simple annotation; each needs a design/data decision, so they were left as `any` during the mechanical burn-down):
-  - **`src/core/OnboardingFlow/types/form.types.ts` (generic field-config framework, ~9 `any`).** `FieldRule<T = any>` (the `= any` default is relied on by bare `FieldRule` / `ArrayFieldRule` uses in `formUtils.ts` + `OnboardingFormField.tsx`), the transform hooks `fromResponseFn?: (val: any) => T` / `toRequestFn?: (val: …) => any`, and `AnyFieldConfiguration = FieldConfigurationGeneric<any, any> | ArrayFieldConfigurationGeneric<any, any>`. Swapping to `unknown` cascades into `config/fieldMap.ts` (hundreds of field configs annotate their own `val`, e.g. `(val: AddressDto[])`, and rely on `any`'s bivariance). **Fix:** thread a response/request value type parameter (e.g. `FieldConfigurationGeneric<K, T, TResponse>`) so each field config keeps annotating its own `val` type without the framework exposing `any`. Non-trivial generics refactor.
-  - **`src/core/IndirectOwnership/IndirectOwnership.tsx` (hierarchy `any`, ~4 `any`)** + `utils/openapi-transforms.ts` (`transformPartyToBeneficialOwner(existingHierarchy?: any)`). `customOwnershipHierarchies: Map<string, any>`, `handleHierarchySaved(_, hierarchy: any)`, and the dialog props `onSave: (ownerId, hierarchy: any)` / `existingHierarchy?: any`. **The `any` is masking a real data mismatch:** the user-built hierarchies constructed at ~`L1440` / `L1473` / `L1819` omit `OwnershipHierarchy.createdAt` / `updatedAt` **and** their `steps` are missing the required `HierarchyStep.entityType` (the `hierarchySteps` state elements also lack `entityType`), so these objects do **not** conform to `OwnershipHierarchy` — yet they flow into `transformPartyToBeneficialOwner` and become `BeneficialOwner.ownershipHierarchy`. **Fix:** reconcile the constructed-hierarchy shape with `OwnershipHierarchy` / `HierarchyStep` — either populate the missing fields at construction or relax the type — as a **data-correctness review**, not just a type patch.
-  - **`src/core/OnboardingFlow/components/OnboardingFormField/OnboardingFormField.tsx` — `onChange?: (...value: any[]) => void`.** The field notifies consumers with heterogeneous values (`string` for text/date/combobox, `boolean` for checkbox). Consumers type their handlers narrowly (e.g. `GatewayScreen` passes `(value: string) => …`), so widening to `string | boolean` breaks them via callback contravariance; `any`'s bivariance is what currently compiles. **Fix:** make `OnboardingFormField` generic over its value type (`<TValue>` → `onChange?: (value: TValue) => void`) so each call site infers the right type. (This component also holds one of the ratcheted `rules-of-hooks` violations in **BL-505-N5**.)
-  - **Duplicate `ApiError` generated types (`recipient settle` callbacks, ~5 `any`).** `RecipientFormDialog.onRecipientSettled` / `handleSettled` and `BaseRecipientsWidget` `RecipientCardHandlers.onRecipientSettled` / `handleRecipientSettled` / `handleEditSettled` keep `error?: any`. The recipient flow mixes **two structurally-different generated `ApiError` types** — `@/api/generated/ep-recipients.schemas` (`httpStatus: number`, `code: string | undefined`) and `@/api/generated/smbdo.schemas` (`httpStatus?: number`, `code?: string | null`). `useRecipientForm.onSettled` + `BaseRecipientsWidget.onAccountSettled` use the **ep-recipients** `ApiError`, while `RecipientCard.onRecipientSettled` + `ServerErrorAlert`/`FriendlyErrorAlert` use the **smbdo** one, so the settle handlers bridge both and only compile as `any`. **Fix:** pick one canonical `ApiError` for the recipient error surface (or a shared superset type) and thread it through `useRecipientForm` → widgets → cards; then the callbacks type cleanly.
-  - **`src/core/OnboardingFlow/components/IndustryTypeSelect/IndustryTypeSelect.tsx` — `field: ControllerRenderProps<any, string>`.** Same RHF generic-variance issue as the field wrappers: typing it `ControllerRenderProps<FieldValues, string>` breaks the two callers (`OnboardingFormField` passes `ControllerRenderProps<TFieldValues, …>`; the unit test passes `ControllerRenderProps<Values, "industry">`) because `ControllerRenderProps` is invariant in its field-values param. **Fix:** make `IndustryTypeSelect` generic over `TFieldValues` (like `OnboardingFormField`) or cast `field` at the two call sites (as `StandardFormField`'s `ComboboxField` does).
-  - **`src/vanilla/EBComponentsManager.tsx` — `mountComponent` render uses `createElement(Component as ComponentType, props as never)`.** Not an `any` (the public signature is now generic: `mountComponent<K extends keyof ComponentRegistry>(name: K, props: ComponentProps<ComponentRegistry[K]>, …)`, so callers get typed props). But at the render site TS can't reconcile a generically-indexed component with its own generically-indexed props (union distribution over `K`), so both are cast — `Component` to a bare `ComponentType` and `props` to `never` — to satisfy `createElement`. **Fix:** narrow with a per-key discriminated switch/lookup, or a small typed render helper `renderRegistered<K>(C, p)` that keeps `C`/`p` paired, to drop the `as never`.
-- [x] **BL-505-5:** ~~Consider ESLint v10 upgrade path~~ — DONE (shipped v10.7).
-
-**Migration Resources:**
-
-- ESLint flat config: https://eslint.org/docs/latest/use/configure/configuration-files
-- typescript-eslint typed-linting trade-offs: https://typescript-eslint.io/getting-started/typed-linting
-
-#### Tailwind CSS Upgrade to v4 [BL-506]
-
-**Current Version:** 3.4.18  
-**Target Version:** 4.x (latest stable)  
-**Priority:** 🟠 High  
-**Breaking Changes:** New CSS-first configuration, updated utility classes, improved performance
-
-- [ ] **BL-506-1:** Upgrade Tailwind CSS and related packages
-  - [ ] **BL-506-1a:** Update `tailwindcss` to latest v4.x
-  - [ ] **BL-506-1b:** Update `autoprefixer` to latest compatible version
-  - [ ] **BL-506-1c:** Update `postcss` to latest compatible version
-  - [ ] **BL-506-1d:** Review `tailwindcss-animate` compatibility with v4
-  - [ ] **BL-506-1e:** Review `@tailwindcss/container-queries` compatibility
-- [ ] **BL-506-2:** Migrate Tailwind configuration to v4 format
-  - [ ] **BL-506-2a:** Convert `tailwind.config.js` to v4 CSS-first configuration
-  - [ ] **BL-506-2b:** Update custom theme variables and design tokens
-  - [ ] **BL-506-2c:** Migrate `eb-` prefixed custom classes to v4 format
-  - [ ] **BL-506-2d:** Update PostCSS configuration if needed
-- [ ] **BL-506-3:** Review and update component styles
-  - [ ] **BL-506-3a:** Test all components for style compatibility
-  - [ ] **BL-506-3b:** Update any deprecated utility classes
-  - [ ] **BL-506-3c:** Verify responsive design breakpoints
-  - [ ] **BL-506-3d:** Test dark mode if applicable
-- [ ] **BL-506-4:** Leverage Tailwind v4 improvements
-  - [ ] **BL-506-4a:** Utilize improved build performance
-  - [ ] **BL-506-4b:** Explore new utility classes and features
-  - [ ] **BL-506-4c:** Optimize CSS output size
-- [ ] **BL-506-5:** Update Storybook and development environment
-  - [ ] **BL-506-5a:** Verify Tailwind works in Storybook after upgrade
-  - [ ] **BL-506-5b:** Verify development server (`npm run dev`) works correctly
-  - [ ] **BL-506-5c:** Test production build (`npm run build`)
-
-**Migration Resources:**
-
-- Tailwind CSS v4 migration guide: https://tailwindcss.com/docs/upgrade-guide
-- Tailwind CSS v4 release notes: https://tailwindcss.com/docs/release-notes
-
-#### TypeScript & Toolchain [BL-501]
-
-**Current:** `typescript` **5.9.3** (latest 5.x; healthy). `@types/node` on 25.x. `@types/react` / `@types/react-dom` intentionally held at **18.x** to match React 18 — the 19.x type packages move with the React 19 upgrade (see BL-507 · React 19). Latest `typescript` is **7.0.2**, held (BL-501-5).
-
-- [ ] **BL-501-1:** Keep `@types/*` in step with their runtime libs (`@types/node` → 25.9.5, `@types/lodash` → 4.17.24). Hold `@types/react*` at 18.x until React 19.
-- [ ] **BL-501-4:** TypeScript 6.0 (transitional JS compiler) as an optional stepping stone — within toolchain support (typescript-eslint peer `<6.1.0` includes `6.0.x`). Surfaces the `baseUrl` / `esModuleInterop=false` deprecations as warnings before they become hard removals in 7.x. Lower reward.
-
-##### BL-501-5: TypeScript 7 (native Go compiler) — assessed, **DEFERRED** (blocked on tooling, not code)
-
-**Context (July 2026):** `typescript@7.0.2` is npm's `latest` (since 2026-07-08). TS 7 is **Project Corsa** — a line-by-line Go port of the compiler (~10× faster), _not_ a rewrite. `node_modules/typescript/lib/tsc.js` is a shim that execs the Go binary from `@typescript/typescript-<platform>`. The **programmatic compiler API is not stable until 7.1** (everything programmatic sits under `./unstable/*` in 7.0's `exports`).
-
-**Empirical finding — the CODE is ready, the TOOLCHAIN is not.** Ran TS 7.0.2 `tsc --noEmit` against our real `tsconfig.json` (isolated temp install, project `@types`): **0 code errors**, **~9s vs ~40s** for TS 5.9 (~4× faster). The only two failures are removed compiler options — `esModuleInterop=false` (TS5108) and `baseUrl` (TS5102) — both trivial `tsconfig` edits, not code changes (`paths` resolve relative to the tsconfig in TS 7, so `baseUrl` is obsolete).
-
-**Hard blockers — do NOT bump `typescript` to 7.x yet:**
-
-- [ ] **BL-501-5a:** **typescript-eslint** peer range `>=4.8.4 <6.1.0`; `typescript@7` triggers npm ERESOLVE, and forcing it crashes inside `typescript-estree`. No TS 7 release exists (latest `8.65`). Upstream: typescript-eslint #12518 (closed _not planned_ — fix is TS-side, awaiting the 7.1 API). Our `npm run lint` runs in CI's Test stage → this breaks the pipeline.
-- [ ] **BL-501-5b:** **dts bundling** — `@microsoft/api-extractor` (bundled TS `5.8.2`) + `unplugin-dts` are programmatic-API consumers; `bundleTypes: true` (our single `dist/index.d.ts`) would break.
-- Note: we do **not** use ts-jest or ts-morph (Vitest transforms via esbuild/Vite — no `tsc` in the test path), so those article-cited breakages don't apply here.
-
-**Recommended path — side-by-side compilers** (ref: [dev.to: Why your TS 7 upgrade broke ESLint/ts-jest/ts-morph](https://dev.to/dev_encyclopedia/why-your-typescript-7-upgrade-broke-eslint-ts-jest-and-ts-morph-385k)):
-
-- [ ] **BL-501-5c:** Keep the main `typescript` on the JS-based line (5.x now, 6.0 later) so typescript-eslint + vite-plugin-dts + api-extractor keep working.
-- [ ] **BL-501-5d:** _Optionally_ add the Go compiler under an **alias** (e.g. `typescript7@npm:typescript@7`) and expose `typecheck:fast` = `node_modules/typescript7/bin/tsc --noEmit` as an **advisory** early CI pre-filter for the ~4× speedup. ⚠️ Keep the JS-based `tsc` as the **authoritative** gate — the Go port can disagree (drops generic params from `@template` JSDoc; `skipLibCheck` doesn't suppress some third-party `.d.ts` parse errors), so tsgo must be a pre-filter, never the merge gate.
-- [ ] **BL-501-5e:** **Cut over fully** to a single `typescript@7` once **7.1 ships the stable programmatic API** and typescript-eslint + api-extractor/unplugin-dts publish TS 7-compatible releases. Re-run the isolated `tsc --noEmit` check plus full `lint` / `build` / dts validation at that point.
-
-#### Build/Test Infrastructure [BL-502]
-
-**Current (July 2026, `embedded-components/package.json`):** `vite` ^8.1.5, `vitest`/`@vitest/ui`/`@vitest/coverage-v8` ^4.1.10, `@vitejs/plugin-react` ^6.0.3, `vite-plugin-dts` ^5.0.3, `rollup-plugin-visualizer` ^7.0.1, Storybook + addons ^10.5.x. The Vite 7→8 major (Rolldown default bundler) and Storybook 10.2→10.5 upgrades are **done**; remaining work is **ongoing** minor bumps and CI baselines.
-
-- [x] **BL-502-1:** Vite 8 upgrade
-  - [x] **BL-502-1a:** `vite` ^8.1.5 — Rolldown is now the default bundler; Node engine unchanged (`^20.19.0 || >=22.12.0`)
-  - [x] **BL-502-1b:** `@vitejs/plugin-react` ^6.0.3 (peer requires Vite 8)
-  - [x] **BL-502-1c:** `vite-plugin-dts` ^5.0.3, `rollup-plugin-visualizer` ^7.0.1; **dropped `vite-tsconfig-paths`** in favour of Vite 8 native `resolve.tsconfigPaths` (it dominated build-plugin time). ⚠️ **dts type-bundling gotcha:** vite-plugin-dts 5 renamed the option `rollupTypes` → `bundleTypes` and moved `@microsoft/api-extractor` to an _optional_ peer dep. Without **both** `bundleTypes: true` **and** an installed `@microsoft/api-extractor` (^7.57.7), bundling silently no-ops and emits a 713-file `.d.ts` tree (entry at `dist/src/index.d.ts`) instead of the single bundled `dist/index.d.ts` that `package.json#types` points to.
-- [x] **BL-502-2:** Vitest 4.1.10
-  - [x] **BL-502-2a:** `vitest` ^4.1.10
-  - [x] **BL-502-2b:** `@vitest/ui` + `@vitest/coverage-v8` ^4.1.10
-  - [x] **BL-502-2c:** Test compatibility verified — 143 files / 1429 tests pass
-- [x] **BL-502-3:** Vite/Storybook compatibility verified (Storybook ^10.5, `@storybook/builder-vite` supports Vite 8; `storybook:build` green)
-- [x] **BL-502-4:** Configs adjusted (native tsconfigPaths; fixed Storybook dts-plugin exclusion name `vite:dts`→`unplugin-dts` so Storybook builds skip declaration generation)
-- [ ] **BL-502-5:** Rebaseline CI (typecheck/lint/test/storybook build) performance and caching
-- [ ] **BL-502-6:** dts declaration emit + api-extractor bundle (`bundleTypes: true`, ~85–90s) dominates the library build; the JS bundle itself is fast under Rolldown. `bundleTypes: false` is **not** faster (~same emit cost) and breaks the published single `dist/index.d.ts`, so it is not a viable speedup. Cutting dts time would need a different approach (e.g. `isolatedDeclarations`, a dedicated `tsc --emitDeclarationOnly` pass, or trimming the compiled surface) — larger effort, deferred.
-
-#### Dependency Updates — current-state assessment [BL-507 / BL-503 / BL-508]
-
-_Baseline: `npm outdated`, 2026-07-23. Vite/Vitest/Storybook (BL-502), ESLint (BL-505), Tailwind (BL-506) and TypeScript (BL-501) are tracked in their own items and excluded here._
-
-**A. Safe minor/patch bumps — batch when convenient (same major, low risk):**
-
-- [ ] **BL-507-A (runtime):** all `@radix-ui/react-*` to latest 1.x/2.x (e.g. `react-select` 2.2.6→2.3.5, `react-radio-group` 1.3.8→1.4.5, `react-slot` 1.2.3→1.3.1); `@tanstack/react-query` 5.90→5.101 (+`-devtools`), `@tanstack/react-virtual` 3.13→3.14; `react-hook-form` 7.65→7.82 (**code already version-agnostic** after the `FieldArray` fix); `libphonenumber-js` 1.12→1.13, `react-phone-number-input` 3.4.12→3.4.17, `react-number-format` 5.4.4→5.4.5, `dompurify` 3.4.11→3.4.12, `geist` 1.5→1.7, `json-diff-ts` 4.8→4.10, `uuid` 14.0.0→14.0.1.
-- [ ] **BL-508-A (dev/build):** `prettier` 3.6→3.9, `@ianvs/prettier-plugin-sort-imports` 4.7.0→4.7.1, `typescript-eslint` 8.64→8.65, `postcss` 8.5.10→8.5.22, `autoprefixer` 10.4→10.5, `ajv` 8.17→8.20, `@faker-js/faker` 10.1→10.4, `mermaid` 11.15→11.16, `rimraf` 6.1.2→6.1.3, `baseline-browser-mapping` 2.10→2.11, `@types/lodash` 4.17.20→4.17.24, `msw` 2.11.6→2.15 (also update the `msw` **pin + `resolutions`** entry).
-
-**B. Major upgrades — own initiatives, do NOT batch:**
-
-- [ ] **BL-507-React19:** React 18.3 → **19** — `react`, `react-dom`, `@types/react` 18→19, `@types/react-dom` 18→19, `@testing-library/react` 14→16, `@testing-library/dom` 9→10. Peer already allows `^19`. Largest effort (Theme 4); revalidate every component, all 1429 tests, and Storybook.
-- [ ] **BL-506 (see above):** Tailwind 3.4 → **4** — `tailwindcss` + `tailwind-merge` 2→3; CSS-first config rewrite.
-- [ ] **BL-501-5 (see above):** TypeScript **7** — deferred on toolchain.
-
-**C. Standalone majors — evaluate individually (breaking; each needs a spike):**
-
-- [ ] **BL-508-zod4:** `zod` 3.25 → **4** — validation is core (every form schema, `zod-i18n-map`, `@hookform/resolvers`). Blocked until `@hookform/resolvers` + `zod-i18n-map` support Zod 4; high blast radius.
-- [ ] **BL-508-resolvers:** `@hookform/resolvers` 3.10 → **5** — coupled to the Zod 4 decision; do together with zod4.
-- [ ] **BL-508-datefns:** `date-fns` 3.6 → **4** — v4 reworks timezone handling; audit all date format/parse call sites.
-- [ ] **BL-508-i18n:** `i18next` 24 → **26** + `react-i18next` 15 → **17** — bump together; verify namespaces, content-token architecture, es-US/fr-CA locales.
-- [ ] **BL-508-misc-majors:** individually — `sonner` 1→2, `react-error-boundary` 5→6, `react-window` 1→2, `react-dropzone` 14→15, `lucide-react` 0.418→**1.x** (verify icon names/tree-shaking), `public-ip` 7→8, `next-themes` 0.3→0.4, `jsdom` 24→29 (dev/test env).
-
-**D. Cleanup:**
-
-- [ ] **BL-508-cleanup:** Remove `@types/dompurify` — DOMPurify 3.x ships its own types (the `@types/dompurify` `latest` is an older `3.0.5` stub). Drop the devDep.
-
-**E. Done (kept for context, no longer "planned"):**
-
-- [x] **BL-503 · Orval:** on **orval ^8.5.3** (v8 migration complete — ESM config, mutator per `orval.config.mjs`). Ongoing: regenerate from `api-specs/*` as the OAS changes.
-- [x] **BL-503 · Package manager:** ~~standardized on Yarn 4.12; CI on `buildType: yarn`~~ **Superseded (2026-08): reverted to npm-native.** Yarn 4 (Berry) publish auth is incompatible with the Jules Pattern Build (npm-injected token that Berry can't read), so CI stays on `buildType: npm`. Now: npm + committed `package-lock.json`; `resolutions` migrated to npm `overrides`. pnpm not pursued.
-- [x] **BL-503 · Security policy:** prioritize security patches; npm `overrides` pin remediated advisories (lodash, js-yaml, form-data, tar, glob, etc.).
+| ID                 | Disposition                                                                                                                                                         | Evidence                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| BL-802-5           | Done — Zod messages follow the provider locale; `zod-i18n-map` replaced by `src/i18n/zodErrorMap.ts` (installed with `z.config`)                                    | `234fe5f6`                                  |
+| BL-802-6           | Done — schemas and display helpers no longer use the global, always en-US `i18n.t(...)` (Zod 4 lazy errors, `src/i18n/activeI18n.ts`)                               | `234fe5f6`                                  |
+| BL-802-7           | Done — intermediary flow and remaining hard-coded OnboardingFlow strings localized                                                                                  | `f8232730`                                  |
+| BL-903-1           | Done — client refetched after each save, on focus and every 60 s; the webhook-only `hasOutstandingInformation` flag is documented as an API limitation               | `OnboardingFlow.tsx:122`; RFI recipe        |
+| BL-910-1           | Done — both upload flows share `useDocumentRequestUpload` (upload, submit, one scoped refresh); the list-screen effect that refetched the client is gone            | `c630073d`, `30d42534`                      |
+| BL-910-2           | Done — inline linked-account creation no longer refreshes the recipient list twice                                                                                 | `57fb555c`                                  |
+| BL-911 (new, done) | Linked-account banner said "verified" until the list refetched (it assumed `ACTIVE`); it now uses the created account's status                                      | `57fb555c`                                  |
+| BL-912 (new, done) | Questions with more than 10 options (237 countries on 18 questions, e.g. NAICS 524114 licensing) render as a searchable list; multi-select uses chips and `maxItems` | `65d10990`                                  |
 
 ---
 
----
-
-## 🆕 New Items from March 2026 Git Analysis & Testing
-
-### BL-800+: Findings from Feb 22 – Mar 6, 2026 Development Cycle
-
----
-
-#### BL-800: ServerErrorAlert Pattern — Extension to Remaining Components 🟠
-
-**Source:** Git analysis (Mar 4, 2026 — `improve error and loading states`)  
-**Components Affected:** PaymentFlow, TransactionsDisplay, OnboardingFlow (remaining forms), LinkedAccountWidget  
-**Priority:** High  
-**Status:** 📋 Planned
-
-**Background:** A `ServerErrorAlert` component and `useServerError` hook were introduced and applied to `Accounts`, `ClientDetails`, and `BaseRecipientsWidget`. The pattern provides consistent server-error display with retry support and i18n-ready messages. Other components still use ad-hoc error patterns or show no error state.
-
-**Actions:**
-
-- [ ] **BL-800-1:** Apply `ServerErrorAlert` + `useServerError` pattern to `PaymentFlow` (all API calls: payment submit, recipient fetch, fee fetch)
-- [ ] **BL-800-2:** Apply pattern to `TransactionsDisplay` (transaction list fetch, detail fetch)
-- [ ] **BL-800-3:** Apply pattern to remaining `OnboardingFlow` forms (beyond `OperationalDetailsForm`)
-- [ ] **BL-800-4:** Apply pattern to `LinkedAccountWidget` (bank account create/verify/remove calls)
-- [ ] **BL-800-5:** Document `ServerErrorAlert` + `useServerError` in component implementation docs and create a Storybook story for the error state pattern
-
----
-
-#### BL-801: Content Token Coverage Audit 🟡
-
-**Source:** Git analysis (Feb 25 – Mar 5, 2026 — content token expansion commits)  
-**Components Affected:** All  
-**Priority:** Medium  
-**Status:** 📋 Planned
-
-**Background:** Content tokens were restructured with a formal architecture (`CONTENT_TOKENS_ARCHITECTURE.md`). Significant coverage was added to `ClientDetails`, `PaymentFlow`, `OnboardingFlow`, `Accounts`, `LinkedAccounts`, and `TransactionsDisplay`. However, coverage may be incomplete for edge-case strings, error messages, and some sub-components.
-
-**Actions:**
-
-- [ ] **BL-801-1:** Audit all i18n strings across components for content token completeness — identify strings still hardcoded that should be overridable via `contentTokens`
-- [ ] **BL-801-2:** Verify `AccountCardSkeleton` content tokens (updated Mar 5 but were changed twice — confirm stable)
-- [ ] **BL-801-3:** Ensure `StatusBadge` content token changes (Mar 5) don't break existing status label customization
-- [ ] **BL-801-4:** Add Storybook stories demonstrating content token override for each component (see BL-420-1 remaining work)
-- [ ] **BL-801-5:** Verify `EBContentTokens` type is exported and documented in component API docs
-
----
-
-#### BL-802: i18n Locale Completion — es-US and fr-CA 🟡
-
-**Source:** Git analysis (Feb 25 – Mar 5, 2026 — i18n expansion)  
-**Components Affected:** All  
-**Priority:** Medium  
-**Status:** 📋 Planned
-
-**Background:** Major i18n expansion in this cycle: es-US and fr-CA locale files were added for `onboarding`, `onboarding-overview`, `validation`, `make-payment`, `linked-accounts`, and `common`. However, coverage may still be incomplete for some components.
-
-**Actions:**
-
-- [ ] **BL-802-1:** Audit which i18n namespaces still lack complete es-US translations (check: `transactions.json`, `accounts.json`, `recipients.json` for es-US)
-- [ ] **BL-802-2:** Audit fr-CA coverage — currently `onboarding`, `onboarding-overview`, `validation` added; check `make-payment`, `linked-accounts`, `transactions`, `accounts`, `client-details` for fr-CA
-- [ ] **BL-802-3:** Verify no keys fall back to en-US in the es-US locale for the components now partially translated
-- [ ] **BL-802-4:** Add a locale-switch story/control in Storybook to visually verify translated states (see BL-420)
-- [ ] **BL-802-5:** Wire `zod-i18n-map` for validation messages in es-US/fr-CA so form errors are also translated (BL-420-2)
-
----
-
-#### BL-803: Mock API Editor — Scenario Management UX 🟢
-
-**Source:** Git analysis (Mar 1–2, 2026 — MockApiEditorDrawer enhancements)  
-**Components Affected:** app/client-next-ts (showcase)  
-**Priority:** Low  
-**Status:** 📋 Planned
-
-**Background:** The `MockApiEditorDrawer` in the showcase now supports scenario upload/download (`replaceOverrides` utility), `@visual-json/react` JSON editor, and `mock-overrides-storage`. This significantly improves QA and demo workflow.
-
-**Actions:**
-
-- [ ] **BL-803-1:** Document the mock scenario file format and upload/download workflow in `app/client-next-ts/AGENTS.md` or `MSW_SETUP.md`
-- [ ] **BL-803-2:** Add a set of pre-built test scenario files (e.g. `error-state.json`, `empty-state.json`, `pending-payments.json`) as fixtures in the repo
-- [ ] **BL-803-3:** Validate `replaceOverrides` behavior when uploaded JSON has unknown endpoints (should fail gracefully with validation)
-- [ ] **BL-803-4:** Test the JSON editor in multiple browsers; confirm `@visual-json/react` renders correctly on mobile viewports
-
----
-
-#### BL-804: Empty+ Theme — A11y Audit and Documentation 🟡
-
-**Source:** Git analysis (Feb 25, 2026 — `feat: add 'Empty+' theme option`)  
-**Components Affected:** app/client-next-ts (showcase)  
-**Priority:** Medium  
-**Status:** 📋 Planned
-
-**Background:** An `Empty+` theme variant with enhanced accessibility features (higher contrast, improved focus indicators) was added to the showcase alongside a `ThemeA11yPanel` component that provides accessibility guidance within the `ThemeCustomizationDrawer`. Related Salt Design System token URLs were added for reference.
-
-**Actions:**
-
-- [ ] **BL-804-1:** Run automated a11y audit (axe) on the `Empty+` theme across all 7 components; confirm it passes WCAG 2.1 AA
-- [ ] **BL-804-2:** Compare `Empty+` contrast ratios against base `Empty` theme using the new `ThemeA11yPanel` — document pass/fail per token group
-- [ ] **BL-804-3:** Decide whether `Empty+` should graduate to the `embedded-components` library as a built-in accessible theme or remain showcase-only
-- [ ] **BL-804-4:** Document `ThemeA11yPanel` usage and the Salt Design System token references in `embedded-components/docs/`
-- [ ] **BL-804-5:** Add `BL-470-4` (axe automated tests) as a prerequisite tracker; coordinate a11y test suite with `Empty+` theme as the baseline
-
----
-
-#### BL-805: Session Transfer — Client Creation & Multi-Experience Support 🟡
-
-**Source:** Git analysis (Feb 26, 2026 — `feat: implement client creation feature` and `feat: add support for multiple experience types`)  
-**Components Affected:** app/server-session-transfer  
-**Priority:** Medium  
-**Status:** 📋 Planned
-
-**Background:** The session transfer demo app now supports client creation via API integration and handles multiple experience types (onboarding, linked-accounts, make-payment, etc.) in both `index.html` and `index-utility.html`. Documentation was also expanded.
-
-**Actions:**
-
-- [ ] **BL-805-1:** Test the new `index-utility.html` client creation flow end-to-end in the server-session-transfer demo (verify OAuth2 flow, client provisioning, and redirect to onboarding)
-- [ ] **BL-805-2:** Test `index.html` with each experience type (onboarding, linked-accounts, make-payment) to confirm session handoff and component initialization
-- [ ] **BL-805-3:** Verify error handling in `server.js` for failed client creation (network errors, 4xx/5xx from JPMC API)
-- [ ] **BL-805-4:** Update `embedded-components/docs/partially-hosted/PARTIALLY_HOSTED_UI_INTERGRATION_GUIDE.md` to reflect the new multi-experience patterns
-
----
-
-#### BL-810: ClientDetails — Initial UX Audit 🟠
-
-**Source:** Git analysis + browser testing (Mar 2026)  
-**Components Affected:** ClientDetails  
-**Priority:** High  
-**Status:** 📋 Planned
-
-**Background:** `ClientDetails` is now fully available in the showcase (status changed from 'testing' to 'available' Mar 2). Error/loading/skeleton states were implemented (Mar 4). The component still needs a systematic UX audit now that it's production-ready.
-
-**Actions:**
-
-- [ ] **BL-810-1:** Audit layout in all view modes: `accordion` view, `cards` view, drilldown dialogs — verify visual hierarchy and spacing
-- [ ] **BL-810-2:** Test all interactive elements: expand/collapse sections, drilldown navigation, section dialogs, party detail panels
-- [ ] **BL-810-3:** Verify loading skeleton matches real content layout (no layout shift when data loads)
-- [ ] **BL-810-4:** Verify error state display and retry behavior using `ServerErrorAlert`
-- [ ] **BL-810-5:** Audit tooltips and `aria-label` coverage for icon-only actions (align with BL-070)
-- [ ] **BL-810-6:** Add `DialogDescription` to all `SectionDialog` instances (align with BL-601-2)
-- [ ] **BL-810-7:** Test responsive behavior on mobile/tablet viewports (cards view vs accordion view breakpoints)
-- [ ] **BL-810-8:** Verify content token overrides work end-to-end via `EBComponentsProvider` contentTokens prop
-
----
-
-#### BL-812: Transactions — "View Details" Button Click Target Size 🟢
-
-**Source:** Browser testing 2026-03-06  
-**Component:** TransactionsDisplay (TransactionsTable rows)  
-**Priority:** Low  
-**Status:** 📋 Needs verification
-
-**Issue:** During browser automation, the "View details" row button was intercepted. May indicate click target smaller than WCAG 2.5.5 minimum (44×44px), or automation scroll-to-view artifact. Needs manual verification.
-
-**Actions:**
-
-- [ ] **BL-812-1:** Measure "View details" button click target size in TransactionsTable rows; verify meets 44×44px (WCAG 2.5.5 AAA) or 24×24px (AA)
-- [ ] **BL-812-2:** Ensure the button is scrolled into viewport before interaction in E2E tests
-- [ ] **BL-812-3:** Consider making the entire row clickable for improved discoverability
-
----
-
-#### BL-811: Onboarding — Server Error Handling Completeness 🟡
-
-**Source:** Git analysis (Mar 4, 2026 — `onboarding-flow: add server error handling for additional questions`)  
-**Components Affected:** OnboardingFlow (OperationalDetailsForm + remaining forms)  
-**Priority:** Medium  
-**Status:** 📋 Planned
-
-**Background:** Server error handling was added to `OperationalDetailsForm` (the "additional questions" step). Other onboarding forms may still lack server error display.
-
-**Actions:**
-
-- [ ] **BL-811-1:** Audit all onboarding form steps for server error handling coverage — identify forms that lack `ServerErrorAlert` or equivalent
-- [ ] **BL-811-2:** Test `OperationalDetailsForm` server error state in the showcase using MSW error scenario (or Mock API Editor)
-- [ ] **BL-811-3:** Ensure all `OnboardingFlow` API calls display user-friendly errors, not silent failures or unhandled promise rejections
-
----
-
-## 📊 Backlog Statistics
-
-**Total Items:** ~215+  
-**Critical Priority:** Design system (re-assessed), Make Payment form UX, data quality  
-**High Priority:** Filter/label/tooltips/responsive, Accounts enhancements, ServerErrorAlert extension (BL-800), ClientDetails UX audit (BL-810)  
-**Medium Priority:** Status badge, date formatting, menu/dialog, timeline, i18n locale completion (BL-802), Empty+ a11y (BL-804), session transfer (BL-805), onboarding error handling (BL-811)  
-**Low Priority:** Performance optimization, Mock API Editor scenario mgmt (BL-803)  
-**Tech Debt:** ESLint v9, Tailwind v4, TypeScript, Vite 8 / Vitest 4 maintenance, React/UI libraries, Orval 7→8 path, other dependencies
-
-**In Progress:**
-
-- Theme 0: Functional Enhancements
-- Theme 1: Security & Validation
-- Theme 2: i18n & Design Tokens (**significant progress** this cycle)
-- Theme 3: Functional Testing (CAT)
-- Theme 7: A11y & UX Testing (mitigation in progress, Empty+ theme added)
-
-**Recently Resolved (Mar 2026 — removed from backlog):**
-
-- Recipients: email not required for RTP (was a product correctness bug — fixed `usePaymentMethodConfig.ts`)
-- Linked Accounts: text wrapping in BankAccountForm (layout bug — fixed)
-- Accounts: name display bug in AccountCard (fixed `AccountCard.tsx`)
-- i18n circular dependency in config (fixed — relative import)
-- ClientDetails test failures after component refactor (fixed)
-
----
-
-## 🔄 How to Use This Backlog
-
-### For Agents
-
-1. **Check Status First:** Review item status (🔴 Critical, 🟠 High, etc.) before starting work
-2. **Update Status:** Mark items as 🚧 In Progress when starting
-3. **Reference Sources:** Check UX Testing Report and Development Roadmap for context
-4. **When complete:** **Remove** the item from the backlog. This document keeps **only currently open** items; do not retain completed/fixed items.
-
-### For Product/Design
-
-1. **Review Priorities:** Focus on Critical and High priority items first
-2. **Design System:** Review Priority 5 items for design system decisions
-3. **UX Testing:** Reference UX Testing Report for detailed findings
-
-### For Engineering
-
-1. **Theme Alignment:** Work items align with roadmap themes
-2. **Component Scope:** Items specify which components are affected
-3. **Technical Details:** Technical items include implementation notes
-
----
-
-## 📝 Notes for Future Updates
-
-- This backlog should be updated after each sprint/iteration
-- Do not include completed items; remove them when work is done
-- Add new items from future UX testing or roadmap updates
-- Keep priority levels current based on user feedback and business needs
-
----
-
----
-
-## 🆕 New Issues from 2025-12-09 Testing Session
-
-### BL-600+: New Findings from December 9, 2025 Testing
-
-#### BL-601: Dialog Accessibility Warning 🟡 — Re-assessed Jan 2026
-
-**Source:** UX Testing Report 2025-12-09  
-**Component:** TransactionsDisplay (TransactionDetailsSheet)  
-**Priority:** Medium  
-**Status:** 📋 Planned
-
-**Re-assessed (Jan 2026):** TransactionDetailsSheet uses `DialogContent` without `DialogDescription` or `aria-describedby`. Radix Dialog recommends a description for screen readers. Other dialogs (RecipientDetailsDialog, RemoveAccountDialog, etc.) should be audited.
-
-**Issue:** Console warning: "Missing `Description` or `aria-describedby={undefined}` for {DialogContent}"; affects a11y.
-
-**Actions:**
-
-- [ ] **BL-601-1:** Add `DialogDescription` (or `aria-describedby`) to TransactionDetailsSheet — e.g. short summary of transaction details
-- [ ] **BL-601-2:** Audit all dialogs (Transaction, Recipient, RemoveAccount, VerificationResult, etc.) for missing description
-- [ ] **BL-601-3:** Optionally make description required in shared Dialog usage guidelines
-
-**Tracking:** BL-601 (Note: Different from PR #601)
-
----
-
-#### BL-603: MSW Initialization Errors 🟡 — Same as BL-200-1
-
-**Source:** UX Testing Report 2025-12-09  
-**Components:** All (MSW initialization)  
-**Priority:** Medium  
-**Status:** 📋 Planned — **Resolve via BL-200-1** (single fix for duplicate party creation).
-
-**Issue:** Duplicate party creation during MSW init (parties 2200000111–2200000113; client 0030000134 vs 0030000132). Same root cause as BL-200-1.
-
-**Actions:** See **BL-200-1** and **BL-200-2**. No separate work; close BL-603 when BL-200-1 is done.
-
-**Tracking:** BL-603 (alias of BL-200-1)
-
----
-
----
-
-## 🆕 New Issues from 2026-01-14 Testing Session
-
-### BL-700+: New Findings from January 14, 2026 Testing
-
-#### BL-723: Transactions Form Fields Missing id/name 🟡 — Open
-
-**Source:** UX Testing Report 2026-01-14  
-**Component:** TransactionsDisplay (TransactionsTableToolbar)  
-**Priority:** Medium  
-**Status:** 📋 Planned
-
-**Issue:** Two form field elements (status and type filter Selects) lack `id`/`name` attributes, affecting accessibility (WCAG 2.1 AA). The counterpart filter Input has `id="transactions-filter-counterpart"` and `name="transactions-filter-counterpart"`; the two Select components do not.
-
-**Actions:**
-
-- [ ] **BL-723-1:** Add `id` and `name` (or `aria-label` where appropriate) to the status filter Select/SelectTrigger in TransactionsTableToolbar
-- [ ] **BL-723-2:** Add `id` and `name` (or `aria-label`) to the type filter Select/SelectTrigger
-
-**Tracking:** BL-723
-
----
-
-### 2026-02-19 Full Re-Test (All 7 Components + Backlog Re-Verification)
-
-- **Session:** Full re-test of **all core components** and **backlog re-verification**. TESTING_PROMPT updated to include Onboarding and Client Details (7 components). Storybook and all 7 showcase URLs verified via browser automation.
-- **Showcase components tested:** Onboarding, Linked Accounts, Recipients, Make Payment, Transactions, Accounts, **Client Details**. All loaded successfully.
-- **Storybook:** https://storybook.embedded-finance-dev.com/ — confirmed live.
-- **Backlog re-test:** Each open item (P1–P5, BL-601, BL-723) re-tested by **code inspection**; all 7 components **browser-loaded**. Item-level verdicts and evidence: **`docs/ux-testing/2026-02-19/BACKLOG_VERIFICATION.md`**. All re-tested items remain OPEN; no fixed items removed. Summary: BL-050-1 (formatNumberToCurrency no NaN guard), BL-060 (filter labels inconsistent), BL-061 (pagination formats differ), BL-601 (TransactionDetailsSheet no DialogDescription), BL-723 (toolbar Selects missing id/name), plus all other P1–P5 items verified open via code.
-- **BL-723** added to backlog (form fields missing id/name in Transactions). **BL-603** consolidated with BL-200-1 (single fix).
-- **Report:** `embedded-components/docs/ux-testing/2026-02-19/UX_TESTING_REPORT.md`
-- **Action:** Future full UX runs should test all 7 components per prompt; remove items from this backlog when fixed.
-
----
-
-### 2026-03-06 Git Analysis + Full Browser Re-Test (All 7 Components)
-
-- **Session:** Git analysis of ~60 commits (Feb 22 – Mar 6, 2026) and full browser UX testing of all 7 components.
-- **Git analysis findings:** Major development activity this cycle: ClientDetails stabilized (error/loading states, content tokens, skeleton — now 'available'), i18n expansion (es-US/fr-CA for 6+ namespaces), ServerErrorAlert pattern introduced, content tokens architecture formalized (`CONTENT_TOKENS_ARCHITECTURE.md`), Mock API Editor enhancements (`@visual-json/react`, upload/download), Empty+ a11y theme added to showcase, session transfer multi-experience support.
-- **Browser test results (all 7 components loaded):**
-  - ✅ Onboarding: Radio selection, Get Started flow, multi-step form — working
-  - ✅ Client Details: Expandable sections, EIN masking/reveal, drawer content — working. No regressions from content token restructure.
-  - ✅ Accounts: Show/hide account details, copy buttons, balance info — working. Name display fix confirmed.
-  - ⚠️ Transactions: All filters and table present; "View details" button click intercepted in automation (new **BL-812** — low priority). Filter label casing inconsistency **BL-060** confirmed in UI.
-  - ✅ Make Payment: "Make Payment" CTA opens modal; 3-step flow, recipient tabs, payment summary — working.
-  - ✅ Linked Accounts: Table, account number reveal, action buttons — working. Text wrapping fix confirmed.
-  - ✅ Recipients: Table, account number reveal, action buttons — working. RTP email fix verified via config review.
-- **Bugs fixed this cycle (removed from backlog):** Recipients email not required for RTP, Linked Accounts text wrapping, Accounts name display bug, i18n circular dependency.
-- **New backlog items added:** BL-800 (ServerErrorAlert extension), BL-801 (content token audit), BL-802 (i18n locale completion), BL-803 (Mock API Editor), BL-804 (Empty+ a11y), BL-805 (session transfer), BL-810 (ClientDetails UX audit), BL-811 (onboarding server error completeness), BL-812 (transactions view details click target).
-- **Backlog items re-verified open:** BL-060 (filter casing), BL-601 (DialogDescription), BL-723 (Select id/name), BL-040 (modal a11y — not fully tested).
-- **Report:** `embedded-components/docs/ux-testing/2026-03-06/UX_TESTING_REPORT.md`
-- **Action:** Prioritize BL-800 (ServerErrorAlert extension) and BL-810 (ClientDetails UX audit) as high-impact items; address BL-802 (i18n gaps) in parallel with BL-420 roadmap work.
-
----
-
-**Document Maintainers:** Development Team  
-**Review Frequency:** Weekly during active development, bi-weekly during maintenance  
-**Last Major Update:** March 6, 2026 (git analysis of Feb 22–Mar 6 commits + full browser UX re-test; BL-800–BL-811 added; fixed items removed; i18n and ClientDetails progress noted)
+## Verification history
+
+| Date       | Scope                                                                                                               | Method                                                                  | Report                                            |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------- |
+| 2025-12-02 | Initial UX test                                                                                                     | Browser                                                                 | `docs/ux-testing/2025-12-02/` (git history)       |
+| 2025-12-09 | UX test + code inspection                                                                                           | Browser + code                                                          | `docs/ux-testing/2025-12-09/` (git history)       |
+| 2026-01-14 | UX test                                                                                                             | Browser                                                                 | `docs/ux-testing/2026-01-14/` (git history)       |
+| 2026-02-19 | All 7 showcase components + item-level backlog verification                                                         | Browser load + code                                                     | `docs/ux-testing/2026-02-19/` (git history)       |
+| 2026-03-06 | Git analysis (Feb 22–Mar 6) + full browser re-test                                                                  | Browser + git                                                           | `docs/ux-testing/2026-03-06/` (git history)       |
+| 2026-07-23 | Tech-debt / dependency refresh                                                                                      | `npm outdated`, lint/TS spikes                                          | TECH_DEBT.md                                      |
+| 2026-11-02 | Full backlog re-verification (~350 commits since July), restructure into BACKLOG + TECH_DEBT, release gates, SALT-1 | Code (4 independent passes + second opinion), lint/typecheck/unit suite | This document; per-session report folders retired |
+| 2026-11-02 | v0.18.0 work: Zod 4, RFI section, guided change requests, upload and linked-account fixes; BL-909–BL-912 added      | Code, unit suites (994 passed), build, UAT API probes                   | This document                                     |
+
+**Retired reports:** the `docs/ux-testing/` session reports (2025-12-02 → 2026-03-06) were removed from the tree on 2026-11-02. Their findings are reconciled into this backlog and the register above. To read one, find the deleting commit with `git log --diff-filter=D --oneline -- docs/ux-testing` and show the file from its parent, e.g. `git show <commit>^:docs/ux-testing/2026-03-06/UX_TESTING_REPORT.md`.
+
+**Next:** the BL-908-0 pilot, then the first BL-908 review run (SALT-1 baseline + browser pass; last browser pass was 2026-03-06).

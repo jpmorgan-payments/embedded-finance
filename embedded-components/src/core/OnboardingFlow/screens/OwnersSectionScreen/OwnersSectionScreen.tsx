@@ -1017,12 +1017,12 @@ export const OwnersSectionScreen = () => {
       goTo('owner-stepper', {
         editingPartyId: beneficialOwnerId,
         previouslyCompleted: ownersValidation[beneficialOwnerId].allStepsValid,
-        shortLabelOverride: 'Edit owner',
+        shortLabelOverride: tString('stepperRenderer.shortLabels.editOwner'),
         initialStepperStepId: firstInvalidStep ?? ownerSteps.at(-1)?.id,
       });
     } else {
       goTo('owner-stepper', {
-        shortLabelOverride: 'Add owner',
+        shortLabelOverride: tString('stepperRenderer.shortLabels.addOwner'),
       });
     }
   };
@@ -1224,7 +1224,9 @@ export const OwnersSectionScreen = () => {
                 // Business entities go directly to the intermediary stepper form
                 goTo('intermediary-stepper', {
                   editingPartyId: ownerId,
-                  shortLabelOverride: 'Edit business',
+                  shortLabelOverride: tString(
+                    'stepperRenderer.shortLabels.editBusiness'
+                  ),
                 });
               } else {
                 // Individuals go to the owner-stepper form

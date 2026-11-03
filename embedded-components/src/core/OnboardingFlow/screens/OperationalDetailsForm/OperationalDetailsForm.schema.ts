@@ -1,7 +1,17 @@
-import { i18n } from '@/i18n/config';
+import { tActive } from '@/i18n/activeI18n';
 import { z } from 'zod';
 
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
+
+// Lazy errors resolve at validation time so memoized schemas follow the active
+// provider's locale and content tokens.
+const requiredError = {
+  error: () =>
+    tActive('onboarding-overview:additionalQuestions.validation.required'),
+};
+const invalidOptionError = {
+  error: () => tActive('validation:common.invalidOption'),
+};
 
 const normalizeComparableValue = (value: unknown): string =>
   String(value).trim().toLowerCase();
@@ -124,40 +134,47 @@ export const MONEY_INPUT_QUESTION_IDS = ['30005']; // Add more IDs as needed
 const buildStringValueSchema = (
   itemEnum: string[] | undefined,
   itemPattern: string | undefined,
-  requiredMsg: string,
   lengthLimits: { minLength?: number; maxLength?: number } = {}
-): z.ZodTypeAny => {
+): z.ZodType => {
   if (itemEnum) {
     if (itemEnum.length > 0) {
-      return z.enum([itemEnum[0], ...itemEnum.slice(1)], {
-        message: i18n.t('validation:common.invalidOption'),
-      });
+      return z.enum([itemEnum[0], ...itemEnum.slice(1)], invalidOptionError);
     }
-    return z.string().min(1, requiredMsg);
+    return z.string().min(1, requiredError);
   }
 
-  let stringSchema = z.string().min(1, requiredMsg);
-  if (lengthLimits.minLength && lengthLimits.minLength > 1) {
-    stringSchema = stringSchema.min(
-      lengthLimits.minLength,
-      i18n.t('onboarding-overview:additionalQuestions.validation.minLength', {
-        minLength: lengthLimits.minLength,
-      })
-    );
+  const { minLength, maxLength } = lengthLimits;
+  let stringSchema = z.string().min(1, requiredError);
+  if (minLength && minLength > 1) {
+    stringSchema = stringSchema.min(minLength, {
+      error: () =>
+        tActive(
+          'onboarding-overview:additionalQuestions.validation.minLength',
+          {
+            minLength,
+          }
+        ),
+    });
   }
-  if (lengthLimits.maxLength) {
-    stringSchema = stringSchema.max(
-      lengthLimits.maxLength,
-      i18n.t('onboarding-overview:additionalQuestions.validation.maxLength', {
-        maxLength: lengthLimits.maxLength,
-      })
-    );
+  if (maxLength) {
+    stringSchema = stringSchema.max(maxLength, {
+      error: () =>
+        tActive(
+          'onboarding-overview:additionalQuestions.validation.maxLength',
+          {
+            maxLength,
+          }
+        ),
+    });
   }
   if (itemPattern) {
-    return stringSchema.refine(
-      (val) => new RegExp(itemPattern).test(val),
-      i18n.t('onboarding-overview:additionalQuestions.validation.invalidFormat')
-    );
+    const pattern = new RegExp(itemPattern);
+    return stringSchema.refine((val) => pattern.test(val), {
+      error: () =>
+        tActive(
+          'onboarding-overview:additionalQuestions.validation.invalidFormat'
+        ),
+    });
   }
   return stringSchema;
 };
@@ -165,21 +182,23 @@ const buildStringValueSchema = (
 // Build the scalar (non-array) value schema for a question; returns null for unknown types
 const buildScalarValueSchema = (
   question: QuestionResponse
-): z.ZodTypeAny | null => {
+): z.ZodType | null => {
   const itemType = question?.responseSchema?.items?.type ?? 'string';
   const itemEnum = question?.responseSchema?.items?.enum;
   const itemPattern = question?.responseSchema?.items?.pattern;
-  const requiredMsg = i18n.t(
-    'onboarding-overview:additionalQuestions.validation.required'
-  );
 
   if (question.id && DATE_QUESTION_IDS.includes(question.id)) {
-    return z
-      .string()
-      .refine(
-        (val) => /^\d{4}-\d{2}-\d{2}$/.test(val),
-        i18n.t('onboarding-overview:additionalQuestions.validation.dateFormat')
-      );
+    // ISO calendar date (YYYY-MM-DD); also rejects impossible dates like Feb 30.
+    // Only format errors get the date message; a missing or wrongly typed value
+    // keeps the default "Required"-style message, as before.
+    return z.iso.date({
+      error: (issue) =>
+        issue.code === 'invalid_format'
+          ? tActive(
+              'onboarding-overview:additionalQuestions.validation.dateFormat'
+            )
+          : undefined,
+    });
   }
 
   if (question.id && MONEY_INPUT_QUESTION_IDS.includes(question.id)) {
@@ -187,77 +206,73 @@ const buildScalarValueSchema = (
     // integers, so reject any decimal input.
     return z
       .string()
-      .min(1, requiredMsg)
-      .refine(
-        (val) => /^\d+$/.test(val),
-        i18n.t('onboarding-overview:additionalQuestions.validation.wholeNumber')
-      );
+      .min(1, requiredError)
+      .regex(/^\d+$/, {
+        error: () =>
+          tActive(
+            'onboarding-overview:additionalQuestions.validation.wholeNumber'
+          ),
+      });
   }
 
   if (!itemType) return null;
 
   switch (itemType) {
     case 'boolean':
-      return z.enum(['true', 'false'], {
-        message: i18n.t('validation:common.invalidOption'),
-      });
+      return z.enum(['true', 'false'], invalidOptionError);
     case 'string':
-      return buildStringValueSchema(itemEnum, itemPattern, requiredMsg, {
+      return buildStringValueSchema(itemEnum, itemPattern, {
         minLength: question?.responseSchema?.items?.minLength,
         maxLength: question?.responseSchema?.items?.maxLength,
       });
     case 'integer':
       return z
         .string()
-        .min(1, requiredMsg)
-        .refine(
-          (val) => /^\d+$/.test(val),
-          i18n.t(
-            'onboarding-overview:additionalQuestions.validation.numberFormat'
-          )
-        );
+        .min(1, requiredError)
+        .regex(/^\d+$/, {
+          error: () =>
+            tActive(
+              'onboarding-overview:additionalQuestions.validation.numberFormat'
+            ),
+        });
     default:
-      return z.string().min(1, requiredMsg);
+      return z.string().min(1, requiredError);
   }
 };
 
 // Wrap a scalar schema in an array, applying min/max and surfacing child errors
 const wrapArrayValueSchema = (
-  childSchema: z.ZodTypeAny,
+  childSchema: z.ZodType,
   question: QuestionResponse,
   isOptional: boolean
-): z.ZodTypeAny => {
-  const requiredMsg = i18n.t(
-    'onboarding-overview:additionalQuestions.validation.required'
-  );
-  let arraySchema: z.ZodTypeAny = z.array(childSchema, {
-    required_error: requiredMsg,
-    invalid_type_error: requiredMsg,
-  });
+): z.ZodType => {
+  let arraySchema = z.array(childSchema, requiredError);
 
   if (!isOptional) {
-    arraySchema = (arraySchema as z.ZodArray<z.ZodTypeAny>)
-      .min(question?.responseSchema?.minItems ?? 1, requiredMsg)
-      .max(
-        question?.responseSchema?.maxItems ?? 1,
-        i18n.t('onboarding-overview:additionalQuestions.validation.maxItems', {
-          maxItems: question?.responseSchema?.maxItems,
-        })
-      );
+    const maxItems = question?.responseSchema?.maxItems;
+    arraySchema = arraySchema
+      .min(question?.responseSchema?.minItems ?? 1, requiredError)
+      .max(maxItems ?? 1, {
+        error: () =>
+          tActive(
+            'onboarding-overview:additionalQuestions.validation.maxItems',
+            {
+              maxItems,
+            }
+          ),
+      });
   }
 
   // Surface child-element validation errors at the field level
   // so FormMessage can display them (zod nests them at path [0] otherwise).
-  return (arraySchema as z.ZodArray<z.ZodTypeAny>).superRefine(
-    (values, context) => {
-      values.forEach((value: unknown) => {
-        const result = childSchema.safeParse(value);
-        if (result.error) {
-          context.addIssue(result.error.issues[0]);
-        }
-      });
-    }
-  );
+  return arraySchema.superRefine((values, context) => {
+    values.forEach((value: unknown) => {
+      const result = childSchema.safeParse(value);
+      if (result.error) {
+        context.addIssue(result.error.issues[0] as z.core.$ZodRawIssue);
+      }
+    });
+  });
 };
 
 // Validate an array-typed child question's value (min/max item counts)
@@ -274,8 +289,8 @@ const validateArrayChildValue = (
     fieldValue.length < minItems
   ) {
     context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: i18n.t(
+      code: 'custom',
+      message: tActive(
         'onboarding-overview:additionalQuestions.validation.required'
       ),
       path: [`question_${questionId}`],
@@ -286,8 +301,8 @@ const validateArrayChildValue = (
   const maxItems = question?.responseSchema?.maxItems;
   if (maxItems && fieldValue.length > maxItems) {
     context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: i18n.t(
+      code: 'custom',
+      message: tActive(
         'onboarding-overview:additionalQuestions.validation.maxItems',
         { maxItems }
       ),
@@ -325,8 +340,8 @@ const validateChildQuestion = (
 
   if (!fieldValue || (Array.isArray(fieldValue) && fieldValue.length === 0)) {
     context.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: i18n.t(
+      code: 'custom',
+      message: tActive(
         'onboarding-overview:additionalQuestions.validation.required'
       ),
       path: [`question_${questionId}`],
@@ -335,7 +350,7 @@ const validateChildQuestion = (
 };
 
 export const createDynamicZodSchema = (questionsData: QuestionResponse[]) => {
-  const schemaFields: Record<string, z.ZodTypeAny> = {};
+  const schemaFields: Record<string, z.ZodType> = {};
 
   questionsData.forEach((question) => {
     const questionId = normalizeQuestionId(question.id);

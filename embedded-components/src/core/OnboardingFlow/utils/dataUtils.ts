@@ -1,4 +1,4 @@
-import { i18n } from '@/i18n/config';
+import { tActive } from '@/i18n/activeI18n';
 
 import {
   ClientQuestionResponse,
@@ -137,10 +137,10 @@ export const formatQuestionResponse = (response: ClientQuestionResponse) => {
   const formattedResponse = response.values?.join(', ') || '';
 
   if (formattedResponse === 'false') {
-    return i18n.t('common:no');
+    return tActive('common:no');
   }
   if (formattedResponse === 'true') {
-    return i18n.t('common:yes');
+    return tActive('common:yes');
   }
   return formattedResponse;
 };
@@ -177,12 +177,35 @@ export const isInformationRequestStatus = (
   clientData?.status === 'INFORMATION_REQUESTED' ||
   clientData?.status === 'APPROVED';
 
+/**
+ * Outstanding questions answered in the requested-questions section. After
+ * submission that is every outstanding question, since operational details are
+ * locked; before it, only the ones the API files as RFI.
+ */
+export const getRequestedQuestionIds = (
+  clientData: ClientResponse | undefined,
+  rfiQuestionIds?: readonly string[]
+): string[] => {
+  const outstanding = clientData?.outstanding?.questionIds ?? [];
+  if (isInformationRequestStatus(clientData)) return outstanding;
+  if (clientData?.status !== 'NEW') return [];
+  return outstanding.filter((id) => rfiQuestionIds?.includes(id));
+};
+
+/** Outstanding questions that belong to onboarding's operational details. */
+export const getOnboardingQuestionIds = (
+  clientData: ClientResponse | undefined,
+  rfiQuestionIds?: readonly string[]
+): string[] =>
+  (clientData?.outstanding?.questionIds ?? []).filter(
+    (id) => !rfiQuestionIds?.includes(id)
+  );
+
 /** Whether an information request is waiting on question answers. */
 export const clientHasRequestedQuestions = (
-  clientData: ClientResponse | undefined
-): boolean =>
-  isInformationRequestStatus(clientData) &&
-  clientHasOutstandingQuestions(clientData);
+  clientData: ClientResponse | undefined,
+  rfiQuestionIds?: readonly string[]
+): boolean => getRequestedQuestionIds(clientData, rfiQuestionIds).length > 0;
 
 /** Whether an information request is waiting on document uploads. */
 export const clientHasRequestedDocuments = (
@@ -191,10 +214,19 @@ export const clientHasRequestedDocuments = (
   if (clientData?.status === 'INFORMATION_REQUESTED') {
     return clientHasOutstandingDocRequests(clientData);
   }
-  // After approval, the RFI is described by the client-level outstanding list.
+  if (clientData?.status !== 'APPROVED') return false;
+  // A related party's requests are only on its validationResponse; outstanding.partyIds says which are current.
+  const outstandingPartyIds = new Set(clientData.outstanding?.partyIds ?? []);
   return (
-    clientData?.status === 'APPROVED' &&
-    (clientData.outstanding?.documentRequestIds?.length ?? 0) > 0
+    (clientData.outstanding?.documentRequestIds?.length ?? 0) > 0 ||
+    (clientData.parties ?? []).some(
+      (party) =>
+        !!party.id &&
+        outstandingPartyIds.has(party.id) &&
+        party.validationResponse?.some(
+          (validation) => (validation.documentRequestIds?.length ?? 0) > 0
+        )
+    )
   );
 };
 

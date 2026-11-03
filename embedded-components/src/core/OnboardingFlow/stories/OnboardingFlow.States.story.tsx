@@ -27,6 +27,7 @@ import {
   mockClientInReview,
   mockClientNew,
   mockClientNewWithAuthorizedUserParty,
+  mockClientNewWithInformationRequest,
   OnboardingFlowTemplate,
   resetAndSeedClient,
 } from './story-utils';
@@ -120,6 +121,28 @@ export const NewWithClientIdAuthorizedUserPartyRole: Story = {
   },
 };
 
+/**
+ * **New — information requested before submission**
+ *
+ * An RFI question arrived before the application was submitted. It gets its
+ * own **Additional information** section, while the onboarding question stays
+ * in **Operational details**.
+ */
+export const NewWithInformationRequest: Story = {
+  name: 'New — information requested before submission',
+  loaders: [
+    () =>
+      resetAndSeedClient(
+        mockClientNewWithInformationRequest,
+        DEFAULT_CLIENT_ID
+      ),
+  ],
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+  },
+};
+
 // =============================================================================
 // IN REVIEW STATUS
 // =============================================================================
@@ -188,8 +211,8 @@ export const InformationRequestedWithQuestions: Story = {
 /**
  * **Information requested — questions only**
  *
- * The information request contains only questions. Answering "Yes" to the
- * sanctions question reveals a follow-up asking which countries.
+ * The information request contains only questions: free text and a Yes/No
+ * select.
  */
 export const InformationRequestedQuestionsOnly: Story = {
   name: 'Information requested — questions only',

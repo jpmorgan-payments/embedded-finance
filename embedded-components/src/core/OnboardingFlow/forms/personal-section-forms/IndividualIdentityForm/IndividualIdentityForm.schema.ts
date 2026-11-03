@@ -1,4 +1,4 @@
-import { i18n } from '@/i18n/config';
+import { tActive } from '@/i18n/activeI18n';
 import { z } from 'zod';
 
 import {
@@ -44,7 +44,7 @@ const createControllerIdSchema = (
           },
           v('controllerIds.expiryDate', 'tooFarInFuture')
         )
-        .or(z.literal(undefined)),
+        .optional(),
       idType: z
         .enum([
           '',
@@ -77,13 +77,16 @@ const createControllerIdSchema = (
         }
         return true;
       },
-      (data) => ({
-        message: v(
-          'controllerIds.value',
-          data.idType === 'SSN' ? 'ssnLength' : 'itinLength'
-        ),
+      {
         path: ['value'],
-      })
+        error: (issue) =>
+          v(
+            'controllerIds.value',
+            (issue.input as { idType?: string } | undefined)?.idType === 'SSN'
+              ? 'ssnLength'
+              : 'itinLength'
+          ),
+      }
     )
     .refine(
       (data) => {
@@ -92,13 +95,16 @@ const createControllerIdSchema = (
         }
         return true;
       },
-      (data) => ({
-        message: v(
-          'controllerIds.value',
-          data.idType === 'SSN' ? 'ssnDigitsOnly' : 'itinDigitsOnly'
-        ),
+      {
         path: ['value'],
-      })
+        error: (issue) =>
+          v(
+            'controllerIds.value',
+            (issue.input as { idType?: string } | undefined)?.idType === 'SSN'
+              ? 'ssnDigitsOnly'
+              : 'itinDigitsOnly'
+          ),
+      }
     )
     .refine(
       (data) => {
@@ -108,10 +114,10 @@ const createControllerIdSchema = (
         }
         return true;
       },
-      () => ({
+      {
         message: v('controllerIds.value', 'ssnFirstThree'),
         path: ['value'],
-      })
+      }
     )
     .refine(
       (data) => {
@@ -121,10 +127,10 @@ const createControllerIdSchema = (
         }
         return true;
       },
-      () => ({
+      {
         message: v('controllerIds.value', 'ssn666'),
         path: ['value'],
-      })
+      }
     )
     .refine(
       (data) => {
@@ -133,10 +139,10 @@ const createControllerIdSchema = (
         }
         return true;
       },
-      () => ({
+      {
         message: v('controllerIds.value', 'ssnKnownInvalid'),
         path: ['value'],
-      })
+      }
     )
     .refine(
       (data) => {
@@ -145,10 +151,10 @@ const createControllerIdSchema = (
         }
         return true;
       },
-      () => ({
+      {
         message: v('controllerIds.value', 'itinStartsWith9'),
         path: ['value'],
-      })
+      }
     )
     .refine(
       (data) => {
@@ -161,10 +167,10 @@ const createControllerIdSchema = (
         }
         return true;
       },
-      () => ({
+      {
         message: v('controllerIds.value', 'itinMiddleDigits'),
         path: ['value'],
-      })
+      }
     )
     .refine(
       (data) => {
@@ -173,10 +179,10 @@ const createControllerIdSchema = (
         }
         return true;
       },
-      () => ({
+      {
         message: v('controllerIds.value', 'itinKnownInvalid'),
         path: ['value'],
-      })
+      }
     );
 
 export const useIndividualIdentityFormSchema = () => {
@@ -248,32 +254,43 @@ export const useIndividualIdentityFormSchema = () => {
         v('birthDate', 'tooOld')
       ),
     solePropSsn: z.string(),
-    controllerIds: z.array(createControllerIdSchema(v)).refine((ids) => {
-      const types = ids?.map((id) => id.idType);
-      return new Set(types).size === types?.length;
-    }, i18n.t('onboarding-overview:fields.controllerIds.validation.uniqueTypes')),
+    controllerIds: z.array(createControllerIdSchema(v)).refine(
+      (ids) => {
+        const types = ids?.map((id) => id.idType);
+        return new Set(types).size === types?.length;
+      },
+      {
+        error: () =>
+          tActive(
+            'onboarding-overview:fields.controllerIds.validation.uniqueTypes'
+          ),
+      }
+    ),
   });
 };
 
 export const refineIndividualIdentityFormSchema = (
-  schema: z.ZodObject<Record<string, z.ZodTypeAny>>
+  schema: z.ZodObject<Record<string, z.ZodType>>
 ) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: i18n hook used inside a schema-refine helper invoked during render; tracked as debt.
   const v = useGetValidationMessage();
-  return schema.superRefine((data, ctx) => {
+  return schema.superRefine((rawData, ctx) => {
+    const data = rawData as Partial<
+      z.output<ReturnType<typeof useIndividualIdentityFormSchema>>
+    >;
     // Only validate sole prop SSN when the field is present (not hidden by field rules)
     // and the issuer country is US
     const issuerCountry = data.controllerIds?.[0]?.issuer;
     if ('solePropSsn' in data && issuerCountry === 'US') {
       if (!data.solePropSsn || data.solePropSsn.length === 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: v('solePropSsn', 'required'),
           path: ['solePropSsn'],
         });
       } else if (!isValidSsn(data.solePropSsn)) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: v('solePropSsn', 'format'),
           path: ['solePropSsn'],
         });

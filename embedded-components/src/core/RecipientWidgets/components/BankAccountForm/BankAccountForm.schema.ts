@@ -1,4 +1,4 @@
-import i18n from 'i18next';
+import { tActive } from '@/i18n/activeI18n';
 import { z } from 'zod';
 
 import { RoutingInformationTransactionType } from '@/api/generated/ep-recipients.schemas';
@@ -25,8 +25,9 @@ export const useGetBankAccountValidationMessage = (): ValidationGetter => {
     key: string,
     interpolation?: Record<string, string | number>
   ): string => {
+    // Resolved per call (no hooks), so it follows the active provider.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return i18n.t(`bank-account-form:${key}` as any, interpolation as any);
+    return tActive(`bank-account-form:${key}` as any, interpolation as any);
   };
 };
 
@@ -162,14 +163,14 @@ function validateAccountHolder(
   if (data.accountType === 'INDIVIDUAL') {
     if (!data.firstName || data.firstName.trim().length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: v('fields.firstName.validation.required'),
         path: ['firstName'],
       });
     }
     if (!data.lastName || data.lastName.trim().length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: v('fields.lastName.validation.required'),
         path: ['lastName'],
       });
@@ -177,7 +178,7 @@ function validateAccountHolder(
   } else if (data.accountType === 'ORGANIZATION') {
     if (!data.businessName || data.businessName.trim().length === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: v('fields.businessName.validation.required'),
         path: ['businessName'],
       });
@@ -198,7 +199,7 @@ function validateBankAccountDetails(
 
   if (!data.accountNumber || data.accountNumber.trim().length === 0) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('fields.accountNumber.validation.required'),
       path: ['accountNumber'],
     });
@@ -208,14 +209,14 @@ function validateBankAccountDetails(
     // digits-only.
     if (!/^[A-Za-z0-9\s]+$/.test(data.accountNumber)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: v('fields.accountNumber.validation.invalidCharacters'),
         path: ['accountNumber'],
       });
     }
   } else if (!/^\d+$/.test(data.accountNumber)) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('fields.accountNumber.validation.digitsOnly'),
       path: ['accountNumber'],
     });
@@ -225,7 +226,7 @@ function validateBankAccountDetails(
   // (e.g. IBAN countries, CLABE, Brazil); the FX wrapper hides it there.
   if (!intl?.hideBankAccountType && !data.bankAccountType) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('fields.accountType.validation.required'),
       path: ['bankAccountType'],
     });
@@ -257,7 +258,7 @@ function validateRoutingNumberForMethod(
 
   if (!routingEntry || !routingEntry.routingNumber.trim()) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('routingNumbers.validation.required', {
         method: methodConfig.labelString,
       }),
@@ -276,7 +277,7 @@ function validateRoutingNumberForMethod(
     !/^\d{9}$/.test(routingEntry.routingNumber)
   ) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('routingNumbers.validation.digits'),
       path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
     });
@@ -287,7 +288,7 @@ function validateRoutingNumberForMethod(
     const { pattern, errorMessage } = methodConfig.routingValidation;
     if (!pattern.test(routingEntry.routingNumber)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: errorMessage,
         path: ['routingNumbers', routingEntryIndex, 'routingNumber'],
       });
@@ -316,7 +317,7 @@ function validateRoutingNumbers(
     const value = data.routingNumbers?.[0]?.routingNumber?.trim() ?? '';
     if (!value && intl.routingCodeRequired !== false) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: v('routingNumbers.validation.codeRequired'),
         path: ['routingNumbers', 0, 'routingNumber'],
       });
@@ -339,7 +340,7 @@ function validateAddressFields(
 ): void {
   if (!address.addressLine1 || address.addressLine1.trim().length === 0) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('address.validation.streetAddressRequired'),
       path: ['address', 'addressLine1'],
     });
@@ -347,7 +348,7 @@ function validateAddressFields(
 
   if (!address.city || address.city.trim().length === 0) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('address.validation.cityRequired'),
       path: ['address', 'city'],
     });
@@ -355,7 +356,7 @@ function validateAddressFields(
 
   if (!address.state || address.state.trim().length === 0) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('address.validation.stateRequired'),
       path: ['address', 'state'],
     });
@@ -363,13 +364,13 @@ function validateAddressFields(
 
   if (!address.postalCode || address.postalCode.trim().length === 0) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('address.validation.postalCodeRequired'),
       path: ['address', 'postalCode'],
     });
   } else if (!/^\d{5}(-\d{4})?$/.test(address.postalCode)) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('address.validation.postalCodeFormat'),
       path: ['address', 'postalCode'],
     });
@@ -393,7 +394,7 @@ function validateAddress(
       (method) => config.paymentMethods.configs[method]?.requiredFields.address
     );
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('address.validation.required', {
         methods: methodsRequiringAddress
           .map((m) => config.paymentMethods.configs[m].label)
@@ -437,7 +438,7 @@ function validateContacts(
       contactType.charAt(0) + contactType.slice(1).toLowerCase();
 
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: methodLabels
         ? v('contacts.validation.requiredForMethod', {
             contactType: formattedContactType,
@@ -464,7 +465,7 @@ function validateLockedPaymentMethods(
     const methodConfig = config.paymentMethods.configs[method];
     if (methodConfig?.locked && !selectedMethods.includes(method)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: v('paymentMethods.validation.lockedRequired', {
           method: methodConfig.labelString,
         }),
@@ -506,7 +507,7 @@ function validateDuplicateAccounts(
 
   if (isDuplicate) {
     ctx.addIssue({
-      code: z.ZodIssueCode.custom,
+      code: 'custom',
       message: v('fields.accountNumber.validation.duplicate'),
       path: ['accountNumber'],
     });
@@ -522,7 +523,7 @@ export function createBankAccountFormSchema(
   config: BankAccountFormConfig,
   v: (key: string, interpolation?: Record<string, string | number>) => string,
   options: { requirePartySelection?: boolean } = {}
-): z.ZodType<BankAccountFormData> {
+): z.ZodType<BankAccountFormData, BankAccountFormData> {
   const baseSchema = createBaseSchema(config, v);
 
   return baseSchema.superRefine((data, ctx) => {
@@ -531,7 +532,7 @@ export function createBankAccountFormSchema(
 
     if (options.requirePartySelection && !data.selectedPartyId?.trim()) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: v('partySelector.validation.required'),
         path: ['selectedPartyId'],
       });
@@ -557,7 +558,7 @@ export function createBankAccountFormSchema(
 
     // 7. Duplicate detection against existing accounts
     validateDuplicateAccounts(data, config, v, ctx);
-  }) as z.ZodType<BankAccountFormData>;
+  }) as z.ZodType<BankAccountFormData, BankAccountFormData>;
 }
 
 /**

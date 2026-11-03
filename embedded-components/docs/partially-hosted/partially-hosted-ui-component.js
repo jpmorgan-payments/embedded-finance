@@ -36,7 +36,7 @@
 
   // Constants
   const DEFAULT_BASE_URL = 'https://onboarding.jpmorgan.com';
-  const DEFAULT_EXPERIENCE_TYPE = 'HOSTED_DOC_UPLOAD_ONBOARDING_UI';
+  const DEFAULT_EXPERIENCE_TYPE = 'HOSTED_ONBOARDING_UI';
 
   // Maximum `path + "?" + query` the gateway accepts; above this it returns a
   // 403 "Request Denied" page before the request reaches the application.

@@ -8,6 +8,11 @@ import {
   useRef,
   type ErrorInfo,
 } from 'react';
+import {
+  activateI18nInstance,
+  deactivateI18nInstance,
+  setPendingI18nInstance,
+} from '@/i18n/activeI18n';
 import { createI18nInstance } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Axios, { type InternalAxiosRequestConfig } from 'axios';
@@ -81,10 +86,24 @@ export const EBComponentsProvider: React.FC<PropsWithChildren<EBConfig>> = ({
   // This prevents global state pollution when multiple providers exist or routes change
   const contentTokensTokensJson = JSON.stringify(contentTokens?.tokens);
   const i18nInstance = useMemo(
-    () => createI18nInstance(contentTokens),
+    () => {
+      const instance = createI18nInstance(contentTokens);
+      // Lets validation in the first render use this provider's locale; the
+      // effect below takes over once the provider commits.
+      setPendingI18nInstance(instance);
+      return instance;
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on deep-compared contentTokens name+tokens to avoid recreating i18n on every render
     [contentTokens?.name, contentTokensTokensJson]
   );
+
+  // Validation messages and other non-React translations (see
+  // `@/i18n/activeI18n`) follow this provider's locale and content tokens
+  // while it is mounted.
+  useEffect(() => {
+    activateI18nInstance(i18nInstance);
+    return () => deactivateI18nInstance(i18nInstance);
+  }, [i18nInstance]);
 
   // Stable JSON representations for deep comparison
   const headersJson = JSON.stringify(headers);

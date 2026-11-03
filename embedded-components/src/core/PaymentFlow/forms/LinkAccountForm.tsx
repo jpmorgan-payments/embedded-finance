@@ -17,13 +17,15 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
+import { paymentFormError } from './paymentFormError';
+
 /**
  * Form schema for linking an account
  */
 const linkAccountSchema = z.object({
-  nickname: z.string().min(1, 'Account nickname is required'),
-  accountNumber: z.string().min(1, 'Account number is required'),
-  routingNumber: z.string().min(9, 'Routing number must be 9 digits').max(9),
+  nickname: z.string().min(1, paymentFormError('nicknameRequired')),
+  accountNumber: z.string().min(1, paymentFormError('accountNumberRequired')),
+  routingNumber: z.string().length(9, paymentFormError('routingNumberDigits')),
 });
 
 type LinkAccountFormData = z.infer<typeof linkAccountSchema>;

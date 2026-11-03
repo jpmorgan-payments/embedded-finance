@@ -116,12 +116,12 @@ For detailed guidelines, see root-level documentation:
 
 Project skills in [`../.github/skills/`](../.github/skills/README.md) cover this package. Agents that support the Agent Skills format load them automatically.
 
-| Skill | Use when |
-| --- | --- |
-| [embedded-banking-architecture](../.github/skills/embedded-banking-architecture/SKILL.md) | Creating components or deciding where code goes |
-| [react-patterns](../.github/skills/react-patterns/SKILL.md) | Generated API hooks, mutations, forms, error and loading states |
-| [component-testing](../.github/skills/component-testing/SKILL.md) | Writing or fixing Vitest/MSW tests |
-| [styling-guidelines](../.github/skills/styling-guidelines/SKILL.md) | `className` strings, the `eb-` prefix, and theme tokens |
-| [i18n-l10n](../.github/skills/i18n-l10n/SKILL.md) | User-visible text, translation keys, and locale formatting |
-| [code-quality-workflow](../.github/skills/code-quality-workflow/SKILL.md) | Validating changes before a commit, or triaging CI failures |
-| [ux-testing](../.github/skills/ux-testing/SKILL.md) | UX review sessions and backlog updates |
+| Skill                                                                                     | Use when                                                        |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [embedded-banking-architecture](../.github/skills/embedded-banking-architecture/SKILL.md) | Creating components or deciding where code goes                 |
+| [react-patterns](../.github/skills/react-patterns/SKILL.md)                               | Generated API hooks, mutations, forms, error and loading states |
+| [component-testing](../.github/skills/component-testing/SKILL.md)                         | Writing or fixing Vitest/MSW tests                              |
+| [styling-guidelines](../.github/skills/styling-guidelines/SKILL.md)                       | `className` strings, the `eb-` prefix, and theme tokens         |
+| [i18n-l10n](../.github/skills/i18n-l10n/SKILL.md)                                         | User-visible text, translation keys, and locale formatting      |
+| [code-quality-workflow](../.github/skills/code-quality-workflow/SKILL.md)                 | Validating changes before a commit, or triaging CI failures     |
+| [ux-testing](../.github/skills/ux-testing/SKILL.md)                                       | UX review sessions and backlog updates                          |

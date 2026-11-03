@@ -6,16 +6,21 @@ import {
   KycUpdateRequestStatus,
 } from '@/api/generated/smbdo.schemas';
 
-const maintenanceStatusSchema = z.nativeEnum(KycUpdateRequestStatus);
+// Server-generated timestamps (never user input). Consumers parse them with
+// `new Date`/`Date.parse` and handle invalid values, so don't reject a
+// response over formatting (e.g. offsets or missing fractional seconds).
+const serverTimestampSchema = z.string();
+
+const maintenanceStatusSchema = z.enum(KycUpdateRequestStatus);
 
 const maintenanceUpdateRequestSchema = z
   .object({
     status: maintenanceStatusSchema.optional(),
-    action: z.nativeEnum(KycUpdateRequestAction).optional(),
+    action: z.enum(KycUpdateRequestAction).optional(),
     requestId: z.string().optional(),
-    submittedAt: z.string().datetime().optional(),
+    submittedAt: serverTimestampSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
 const maintenanceAddressSchema = z
   .object({
@@ -26,7 +31,7 @@ const maintenanceAddressSchema = z
     postalCode: z.string().optional(),
     country: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 const maintenanceIdentitySchema = z
   .object({
@@ -34,7 +39,7 @@ const maintenanceIdentitySchema = z
     value: z.string().optional(),
     issuer: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 const maintenancePhoneSchema = z
   .object({
@@ -42,7 +47,7 @@ const maintenancePhoneSchema = z
     countryCode: z.string().optional(),
     phoneNumber: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 const maintenanceIndividualDetailsSchema = z
   .object({
@@ -59,7 +64,7 @@ const maintenanceIndividualDetailsSchema = z
     individualIds: z.array(maintenanceIdentitySchema).optional(),
     phone: maintenancePhoneSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
 const maintenanceOrganizationDetailsSchema = z
   .object({
@@ -76,7 +81,7 @@ const maintenanceOrganizationDetailsSchema = z
     industryType: z.string().optional(),
     industry: z
       .object({ codeType: z.string().optional(), code: z.string().optional() })
-      .passthrough()
+      .loose()
       .optional(),
     mcc: z.string().optional(),
     associatedCountries: z.array(z.string()).optional(),
@@ -84,7 +89,7 @@ const maintenanceOrganizationDetailsSchema = z
     website: z.string().optional(),
     entitiesInOwnership: z.boolean().optional(),
   })
-  .passthrough();
+  .loose();
 
 const maintenanceValidationResponseSchema = z
   .object({
@@ -95,7 +100,7 @@ const maintenanceValidationResponseSchema = z
     documentRequestIds: z.array(z.string()).optional(),
     roleSubType: z.array(z.unknown()).optional(),
   })
-  .passthrough();
+  .loose();
 
 export const maintenancePartySchema = z
   .object({
@@ -113,7 +118,7 @@ export const maintenancePartySchema = z
     validationResponse: z.array(maintenanceValidationResponseSchema).optional(),
     updateRequest: maintenanceUpdateRequestSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
 export const maintenanceClientSchema = z
   .object({
@@ -131,7 +136,7 @@ export const maintenanceClientSchema = z
             action: z.enum(['ADD', 'REMOVE']).optional(),
             onboardingStatus: z.string().optional(),
           })
-          .passthrough()
+          .loose()
       )
       .optional(),
     outstanding: z
@@ -142,7 +147,7 @@ export const maintenanceClientSchema = z
         partyIds: z.array(z.string()).optional(),
         partyRoles: z.array(z.string()).optional(),
       })
-      .passthrough()
+      .loose()
       .optional(),
     questionResponses: z
       .array(
@@ -154,7 +159,7 @@ export const maintenanceClientSchema = z
       .optional(),
     updateRequest: maintenanceUpdateRequestSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
 export const maintenancePageSchema = z
   .object({
@@ -167,21 +172,21 @@ export const maintenancePageSchema = z
       })
       .optional(),
   })
-  .passthrough();
+  .loose();
 
 export const maintenanceVerificationResponseSchema = z
   .object({
-    acceptedAt: z.string().datetime().optional(),
+    acceptedAt: serverTimestampSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
 const maintenanceDocumentRequestSummarySchema = z
   .object({
     id: z.string().optional(),
     partyId: z.string().optional(),
-    status: z.nativeEnum(DocumentRequestStatus).optional(),
+    status: z.enum(DocumentRequestStatus).optional(),
   })
-  .passthrough();
+  .loose();
 
 export const maintenanceDocumentRequestListSchema = z
   .object({
@@ -189,4 +194,4 @@ export const maintenanceDocumentRequestListSchema = z
       .array(maintenanceDocumentRequestSummarySchema)
       .default([]),
   })
-  .passthrough();
+  .loose();

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 
+import { cn } from '@/lib/utils';
+
 import { useMaintenanceFormExitGuard } from '../hooks/useMaintenanceFormExitGuard';
 import type { MaintenancePartyCreateRequest } from '../models/maintenanceApi.types';
 import { AddRelatedPartyForm } from './AddRelatedPartyForm';
@@ -8,6 +10,13 @@ import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
+import {
+  CHANGE_CARD_CLASS,
+  CHANGE_HEADER_CLASS,
+  HEADER_CLASS,
+  MaintenanceChangeEyebrow,
+  PAGE_CLASS,
+} from './MaintenanceChangeEyebrow';
 import { MaintenanceEntityMedallion } from './MaintenanceEntityMedallion';
 import { MaintenanceUnsavedChangesDialog } from './MaintenanceUnsavedChangesDialog';
 
@@ -72,12 +81,13 @@ export function MaintenanceAddPartyView({
         : 'addParty.description';
 
   return (
-    <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background">
-      <header className="eb-border-b eb-px-4 eb-py-4">
+    <div className={cn(PAGE_CLASS, CHANGE_CARD_CLASS)}>
+      <header className={cn(HEADER_CLASS, CHANGE_HEADER_CLASS)}>
         <MaintenanceBreadcrumb
           items={exitGuard.guardedBreadcrumbs}
           ariaLabel={tString('navigation.breadcrumbLabel')}
         />
+        <MaintenanceChangeEyebrow />
         <h2
           ref={headingRef}
           tabIndex={-1}

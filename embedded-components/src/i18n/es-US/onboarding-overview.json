@@ -318,6 +318,13 @@
       "continueToNextSection": "Continuar a la siguiente sección",
       "continueToSection": "Continuar a {{sectionLabel}}",
       "backToSection": "Volver a {{sectionLabel}}"
+    },
+    "shortLabels": {
+      "editOwner": "Editar propietario",
+      "addOwner": "Agregar propietario",
+      "editBusiness": "Editar empresa",
+      "editOwnerDetails": "Editar datos del propietario",
+      "editIntermediaryDetails": "Editar datos del intermediario"
     }
   },
   "screens": {
@@ -354,7 +361,10 @@
       "suggestButtonLabel": "Sugerir",
       "analyzing": "Analizando la descripción de su negocio...",
       "recommendationsHeader": "Industrias recomendadas según su descripción:",
-      "recommendationsInfo": "Estas recomendaciones son generadas por IA basadas en la descripción de su negocio y pueden no ser perfectamente precisas. Revíselas cuidadosamente antes de seleccionar."
+      "recommendationsInfo": "Estas recomendaciones son generadas por IA basadas en la descripción de su negocio y pueden no ser perfectamente precisas. Revíselas cuidadosamente antes de seleccionar.",
+      "emptyRecommendationTitle": "Mejore la descripción de su empresa",
+      "recommendationErrorTitle": "No se pudieron generar recomendaciones",
+      "viewExamplesAriaLabel": "Ver ejemplos de buenas descripciones de empresas (se abre en una pestaña nueva)"
     },
     "owners": {
       "title": "Propietarios y roles clave",
@@ -465,7 +475,8 @@
         "ptcExchange": "Bolsa: {{exchange}}",
         "ptcHint": "Si su empresa cotiza en bolsa o es subsidiaria de una que cotiza, seleccione Editar para agregar esa información.",
         "changeWarning": "Si cambia esto después de iniciar la solicitud, podría perder su progreso guardado.",
-        "editBusinessType": "Editar"
+        "editBusinessType": "Editar",
+        "editBusinessTypeAriaLabel": "Editar tipo de empresa"
       },
       "bankAccountSection": {
         "title": "Vincular una cuenta bancaria para pagos",
@@ -482,7 +493,13 @@
           "READY_FOR_VALIDATION": "Los datos de su cuenta bancaria han sido enviados. Verifique los montos de los depósitos para completar la configuración.",
           "REJECTED": "Los datos de su cuenta bancaria han sido enviados pero no pudieron ser verificados.",
           "INACTIVE": "Los datos de su cuenta bancaria han sido enviados."
-        }
+        },
+        "accountActionsAriaLabel": "Acciones de la cuenta"
+      },
+      "sectionStatus": {
+        "completed": "Completado",
+        "notStarted": "No iniciado",
+        "missingDetails": "Faltan datos"
       }
     },
     "linkAccount": {
@@ -555,7 +572,29 @@
     "intermediarySteps": {
       "orgDetails": {
         "title": "Datos del intermediario",
-        "description": "Nombre de la organización, porcentaje de propiedad y país de constitución"
+        "description": "Nombre de la organización, porcentaje de propiedad y país de constitución",
+        "fields": {
+          "organizationName": {
+            "label": "Nombre legal de la empresa",
+            "description": "Ingréselo exactamente como aparece en los documentos de registro de la empresa",
+            "required": "El nombre de la organización es obligatorio"
+          },
+          "organizationType": {
+            "label": "Tipo de organización",
+            "description": "La clasificación legal de la entidad",
+            "required": "El tipo de organización es obligatorio"
+          },
+          "organizationIdEin": {
+            "label": "EIN (número de identificación del empleador)",
+            "description": "Número de identificación emitido por el gobierno",
+            "required": "El EIN es obligatorio"
+          },
+          "countryOfFormation": {
+            "label": "País de constitución",
+            "description": "País donde esta entidad se constituyó legalmente",
+            "required": "El país de constitución es obligatorio"
+          }
+        }
       },
       "orgAddress": {
         "title": "Dirección comercial",
@@ -682,11 +721,52 @@
       "title": "Detalles operativos",
       "description": "Responda estas preguntas adicionales para ayudarnos a comprender las operaciones de su negocio.",
       "selectPlaceholder": "Seleccione una opción",
+      "selectMultiplePlaceholder": "Seleccione una o más",
+      "searchOptions": "Buscar",
+      "selectedCount_one": "{{count}} seleccionada",
+      "selectedCount_other": "{{count}} seleccionadas",
+      "removeOption": "Quitar {{option}}",
+      "maxSelected_one": "Puede seleccionar {{count}} opción.",
+      "maxSelected_other": "Puede seleccionar hasta {{count}} opciones.",
       "noQuestions": "No hay preguntas adicionales. Puede continuar al siguiente paso.",
       "loadingQuestions": "Cargando preguntas...",
       "saveAndReturn": "Guardar y volver a la revisión",
       "saveAndContinue": "Guardar y continuar a la revisión",
       "newQuestionsGenerated": "Según sus respuestas, se necesitan algunas preguntas adicionales. Por favor complételas para continuar."
+    },
+    "indirectOwnerDetails": {
+      "title": "Proporcione los datos de propietarios y entidades",
+      "description": "Proporcione la información requerida para cada propietario y entidad intermediaria identificados en su estructura de propiedad.",
+      "backToOwnershipStructure": "Volver a la estructura de propiedad",
+      "individuals": {
+        "title": "Personas",
+        "description": "Proporcione los datos personales de cada propietario beneficiario.",
+        "empty": "No se encontraron propietarios individuales."
+      },
+      "intermediaryEntities": {
+        "title": "Entidades intermediarias",
+        "description": "Proporcione los datos de la organización de cada entidad intermediaria a través de la cual los propietarios indirectos mantienen su participación.",
+        "empty": "No se encontraron entidades intermediarias."
+      },
+      "noParties": "No se encontraron partes. Regrese y complete primero su estructura de propiedad.",
+      "saveAndContinue": "Guardar y continuar",
+      "completeAllToContinue": "Complete todos los datos para continuar ({{completed}}/{{total}})",
+      "status": {
+        "notStarted": "No iniciado",
+        "incomplete": "Incompleto",
+        "complete": "Completo"
+      },
+      "roles": {
+        "directOwner": "Propietario beneficiario directo",
+        "indirectOwner": "Propietario beneficiario indirecto",
+        "intermediaryEntity": "Entidad intermediaria"
+      },
+      "actions": {
+        "start": "Comenzar",
+        "edit": "Editar"
+      },
+      "unnamedOrganization": "Organización sin nombre",
+      "unnamedOwner": "Propietario sin nombre"
     }
   },
   "additionalQuestions": {
@@ -1546,6 +1626,8 @@
     },
     "thereIsAProblem": "Hay un problema",
     "provideMissingDetails": "Proporcione los detalles faltantes antes de finalizar su solicitud.",
+    "answerRequestedQuestions": "Responda las preguntas del equipo de revisión antes de finalizar su solicitud.",
+    "goToRequestedQuestions": "Responder preguntas",
     "owners": "Propietarios",
     "noStakeholders": "Aún no se han agregado partes interesadas.",
     "manageOwners": "Administrar propietarios",
@@ -1598,8 +1680,10 @@
     },
     "disclosure": {
       "footer": "Servicios bancarios proporcionados por JPMorgan Chase Bank, N.A., Miembro FDIC. {{platformName}} no es un banco.",
-      "fdic": "{{productName}} están asegurados por la FDIC hasta $250,000 por depositante para cada categoría de titularidad de cuenta. La disponibilidad del seguro de depósitos de la FDIC protege contra la quiebra de JPMorgan Chase Bank, N.A., Miembro FDIC, y no de {{platformName}}."
-    }
+      "fdic": "{{productName}} están asegurados por la FDIC hasta $250,000 por depositante para cada categoría de titularidad de cuenta. La disponibilidad del seguro de depósitos de la FDIC protege contra la quiebra de JPMorgan Chase Bank, N.A., Miembro FDIC, y no de {{platformName}}.",
+      "ariaLabel": "Divulgación regulatoria"
+    },
+    "provideMissingDetailsTitle": "Proporcione los datos faltantes"
   },
   "industrySelect": {
     "placeholder": "Seleccionar una industria",

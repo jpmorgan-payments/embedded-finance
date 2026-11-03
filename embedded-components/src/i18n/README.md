@@ -73,6 +73,62 @@ Each locale contains the following namespaces:
 - `recipients.json` - RecipientsWidget management translations
 - `transactions.json` - Transactions display translations
 - `validation.json` - Form validation messages
+- `zod.json` - Built-in Zod validation messages (see below)
+
+## Translating Outside React Components
+
+Inside components, use `useTranslationWithTokens`. Code that runs outside
+React (Zod schemas, formatters, field-map helpers) must not import the global
+`i18n` from `@/i18n/config`: it is always en-US and ignores `contentTokens`.
+Use `tActive` from `@/i18n/activeI18n` instead. It translates with the active
+`EBComponentsProvider` instance (locale + content tokens) and falls back to the
+global instance outside a provider.
+
+Call `tActive` when the text is needed, not at module load. For Zod schemas,
+use a lazy error so the message is resolved at validation time:
+
+```typescript
+import { tActive } from '@/i18n/activeI18n';
+
+const requiredError = { error: () => tActive('common:validation.required') };
+
+const schema = z.object({
+  name: z.string().min(1, requiredError),
+  code: z.string().refine(isValidCode, {
+    error: () => tActive('validation:common.invalidOption'),
+  }),
+});
+```
+
+## Zod Validation Messages
+
+`src/i18n/zodErrorMap.ts` translates Zod's built-in issues (e.g. "Required",
+string length, enum, format) using the `zod` namespace. Messages passed
+explicitly to a schema (`.min(1, 'Required')`) take precedence.
+
+- Inside `EBComponentsProvider`, messages follow the provider's locale
+  (`contentTokens.name`) and honor `contentTokens.tokens.zod` overrides. If
+  several providers are mounted, the most recently mounted one applies.
+- Outside a provider, the global i18n instance (en-US) is used.
+
+The `zod.json` files are derived from the locale files of
+[zod-i18n-map](https://github.com/aiji42/zod-i18n) by aiji42, used under the
+MIT License, and extended with keys for Zod 4-only issues.
+
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions: The above copyright
+> notice and this permission notice shall be included in all copies or
+> substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS",
+> WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+> THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+> FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+> TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+> THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Notes
 

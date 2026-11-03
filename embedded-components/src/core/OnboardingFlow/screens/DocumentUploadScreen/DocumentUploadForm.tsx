@@ -6,9 +6,8 @@ import { useForm, useFormState, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
 import {
+  getSmbdoGetClientQueryKey,
   useSmbdoGetDocumentRequest,
-  useSmbdoSubmitDocumentRequest,
-  useSmbdoUploadDocument,
 } from '@/api/generated/smbdo';
 import {
   DocumentRequestResponse,
@@ -21,6 +20,10 @@ import {
   useFlowContext,
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
+import {
+  useDocumentRequestUpload,
+  type DocumentRequestUpload,
+} from '@/core/OnboardingFlow/hooks/useDocumentRequestUpload';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { getPartyName } from '@/core/OnboardingFlow/utils/dataUtils';
 
@@ -248,8 +251,19 @@ export const DocumentUploadForm = () => {
 
   const docRequestId = editingPartyIds['document-upload-form'];
 
-  const uploadDocumentMutation = useSmbdoUploadDocument();
-  const submitDocumentMutation = useSmbdoSubmitDocumentRequest();
+  const {
+    uploadAndSubmit,
+    uploadError,
+    submitError,
+    reset: resetUpload,
+  } = useDocumentRequestUpload({
+    refreshClient: async () => {
+      if (!clientData?.id) return;
+      await queryClient.invalidateQueries({
+        queryKey: getSmbdoGetClientQueryKey(clientData.id),
+      });
+    },
+  });
 
   // State to track which requirements are active/visible
   const [activeRequirements, setActiveRequirements] = useState<
@@ -287,12 +301,12 @@ export const DocumentUploadForm = () => {
 
   // zod schema, dynamically generated based on the document types
   const DocumentUploadSchema = useMemo(() => {
-    const schema: Record<string, z.ZodTypeAny> = {};
+    const schema: Record<string, z.ZodType> = {};
     activeDocumentRequests.forEach((documentRequest) => {
       if (!documentRequest?.id || !documentRequest.requirements) {
         return;
       }
-      const nestedSchema: Record<string, z.ZodTypeAny> = {};
+      const nestedSchema: Record<string, z.ZodType> = {};
 
       // Include all requirements in the schema, not just active ones
       documentRequest.requirements.forEach((requirement, index) => {
@@ -319,7 +333,7 @@ export const DocumentUploadForm = () => {
               .optional(); // Make optional instead of required
             // Add a field for file upload
             nestedSchema[`requirement_${index}_files${fieldSuffix}`] = z
-              .array(z.instanceof(File))
+              .array(z.file())
               .optional(); // Make optional instead of required
           }
         }
@@ -389,16 +403,11 @@ export const DocumentUploadForm = () => {
     const values = form.getValues();
 
     try {
-      // Step 1: Upload all documents for all document requests first
-      const documentRequestIds: string[] = [];
-
       for (const [documentRequestId, requirementValues] of Object.entries(
         values
       )) {
-        documentRequestIds.push(documentRequestId);
-
         // Create a more direct mapping of document type to files to ensure each document is uploaded
-        const documentUploads: { documentType: string; file: File }[] = [];
+        const documentUploads: DocumentRequestUpload[] = [];
 
         // Process form values to extract document types and files directly
         Object.entries(requirementValues as Record<string, unknown>).forEach(
@@ -433,43 +442,11 @@ export const DocumentUploadForm = () => {
           }
         );
 
-        // Upload each document individually (files are already compressed if applicable)
-        for (const { documentType, file } of documentUploads) {
-          const documentData = {
-            documentType,
-            documentRequestId,
-            // metadata: [
-            //   {
-            //     key: 'DOCUMENT_REQUEST_ID',
-            //     value: documentRequestId,
-            //   },
-            // ],
-          };
-
-          await uploadDocumentMutation.mutateAsync({
-            data: {
-              documentData: JSON.stringify(documentData),
-              file,
-            },
-          });
-        }
+        // Files are already compressed if applicable.
+        await uploadAndSubmit(documentRequestId, documentUploads);
       }
 
-      // Step 2: After all uploads are complete, submit each document request
-      // Only if we have request IDs to submit
-      if (documentRequestIds.length > 0) {
-        // If no new documents to upload but we have satisfied requirements,
-        // we still need to submit the document requests
-        for (const documentRequestId of documentRequestIds) {
-          await submitDocumentMutation.mutateAsync({
-            id: documentRequestId,
-          });
-        }
-      }
-
-      // Invalidate both client and document request queries
-      queryClient.invalidateQueries();
-
+      // The next screen opens on the refreshed statuses.
       goTo('upload-documents-section');
     } catch (error) {
       console.error('Error uploading documents:', error);
@@ -494,8 +471,7 @@ export const DocumentUploadForm = () => {
     setActiveRequirements(initialActiveReqs);
 
     // Clear API error messages from mutations
-    uploadDocumentMutation.reset();
-    submitDocumentMutation.reset();
+    resetUpload();
 
     // Force dropzone and selects to reset by changing the key
     setDropzoneResetKey((prev) => prev + 1);
@@ -678,15 +654,13 @@ export const DocumentUploadForm = () => {
 
           <div className="eb-mt-6 eb-flex eb-flex-col eb-gap-3">
             <ServerErrorAlert
-              error={
-                uploadDocumentMutation.error || submitDocumentMutation.error
-              }
+              error={uploadError || submitError}
               customErrorMessage={
-                uploadDocumentMutation.error
+                uploadError
                   ? t(
                       'onboarding-overview:documentUpload.documentUploadForm.errorMessages.uploadError'
                     )
-                  : submitDocumentMutation.error
+                  : submitError
                     ? t(
                         'onboarding-overview:documentUpload.documentUploadForm.errorMessages.submitError'
                       )

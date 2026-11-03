@@ -9,6 +9,7 @@ import {
   useGetRecipient,
   useRecipientsVerification,
 } from '@/api/generated/ep-recipients';
+import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import { useSmbdoGetClient } from '@/api/generated/smbdo';
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import {
@@ -26,6 +27,10 @@ const mockSubmit = vi.fn();
 const mockSetFlowUnsavedChanges = vi.fn();
 const mockUpdateSessionData = vi.fn();
 const mockReset = vi.fn();
+const CREATED_RECIPIENT = {
+  id: 'recipient-new',
+  status: 'MICRODEPOSITS_INITIATED',
+} as unknown as Recipient;
 
 vi.mock('@/core/OnboardingFlow/contexts', async (importOriginal) => {
   const actual =
@@ -156,7 +161,7 @@ function mockLoadingRecipients() {
 }
 
 function mockRecipientFormWithCallback() {
-  let onSuccessCb: (() => void) | undefined;
+  let onSuccessCb: ((recipient?: Recipient) => void) | undefined;
   vi.mocked(useRecipientForm).mockImplementation((opts) => {
     onSuccessCb = opts.onSuccess;
     return {
@@ -169,7 +174,7 @@ function mockRecipientFormWithCallback() {
       isError: false,
     } as unknown as ReturnType<typeof useRecipientForm>;
   });
-  return () => onSuccessCb?.();
+  return () => onSuccessCb?.(CREATED_RECIPIENT);
 }
 
 function mockRecipientFormWithError(error: unknown) {
@@ -849,7 +854,10 @@ describe('LinkAccountScreen', () => {
       });
 
       expect(mockUpdateSessionData).toHaveBeenCalledWith({
-        linkAccountJustCreated: true,
+        linkAccountJustCreated: {
+          id: 'recipient-new',
+          status: 'MICRODEPOSITS_INITIATED',
+        },
       });
       expect(mockGoTo).toHaveBeenCalledWith('overview', {
         resetHistory: true,
@@ -993,7 +1001,10 @@ describe('LinkAccountScreen', () => {
 
       await waitFor(() => {
         expect(mockUpdateSessionData).toHaveBeenCalledWith({
-          linkAccountJustCreated: true,
+          linkAccountJustCreated: {
+            id: 'recipient-new',
+            status: 'MICRODEPOSITS_INITIATED',
+          },
         });
         expect(mockGoTo).toHaveBeenCalledWith('overview', {
           resetHistory: true,

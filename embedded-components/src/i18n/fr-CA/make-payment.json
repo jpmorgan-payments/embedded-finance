@@ -279,5 +279,18 @@
       "notUsAch": "\"ACH\" et \"Virement\" désignent ici des niveaux de règlement FX (faible valeur vs valeur élevée), et non le réseau ACH domestique américain ni Fedwire. Les canaux disponibles dépendent de la devise de destination.",
       "rtpUnavailable": "Non disponible pour les paiements en devise étrangère"
     }
+  },
+  "formValidation": {
+    "bankNameRequired": "Le nom de la banque est obligatoire",
+    "accountNumberRequired": "Le numéro de compte est obligatoire",
+    "routingNumberDigits": "Le numéro d'acheminement doit comporter 9 chiffres",
+    "nameRequired": "Le nom est obligatoire",
+    "wireDetailsRequired": "Les détails du virement bancaire sont obligatoires",
+    "nicknameRequired": "Le surnom du compte est obligatoire",
+    "beneficiaryAddressRequired": "L'adresse du bénéficiaire est obligatoire",
+    "cityRequired": "La ville est obligatoire",
+    "stateRequired": "L'État est obligatoire",
+    "zipRequired": "Le code postal est obligatoire",
+    "bankAddressRequired": "L'adresse de la banque est obligatoire"
   }
 }

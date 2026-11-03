@@ -34,6 +34,7 @@ import { MaintenanceDocumentRequestRow } from './MaintenanceDocumentRequestRow';
 import { MaintenanceIdentifierValue } from './MaintenanceIdentifierValue';
 import { MaintenanceOwnershipRolesSection } from './MaintenanceOwnershipRolesSection';
 import { MaintenancePageBody } from './MaintenancePageBody';
+import { MaintenanceRequestChangeButton } from './MaintenanceRequestChangeButton';
 import { MaintenanceSection } from './MaintenanceSection';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
 
@@ -63,6 +64,7 @@ type MaintenanceEntityViewProps = {
   backLabel: string;
   removeActionLabel: string;
   requiresControllerReplacement: boolean;
+  onRequestChange?: () => void;
 };
 
 export function MaintenanceEntityView({
@@ -90,6 +92,7 @@ export function MaintenanceEntityView({
   backLabel,
   removeActionLabel,
   requiresControllerReplacement,
+  onRequestChange,
 }: MaintenanceEntityViewProps) {
   const { t, tString } = useTranslationWithTokens([
     'approved-client-maintenance',
@@ -106,6 +109,9 @@ export function MaintenanceEntityView({
     tString('notProvided')
   );
   const updateStatus = task.change?.proposal.updateRequest?.status;
+  const requestChangeButton = onRequestChange ? (
+    <MaintenanceRequestChangeButton onClick={onRequestChange} />
+  ) : null;
   const isPendingRemoval = task.change?.removesParty ?? false;
   const isAdditionUnderReview =
     task.isPendingAddition && updateStatus === 'REVIEW_IN_PROGRESS';
@@ -361,6 +367,7 @@ export function MaintenanceEntityView({
                   {t('pendingRemoval.cancel')}
                 </Button>
               ) : null}
+              {requestChangeButton}
             </div>
           ) : task.isPendingAddition ? (
             <div className="eb-flex eb-w-full eb-flex-col eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-flex-row">
@@ -389,8 +396,9 @@ export function MaintenanceEntityView({
                   {t('pendingAddition.discard')}
                 </Button>
               ) : null}
+              {requestChangeButton}
             </div>
-          ) : (!task.change && canEdit) || canRemove ? (
+          ) : (!task.change && canEdit) || canRemove || onRequestChange ? (
             <div className="eb-flex eb-w-full eb-flex-wrap eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-justify-end">
               {!task.change && canEdit ? (
                 <Button variant="outlineSurface" size="sm" onClick={onEdit}>
@@ -413,6 +421,7 @@ export function MaintenanceEntityView({
                   {removeActionLabel}
                 </Button>
               ) : null}
+              {requestChangeButton}
             </div>
           ) : null}
         </div>

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { render, screen, userEvent } from '@test-utils';
 
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { INTERMEDIARY_OWNER_ROLE } from '@/core/IndirectOwnership/IndirectOwnership.types';
 import { flowConfig } from '@/core/OnboardingFlow/config/flowConfig';
 import {
@@ -100,8 +101,11 @@ function makeClient(parties: Array<Record<string, unknown>>): ClientResponse {
   } as unknown as ClientResponse;
 }
 
-function renderScreen(clientData: ClientResponse) {
-  return render(
+function renderScreen(
+  clientData: ClientResponse,
+  locale?: 'enUS' | 'frCA' | 'esUS'
+) {
+  const screenUi = (
     <QueryClientProvider client={queryClient}>
       <OnboardingContext.Provider
         value={
@@ -119,6 +123,15 @@ function renderScreen(clientData: ClientResponse) {
         </FlowProvider>
       </OnboardingContext.Provider>
     </QueryClientProvider>
+  );
+  return render(
+    locale ? (
+      <EBComponentsProvider apiBaseUrl="" contentTokens={{ name: locale }}>
+        {screenUi}
+      </EBComponentsProvider>
+    ) : (
+      screenUi
+    )
   );
 }
 
@@ -191,5 +204,25 @@ describe('IndirectOwnerDetailsScreen', () => {
     const orgCard = screen.getByText('MidCo Holdings').closest('div');
     expect(orgCard).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /^Edit$/i }));
+  });
+
+  test('renders in the provider locale', () => {
+    renderScreen(
+      makeClient([completeIndividual, incompleteIndividual]),
+      'frCA'
+    );
+
+    expect(
+      screen.getByText('Fournir les détails des propriétaires et des entités')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Incomplet')).toBeInTheDocument();
+    expect(
+      screen.getByText('Propriétaire bénéficiaire indirect')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Remplissez tous les détails pour continuer (1/2)',
+      })
+    ).toBeDisabled();
   });
 });

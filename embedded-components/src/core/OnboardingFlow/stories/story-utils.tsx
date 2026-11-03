@@ -111,12 +111,10 @@ export const mockClientInfoRequested: ClientResponse = {
 };
 
 /**
- * Question IDs raised in the sample information request, taken from
- * `efClientQuestionsMock`. As in the delta-mode stories, the conditional
- * follow-up 30162 is outstanding alongside its parent 30158, so it appears
- * inline once the parent is answered "Yes".
+ * `RFI` questions from `efClientQuestionsMock`, modeled on ones raised in UAT:
+ * free text, a Yes/No select, and free text.
  */
-export const REQUESTED_QUESTION_IDS = ['30158', '30162', '30194'];
+export const REQUESTED_QUESTION_IDS = ['500096', '500099', '500011'];
 
 /** INFORMATION_REQUESTED with both document requests and questions outstanding */
 export const mockClientInfoRequestedWithQuestions: ClientResponse = {
@@ -138,6 +136,15 @@ export const mockClientInfoRequestedQuestionsOnly: ClientResponse = {
     ...mockClientInfoRequested.outstanding,
     documentRequestIds: [],
     questionIds: REQUESTED_QUESTION_IDS,
+  },
+};
+
+/** NEW client with an RFI raised before submission, next to an onboarding question. */
+export const mockClientNewWithInformationRequest: ClientResponse = {
+  ...mockClientNew,
+  outstanding: {
+    ...mockClientNew.outstanding,
+    questionIds: ['30095', '500096'],
   },
 };
 

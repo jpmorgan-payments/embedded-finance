@@ -1,10 +1,28 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { DollarSignIcon } from 'lucide-react';
-import { useFormContext } from 'react-hook-form';
+import {
+  CheckIcon,
+  ChevronsUpDownIcon,
+  DollarSignIcon,
+  XIcon,
+} from 'lucide-react';
+import {
+  useFormContext,
+  useWatch,
+  type ControllerRenderProps,
+} from 'react-hook-form';
 
 import { cn } from '@/lib/utils';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
+import { Badge } from '@/components/ui/badge';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   FormControl,
   FormField,
@@ -13,6 +31,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
@@ -22,7 +45,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox, Separator } from '@/components/ui';
+import { Button, Checkbox, Separator } from '@/components/ui';
 import {
   isQuestionVisible as computeQuestionVisibility,
   getChildQuestions,
@@ -39,6 +62,24 @@ type QuestionFieldProps = {
   question: QuestionResponse;
   /** Render free-text string questions as a multi-line textarea. */
   multilineText?: boolean;
+};
+
+/** Beyond this many options (the API sends 237 countries), a question gets a searchable list. */
+export const SEARCHABLE_OPTIONS_THRESHOLD = 10;
+
+// Fuzzy matching turns "Cana" into a dozen countries; match the typed text, best at the start.
+const filterOptions = (value: string, search: string) => {
+  const option = value.toLowerCase();
+  const query = search.trim().toLowerCase();
+  if (option.startsWith(query)) return 1;
+  return option.includes(query) ? 0.5 : 0;
+};
+
+// A choice has no blur of its own, so mark it touched as it's made: it then
+// validates, and counts as answered, the way a typed answer does on blur.
+const choose = (field: ControllerRenderProps, values: string[]) => {
+  field.onChange(values);
+  field.onBlur();
 };
 
 const QuestionLabel = ({ question }: { question: QuestionResponse }) => (
@@ -141,7 +182,7 @@ const BooleanQuestionField = ({ question }: QuestionFieldProps) => {
           <QuestionLabel question={question} />
           <FormControl>
             <RadioGroup
-              onValueChange={(value) => field.onChange([value])}
+              onValueChange={(value) => choose(field, [value])}
               value={field?.value?.[0] ?? ''}
               className="eb-flex eb-flex-col eb-space-y-1"
             >
@@ -202,8 +243,9 @@ const MultiSelectQuestionField = ({
                             ? field.value
                             : [];
                           return checked
-                            ? field.onChange([...currentValues, option])
-                            : field.onChange(
+                            ? choose(field, [...currentValues, option])
+                            : choose(
+                                field,
                                 currentValues.filter(
                                   (value: string) => value !== option
                                 )
@@ -238,7 +280,7 @@ const SingleSelectQuestionField = ({
         <FormItem>
           <QuestionLabel question={question} />
           <Select
-            onValueChange={(value) => field.onChange([value])}
+            onValueChange={(value) => choose(field, [value])}
             value={field?.value?.[0] ?? ''}
           >
             <FormControl>
@@ -262,6 +304,172 @@ const SingleSelectQuestionField = ({
           <FormMessage />
         </FormItem>
       )}
+    />
+  );
+};
+
+const SearchableOptionsQuestionField = ({
+  question,
+  options,
+  maxItems,
+}: QuestionFieldProps & { options: string[]; maxItems: number }) => {
+  const { control } = useFormContext();
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
+  const [open, setOpen] = useState(false);
+  const isMultiple = maxItems > 1;
+
+  return (
+    <FormField
+      control={control}
+      name={getQuestionFieldName(question.id)}
+      render={({ field }) => {
+        const selected: string[] = Array.isArray(field.value)
+          ? field.value.filter(Boolean)
+          : [];
+        const isAtLimit = isMultiple && selected.length >= maxItems;
+        const select = (option: string) => {
+          if (!isMultiple) {
+            choose(field, [option]);
+            setOpen(false);
+            return;
+          }
+          choose(
+            field,
+            selected.includes(option)
+              ? selected.filter((value) => value !== option)
+              : [...selected, option]
+          );
+        };
+        const placeholder = tString(
+          isMultiple
+            ? 'screens.operationalDetails.selectMultiplePlaceholder'
+            : 'screens.operationalDetails.selectPlaceholder'
+        );
+
+        return (
+          <FormItem>
+            <QuestionLabel question={question} />
+            <Popover
+              open={open}
+              onOpenChange={(nextOpen) => {
+                setOpen(nextOpen);
+                if (!nextOpen) field.onBlur();
+              }}
+            >
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    type="button"
+                    variant="input"
+                    size="input"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="eb-w-full eb-justify-between eb-font-normal"
+                  >
+                    <span
+                      className={cn(
+                        'eb-truncate',
+                        selected.length === 0 && 'eb-text-muted-foreground'
+                      )}
+                    >
+                      {selected.length === 0
+                        ? placeholder
+                        : isMultiple
+                          ? t('screens.operationalDetails.selectedCount', {
+                              count: selected.length,
+                            })
+                          : selected[0]}
+                    </span>
+                    <ChevronsUpDownIcon className="eb-ml-2 eb-size-4 eb-shrink-0 eb-opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="eb-w-[--radix-popover-trigger-width] eb-p-0"
+              >
+                <Command filter={filterOptions}>
+                  <CommandInput
+                    placeholder={tString(
+                      'screens.operationalDetails.searchOptions'
+                    )}
+                  />
+                  <CommandList>
+                    <CommandEmpty>{t('common:noOptionFound')}</CommandEmpty>
+                    <CommandGroup>
+                      {options.map((option) => {
+                        const isSelected = selected.includes(option);
+                        return (
+                          <CommandItem
+                            key={option}
+                            value={option}
+                            disabled={isAtLimit && !isSelected}
+                            onSelect={() => select(option)}
+                            className="eb-cursor-pointer"
+                          >
+                            <CheckIcon
+                              aria-hidden="true"
+                              className={cn(
+                                'eb-mr-2 eb-size-4 eb-shrink-0',
+                                isSelected ? 'eb-opacity-100' : 'eb-opacity-0'
+                              )}
+                            />
+                            {option}
+                          </CommandItem>
+                        );
+                      })}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {isMultiple && selected.length > 0 ? (
+              <ul
+                data-selected-options=""
+                className="eb-flex eb-flex-wrap eb-gap-1.5"
+              >
+                {selected.map((option) => (
+                  <li key={option}>
+                    <Badge
+                      variant="outline"
+                      className="eb-gap-1 eb-py-0.5 eb-pl-2.5 eb-pr-1 eb-text-sm eb-font-normal"
+                    >
+                      {option}
+                      <button
+                        type="button"
+                        aria-label={tString(
+                          'screens.operationalDetails.removeOption',
+                          { option }
+                        )}
+                        className="eb-rounded-full eb-p-0.5 eb-text-muted-foreground hover:eb-bg-muted hover:eb-text-foreground focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring"
+                        onClick={() =>
+                          choose(
+                            field,
+                            selected.filter((value) => value !== option)
+                          )
+                        }
+                      >
+                        <XIcon aria-hidden="true" className="eb-size-3.5" />
+                      </button>
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {isAtLimit && maxItems < options.length ? (
+              <p className="eb-text-xs eb-text-muted-foreground">
+                {t('screens.operationalDetails.maxSelected', {
+                  count: maxItems,
+                })}
+              </p>
+            ) : null}
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };
@@ -329,8 +537,17 @@ export const QuestionField = ({
       return <BooleanQuestionField question={question} />;
     case 'string':
       if (itemEnum && itemEnum.length > 0) {
-        const maxItems = question?.responseSchema?.maxItems;
-        return maxItems && maxItems > 1 ? (
+        const maxItems = question?.responseSchema?.maxItems ?? 1;
+        if (itemEnum.length > SEARCHABLE_OPTIONS_THRESHOLD) {
+          return (
+            <SearchableOptionsQuestionField
+              question={question}
+              options={itemEnum}
+              maxItems={maxItems}
+            />
+          );
+        }
+        return maxItems > 1 ? (
           <MultiSelectQuestionField question={question} options={itemEnum} />
         ) : (
           <SingleSelectQuestionField question={question} options={itemEnum} />
@@ -350,6 +567,8 @@ type QuestionListProps = {
   /** Every loaded question (all nesting levels). */
   questions: QuestionResponse[];
   multilineText?: boolean;
+  /** Narrows the top-level questions shown; each keeps its visible sub-questions. */
+  filterTopLevel?: (question: QuestionResponse) => boolean;
 };
 
 /**
@@ -359,11 +578,18 @@ type QuestionListProps = {
 export const QuestionList = ({
   questions,
   multilineText,
+  filterTopLevel = () => true,
 }: QuestionListProps) => {
-  const { watch } = useFormContext();
+  const { control } = useFormContext();
+  const fieldNames = useMemo(
+    () => questions.map((question) => getQuestionFieldName(question.id)),
+    [questions]
+  );
+  // Only the answers re-render the list, not typing elsewhere in a shared form.
+  const answers: unknown[] = useWatch({ control, name: fieldNames });
 
   const getResponseValues = (questionId: string) =>
-    watch(getQuestionFieldName(questionId));
+    answers[fieldNames.indexOf(getQuestionFieldName(questionId))];
 
   const isVisible = (question: QuestionResponse): boolean =>
     computeQuestionVisibility(question, questions, getResponseValues);
@@ -398,6 +624,7 @@ export const QuestionList = ({
     <>
       {questions
         .filter((question) => isTopLevelQuestion(question, questions))
+        .filter(filterTopLevel)
         .filter(isVisible)
         .map((question, index) => (
           <Fragment key={question.id ?? `question-${index}`}>

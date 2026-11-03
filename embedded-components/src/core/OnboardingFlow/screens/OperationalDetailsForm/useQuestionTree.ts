@@ -5,8 +5,10 @@ import {
   ApiError,
   ClientQuestionResponse,
   QuestionResponse,
+  SmbdoListQuestionsParams,
 } from '@/api/generated/smbdo.schemas';
 import type { ErrorType } from '@/api/use-axios-instance';
+import type { QuestionCategory } from '@/core/OnboardingFlow/utils/questionCategory';
 
 const normalizeQuestionId = (id: unknown): string =>
   id == null ? '' : String(id);
@@ -252,7 +254,7 @@ export const useQuestionTree = ({
   const l4Questions = useMemo(() => l4Data?.questions ?? [], [l4Data]);
 
   // --- Merge all levels ---
-  const allQuestions = useMemo(
+  const mergedQuestions = useMemo(
     () =>
       mergeQuestions(
         l0Questions,
@@ -263,6 +265,36 @@ export const useQuestionTree = ({
       ),
     [l0Questions, l1Questions, l2Questions, l3Questions, l4Questions]
   );
+
+  // GET /questions filters by `category` but doesn't return it, so ask which roots are onboarding questions.
+  const kycParams: SmbdoListQuestionsParams & { category: 'KYC' } = {
+    questionIds: rootQuestionIds.join(','),
+    category: 'KYC',
+  };
+  const { data: kycData, status: kycStatus } = useSmbdoListQuestions(
+    kycParams,
+    { query: { enabled: enabled && rootQuestionIds.length > 0 } }
+  );
+
+  // Follow-ups that aren't roots inherit their parent's category; see questionCategory.ts.
+  const allQuestions = useMemo(() => {
+    const kycQuestions = kycData?.questions ?? [];
+    // A partial page (the API returns at most 25) would misfile the rest as RFI.
+    if (
+      kycStatus !== 'success' ||
+      (kycData?.metadata?.total ?? kycQuestions.length) > kycQuestions.length
+    ) {
+      return mergedQuestions;
+    }
+    const rootIds = new Set(rootQuestionIds);
+    const kycIds = new Set(kycQuestions.map((q) => normalizeQuestionId(q.id)));
+    return mergedQuestions.map((question) => {
+      const id = normalizeQuestionId(question.id);
+      if (!rootIds.has(id)) return question;
+      const category: QuestionCategory = kycIds.has(id) ? 'KYC' : 'RFI';
+      return { ...question, category };
+    });
+  }, [mergedQuestions, kycData, kycStatus, rootQuestionIds]);
 
   const allFormQuestionIds = useMemo(() => {
     const ids = new Set([
@@ -279,6 +311,7 @@ export const useQuestionTree = ({
     enabled &&
     rootQuestionIds.length > 0 &&
     (l0Status === 'pending' ||
+      kycStatus === 'pending' ||
       (l1Ids.length > 0 && l1Status === 'pending') ||
       (l2Ids.length > 0 && l2Status === 'pending') ||
       (l3Ids.length > 0 && l3Status === 'pending') ||

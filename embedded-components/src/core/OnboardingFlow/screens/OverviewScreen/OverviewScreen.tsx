@@ -256,7 +256,10 @@ const BusinessTypeNewSection = () => {
   const { organizationType, clientData, enablePubliclyTradedCompanies } =
     useOnboardingContext();
   const { goTo } = useFlowContext();
-  const { t } = useTranslationWithTokens(['onboarding-overview', 'common']);
+  const { t, tString } = useTranslationWithTokens([
+    'onboarding-overview',
+    'common',
+  ]);
   const getOrganizationTypeLabel = useOrganizationTypeLabel();
 
   const organizationTypeText = getOrganizationTypeLabel(organizationType!);
@@ -294,7 +297,9 @@ const BusinessTypeNewSection = () => {
             variant="ghost"
             size="sm"
             onClick={() => goTo('gateway')}
-            aria-label="Edit business type"
+            aria-label={tString(
+              'screens.overview.verifyBusinessSection.editBusinessTypeAriaLabel'
+            )}
             className="eb-rounded-input hover:eb-bg-black/5"
           >
             <PencilIcon />
@@ -394,7 +399,9 @@ const SingleLinkedAccountView = ({
           <div
             className="eb-flex eb-items-center eb-gap-2"
             role="group"
-            aria-label="Account actions"
+            aria-label={tString(
+              'screens.overview.bankAccountSection.accountActionsAriaLabel'
+            )}
           >
             <RecipientDetailsDialog recipient={recipient}>
               <Button
@@ -511,19 +518,28 @@ const LinkedBankAccountSection = () => {
 
   const existingLinkedAccount: Recipient | undefined = linkedAccounts[0];
 
-  const successAlert = sessionData.linkAccountJustCreated ? (
+  const justCreated = sessionData.linkAccountJustCreated;
+  // Until the list refetches, it lacks the new account, so use the status the create returned.
+  const justCreatedStatus =
+    recipientsData?.recipients?.find(
+      (recipient) => recipient.id === justCreated?.id
+    )?.status ??
+    justCreated?.status ??
+    'PENDING';
+
+  const successAlert = justCreated ? (
     <Alert variant="success" density="sm" className="eb-mb-2" noTitle>
       <CheckCircle2Icon className="eb-size-4" />
       <AlertDescription className="eb-pr-6">
         {t(
-          `screens.overview.bankAccountSection.successAlert.${existingLinkedAccount?.status ?? 'ACTIVE'}`,
+          `screens.overview.bankAccountSection.successAlert.${justCreatedStatus}`,
           'Your bank account details have been submitted successfully.'
         )}
       </AlertDescription>
       <button
         type="button"
         className="eb-absolute eb-right-4 eb-top-3 eb-rounded-sm eb-opacity-70 hover:eb-opacity-100 focus:eb-outline-none focus:eb-ring-2 focus:eb-ring-ring focus:eb-ring-offset-2"
-        onClick={() => updateSessionData({ linkAccountJustCreated: false })}
+        onClick={() => updateSessionData({ linkAccountJustCreated: undefined })}
       >
         <XIcon className="eb-size-4" />
         <span className="eb-sr-only">Close</span>
@@ -538,9 +554,11 @@ const LinkedBankAccountSection = () => {
     </p>
   ) : null;
 
-  const handleLinkSuccess = () => {
-    updateSessionData({ linkAccountJustCreated: true });
-    invalidateRecipientQueries(queryClient, 'LINKED_ACCOUNT');
+  // The recipient form already refreshes the list; refreshing again would cancel that fetch.
+  const handleLinkSuccess = (recipient?: Recipient) => {
+    updateSessionData({
+      linkAccountJustCreated: { id: recipient?.id, status: recipient?.status },
+    });
   };
 
   const renderContent = () => {
@@ -1209,7 +1227,11 @@ export const OverviewScreen = () => {
                               {sectionStatus === 'completed' && (
                                 <>
                                   <CheckCircle2Icon className="eb-stroke-success" />
-                                  <span className="eb-sr-only">Completed</span>
+                                  <span className="eb-sr-only">
+                                    {t(
+                                      'screens.overview.sectionStatus.completed'
+                                    )}
+                                  </span>
                                 </>
                               )}
                               {['not_started', 'on_hold'].includes(
@@ -1218,7 +1240,9 @@ export const OverviewScreen = () => {
                                 <>
                                   <CircleDashedIcon className="eb-stroke-muted-foreground" />
                                   <span className="eb-sr-only">
-                                    Not started
+                                    {t(
+                                      'screens.overview.sectionStatus.notStarted'
+                                    )}
                                   </span>
                                 </>
                               )}
@@ -1226,7 +1250,9 @@ export const OverviewScreen = () => {
                                 <>
                                   <AlertTriangleIcon className="eb-stroke-warning" />
                                   <span className="eb-sr-only">
-                                    Missing details
+                                    {t(
+                                      'screens.overview.sectionStatus.missingDetails'
+                                    )}
                                   </span>
                                 </>
                               )}

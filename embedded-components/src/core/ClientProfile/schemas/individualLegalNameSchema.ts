@@ -60,7 +60,10 @@ export function createIndividualLegalNameSchemaShape<
   getValidationMessage: ProfileValidationMessage<
     NoInfer<IndividualLegalNameFieldName<TFieldNames>>
   >
-): Record<IndividualLegalNameFieldName<TFieldNames>, z.ZodType<string>> {
+): Record<
+  IndividualLegalNameFieldName<TFieldNames>,
+  z.ZodType<string, string>
+> {
   type FieldName = IndividualLegalNameFieldName<TFieldNames>;
   return {
     [fieldNames.firstName]: createRequiredNameSchema<FieldName>(
@@ -77,6 +80,6 @@ export function createIndividualLegalNameSchemaShape<
     ),
   } as unknown as Record<
     IndividualLegalNameFieldName<TFieldNames>,
-    z.ZodType<string>
+    z.ZodType<string, string>
   >;
 }

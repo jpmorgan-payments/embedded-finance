@@ -1,9 +1,15 @@
+import {
+  activateI18nInstance,
+  deactivateI18nInstance,
+} from '@/i18n/activeI18n';
+import { createI18nInstance } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { describe, expect, test } from 'vitest';
 import { render, screen } from '@test-utils';
 
+import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
 import { flowConfig } from '@/core/OnboardingFlow/config/flowConfig';
 import {
   FlowProvider,
@@ -72,6 +78,25 @@ describe('IntermediaryOrgDetailsForm', () => {
     }
   });
 
+  test('schema messages follow the active provider locale', () => {
+    const emptyName = () =>
+      intermediaryOrgDetailsSchema.safeParse({
+        organizationName: '',
+        organizationType: 'C_CORPORATION',
+        organizationIdEin: '123456789',
+        countryOfFormation: 'US',
+      }).error?.issues[0]?.message;
+
+    expect(emptyName()).toBe('Organization name is required');
+    const spanish = createI18nInstance({ name: 'esUS' });
+    activateI18nInstance(spanish);
+    try {
+      expect(emptyName()).toBe('El nombre de la organización es obligatorio');
+    } finally {
+      deactivateI18nInstance(spanish);
+    }
+  });
+
   test('renders the organization detail fields', () => {
     render(
       <FormHarness
@@ -90,6 +115,21 @@ describe('IntermediaryOrgDetailsForm', () => {
     expect(screen.getByText(/Organization Type/i)).toBeInTheDocument();
     expect(screen.getByText(/EIN/i)).toBeInTheDocument();
     expect(screen.getByText(/Country of Formation/i)).toBeInTheDocument();
+  });
+});
+
+describe('organizationType review value', () => {
+  test('shows the localized organization type name', () => {
+    const toStringFn = partyFieldMap.organizationType.toStringFn!;
+    expect(toStringFn('C_CORPORATION', {})).toBe('C Corporation');
+
+    const french = createI18nInstance({ name: 'frCA' });
+    activateI18nInstance(french);
+    try {
+      expect(toStringFn('C_CORPORATION', {})).toBe('Corporation de type C');
+    } finally {
+      deactivateI18nInstance(french);
+    }
   });
 });
 

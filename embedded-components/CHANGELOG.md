@@ -2,11 +2,45 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.18.0] - 2026-11-03
+
+### Changes
+
+#### Features
+
+- **onboarding-flow:** search long question option lists
+- **client-maintenance:** request profile changes through a guided change request
+- **onboarding-flow:** show review team questions in their own section
+- **partially-hosted:** default experienceType to HOSTED_ONBOARDING_UI
+- **i18n:** localize intermediary flow and remaining onboarding strings
+- **validation:** upgrade to Zod 4 with provider-scoped i18n
+
+#### Bug Fixes
+
+- **onboarding:** scope readonlyFields locks to the party being edited
+- **onboarding-flow:** answer review-screen questions with the same inputs as onboarding
+- **onboarding-flow:** keep FlowRenderer's hook order stable while client data loads
+- **i18n:** drop a provider's pending locale when its render never commits
+- **onboarding-flow:** link to the review team's questions in document-upload-only mode
+- **onboarding-flow:** keep the last question classification while new question IDs load
+- **onboarding-flow:** keep an RFI answer's follow-up question with the requested questions
+- **onboarding-flow:** require answers to the review team's questions before finishing the application
+- **client-maintenance:** open the business's requested documents from the banner and step back when a picked person leaves
+- **onboarding-flow:** show the new linked account's real status after linking
+- **release:** ignore PR merge commits when finding previous release boundary
+
+#### Performance
+
+- **onboarding-flow:** share one document upload refresh across flows
+- **onboarding-flow:** refresh only what a document upload changed
+
 ## [0.17.21] - 2026-10-28
 
 ### Changes
 
-- Maintenance release
+#### Bug Fixes
+
+- **linked-accounts:** restrict edit payment methods according to configuration
 
 ## [0.17.20] - 2026-10-27
 
@@ -155,7 +189,7 @@ All notable changes to the `embedded-components` package are documented in this 
 
 - **payment-flow:** localize payee accessible labels
 - replace vulnerable regex patterns with linear parsing
-- **onboarding:** update regex for segment matching in _get function to correctly handle array indices
+- **onboarding:** update regex for segment matching in \_get function to correctly handle array indices
 
 ## [0.17.8] - 2026-08-24
 
@@ -190,22 +224,22 @@ All notable changes to the `embedded-components` package are documented in this 
 - carry selected entity partyId from chain builder to host
 - **i18n:** allow for stylized alert content
 - enhance indirect ownership wizard with intermediary details and address validation
-- **SMBDO-11796:** enable Save and Continue when no-beneficial-owners attested
-- **SMBDO-11796:** add 'no one owns 25%' attestation checkbox in empty state
-- **SMBDO-11796:** consolidate pending chain CTA into inline button
-- **SMBDO-11796:** clean up chain builder dialog to remove redundant CTAs
-- **SMBDO-11796:** add ADA-compliant pending chain visualization with alert icon
-- **SMBDO-11796:** simplify Add Owner dialog and unify ownership chain language
-- **SMBDO-11796:** add intermediary confirmation prompt and unify ownership chain language
-- **SMBDO-11796:** Add end-to-end tests for Indirect Ownership flows to ensure correct behavior and validation
-- **SMBDO-11796:** Refactor ownership chain logic to utilize allOwners for consistency and improved hierarchy management
-- **SMBDO-11796:** Enhance EntityCombobox with onSelect callback and improve handleAddCompany logic
-- **SMBDO-11796:** Enhance ownership chain management by reusing existing entities and improving validation
-- **SMBDO-11796:** Update ownership roles and field interactions for indirect ownership management
-- **SMBDO-11796:** Enhance Indirect Ownership functionality
-- **SMBDO-11796:** Enhance Indirect Ownership Management
-- **SMBDO-11796:** add controllerPartyId to manage owner removal visibility
-- **SMBDO-11796:** port OnboardingFlow indirect-ownership integration for parity
+- enable Save and Continue when no-beneficial-owners attested
+- add 'no one owns 25%' attestation checkbox in empty state
+- consolidate pending chain CTA into inline button
+- clean up chain builder dialog to remove redundant CTAs
+- add ADA-compliant pending chain visualization with alert icon
+- simplify Add Owner dialog and unify ownership chain language
+- add intermediary confirmation prompt and unify ownership chain language
+- Add end-to-end tests for Indirect Ownership flows to ensure correct behavior and validation
+- Refactor ownership chain logic to utilize allOwners for consistency and improved hierarchy management
+- Enhance EntityCombobox with onSelect callback and improve handleAddCompany logic
+- Enhance ownership chain management by reusing existing entities and improving validation
+- Update ownership roles and field interactions for indirect ownership management
+- Enhance Indirect Ownership functionality
+- Enhance Indirect Ownership Management
+- add controllerPartyId to manage owner removal visibility
+- port OnboardingFlow indirect-ownership integration for parity
 
 #### Bug Fixes
 
@@ -217,18 +251,18 @@ All notable changes to the `embedded-components` package are documented in this 
 - correct ownership transitions without data loss or graph divergence
 - unify owner completion predicate and add PENDING_DETAILS status
 - cascade-deactivate orphaned intermediaries on owner removal
-- **SMBDO-11796:** hide indirect toggle for chain intermediary entities
-- **SMBDO-11796:** prevent owner from being its own intermediary in chain builder
-- **SMBDO-11796:** remove duplicate Save button, let host control continue
-- **SMBDO-11796:** always show Save and Continue when conditions met
-- **SMBDO-11796:** unify badge labels - use 'Indirect Owner' for both individuals and businesses
-- **SMBDO-11796:** prevent individual parties from appearing as intermediary chain steps
-- **SMBDO-11796:** correctly label direct vs indirect beneficial owners in PartyCard
-- **SMBDO-11796:** type INTERMEDIARY_OWNER_ROLE as Role instead of string
-- **SMBDO-11796:** address PR review feedback
-- **SMBDO-11796:** remove package-lock.json (project uses yarn) and restore yarn.lock
-- **SMBDO-11796:** fix 2 failing tests and add change report
-- **SMBDO-11796:** fix no-lonely-if lint error and format all changed files
+- hide indirect toggle for chain intermediary entities
+- prevent owner from being its own intermediary in chain builder
+- remove duplicate Save button, let host control continue
+- always show Save and Continue when conditions met
+- unify badge labels - use 'Indirect Owner' for both individuals and businesses
+- prevent individual parties from appearing as intermediary chain steps
+- correctly label direct vs indirect beneficial owners in PartyCard
+- type INTERMEDIARY_OWNER_ROLE as Role instead of string
+- address PR review feedback
+- remove package-lock.json (project uses yarn) and restore yarn.lock
+- fix 2 failing tests and add change report
+- fix no-lonely-if lint error and format all changed files
 
 ## [0.17.5] - 2026-08-07
 

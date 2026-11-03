@@ -1,6 +1,8 @@
 import { useTranslationWithTokens } from '@/i18n';
 import { ArrowRightIcon, Building2Icon } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
+
 import { useMaintenanceFormExitGuard } from '../hooks/useMaintenanceFormExitGuard';
 import type { MaintenancePartyCreateRequest } from '../models/maintenanceApi.types';
 import { AddIntermediaryOwnerForm } from './AddIntermediaryOwnerForm';
@@ -8,6 +10,13 @@ import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
+import {
+  CHANGE_CARD_CLASS,
+  CHANGE_HEADER_CLASS,
+  HEADER_CLASS,
+  MaintenanceChangeEyebrow,
+  PAGE_CLASS,
+} from './MaintenanceChangeEyebrow';
 import { MaintenanceUnsavedChangesDialog } from './MaintenanceUnsavedChangesDialog';
 
 export function MaintenanceAddIntermediaryView({
@@ -36,12 +45,13 @@ export function MaintenanceAddIntermediaryView({
   );
   const exitGuard = useMaintenanceFormExitGuard(breadcrumbs, onBack);
   return (
-    <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background">
-      <header className="eb-border-b eb-px-4 eb-py-4">
+    <div className={cn(PAGE_CLASS, CHANGE_CARD_CLASS)}>
+      <header className={cn(HEADER_CLASS, CHANGE_HEADER_CLASS)}>
         <MaintenanceBreadcrumb
           items={exitGuard.guardedBreadcrumbs}
           ariaLabel={tString('navigation.breadcrumbLabel')}
         />
+        <MaintenanceChangeEyebrow />
         <div className="eb-flex eb-items-center eb-gap-2">
           <Building2Icon
             className="eb-size-5 eb-shrink-0 eb-text-muted-foreground"

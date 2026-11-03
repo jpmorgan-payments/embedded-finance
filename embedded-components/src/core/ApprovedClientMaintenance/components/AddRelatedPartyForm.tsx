@@ -157,8 +157,11 @@ const createSchema = (
       email: z
         .string()
         .min(1, getValidationMessage('controllerEmail', 'required'))
-        .email(getValidationMessage('controllerEmail', 'invalid'))
-        .max(100, getValidationMessage('controllerEmail', 'maxLength')),
+        .pipe(
+          z
+            .email(getValidationMessage('controllerEmail', 'invalid'))
+            .max(100, getValidationMessage('controllerEmail', 'maxLength'))
+        ),
       phone: z.object({
         phoneType: z.string(),
         countryCode: z.string(),
@@ -173,14 +176,14 @@ const createSchema = (
       const birthDateIssue = getBirthDateValidationIssue(values.birthDate);
       if (birthDateIssue) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['birthDate'],
           message: getValidationMessage('birthDate', birthDateIssue),
         });
       }
       if (values.jobTitle === 'Other' && !values.jobTitleDescription) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['jobTitleDescription'],
           message: getValidationMessage(
             'controllerJobTitleDescription',
@@ -199,7 +202,7 @@ const createSchema = (
           ))
       ) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['phone', 'phoneNumber'],
           message: getValidationMessage(
             'controllerPhone.phoneNumber',
@@ -213,7 +216,7 @@ const createSchema = (
       );
       if (taxIdIssue) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['individualId', 'value'],
           message: getValidationMessage('controllerIds.value', taxIdIssue),
         });

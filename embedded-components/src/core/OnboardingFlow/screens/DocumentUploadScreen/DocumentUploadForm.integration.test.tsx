@@ -5,6 +5,7 @@
  * Document upload uses multipart FormData; MSW's default `/documents` handler expects JSON, so we stub the React Query hooks here and assert `mutateAsync` payloads plus `goTo` / `goBack`.
  */
 import { server } from '@/msw/server';
+import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { render, screen, userEvent, waitFor } from '@test-utils';
 
@@ -276,6 +277,62 @@ describe('DocumentUploadForm (integration)', () => {
         'upload-documents-section'
       );
     });
+  });
+
+  test('refreshes only the client and document requests, then leaves once they settle', async () => {
+    const pendingRefreshes: Array<() => void> = [];
+    const invalidateQueries = vi
+      .spyOn(QueryClient.prototype, 'invalidateQueries')
+      .mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            pendingRefreshes.push(resolve);
+          })
+      );
+    renderDocumentUploadForm();
+
+    await screen.findByRole('heading', {
+      name: /acme upload fixtures llc/i,
+    });
+    const uploadHeading = screen.getAllByText(/upload document/i)[0];
+    const fileInput = uploadHeading
+      .closest('div')
+      ?.parentElement?.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(
+      fileInput,
+      new File(['%PDF-1.4 minimal'], 'license.pdf', {
+        type: 'application/pdf',
+      })
+    );
+    const submitBtn = screen.getByRole('button', {
+      name: /upload documents/i,
+    });
+    await waitFor(() => expect(submitBtn).not.toBeDisabled(), {
+      timeout: 15_000,
+    });
+    await user.click(submitBtn);
+
+    await waitFor(() => expect(invalidateQueries).toHaveBeenCalledTimes(3));
+    // Never every query in the app: each call is scoped to what the upload changed.
+    invalidateQueries.mock.calls.forEach(([filters]) => {
+      expect(filters?.queryKey ?? filters?.predicate).toBeDefined();
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['/clients/client-duf'],
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['/document-requests'],
+      refetchType: 'all',
+    });
+    expect(docFormTestCtx.goTo).not.toHaveBeenCalled();
+
+    pendingRefreshes.forEach((resolve) => resolve());
+    await waitFor(() =>
+      expect(docFormTestCtx.goTo).toHaveBeenCalledWith(
+        'upload-documents-section'
+      )
+    );
+    invalidateQueries.mockRestore();
   });
 
   test('Reset form triggers upload and submit mutation reset()', async () => {

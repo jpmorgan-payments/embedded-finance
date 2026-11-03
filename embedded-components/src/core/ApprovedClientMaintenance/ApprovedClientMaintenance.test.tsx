@@ -36,7 +36,7 @@ const resetCancellation = vi.fn();
 const resetVerificationAttempt = vi.fn();
 const refetchClient = vi.fn();
 const refetchMaintenance = vi.fn();
-const refreshMaintenanceWorkspace = vi.fn();
+const refreshMaintenanceClient = vi.fn();
 
 const approvedClient: MaintenanceClient = {
   id: 'client-1',
@@ -192,7 +192,7 @@ const workspace = {
   },
   submitForReview,
   resetVerificationAttempt,
-  refreshMaintenanceWorkspace,
+  refreshMaintenanceClient,
 };
 
 vi.mock('./hooks/useMaintenanceWorkspace', () => ({
@@ -365,6 +365,7 @@ describe('ApprovedClientMaintenance', () => {
     });
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -449,7 +450,11 @@ describe('ApprovedClientMaintenance', () => {
     });
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
@@ -489,7 +494,11 @@ describe('ApprovedClientMaintenance', () => {
       ),
     };
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
@@ -535,7 +544,11 @@ describe('ApprovedClientMaintenance', () => {
     updatePartyName.mockResolvedValue(undefined);
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
     await user.click(screen.getByRole('button', { name: 'Edit details' }));
@@ -595,7 +608,11 @@ describe('ApprovedClientMaintenance', () => {
     };
     updatePartyName.mockResolvedValue(undefined);
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
@@ -624,6 +641,7 @@ describe('ApprovedClientMaintenance', () => {
     updateParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -655,6 +673,7 @@ describe('ApprovedClientMaintenance', () => {
     const user = userEvent.setup();
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -704,7 +723,11 @@ describe('ApprovedClientMaintenance', () => {
       ),
     };
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
@@ -730,6 +753,7 @@ describe('ApprovedClientMaintenance', () => {
     updateParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -788,6 +812,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -823,7 +848,13 @@ describe('ApprovedClientMaintenance', () => {
 
   test('shows a view-only profile when no exact eligibility rule is configured', async () => {
     const user = userEvent.setup();
-    render(<ApprovedClientMaintenance clientId="client-1" eligibility={[]} />);
+    render(
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={[]}
+      />
+    );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
     expect(
@@ -850,6 +881,7 @@ describe('ApprovedClientMaintenance', () => {
     };
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -882,7 +914,11 @@ describe('ApprovedClientMaintenance', () => {
       parties: [createProposal('Diaz')],
     };
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
@@ -901,13 +937,17 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(screen.getByText('Business profile')).toBeInTheDocument();
     expect(screen.queryByText('Reference request-1')).not.toBeInTheDocument();
     const pendingSummaryHeading = screen.getByRole('heading', {
-      name: 'Draft maintenance request',
+      name: 'Draft change request',
     });
     const pendingSummary = pendingSummaryHeading.closest('section');
     expect(pendingSummary).toHaveClass(
@@ -936,14 +976,16 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
+    expect(screen.getByText('Change request submitted')).toBeInTheDocument();
     expect(
-      screen.getByText('Maintenance request submitted')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Maintenance request submitted').closest('section')
+      screen.getByText('Change request submitted').closest('section')
     ).toHaveClass('eb-bg-informative-accent');
     expect(
       screen.queryByRole('button', { name: 'Discard all changes' })
@@ -958,7 +1000,11 @@ describe('ApprovedClientMaintenance', () => {
   test('keeps save disabled until a name field actually changes', async () => {
     const user = userEvent.setup();
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
@@ -990,7 +1036,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(screen.getByText('Internal Server Error')).toBeInTheDocument();
@@ -1006,7 +1056,11 @@ describe('ApprovedClientMaintenance', () => {
     const user = userEvent.setup();
     updatePartyName.mockResolvedValue(undefined);
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
@@ -1061,7 +1115,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(screen.queryByText('Reference request-1')).not.toBeInTheDocument();
@@ -1107,11 +1165,15 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
-      screen.getByText('Maintenance request needs attention')
+      screen.getByText('Change request needs attention')
     ).toBeInTheDocument();
     expect(screen.getByText('Action required')).toBeInTheDocument();
     expect(screen.queryByText('Upload documents')).not.toBeInTheDocument();
@@ -1172,7 +1234,11 @@ describe('ApprovedClientMaintenance', () => {
     workspace.isDocumentDiscoveryPending = true;
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(screen.getByText('Preparing documents')).toBeInTheDocument();
@@ -1213,7 +1279,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     const businessRow = screen.getByRole('button', {
@@ -1246,7 +1316,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(screen.getByText('Business profile')).toBeInTheDocument();
@@ -1266,7 +1340,11 @@ describe('ApprovedClientMaintenance', () => {
     cancelChanges.mockResolvedValue(undefined);
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Diaz/ }));
@@ -1292,7 +1370,7 @@ describe('ApprovedClientMaintenance', () => {
     const viewFullMaintenanceRequest = within(draftSection!).getByRole(
       'button',
       {
-        name: 'View maintenance request',
+        name: 'View change request',
       }
     );
     expect(comparisonGroup).not.toContainElement(viewFullMaintenanceRequest);
@@ -1323,7 +1401,7 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
   });
 
-  test('discards the maintenance request from the review page', async () => {
+  test('discards the change request from the review page', async () => {
     const user = userEvent.setup();
     workspace.maintenanceQuery.data = {
       pages: [],
@@ -1332,7 +1410,11 @@ describe('ApprovedClientMaintenance', () => {
     cancelChanges.mockResolvedValue(undefined);
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
@@ -1353,7 +1435,7 @@ describe('ApprovedClientMaintenance', () => {
     const dialog = screen.getByRole('alertdialog');
     expect(
       within(dialog).getByRole('heading', {
-        name: 'Discard this maintenance request?',
+        name: 'Discard this change request?',
       })
     ).toBeInTheDocument();
     // The list mirrors the review: what kind of change, to whom, and which fields.
@@ -1376,7 +1458,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(screen.getByText('Embedded Payments')).toBeInTheDocument();
@@ -1410,6 +1496,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         initialProductVerificationAcceptedAt="2020-01-01T00:00:00.000Z"
         eligibility={[
@@ -1459,6 +1546,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         initialProductVerificationAcceptedAt="2020-01-01T00:00:00.000Z"
         eligibility={[
@@ -1480,7 +1568,7 @@ describe('ApprovedClientMaintenance', () => {
     expect(upgrade).not.toHaveClass('eb-border-primary/50');
     expect(addPayments).not.toHaveClass('eb-bg-primary');
     expect(upgrade).toHaveTextContent(
-      'New changes are unavailable while your maintenance request is under review.'
+      'New changes are unavailable while your change request is under review.'
     );
   });
 
@@ -1499,6 +1587,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -1584,7 +1673,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
@@ -1654,7 +1747,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
@@ -1696,12 +1793,16 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
       screen.getByRole('heading', {
-        name: 'Product upgrade and maintenance request need attention',
+        name: 'Product upgrade and change request need attention',
       })
     ).toBeInTheDocument();
     expect(
@@ -1761,7 +1862,11 @@ describe('ApprovedClientMaintenance', () => {
     cancelProductAddition.mockResolvedValue(undefined);
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     const pendingProduct = screen
       .getByText('Limited DDA Payments')
@@ -1815,7 +1920,11 @@ describe('ApprovedClientMaintenance', () => {
     cancelProductAddition.mockResolvedValue(undefined);
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     const pendingProduct = screen
       .getByText('Limited DDA Payments')
@@ -1853,7 +1962,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
 
@@ -1883,7 +1996,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
@@ -1905,6 +2022,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={eligible}
         onRequestLimitedDda={onRequestLimitedDda}
@@ -1923,7 +2041,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
@@ -1933,7 +2055,7 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Complete the requested items so review of your maintenance request can continue.'
+        'Complete the requested items so review of your change request can continue.'
       )
     ).toBeInTheDocument();
   });
@@ -1954,6 +2076,7 @@ describe('ApprovedClientMaintenance', () => {
     };
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={eligible}
         onRequestLimitedDda={onRequestLimitedDda}
@@ -2013,6 +2136,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         initialProductVerificationAcceptedAt="2020-01-01T00:00:00.000Z"
         eligibility={[
@@ -2148,6 +2272,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2207,6 +2332,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2261,6 +2387,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2293,6 +2420,7 @@ describe('ApprovedClientMaintenance', () => {
       .mockResolvedValueOnce(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2396,6 +2524,7 @@ describe('ApprovedClientMaintenance', () => {
     updateParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2483,6 +2612,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2578,7 +2708,11 @@ describe('ApprovedClientMaintenance', () => {
     };
     applyPartySteps.mockResolvedValue(undefined);
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
@@ -2642,6 +2776,7 @@ describe('ApprovedClientMaintenance', () => {
     applyPartySteps.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2708,7 +2843,11 @@ describe('ApprovedClientMaintenance', () => {
       ],
     };
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Wendy Darling/ }));
@@ -2743,6 +2882,7 @@ describe('ApprovedClientMaintenance', () => {
     updateParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2800,6 +2940,7 @@ describe('ApprovedClientMaintenance', () => {
     updateParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2840,6 +2981,7 @@ describe('ApprovedClientMaintenance', () => {
     updateParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2923,6 +3065,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -2980,6 +3123,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -3082,7 +3226,11 @@ describe('ApprovedClientMaintenance', () => {
       ],
     };
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: /Jane R Diaz/ }));
 
@@ -3145,6 +3293,7 @@ describe('ApprovedClientMaintenance', () => {
     };
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -3215,7 +3364,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
 
@@ -3270,7 +3423,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     const pendingParty = screen.getByRole('button', {
@@ -3310,7 +3467,7 @@ describe('ApprovedClientMaintenance', () => {
       })
     ).toBeInTheDocument();
     [
-      'View maintenance request',
+      'View change request',
       'Edit pending party',
       'Discard pending addition',
     ].forEach((buttonName) => {
@@ -3366,7 +3523,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     const reviewedAddition = screen.getByRole('button', {
@@ -3438,6 +3599,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -3510,6 +3672,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -3569,6 +3732,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -3674,6 +3838,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -3783,6 +3948,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -3845,7 +4011,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
 
@@ -3938,7 +4108,11 @@ describe('ApprovedClientMaintenance', () => {
     });
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(
       screen.getByRole('button', { name: /Wendy Darling.*Pending addition/ })
@@ -3968,6 +4142,7 @@ describe('ApprovedClientMaintenance', () => {
     createParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4047,6 +4222,7 @@ describe('ApprovedClientMaintenance', () => {
     createParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4115,6 +4291,7 @@ describe('ApprovedClientMaintenance', () => {
     createParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4222,6 +4399,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4318,6 +4496,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4374,6 +4553,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4457,6 +4637,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4552,6 +4733,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4615,6 +4797,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4697,6 +4880,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4778,6 +4962,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -4872,7 +5057,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
 
@@ -4957,6 +5146,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5075,6 +5265,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5155,6 +5346,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5197,6 +5389,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5277,6 +5470,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5367,6 +5561,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5428,6 +5623,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5491,6 +5687,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5529,6 +5726,7 @@ describe('ApprovedClientMaintenance', () => {
     const user = userEvent.setup();
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5580,6 +5778,7 @@ describe('ApprovedClientMaintenance', () => {
     });
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5646,6 +5845,7 @@ describe('ApprovedClientMaintenance', () => {
     };
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5749,6 +5949,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5870,6 +6071,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5912,6 +6114,7 @@ describe('ApprovedClientMaintenance', () => {
     const user = userEvent.setup();
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -5964,6 +6167,7 @@ describe('ApprovedClientMaintenance', () => {
     };
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -6027,6 +6231,7 @@ describe('ApprovedClientMaintenance', () => {
     };
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -6082,6 +6287,7 @@ describe('ApprovedClientMaintenance', () => {
     updateParty.mockResolvedValue(undefined);
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -6119,9 +6325,13 @@ describe('ApprovedClientMaintenance', () => {
     ).toBeInTheDocument();
   });
 
-  test('lays out the overview as the profile beside shortcuts and products', () => {
+  test('lays out the overview as the profile beside products', () => {
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     const layout = document.querySelector<HTMLElement>(
@@ -6139,11 +6349,9 @@ describe('ApprovedClientMaintenance', () => {
         within(profileColumn).getByRole('heading', { name: heading })
       ).toBeInTheDocument();
     });
-    ['Make a change', 'Products'].forEach((heading) => {
-      expect(
-        within(actionColumn).getByRole('heading', { name: heading })
-      ).toBeInTheDocument();
-    });
+    expect(
+      within(actionColumn).getByRole('heading', { name: 'Products' })
+    ).toBeInTheDocument();
 
     ['Business details', 'Related parties'].forEach((heading) => {
       const sectionHeading = screen.getByRole('heading', { name: heading });
@@ -6154,10 +6362,6 @@ describe('ApprovedClientMaintenance', () => {
         'eb-bg-background'
       );
     });
-    // Shortcuts sit on a quiet muted panel so they don't compete with the profile cards.
-    const shortcuts = document.querySelector('[data-home-tasks]');
-    expect(shortcuts).toHaveClass('eb-bg-muted/40');
-    expect(shortcuts).not.toHaveClass('eb-border', 'eb-bg-background');
 
     const productTree = document.querySelector('[data-product-tree]');
     expect(productTree).not.toHaveClass('eb-rounded-md', 'eb-border');
@@ -6180,6 +6384,463 @@ describe('ApprovedClientMaintenance', () => {
       screen.getByText('Who manages and owns the business')
     ).toBeInTheDocument();
     expect(screen.getByText('Controller')).toBeInTheDocument();
+  });
+
+  test('starts every change from the overview, one choice at a time', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    // The button belongs to the overview card, not the page around it.
+    const overviewHeader = screen
+      .getByRole('heading', { name: 'Business profile' })
+      .closest('header')!;
+    await user.click(
+      within(overviewHeader).getByRole('button', { name: 'Request a change' })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'What would you like to change?' })
+    ).toHaveFocus();
+    await user.click(
+      screen.getByRole('button', {
+        name: /A person or business on the profile/,
+      })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Who would you like to change?' })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'What would you like to change about Jane R Doe?',
+      })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Their details/ }));
+    expect(
+      screen.getByRole('heading', { name: 'Edit details' })
+    ).toBeInTheDocument();
+    // Every step of the request carries the same marker, unlike the profile pages.
+    expect(document.querySelector('[data-change-eyebrow]')).toHaveTextContent(
+      'Request a change'
+    );
+    expect(
+      screen.getByRole('navigation', { name: 'Business profile navigation' })
+    ).toHaveTextContent('Jane R Doe');
+  });
+
+  test('steps back in the change picker when the person leaves the profile', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    await user.click(screen.getByRole('button', { name: 'Request a change' }));
+    await user.click(
+      screen.getByRole('button', {
+        name: /A person or business on the profile/,
+      })
+    );
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    expect(
+      screen.getByRole('heading', {
+        name: 'What would you like to change about Jane R Doe?',
+      })
+    ).toBeInTheDocument();
+
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      parties: approvedClient.parties?.filter(
+        (party) => party.id !== 'person-1'
+      ),
+    };
+    rerender(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Who would you like to change?' })
+    ).toBeInTheDocument();
+  });
+
+  test('opens the business details form from the change picker', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Request a change' }));
+    await user.click(screen.getByRole('button', { name: /Business details/ }));
+
+    expect(screen.getByLabelText(/Doing business as/)).toBeInTheDocument();
+  });
+
+  test('restructures ownership only from the change picker', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+
+    // Browsing the structure promises only a view.
+    expect(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    ).toHaveAccessibleDescription(
+      'See who owns the business and how they hold their stake.'
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Request a change' }));
+    await user.click(
+      screen.getByRole('button', { name: /Ownership structure/ })
+    );
+    const breadcrumb = screen.getByRole('navigation', {
+      name: 'Business profile navigation',
+    });
+    expect(breadcrumb).toHaveTextContent('Request a change');
+    expect(breadcrumb).toHaveTextContent('Ownership structure');
+
+    // Changing the structure looks like a form, not the page it started from.
+    expect(
+      screen.getByRole('heading', { name: 'Change the ownership structure' })
+    ).toBeInTheDocument();
+    expect(document.querySelector('[data-ownership-changing]')).toHaveClass(
+      'eb-border-primary/40'
+    );
+    expect(
+      screen.getByRole('button', { name: 'Add intermediary business' })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'View business details' })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    expect(
+      screen.getByRole('heading', { name: 'Business profile' })
+    ).toBeInTheDocument();
+
+    // Browsing the same structure stays plain.
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Ownership structure' })
+    ).toBeInTheDocument();
+    expect(document.querySelector('[data-ownership-changing]')).toBeNull();
+    expect(
+      screen.getByText('Select anyone to see their details.')
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Add intermediary business' })
+    ).not.toBeInTheDocument();
+  });
+
+  test('returns to the read-only profile when the change picker is cancelled', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Request a change' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(
+      screen.getByRole('button', { name: 'Request a change' })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    expect(
+      screen.queryByRole('button', { name: 'Edit details' })
+    ).not.toBeInTheDocument();
+  });
+
+  test('requests a change from any profile page, starting with what it shows', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApprovedClientMaintenance
+        clientId="client-1"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'MANAGE_INDIRECT_OWNERSHIP'],
+          },
+        ]}
+      />
+    );
+    const requestChangeIn = (heading: string) =>
+      within(
+        screen.getByRole('heading', { name: heading }).closest('header')!
+      ).getByRole('button', { name: 'Request a change' });
+
+    // The business page shows the profile and starts the full list.
+    await user.click(
+      screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Edit business details' })
+    ).not.toBeInTheDocument();
+    await user.click(requestChangeIn('Marketplace Vendor LLC'));
+    expect(
+      screen.getByRole('heading', { name: 'What would you like to change?' })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(
+      screen.getByRole('heading', { name: 'Marketplace Vendor LLC' })
+    ).toBeInTheDocument();
+
+    // A person's page goes straight to what can change about them.
+    await user.click(screen.getByRole('button', { name: 'Business profile' }));
+    await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
+    expect(
+      screen.queryByRole('button', { name: 'Edit details' })
+    ).not.toBeInTheDocument();
+    await user.click(requestChangeIn('Jane R Doe'));
+    expect(
+      screen.getByRole('heading', {
+        name: 'What would you like to change about Jane R Doe?',
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: 'Business profile navigation' })
+    ).toHaveTextContent('Jane R Doe');
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(
+      screen.getByRole('heading', { name: 'Jane R Doe' })
+    ).toBeInTheDocument();
+
+    // The ownership structure offers ownership changes.
+    await user.click(screen.getByRole('button', { name: 'Business profile' }));
+    await user.click(
+      screen.getByRole('button', { name: 'View ownership structure' })
+    );
+    await user.click(requestChangeIn('Ownership structure'));
+    expect(
+      screen.getByRole('heading', {
+        name: 'What would you like to change about the ownership structure?',
+      })
+    ).toBeInTheDocument();
+    expect(
+      [...document.querySelectorAll('[data-change-choice]')].map((choice) =>
+        choice.getAttribute('data-change-choice')
+      )
+    ).not.toContain('business');
+  });
+
+  test('shows a draft read-only, continues it from the request, and hides requesting a change during review', async () => {
+    const user = userEvent.setup();
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Diaz')],
+    };
+    const { unmount } = render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    expect(
+      screen.getByRole('button', { name: 'Request a change' })
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Jane R Diaz/ }));
+    expect(
+      screen.getAllByRole('heading', { name: 'Pending changes' }).length
+    ).toBeGreaterThan(0);
+    expect(
+      screen.queryByRole('button', { name: 'Add or edit changes' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Discard changes' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'View change request' })
+    ).toBeInTheDocument();
+    unmount();
+
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Diaz', 'REVIEW_IN_PROGRESS')],
+    };
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Request a change' })
+    ).not.toBeInTheDocument();
+  });
+
+  test('shows a request for information on an approved profile', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      outstanding: { questionIds: ['30010'] },
+      parties: (approvedClient.parties ?? []).map((party) =>
+        party.id === 'person-1'
+          ? {
+              ...party,
+              validationResponse: [
+                {
+                  validationStatus: 'NEEDS_INFO',
+                  documentRequestIds: ['document-1'],
+                },
+              ],
+            }
+          : party
+      ),
+    };
+    workspace.questionsQuery.data = [
+      {
+        id: '30010',
+        description: 'What is your expected monthly volume?',
+        responseSchema: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 1,
+          items: { type: 'string', enum: ['$10,000', '$25,000'] },
+        },
+      } as unknown as QuestionResponse,
+    ];
+    workspace.documentRequestsQuery.data = {
+      documentRequests: [
+        {
+          id: 'document-1',
+          partyId: 'person-1',
+          status: 'ACTIVE',
+          description: 'Provide a government-issued identity document.',
+          requirements: [],
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
+    );
+
+    const banner = document.querySelector<HTMLElement>(
+      '[data-information-request]'
+    )!;
+    expect(
+      within(banner).getByRole('heading', { name: 'Information requested' })
+    ).toBeInTheDocument();
+    expect(
+      within(banner).getByRole('button', {
+        name: 'Upload documents for Jane R Doe',
+      })
+    ).toBeInTheDocument();
+
+    await user.click(
+      within(banner).getByRole('button', { name: 'Answer 1 question' })
+    );
+    expect(
+      screen.getByLabelText('What is your expected monthly volume?')
+    ).toBeInTheDocument();
+  });
+
+  test("opens the business's own requested documents from the banner", async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      outstanding: { documentRequestIds: ['business-document-1'] },
+    };
+    workspace.documentRequestsQuery.data = {
+      documentRequests: [
+        {
+          id: 'business-document-1',
+          status: 'ACTIVE',
+          description: 'Provide a recent business license.',
+          requirements: [],
+        },
+      ],
+    };
+
+    render(
+      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+    );
+
+    const banner = document.querySelector<HTMLElement>(
+      '[data-information-request]'
+    )!;
+    await user.click(
+      within(banner).getByRole('button', {
+        name: 'Upload documents for Marketplace Vendor LLC',
+      })
+    );
+
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Upload documents for Marketplace Vendor LLC',
+      })
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('[data-information-request]')
+    ).not.toBeInTheDocument();
+  });
+
+  test('counts only questions from review in the banner while a draft is open', async () => {
+    const user = userEvent.setup();
+    workspace.clientQuery.data = {
+      ...approvedClient,
+      outstanding: { questionIds: ['30010', '500096'] },
+    };
+    workspace.maintenanceQuery.data = {
+      pages: [],
+      parties: [createProposal('Diaz')],
+    };
+    const freeText = {
+      type: 'array',
+      minItems: 1,
+      maxItems: 1,
+      items: { type: 'string' },
+    };
+    workspace.questionsQuery.data = [
+      {
+        id: '30010',
+        category: 'KYC',
+        description: 'What is your expected monthly volume?',
+        responseSchema: freeText,
+      },
+      {
+        id: '500096',
+        category: 'RFI',
+        description: 'Do you operate in any sanctioned regions?',
+        responseSchema: freeText,
+      },
+    ] as unknown as QuestionResponse[];
+
+    render(
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
+    );
+
+    const banner = document.querySelector<HTMLElement>(
+      '[data-information-request]'
+    )!;
+    await user.click(
+      within(banner).getByRole('button', { name: 'Answer 1 question' })
+    );
+    const requested = screen.getByRole('region', {
+      name: 'Requested by the review team',
+    });
+    expect(
+      within(requested).getByLabelText(
+        'Do you operate in any sanctioned regions?'
+      )
+    ).toBeInTheDocument();
+    expect(
+      within(
+        screen.getByRole('region', { name: 'About the profile changes' })
+      ).getByLabelText('What is your expected monthly volume?')
+    ).toBeInTheDocument();
   });
 
   test('matches the sidebar action to the state of the pending changes', async () => {
@@ -6213,7 +6874,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(
@@ -6232,7 +6897,7 @@ describe('ApprovedClientMaintenance', () => {
     const requestGroup = sidebar.querySelector<HTMLElement>(
       '[data-navigator-request-state]'
     )!;
-    expect(requestGroup).toHaveTextContent('Maintenance request');
+    expect(requestGroup).toHaveTextContent('Change request');
     const callToAction = requestGroup.querySelector<HTMLElement>(
       '[data-navigator-request-cta]'
     )!;
@@ -6240,7 +6905,7 @@ describe('ApprovedClientMaintenance', () => {
     expect(callToAction).toHaveClass('eb-bg-informative-accent');
     expect(
       within(callToAction).getByRole('heading', {
-        name: 'Maintenance request submitted',
+        name: 'Change request submitted',
       })
     ).toBeInTheDocument();
     // Waiting on the reviewer, so nothing pulses.
@@ -6258,7 +6923,7 @@ describe('ApprovedClientMaintenance', () => {
 
     await user.click(requestButton);
     expect(
-      screen.getByRole('heading', { name: 'Maintenance request' })
+      screen.getByRole('heading', { name: 'Change request' })
     ).toBeInTheDocument();
     expect(
       within(
@@ -6303,7 +6968,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(
       screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
@@ -6344,7 +7013,11 @@ describe('ApprovedClientMaintenance', () => {
       .mockReturnValue(1200);
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(
@@ -6452,7 +7125,11 @@ describe('ApprovedClientMaintenance', () => {
       .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
       .mockReturnValue(1200);
     const view = () => (
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     const { rerender } = render(view());
     await user.click(
@@ -6495,7 +7172,11 @@ describe('ApprovedClientMaintenance', () => {
   test('shows breadcrumbs only when the navigator sidebar is hidden', async () => {
     const user = userEvent.setup();
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(
@@ -6558,7 +7239,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     // Without room for the navigator, the overview lists each party itself.
@@ -6579,20 +7264,25 @@ describe('ApprovedClientMaintenance', () => {
     expect(pendingMedallion).toHaveClass('eb-bg-informative-accent');
     expect(personMedallion).toHaveClass('eb-bg-muted');
     expect(
-      [...document.querySelectorAll('[data-home-task]')].map((task) =>
-        task.getAttribute('data-home-task')
-      )
-    ).toEqual(['edit-business', 'add-owner', 'replace-controller']);
-    expect(
       document.querySelector('[data-request-breakdown]')
     ).toHaveTextContent('Added1');
+    await user.click(screen.getByRole('button', { name: 'Request a change' }));
+    expect(
+      [...document.querySelectorAll('[data-change-choice]')].map((choice) =>
+        choice.getAttribute('data-change-choice')
+      )
+    ).toEqual(['business', 'person', 'add-owner', 'replace-controller']);
     cleanup();
 
     const widthSpy = vi
       .spyOn(HTMLElement.prototype, 'offsetWidth', 'get')
       .mockReturnValue(1200);
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     // The overview lists the whole profile itself, so the navigator waits for detail pages.
     expect(document.querySelector('[data-maintenance-navigator]')).toBeNull();
@@ -6674,7 +7364,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(
       screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
@@ -6738,7 +7432,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     const peopleSection = screen
@@ -6803,7 +7501,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     const relatedPartiesSection = screen
@@ -6850,7 +7552,7 @@ describe('ApprovedClientMaintenance', () => {
     ).not.toBeInTheDocument();
     expect(
       within(removedPartyHeader!).getByRole('button', {
-        name: 'View maintenance request',
+        name: 'View change request',
       })
     ).toBeInTheDocument();
 
@@ -6874,7 +7576,11 @@ describe('ApprovedClientMaintenance', () => {
   test('opens ownership structure without requiring ownership mutation eligibility', async () => {
     const user = userEvent.setup();
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
@@ -6888,9 +7594,6 @@ describe('ApprovedClientMaintenance', () => {
     expect(viewOwnershipButton).toHaveAccessibleDescription(
       'See who owns the business and how they hold their stake.'
     );
-    expect(
-      document.querySelector('[data-home-task="restructure-ownership"]')
-    ).toBeNull();
     await user.click(viewOwnershipButton);
 
     expect(
@@ -6937,6 +7640,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -7077,6 +7781,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -7124,6 +7829,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -7178,6 +7884,7 @@ describe('ApprovedClientMaintenance', () => {
     const user = userEvent.setup();
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -7226,6 +7933,7 @@ describe('ApprovedClientMaintenance', () => {
 
     render(
       <ApprovedClientMaintenance
+        changeActions="inline"
         clientId="client-1"
         eligibility={[
           {
@@ -7261,7 +7969,11 @@ describe('ApprovedClientMaintenance', () => {
   test('uses a full-width detail layout in focused views', async () => {
     const user = userEvent.setup();
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: /Jane R Doe/ }));
@@ -7297,7 +8009,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(screen.getByText('Embedded Payments')).toBeInTheDocument();
@@ -7315,7 +8031,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     expect(
@@ -7352,7 +8072,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
 
@@ -7432,7 +8156,11 @@ describe('ApprovedClientMaintenance', () => {
     updateClientTasks.mockResolvedValue(undefined);
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     await user.click(screen.getByRole('button', { name: 'Complete' }));
@@ -7494,7 +8222,11 @@ describe('ApprovedClientMaintenance', () => {
     updateClientTasks.mockResolvedValue({ questionIds: ['30022'] });
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     await user.click(screen.getByRole('button', { name: 'Complete' }));
@@ -7545,7 +8277,11 @@ describe('ApprovedClientMaintenance', () => {
       parties: [createProposal('Diaz')],
     };
     const { rerender } = render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
 
@@ -7554,7 +8290,11 @@ describe('ApprovedClientMaintenance', () => {
       parties: [createProposal('Dean')],
     };
     rerender(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     const notice = await waitFor(() => {
@@ -7575,7 +8315,11 @@ describe('ApprovedClientMaintenance', () => {
       parties: [createProposal('Diaz')],
     };
     const view = () => (
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     const { rerender } = render(view());
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
@@ -7629,7 +8373,11 @@ describe('ApprovedClientMaintenance', () => {
       .mockReturnValue(tab as unknown as Window);
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     await user.click(screen.getByRole('button', { name: 'Complete' }));
@@ -7704,7 +8452,11 @@ describe('ApprovedClientMaintenance', () => {
       .mockImplementation(() => {});
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     await user.click(screen.getByRole('button', { name: 'Complete' }));
@@ -7756,7 +8508,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     await user.click(
@@ -7800,7 +8556,11 @@ describe('ApprovedClientMaintenance', () => {
     });
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
     // The structure has its own page; the review links to it in one fixed place.
@@ -7829,9 +8589,7 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(
       screen.getByRole('button', { name: 'Return to business profile' })
     );
-    expect(
-      screen.getByText('Maintenance request submitted')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Change request submitted')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Discard all changes' })
     ).not.toBeInTheDocument();
@@ -7869,12 +8627,14 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
-    expect(
-      screen.getByText('Maintenance request submitted')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Change request submitted')).toBeInTheDocument();
     expect(screen.queryByText('Submitted change')).not.toBeInTheDocument();
     const viewSubmittedUpdates = screen.getByRole('button', {
       name: 'View request details',
@@ -7888,7 +8648,7 @@ describe('ApprovedClientMaintenance', () => {
     await user.click(viewSubmittedUpdates);
 
     expect(
-      screen.getByRole('heading', { name: 'Maintenance request' })
+      screen.getByRole('heading', { name: 'Change request' })
     ).toBeInTheDocument();
     expect(screen.getByText(/Submitted .*Aug.*26.*2026/)).toBeInTheDocument();
     const partyCards = ['person-1', 'person-2'].map((partyId) =>
@@ -7935,7 +8695,11 @@ describe('ApprovedClientMaintenance', () => {
   test('opens organization details through the same row interaction as people', async () => {
     const user = userEvent.setup();
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(
@@ -8000,7 +8764,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(
       screen.getByRole('button', { name: /Marketplace Vendor LLC/ })
@@ -8071,7 +8839,11 @@ describe('ApprovedClientMaintenance', () => {
       ],
     };
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
 
     await user.click(screen.getByRole('button', { name: 'Review and submit' }));
@@ -8142,12 +8914,16 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     expect(
       screen
         .getByRole('heading', {
-          name: 'Maintenance request needs more information',
+          name: 'Change request needs more information',
         })
         .closest('section')
     ).toHaveClass('eb-border-warning/50', 'eb-bg-warning-accent');
@@ -8219,11 +8995,9 @@ describe('ApprovedClientMaintenance', () => {
     expect(
       screen.getByText('Current profile name: Jane R Doe')
     ).toBeInTheDocument();
-    await user.click(
-      screen.getByRole('button', { name: 'Maintenance request' })
-    );
+    await user.click(screen.getByRole('button', { name: 'Change request' }));
     expect(
-      screen.getByRole('heading', { name: 'Maintenance request' })
+      screen.getByRole('heading', { name: 'Change request' })
     ).toBeInTheDocument();
   });
 
@@ -8286,7 +9060,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(
       screen.getByRole('button', { name: 'Complete required actions' })
@@ -8335,7 +9113,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     const partyRow = screen.getByRole('button', { name: /Jane R Diaz/ });
     expect(
@@ -8375,7 +9157,11 @@ describe('ApprovedClientMaintenance', () => {
     };
 
     render(
-      <ApprovedClientMaintenance clientId="client-1" eligibility={eligible} />
+      <ApprovedClientMaintenance
+        changeActions="inline"
+        clientId="client-1"
+        eligibility={eligible}
+      />
     );
     await user.click(screen.getByRole('button', { name: /Jane Doe/ }));
 

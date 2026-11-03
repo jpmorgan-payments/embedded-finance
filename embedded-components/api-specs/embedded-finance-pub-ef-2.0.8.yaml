@@ -12,10 +12,6 @@ servers:
     description: JPM-PROD - Embedded Payments Mock
   - url: https://apigatewaycat.jpmorgan.com/tsapi/ef/v2
     description: JPM-CAT - Embedded Payments
-  - url: https://api-mock-payments.uat.aws.jpmchase.net/tsapi/ef/v2
-    description: JPM-PRE-PROD - Embedded Payments Mock
-  - url: https://api-mock-payments.dev.aws.jpmchase.net/tsapi/ef/v2
-    description: JPM-SIT - Embedded Payments Mock
 security:
   - Certs: []
     Token: []

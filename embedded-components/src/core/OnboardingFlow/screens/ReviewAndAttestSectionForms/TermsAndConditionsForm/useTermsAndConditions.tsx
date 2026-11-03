@@ -202,7 +202,9 @@ export function useTermsAndConditions(options?: {
     };
   }, [disclosureConfig]);
 
-  const formSchema = useMemo(() => {
+  const formSchema = useMemo<
+    z.ZodType<TermsFormValues, TermsFormValues>
+  >(() => {
     if (useHostAckList) {
       return z.object({});
     }

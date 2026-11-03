@@ -19,7 +19,7 @@ import { useIndustrySuggestions } from './useIndustrySuggestions';
 import { useOrganizationDescriptionTooltip } from './useOrganizationDescriptionTooltip';
 
 export const IndustryForm: FormStepComponent = () => {
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
   const industryTooltip = useIndustryTooltip();
   const organizationDescriptionTooltip = useOrganizationDescriptionTooltip();
   const form =
@@ -71,7 +71,7 @@ export const IndustryForm: FormStepComponent = () => {
             variant="warning"
             density="sm"
             className="eb-mt-2 eb-max-w-full"
-            title="Improve Your Business Description"
+            title={tString('screens.industryForm.emptyRecommendationTitle')}
           >
             <AlertTriangleIcon className="eb-size-4 eb-shrink-0" />
             <AlertDescription className="eb-overflow-hidden eb-break-words">
@@ -84,7 +84,9 @@ export const IndustryForm: FormStepComponent = () => {
                     href="https://www.example.com/business-description-guide"
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label="View examples of good business descriptions (opens in new tab)"
+                    aria-label={tString(
+                      'screens.industryForm.viewExamplesAriaLabel'
+                    )}
                     className="eb-inline-flex eb-max-w-full eb-items-center eb-gap-1 eb-truncate eb-text-sm eb-font-medium eb-text-primary eb-underline-offset-4 hover:eb-underline"
                   >
                     <span className="eb-truncate">
@@ -102,7 +104,7 @@ export const IndustryForm: FormStepComponent = () => {
             variant="warning"
             density="sm"
             className="eb-mt-2 eb-max-w-full"
-            title="Unable to generate recommendations"
+            title={tString('screens.industryForm.recommendationErrorTitle')}
           >
             <AlertTriangleIcon className="eb-size-4 eb-shrink-0" />
             <AlertDescription className="eb-overflow-hidden eb-break-words">

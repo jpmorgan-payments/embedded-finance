@@ -1,4 +1,8 @@
-import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
+import {
+  efClientQuestionsMock,
+  matchesQuestionCategory,
+  withoutCategory,
+} from '@/mocks/efClientQuestions.mock';
 import { server } from '@/msw/server';
 import { http, HttpResponse } from 'msw';
 import { render, screen, userEvent, waitFor } from '@test-utils';
@@ -101,18 +105,22 @@ const clientAfter = (
     ],
   }) as ClientResponse;
 
-function mockQuestionsApi() {
+function mockQuestionsApi(categories: Record<string, string> = {}) {
   const requestedQuestionIds: string[] = [];
   server.use(
     http.get('/questions', ({ request }) => {
-      const ids =
-        new URL(request.url).searchParams.get('questionIds')?.split(',') ?? [];
+      const url = new URL(request.url);
+      const ids = url.searchParams.get('questionIds')?.split(',') ?? [];
       requestedQuestionIds.push(...ids);
+      const questions = efClientQuestionsMock.questions
+        .map((q) =>
+          categories[q.id] ? { ...q, category: categories[q.id] } : q
+        )
+        .filter((q) => ids.includes(q.id) && matchesQuestionCategory(q, url))
+        .map(withoutCategory);
       return HttpResponse.json({
-        metadata: efClientQuestionsMock.metadata,
-        questions: efClientQuestionsMock.questions.filter((q) =>
-          ids.includes(q.id)
-        ),
+        metadata: { page: 0, limit: 25, total: questions.length },
+        questions,
       });
     })
   );
@@ -210,6 +218,25 @@ describe('RequestedQuestionsScreen', () => {
     expect(screen.queryByText(WHICH_COUNTRIES)).not.toBeInTheDocument();
     // Earlier onboarding answers are not refetched or re-sent.
     expect(requestedQuestionIds).not.toContain('30005');
+  });
+
+  test('before submission, shows only the questions the API files as RFI', async () => {
+    mockQuestionsApi();
+    flowContextTestState.setOverrides({
+      sessionData: { rfiQuestionIds: ['500096'] },
+    });
+    renderScreen({
+      client: {
+        ...clientAfter(['30095', '500096']),
+        status: 'NEW',
+      } as ClientResponse,
+    });
+
+    expect(
+      await screen.findByText('Do you operate in any sanctioned regions?')
+    ).toBeInTheDocument();
+    // Onboarding questions stay in operational details.
+    expect(screen.queryByText('Are you a FinTech?')).not.toBeInTheDocument();
   });
 
   test('reveals an outstanding follow-up inline when its parent is answered "Yes"', async () => {
@@ -397,6 +424,37 @@ describe('RequestedQuestionsScreen', () => {
     expect(await screen.findByText(WHICH_COUNTRIES)).toBeInTheDocument();
     expect(screen.getByText(SANCTIONS)).toBeInTheDocument();
     expect(screen.getByRole('textbox')).toHaveProperty('tagName', 'TEXTAREA');
+  });
+
+  test('before submission, keeps a follow-up of an RFI question on the screen', async () => {
+    mockQuestionsApi({ '30158': 'RFI', '30162': 'RFI' });
+    const newClient = (
+      ids: string[],
+      responses?: UpdateClientRequestSmbdo['questionResponses']
+    ) => ({ ...clientAfter(ids, responses), status: 'NEW' }) as ClientResponse;
+    mockUpdateClient((body) =>
+      newClient(['30162', '30194'], body.questionResponses)
+    );
+    const goTo = vi.fn();
+    const updateSessionData = vi.fn();
+    flowContextTestState.setOverrides({
+      goTo,
+      updateSessionData,
+      sessionData: { rfiQuestionIds: ['30158'] },
+    });
+    renderScreen({ client: newClient(['30158', '30194']) });
+
+    await user.click(await screen.findByRole('radio', { name: /yes/i }));
+    await user.click(screen.getByRole('button', { name: /submit answers/i }));
+
+    expect(
+      await screen.findByText(/we need a little more information/i)
+    ).toBeInTheDocument();
+    // The follow-up joins its parent in this section until the next category lookup.
+    expect(updateSessionData).toHaveBeenCalledWith({
+      rfiQuestionIds: ['30158', '30162'],
+    });
+    expect(goTo).not.toHaveBeenCalled();
   });
 
   test('shows API validation errors on the matching question', async () => {

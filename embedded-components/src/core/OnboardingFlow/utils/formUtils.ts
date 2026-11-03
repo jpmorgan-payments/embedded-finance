@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { defaultResources, i18n } from '@/i18n/config';
+import { getActiveI18n, tActive } from '@/i18n/activeI18n';
+import { defaultResources } from '@/i18n/config';
 import { objectEntries, objectKeys } from '@/utils/objectEntries';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   DefaultValues,
   FieldPath,
   FieldValues,
+  Resolver,
   useForm,
   useFormContext,
   UseFormProps,
@@ -29,6 +31,7 @@ import { partyFieldMap } from '@/core/OnboardingFlow/config/fieldMap';
 import {
   useFlowContext,
   useOnboardingContext,
+  useReadonlyFieldsScope,
 } from '@/core/OnboardingFlow/contexts';
 import { ScreenId } from '@/core/OnboardingFlow/types';
 import {
@@ -45,6 +48,10 @@ import {
   OnboardingTopLevelArrayFieldNames,
   OptionalDefaults,
 } from '@/core/OnboardingFlow/types/form.types';
+import {
+  getControllerParty,
+  getOrganizationParty,
+} from '@/core/OnboardingFlow/utils/dataUtils';
 
 export { sanitizeServerErrorMessage } from '@/core/ClientProfile/forms/apiFieldErrors';
 
@@ -607,21 +614,35 @@ export function isValuePopulated(value: unknown): boolean {
 }
 
 /**
- * Collects the set of root field-map keys that already have a value from the
- * GET client response, across every party. Because
- * {@link convertPartyResponseToFormValues} only emits keys the API actually
- * returned, default values (e.g. country `'US'`) never leak in as "populated".
+ * Whether a party field-map key holds an individual's (controller or owner)
+ * data rather than the organization's. `controllerEmail` / `controllerPhone`
+ * read top-level party paths shared with the organization, so they are listed
+ * explicitly.
  */
-export function getPopulatedFormFieldKeys(
-  clientData: ClientResponse | undefined
+export function isIndividualPartyFieldKey(key: string): boolean {
+  const path = partyFieldMap[key as keyof typeof partyFieldMap]?.path ?? '';
+  return (
+    path.startsWith('individualDetails') ||
+    key === 'controllerEmail' ||
+    key === 'controllerPhone' ||
+    key === 'solePropSsn'
+  );
+}
+
+/**
+ * Collects the root field-map keys that already have a value on `party` in the
+ * GET client response. Because {@link convertPartyResponseToFormValues} only
+ * emits keys the API actually returned, default values (e.g. country `'US'`)
+ * never leak in as "populated".
+ */
+export function getPopulatedPartyFieldKeys(
+  party: PartyResponse | undefined
 ): Set<string> {
   const keys = new Set<string>();
-  clientData?.parties?.forEach((party) => {
-    if (!party) return;
-    const mapped = convertPartyResponseToFormValues(party);
-    Object.entries(mapped).forEach(([key, value]) => {
-      if (isValuePopulated(value)) keys.add(key);
-    });
+  if (!party) return keys;
+  const mapped = convertPartyResponseToFormValues(party);
+  Object.entries(mapped).forEach(([key, value]) => {
+    if (isValuePopulated(value)) keys.add(key);
   });
   return keys;
 }
@@ -642,38 +663,59 @@ const EMPTY_LOCKED_FIELDS: Set<string> = new Set<string>();
  * empty set — no client data is walked and behavior is unchanged.
  *
  * - `mode: 'always'` locks every listed field.
- * - `mode: 'whenPopulated'` (default) locks a field only when it already has a
- *   value from the GET client response. Empty fields stay editable so
- *   onboarding can still be completed.
+ * - `mode: 'whenPopulated'` (default) locks a field only when the party it
+ *   belongs to already has a value from the GET client response. Empty fields
+ *   stay editable so onboarding can still be completed.
+ *
+ * The party comes from the nearest {@link ReadonlyFieldsScopeContext} (the
+ * party being edited). Without one, organization fields belong to the client's
+ * organization and individual fields to its controller. Individual fields lock
+ * only for the controller, never for other beneficial owners.
  */
 export function useReadonlyLockedFields(): Set<string> {
   const { clientData, readonlyFields } = useOnboardingContext();
-
-  const hasConfig = !!readonlyFields?.fields?.length;
-
-  const populatedKeys = useMemo(
-    () =>
-      hasConfig ? getPopulatedFormFieldKeys(clientData) : EMPTY_LOCKED_FIELDS,
-    [hasConfig, clientData]
-  );
+  const scope = useReadonlyFieldsScope();
 
   return useMemo(() => {
     // Feature off — return the shared empty set so the default path is a no-op.
-    if (!hasConfig || !readonlyFields) return EMPTY_LOCKED_FIELDS;
-    const locked = new Set<string>();
+    if (!readonlyFields?.fields?.length) return EMPTY_LOCKED_FIELDS;
     const mode = readonlyFields.mode ?? 'whenPopulated';
 
-    readonlyFields.fields.forEach((field) => {
-      if (mode === 'always') {
-        locked.add(field);
-        return;
+    const orgParty = scope
+      ? scope.party
+      : (getOrganizationParty(clientData) ??
+        clientData?.parties?.find((p) => p.partyType === 'ORGANIZATION'));
+    const individualParty = scope
+      ? scope.party
+      : (getControllerParty(clientData) ??
+        clientData?.parties?.find(
+          (p) => p.partyType === 'INDIVIDUAL' && p.roles?.includes('CONTROLLER')
+        ));
+    const isController = scope ? scope.isController : true;
+
+    const populatedByParty = new Map<PartyResponse | undefined, Set<string>>();
+    const isPopulated = (party: PartyResponse | undefined, field: string) => {
+      let keys = populatedByParty.get(party);
+      if (!keys) {
+        keys = getPopulatedPartyFieldKeys(party);
+        populatedByParty.set(party, keys);
       }
-      if (populatedKeys.has(field)) {
+      return keys.has(field);
+    };
+
+    const locked = new Set<string>();
+    readonlyFields.fields.forEach((field) => {
+      const isIndividualField = isIndividualPartyFieldKey(field);
+      if (isIndividualField && !isController) return;
+      if (
+        mode === 'always' ||
+        isPopulated(isIndividualField ? individualParty : orgParty, field)
+      ) {
         locked.add(field);
       }
     });
     return locked;
-  }, [hasConfig, populatedKeys, readonlyFields]);
+  }, [clientData, readonlyFields, scope]);
 }
 
 /**
@@ -703,10 +745,10 @@ export function useFormUtilsWithClientContext(
   };
 
   function modifySchema(
-    schema: z.ZodObject<Record<string, z.ZodTypeAny>>,
+    schema: z.ZodObject<Record<string, z.ZodType>>,
     refineFn?: (
-      schema: z.ZodObject<Record<string, z.ZodTypeAny>>
-    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodTypeAny>>>
+      schema: z.ZodObject<Record<string, z.ZodType>>
+    ) => z.ZodObject<Record<string, z.ZodType>>
   ) {
     return modifySchemaByClientContext(
       schema,
@@ -920,16 +962,28 @@ export function getFieldRuleByClientContext(
 }
 
 /**
+ * Zod 4 keeps `.refine()` / `.superRefine()` on the schema itself (Zod 3
+ * wrapped it in `ZodEffects`). Rebuilding such an object from its shape would
+ * drop those refinements, so refined objects are treated as opaque.
+ */
+function isRefinedObjectSchema(schema: z.ZodType): boolean {
+  return schema instanceof z.ZodObject && (schema.def.checks ?? []).length > 0;
+}
+
+/**
  * For an array element schema, recursively applies client-context rules when
- * the element is an object; otherwise returns it unchanged.
+ * the element is an unrefined object; otherwise returns it unchanged.
  */
 function resolveArrayElementSchema(
-  elementSchema: z.ZodTypeAny,
+  elementSchema: z.ZodType,
   fullKey: string,
   clientContext: ClientContext,
   currentScreenId: ScreenId
-): z.ZodTypeAny {
-  if (elementSchema instanceof z.ZodObject) {
+): z.ZodType {
+  if (
+    elementSchema instanceof z.ZodObject &&
+    !isRefinedObjectSchema(elementSchema)
+  ) {
     // For array elements, we add a placeholder index (0) to the key
     return modifySchemaByClientContext(
       elementSchema,
@@ -944,17 +998,17 @@ function resolveArrayElementSchema(
 
 /**
  * Applies min/max item validation (and recursive element modification) to an
- * array field schema, handling both direct `ZodArray` and `ZodEffects`-wrapped
- * arrays.
+ * array field schema. Existing min/max checks are replaced, while custom
+ * refinements (`.refine` / `.superRefine`) are preserved.
  */
 function modifyArrayFieldSchema(
-  modifiedSchema: z.ZodTypeAny,
+  modifiedSchema: z.ZodType,
   fieldRule: OptionalDefaults<ArrayFieldRule>,
   fullKey: string,
   key: string,
   clientContext: ClientContext,
   currentScreenId: ScreenId
-): z.ZodTypeAny {
+): z.ZodType {
   const min = fieldRule.requiredItems ?? fieldRule.minItems ?? 0;
   const max = fieldRule.maxItems ?? Infinity;
   const tName = fullKey
@@ -962,56 +1016,43 @@ function modifyArrayFieldSchema(
     .filter((part) => Number.isNaN(Number(part)))
     .join('.');
 
-  const minMessage = i18n.t(
-    [
-      `onboarding-overview:fields.${tName}.validation.minItems`,
-      'common:validation.minItems',
-    ],
-    { count: min }
-  );
-  const maxMessage = i18n.t(
-    [
-      `onboarding-overview:fields.${tName}.validation.maxItems`,
-      'common:validation.maxItems',
-    ],
-    { count: max }
-  );
+  const minError = {
+    error: () =>
+      tActive(
+        [
+          `onboarding-overview:fields.${tName}.validation.minItems`,
+          'common:validation.minItems',
+        ],
+        { count: min }
+      ),
+  };
+  const maxError = {
+    error: () =>
+      tActive(
+        [
+          `onboarding-overview:fields.${tName}.validation.maxItems`,
+          'common:validation.maxItems',
+        ],
+        { count: max }
+      ),
+  };
 
-  // Handle arrays wrapped in ZodEffects
-  if (modifiedSchema instanceof z.ZodEffects) {
-    const inner = modifiedSchema._def.schema;
-    if (inner instanceof z.ZodArray) {
-      const newElementSchema = resolveArrayElementSchema(
-        inner._def.type,
-        fullKey,
-        clientContext,
-        currentScreenId
-      );
-      const modifiedInner: z.ZodTypeAny = z
-        .array(newElementSchema)
-        .min(min, minMessage)
-        .max(max, maxMessage);
-
-      // Rebuild the ZodEffects with the modified inner schema
-      return new z.ZodEffects({
-        schema: modifiedInner,
-        effect: modifiedSchema._def.effect,
-        typeName: modifiedSchema._def.typeName,
-      });
-    }
-    // ZodEffects whose inner schema is not an array — leave unchanged
-    return modifiedSchema;
-  }
-
-  // Handle direct ZodArray
   if (modifiedSchema instanceof z.ZodArray) {
     const newElementSchema = resolveArrayElementSchema(
-      modifiedSchema._def.type,
+      modifiedSchema.element as z.ZodType,
       fullKey,
       clientContext,
       currentScreenId
     );
-    return z.array(newElementSchema).min(min, minMessage).max(max, maxMessage);
+    const rebuilt = z
+      .array(newElementSchema)
+      .min(min, minError)
+      .max(max, maxError);
+
+    const customChecks = (modifiedSchema.def.checks ?? []).filter(
+      (check) => check._zod.def.check === 'custom'
+    ) as z.core.$ZodCheck<unknown[]>[];
+    return customChecks.length > 0 ? rebuilt.check(...customChecks) : rebuilt;
   }
 
   // Unexpected schema type
@@ -1022,19 +1063,19 @@ function modifyArrayFieldSchema(
 
 /**
  * Relaxes a non-required single field schema so it also accepts empty string
- * and undefined. Object schemas are relaxed field-by-field.
+ * and undefined. Unrefined object schemas are relaxed field-by-field.
  */
-function relaxOptionalFieldSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
-  if (schema instanceof z.ZodObject) {
-    const relaxedShape: Record<string, z.ZodTypeAny> = {};
+function relaxOptionalFieldSchema(schema: z.ZodType): z.ZodType {
+  if (schema instanceof z.ZodObject && !isRefinedObjectSchema(schema)) {
+    const relaxedShape: Record<string, z.ZodType> = {};
     for (const [k, v] of Object.entries(
-      schema.shape as Record<string, z.ZodTypeAny>
+      schema.shape as Record<string, z.ZodType>
     )) {
-      relaxedShape[k] = v.or(z.literal('')).or(z.undefined());
+      relaxedShape[k] = v.or(z.literal('')).optional();
     }
-    return z.object(relaxedShape).or(z.literal('')).or(z.undefined());
+    return z.object(relaxedShape).or(z.literal('')).optional();
   }
-  return schema.or(z.literal('')).or(z.undefined());
+  return schema.or(z.literal('')).optional();
 }
 
 /**
@@ -1045,19 +1086,17 @@ function relaxOptionalFieldSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
  * @returns Modified Zod schema with context-appropriate validations
  */
 export function modifySchemaByClientContext(
-  schema: z.ZodObject<Record<string, z.ZodTypeAny>>,
+  schema: z.ZodObject<Record<string, z.ZodType>>,
   clientContext: ClientContext,
   currentScreenId: ScreenId,
   refineFn?: (
-    schema: z.ZodObject<Record<string, z.ZodTypeAny>>
-  ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodTypeAny>>>,
+    schema: z.ZodObject<Record<string, z.ZodType>>
+  ) => z.ZodObject<Record<string, z.ZodType>>,
   parentKey: string = '' // used to track full key path
-):
-  | z.ZodObject<Record<string, z.ZodTypeAny>>
-  | z.ZodEffects<z.ZodObject<Record<string, z.ZodTypeAny>>> {
+): z.ZodObject<Record<string, z.ZodType>> {
   const { shape } = schema;
 
-  const filteredSchema: Record<string, z.ZodTypeAny> = {};
+  const filteredSchema: Record<string, z.ZodType> = {};
   objectEntries(shape).forEach(([key, value]) => {
     const fullKey = parentKey ? `${parentKey}.${key}` : key;
 
@@ -1073,7 +1112,7 @@ export function modifySchemaByClientContext(
     }
 
     // Modify the field schema based on the field rule
-    let modifiedSchema: z.ZodTypeAny = value;
+    let modifiedSchema: z.ZodType = value;
 
     if (ruleType === 'array') {
       modifiedSchema = modifyArrayFieldSchema(
@@ -1124,15 +1163,18 @@ export function modifyDefaultValuesByClientContext(
 }
 
 export function useFormWithFilters<
-  TSchema extends z.ZodObject<Record<string, z.ZodTypeAny>>,
+  TSchema extends z.ZodObject<Record<string, z.ZodType>>,
 >(
-  props: Omit<UseFormProps<z.input<TSchema>>, 'resolver'> & {
+  props: Omit<
+    UseFormProps<z.input<TSchema>, unknown, z.output<TSchema>>,
+    'resolver'
+  > & {
     clientData: ClientResponse | undefined;
     screenId: ScreenId;
     schema: TSchema;
     refineSchemaFn?: (
-      schema: z.ZodObject<Record<string, z.ZodTypeAny>>
-    ) => z.ZodEffects<z.ZodObject<Record<string, z.ZodTypeAny>>>;
+      schema: z.ZodObject<Record<string, z.ZodType>>
+    ) => z.ZodObject<Record<string, z.ZodType>>;
     overrideDefaultValues?: Partial<OnboardingFormValuesInitial>;
     /**
      * When true, runs form.trigger() on mount to surface validation
@@ -1178,7 +1220,11 @@ export function useFormWithFilters<
     mode: 'onBlur',
     reValidateMode: 'onChange',
     ...props,
-    resolver: zodResolver(modifySchema(props.schema, props.refineSchemaFn)),
+    // The filtered schema is built dynamically, so its inferred types are
+    // looser than TSchema's; it validates the same field shape.
+    resolver: zodResolver(
+      modifySchema(props.schema, props.refineSchemaFn)
+    ) as unknown as Resolver<z.input<TSchema>, unknown, z.output<TSchema>>,
     defaultValues: mergedDefaults,
   });
 
@@ -1433,6 +1479,7 @@ export const useGetValidationMessage = <Field extends FieldKey>(): ((
     messageKey: ValidationMessageKeysFor<Field>,
     countOrParams?: number | Record<string, string>
   ): string => {
+    const i18n = getActiveI18n();
     const { fieldRule } = getFieldRule(
       field as FieldPath<OnboardingFormValuesSubmit>
     );

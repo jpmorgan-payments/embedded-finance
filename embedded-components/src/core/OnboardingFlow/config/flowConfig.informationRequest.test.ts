@@ -41,6 +41,7 @@ const buildClient = (
         id: '2000000555',
         partyType: 'ORGANIZATION',
         roles: ['CLIENT'],
+        active: true,
         organizationDetails: { organizationType: 'LIMITED_LIABILITY_COMPANY' },
       },
     ],
@@ -55,14 +56,47 @@ const buildClient = (
   }) as ClientResponse;
 
 describe('flowConfig: information request sections', () => {
-  test('requested questions section sits before supporting documents', () => {
+  test('requested questions section sits between operational details and review', () => {
     const sectionIds = flowConfig.screens
       .filter((screen) => screen.isSection)
       .map((screen) => screen.id);
 
     expect(sectionIds.indexOf('requested-questions-section')).toBe(
-      sectionIds.indexOf('upload-documents-section') - 1
+      sectionIds.indexOf('additional-questions-section') + 1
     );
+    expect(sectionIds.indexOf('requested-questions-section')).toBe(
+      sectionIds.indexOf('review-attest-section') - 1
+    );
+  });
+
+  describe('before submission', () => {
+    const newClient = buildClient('NEW', {
+      questionIds: ['30005', '500096'],
+    });
+
+    test('RFI questions open their own section', () => {
+      expect(
+        resolveStatus('requested-questions-section', newClient, {
+          rfiQuestionIds: ['500096'],
+        })
+      ).toBe('not_started');
+    });
+
+    test('operational details are done once only RFI questions remain', () => {
+      const onlyRfiLeft = buildClient('NEW', { questionIds: ['500096'] });
+      expect(
+        resolveStatus('additional-questions-section', onlyRfiLeft, {
+          rfiQuestionIds: ['500096'],
+        })
+      ).toBe('completed');
+      // Until the categories are known, every question stays in operational details.
+      expect(resolveStatus('additional-questions-section', onlyRfiLeft)).toBe(
+        'not_started'
+      );
+      expect(resolveStatus('requested-questions-section', newClient)).toBe(
+        'hidden'
+      );
+    });
   });
 
   describe('requested-questions-section', () => {

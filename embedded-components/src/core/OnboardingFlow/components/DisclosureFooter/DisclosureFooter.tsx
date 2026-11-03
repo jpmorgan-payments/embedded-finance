@@ -17,7 +17,7 @@ import { useOnboardingContext } from '@/core/OnboardingFlow/contexts';
 export function DisclosureFooter() {
   const { disclosureConfig, showDisclosureFooter } = useOnboardingContext();
 
-  const { t } = useTranslationWithTokens('onboarding-overview');
+  const { t, tString } = useTranslationWithTokens('onboarding-overview');
 
   if (!showDisclosureFooter || !disclosureConfig?.platformName) {
     return null;
@@ -27,7 +27,7 @@ export function DisclosureFooter() {
     <footer
       className="eb-mt-6 eb-border-t eb-border-border eb-px-4 eb-py-3 eb-text-center eb-text-xs eb-text-muted-foreground"
       role="contentinfo"
-      aria-label="Regulatory disclosure"
+      aria-label={tString('reviewAndAttest.disclosure.ariaLabel')}
     >
       <p>
         {t('reviewAndAttest.disclosure.footer', {

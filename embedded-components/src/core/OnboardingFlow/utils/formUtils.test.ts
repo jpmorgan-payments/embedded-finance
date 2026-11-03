@@ -13,8 +13,9 @@ import {
   generateClientRequestBody,
   generatePartyRequestBody,
   getPartyFieldConfig,
-  getPopulatedFormFieldKeys,
+  getPopulatedPartyFieldKeys,
   getValueByPath,
+  isIndividualPartyFieldKey,
   isValuePopulated,
   mapClientApiErrorsToFormErrors,
   mapPartyApiErrorsToFormErrors,
@@ -413,40 +414,62 @@ describe('formUtils', () => {
     });
   });
 
-  describe('getPopulatedFormFieldKeys', () => {
-    it('returns an empty set when there is no client data', () => {
-      expect(getPopulatedFormFieldKeys(undefined).size).toBe(0);
+  describe('getPopulatedPartyFieldKeys', () => {
+    it('returns an empty set when there is no party', () => {
+      expect(getPopulatedPartyFieldKeys(undefined).size).toBe(0);
     });
 
-    it('collects populated root keys across parties without leaking defaults', () => {
-      const clientData = {
-        parties: [
-          {
-            partyType: 'ORGANIZATION',
-            organizationDetails: {
-              organizationName: 'Acme',
-              organizationType: 'LIMITED_LIABILITY_COMPANY',
-              addresses: [
-                {
-                  addressType: 'BUSINESS_ADDRESS',
-                  addressLines: ['1 Main St'],
-                  city: 'Columbus',
-                  state: 'OH',
-                  postalCode: '43004',
-                  country: 'US',
-                },
-              ],
-              // dbaName intentionally omitted → must NOT be reported populated
+    it('collects populated root keys without leaking defaults', () => {
+      const party = {
+        partyType: 'ORGANIZATION',
+        organizationDetails: {
+          organizationName: 'Acme',
+          organizationType: 'LIMITED_LIABILITY_COMPANY',
+          addresses: [
+            {
+              addressType: 'BUSINESS_ADDRESS',
+              addressLines: ['1 Main St'],
+              city: 'Columbus',
+              state: 'OH',
+              postalCode: '43004',
+              country: 'US',
             },
-          },
-        ],
-      } as unknown as ClientResponse;
+          ],
+          // dbaName intentionally omitted → must NOT be reported populated
+        },
+      } as unknown as PartyResponse;
 
-      const keys = getPopulatedFormFieldKeys(clientData);
+      const keys = getPopulatedPartyFieldKeys(party);
       expect(keys.has('organizationName')).toBe(true);
       expect(keys.has('organizationTypeHierarchy')).toBe(true);
       expect(keys.has('organizationAddress')).toBe(true);
       expect(keys.has('dbaName')).toBe(false);
+    });
+
+    it('reads only the given party, not the rest of the client', () => {
+      const controller = {
+        partyType: 'INDIVIDUAL',
+        roles: ['CONTROLLER'],
+        individualDetails: { firstName: 'Jane', lastName: 'Doe' },
+      } as unknown as PartyResponse;
+
+      expect(
+        getPopulatedPartyFieldKeys(controller).has('controllerEmail')
+      ).toBe(false);
+    });
+  });
+
+  describe('isIndividualPartyFieldKey', () => {
+    it('classifies individual-party keys, including shared top-level paths', () => {
+      expect(isIndividualPartyFieldKey('controllerEmail')).toBe(true);
+      expect(isIndividualPartyFieldKey('controllerPhone')).toBe(true);
+      expect(isIndividualPartyFieldKey('controllerFirstName')).toBe(true);
+    });
+
+    it('classifies organization keys as not individual', () => {
+      expect(isIndividualPartyFieldKey('organizationEmail')).toBe(false);
+      expect(isIndividualPartyFieldKey('organizationName')).toBe(false);
+      expect(isIndividualPartyFieldKey('organizationAddress')).toBe(false);
     });
   });
 });

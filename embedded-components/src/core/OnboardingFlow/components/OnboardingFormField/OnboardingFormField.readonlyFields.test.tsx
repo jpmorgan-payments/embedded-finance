@@ -1,8 +1,9 @@
 /**
  * RTL coverage for the OnboardingFlow `readonlyFields` prop — the host-configured
  * lock that renders selected fields read-only. Verifies the two lock modes
- * (`whenPopulated` default and `always`) and that composite fields
- * (`organizationAddress`) lock every sub-input as a unit.
+ * (`whenPopulated` default and `always`), that composite fields
+ * (`organizationAddress`) lock every sub-input as a unit, and that locks follow
+ * the party being edited (controller fields never lock for owners).
  */
 import type { ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
@@ -14,10 +15,14 @@ import { Form } from '@/components/ui/form';
 import { AddressFields } from '@/core/OnboardingFlow/components/AddressFields/AddressFields';
 import { OnboardingFormField } from '@/core/OnboardingFlow/components/OnboardingFormField/OnboardingFormField';
 import { flowConfig } from '@/core/OnboardingFlow/config/flowConfig';
-import type { OnboardingContextType } from '@/core/OnboardingFlow/contexts';
+import type {
+  OnboardingContextType,
+  ReadonlyFieldsScope,
+} from '@/core/OnboardingFlow/contexts';
 import {
   FlowProvider,
   OnboardingContext,
+  ReadonlyFieldsScopeContext,
 } from '@/core/OnboardingFlow/contexts';
 
 const orgPartyPopulated = {
@@ -55,6 +60,31 @@ const clientEmpty = {
   ],
 } as unknown as ClientResponse;
 
+const orgPartyWithEmail = { ...orgPartyPopulated, email: 'hello@acme.com' };
+
+const controllerWithEmail = {
+  id: 'controller',
+  partyType: 'INDIVIDUAL',
+  roles: ['CONTROLLER'],
+  email: 'jane@acme.com',
+  individualDetails: { firstName: 'Jane', lastName: 'Doe' },
+};
+
+const controllerWithoutEmail = {
+  id: 'controller',
+  partyType: 'INDIVIDUAL',
+  roles: ['CONTROLLER'],
+  individualDetails: { firstName: 'Jane', lastName: 'Doe' },
+};
+
+const ownerWithEmail = {
+  id: 'owner',
+  partyType: 'INDIVIDUAL',
+  roles: ['BENEFICIAL_OWNER'],
+  email: 'bob@acme.com',
+  individualDetails: { firstName: 'Bob', lastName: 'Roe' },
+};
+
 function makeContext(
   overrides: Partial<OnboardingContextType>
 ): OnboardingContextType {
@@ -80,6 +110,19 @@ function renderInFlow(ui: ReactNode, ctx: OnboardingContextType) {
         {ui}
       </FlowProvider>
     </OnboardingContext.Provider>
+  );
+}
+
+function renderInScope(
+  ui: ReactNode,
+  ctx: OnboardingContextType,
+  scope: ReadonlyFieldsScope
+) {
+  return renderInFlow(
+    <ReadonlyFieldsScopeContext.Provider value={scope}>
+      {ui}
+    </ReadonlyFieldsScopeContext.Provider>,
+    ctx
   );
 }
 
@@ -260,5 +303,143 @@ describe('OnboardingFlow readonlyFields', () => {
       expect(box).toHaveAttribute('aria-readonly', 'true');
     });
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  describe('party scope', () => {
+    test('keeps controllerEmail editable when only the business email is populated', async () => {
+      renderInFlow(
+        <FieldHarness
+          name="controllerEmail"
+          defaultValues={{ controllerEmail: '' }}
+        />,
+        makeContext({
+          clientData: {
+            parties: [orgPartyWithEmail, controllerWithoutEmail],
+          } as unknown as ClientResponse,
+          readonlyFields: { fields: ['controllerEmail'] },
+        })
+      );
+
+      const input = await screen.findByRole('textbox');
+      expect(input.tagName).toBe('INPUT');
+      expect(input).not.toHaveAttribute('aria-readonly', 'true');
+    });
+
+    test('locks controllerEmail when the controller has an email', async () => {
+      renderInFlow(
+        <FieldHarness
+          name="controllerEmail"
+          defaultValues={{ controllerEmail: 'jane@acme.com' }}
+        />,
+        makeContext({
+          clientData: {
+            parties: [orgPartyWithEmail, controllerWithEmail],
+          } as unknown as ClientResponse,
+          readonlyFields: { fields: ['controllerEmail'] },
+        })
+      );
+
+      const box = await screen.findByRole('textbox');
+      expect(box.tagName).toBe('DIV');
+      expect(box).toHaveTextContent('jane@acme.com');
+      expect(box).toHaveAttribute('aria-readonly', 'true');
+    });
+
+    test("locks controllerEmail on the controller's own form", async () => {
+      renderInScope(
+        <FieldHarness
+          name="controllerEmail"
+          defaultValues={{ controllerEmail: 'jane@acme.com' }}
+        />,
+        makeContext({
+          clientData: {
+            parties: [orgPartyWithEmail, controllerWithEmail, ownerWithEmail],
+          } as unknown as ClientResponse,
+          readonlyFields: { fields: ['controllerEmail'] },
+        }),
+        {
+          party: controllerWithEmail as ReadonlyFieldsScope['party'],
+          isController: true,
+        }
+      );
+
+      const box = await screen.findByRole('textbox');
+      expect(box.tagName).toBe('DIV');
+      expect(box).toHaveAttribute('aria-readonly', 'true');
+    });
+
+    test("never locks a beneficial owner's email, even when populated", async () => {
+      renderInScope(
+        <FieldHarness
+          name="controllerEmail"
+          defaultValues={{ controllerEmail: 'bob@acme.com' }}
+        />,
+        makeContext({
+          clientData: {
+            parties: [orgPartyWithEmail, controllerWithEmail, ownerWithEmail],
+          } as unknown as ClientResponse,
+          readonlyFields: { fields: ['controllerEmail'] },
+        }),
+        {
+          party: ownerWithEmail as ReadonlyFieldsScope['party'],
+          isController: false,
+        }
+      );
+
+      const input = await screen.findByRole('textbox');
+      expect(input.tagName).toBe('INPUT');
+      expect(input).toHaveValue('bob@acme.com');
+      expect(input).not.toHaveAttribute('aria-readonly', 'true');
+    });
+
+    test("mode 'always' leaves a new owner's email editable", async () => {
+      renderInScope(
+        <FieldHarness
+          name="controllerEmail"
+          defaultValues={{ controllerEmail: '' }}
+        />,
+        makeContext({
+          clientData: {
+            parties: [orgPartyWithEmail, controllerWithEmail],
+          } as unknown as ClientResponse,
+          readonlyFields: { fields: ['controllerEmail'], mode: 'always' },
+        }),
+        { party: undefined, isController: false }
+      );
+
+      const input = await screen.findByRole('textbox');
+      expect(input.tagName).toBe('INPUT');
+      expect(input).not.toHaveAttribute('aria-readonly', 'true');
+    });
+
+    test('checks organization fields against the scoped party', async () => {
+      const intermediaryWithoutName = {
+        id: 'intermediary',
+        partyType: 'ORGANIZATION',
+        organizationDetails: {
+          organizationType: 'LIMITED_LIABILITY_COMPANY',
+        },
+      };
+      renderInScope(
+        <FieldHarness
+          name="organizationName"
+          defaultValues={{ organizationName: '' }}
+        />,
+        makeContext({
+          clientData: {
+            parties: [orgPartyPopulated, intermediaryWithoutName],
+          } as unknown as ClientResponse,
+          readonlyFields: { fields: ['organizationName'] },
+        }),
+        {
+          party: intermediaryWithoutName as ReadonlyFieldsScope['party'],
+          isController: false,
+        }
+      );
+
+      const input = await screen.findByRole('textbox');
+      expect(input.tagName).toBe('INPUT');
+      expect(input).not.toHaveAttribute('aria-readonly', 'true');
+    });
   });
 });

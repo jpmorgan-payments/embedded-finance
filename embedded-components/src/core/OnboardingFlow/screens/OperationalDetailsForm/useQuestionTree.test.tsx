@@ -50,16 +50,23 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 /** Every question ID requested across all `GET /questions` calls this render. */
 let requestedIds: string[] = [];
+/** Questions the endpoint files under `category=RFI`; the rest are KYC. */
+let rfiQuestionIds = new Set<string>();
 
 function mockQuestionsEndpoint() {
   server.use(
     http.get('*/questions', ({ request }) => {
       const url = new URL(request.url);
+      const category = url.searchParams.get('category');
       const ids = (url.searchParams.get('questionIds') ?? '')
         .split(',')
         .filter(Boolean);
       requestedIds.push(...ids);
       const questions = ids
+        .filter(
+          (id) =>
+            !category || (rfiQuestionIds.has(id) ? 'RFI' : 'KYC') === category
+        )
         .map((id) => QUESTION_DEFS[id])
         .filter((q): q is Record<string, unknown> => Boolean(q));
       return HttpResponse.json({
@@ -79,6 +86,7 @@ describe('useQuestionTree — outstanding-gated sub-question fetching', () => {
     queryClient.clear();
     server.resetHandlers();
     requestedIds = [];
+    rfiQuestionIds = new Set();
     mockQuestionsEndpoint();
   });
 
@@ -195,5 +203,29 @@ describe('useQuestionTree — outstanding-gated sub-question fetching', () => {
     expect(result.current.isLoading).toBe(false);
     expect(requestedIds).toHaveLength(0);
     expect(result.current.allQuestions).toHaveLength(0);
+  });
+
+  it('marks each root with the category the API filters it under', async () => {
+    rfiQuestionIds = new Set(['30158', '30162']);
+    const { result } = renderHook(
+      () =>
+        useQuestionTree({
+          outstandingQuestionIds: ['30005', '30158', '30162'],
+          existingQuestionResponses: [],
+        }),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const categoryOf = (id: string) =>
+      (
+        result.current.allQuestions.find((q) => q.id === id) as {
+          category?: string;
+        }
+      )?.category;
+    expect(categoryOf('30005')).toBe('KYC');
+    expect(categoryOf('30158')).toBe('RFI');
+    expect(categoryOf('30162')).toBe('RFI');
   });
 });

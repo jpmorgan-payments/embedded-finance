@@ -12,6 +12,13 @@ import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
+import {
+  CHANGE_CARD_CLASS,
+  CHANGE_HEADER_CLASS,
+  HEADER_CLASS,
+  MaintenanceChangeEyebrow,
+  PAGE_CLASS,
+} from './MaintenanceChangeEyebrow';
 import { MaintenanceEntityMedallion } from './MaintenanceEntityMedallion';
 import {
   MaintenanceOwnershipPicker,
@@ -238,12 +245,13 @@ export function MaintenanceOwnerRelationshipView({
   };
 
   return (
-    <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background eb-@container">
-      <header className="eb-border-b eb-px-4 eb-py-4">
+    <div className={cn(PAGE_CLASS, CHANGE_CARD_CLASS, 'eb-@container')}>
+      <header className={cn(HEADER_CLASS, CHANGE_HEADER_CLASS)}>
         <MaintenanceBreadcrumb
           items={breadcrumbs}
           ariaLabel={tString('navigation.breadcrumbLabel')}
         />
+        <MaintenanceChangeEyebrow />
         <h2 className="eb-text-lg eb-font-semibold">{t(titleKey, { name })}</h2>
         <p className="eb-mt-1 eb-max-w-2xl eb-text-sm eb-leading-6 eb-text-muted-foreground">
           {t(descriptionKey, { name })}

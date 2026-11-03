@@ -188,21 +188,21 @@ export function OrganizationChangeEditor({
                 : undefined;
         if (yearIssue) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['yearOfFormation'],
             message: fieldValidationMessage('yearOfFormation', yearIssue),
           });
         }
         if (!locksRegistration && values.countryOfFormation !== 'US') {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['countryOfFormation'],
             message: fieldValidationMessage('countryOfFormation', 'usOnly'),
           });
         }
         if (!values.organizationDescription) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['organizationDescription'],
             message: fieldValidationMessage(
               'organizationDescription',
@@ -211,7 +211,7 @@ export function OrganizationChangeEditor({
           });
         } else if (values.organizationDescription.length < 10) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['organizationDescription'],
             message: fieldValidationMessage(
               'organizationDescription',
@@ -220,7 +220,7 @@ export function OrganizationChangeEditor({
           });
         } else if (values.organizationDescription.length > 1000) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['organizationDescription'],
             message: fieldValidationMessage(
               'organizationDescription',
@@ -229,7 +229,7 @@ export function OrganizationChangeEditor({
           });
         } else if (containsHtmlLikeTag(values.organizationDescription)) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['organizationDescription'],
             message: fieldValidationMessage(
               'organizationDescription',
@@ -238,7 +238,7 @@ export function OrganizationChangeEditor({
           });
         } else if (/https?:\/\/[^\s]+/.test(values.organizationDescription)) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['organizationDescription'],
             message: fieldValidationMessage(
               'organizationDescription',
@@ -248,19 +248,19 @@ export function OrganizationChangeEditor({
         }
         if (!values.email) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['email'],
             message: fieldValidationMessage('organizationEmail', 'required'),
           });
-        } else if (!z.string().email().safeParse(values.email).success) {
+        } else if (!z.email().safeParse(values.email).success) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['email'],
             message: fieldValidationMessage('organizationEmail', 'invalid'),
           });
         } else if (values.email.length > 100) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['email'],
             message: fieldValidationMessage('organizationEmail', 'maxLength'),
           });
@@ -276,7 +276,7 @@ export function OrganizationChangeEditor({
       );
       if (requiresEin && einValidationIssue) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['organizationId', 'value'],
           message: fieldValidationMessage(
             'organizationIdEin',
@@ -293,7 +293,7 @@ export function OrganizationChangeEditor({
           !/^\d{7,15}$/.test(values.phone.phoneNumber))
       ) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['phone', 'phoneNumber'],
           message: fieldValidationMessage(
             'organizationPhone.phoneNumber',

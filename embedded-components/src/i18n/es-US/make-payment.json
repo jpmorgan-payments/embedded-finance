@@ -279,5 +279,18 @@
       "notUsAch": "Aquí \"ACH\" y \"Transferencia\" son niveles de liquidación de FX (bajo valor frente a alto valor), no ACH nacional de EE. UU. ni Fedwire. Las vías disponibles dependen de la moneda de destino.",
       "rtpUnavailable": "No disponible para pagos en moneda extranjera"
     }
+  },
+  "formValidation": {
+    "bankNameRequired": "El nombre del banco es obligatorio",
+    "accountNumberRequired": "El número de cuenta es obligatorio",
+    "routingNumberDigits": "El número de ruta debe tener 9 dígitos",
+    "nameRequired": "El nombre es obligatorio",
+    "wireDetailsRequired": "Los datos de la transferencia bancaria son obligatorios",
+    "nicknameRequired": "El apodo de la cuenta es obligatorio",
+    "beneficiaryAddressRequired": "La dirección del beneficiario es obligatoria",
+    "cityRequired": "La ciudad es obligatoria",
+    "stateRequired": "El estado es obligatorio",
+    "zipRequired": "El código postal es obligatorio",
+    "bankAddressRequired": "La dirección del banco es obligatoria"
   }
 }

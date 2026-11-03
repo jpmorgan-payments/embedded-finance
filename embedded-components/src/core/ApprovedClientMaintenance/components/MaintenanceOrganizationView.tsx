@@ -33,6 +33,7 @@ import { MaintenanceDocumentRequestRow } from './MaintenanceDocumentRequestRow';
 import { MaintenanceIdentifierValue } from './MaintenanceIdentifierValue';
 import { MaintenanceIntermediaryOwnershipSection } from './MaintenanceIntermediaryOwnershipSection';
 import { MaintenancePageBody } from './MaintenancePageBody';
+import { MaintenanceRequestChangeButton } from './MaintenanceRequestChangeButton';
 import { MaintenanceSection } from './MaintenanceSection';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
 
@@ -58,6 +59,7 @@ type MaintenanceOrganizationViewProps = {
   onSelectDocument: (documentRequestId: string) => void;
   ownershipPath?: string[];
   backLabel: string;
+  onRequestChange?: () => void;
 };
 
 const formatEnumLabel = (value: string) =>
@@ -89,6 +91,7 @@ export function MaintenanceOrganizationView({
   onSelectDocument,
   ownershipPath = [],
   backLabel,
+  onRequestChange,
 }: MaintenanceOrganizationViewProps) {
   const { t, tString } = useTranslationWithTokens([
     'approved-client-maintenance',
@@ -101,6 +104,9 @@ export function MaintenanceOrganizationView({
   const isUnreviewed = 'isUnreviewed' in task && task.isUnreviewed;
   const displayedParty = isPendingAddition ? task.proposedParty : task.party;
   const updateStatus = task.change?.proposal.updateRequest?.status;
+  const requestChangeButton = onRequestChange ? (
+    <MaintenanceRequestChangeButton onClick={onRequestChange} />
+  ) : null;
   const isPendingRemoval = task.change?.removesParty ?? false;
   const isAdditionUnderReview =
     isPendingAddition && updateStatus === 'REVIEW_IN_PROGRESS';
@@ -398,6 +404,7 @@ export function MaintenanceOrganizationView({
                   {t('pendingRemoval.cancel')}
                 </Button>
               ) : null}
+              {requestChangeButton}
             </div>
           ) : isPendingAddition ? (
             <div className="eb-flex eb-w-full eb-flex-col eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-flex-row">
@@ -426,17 +433,19 @@ export function MaintenanceOrganizationView({
                   {t('pendingAddition.discard')}
                 </Button>
               ) : null}
+              {requestChangeButton}
             </div>
-          ) : !task.change &&
-            (canEdit || (isIntermediary && canRemoveIntermediary)) ? (
+          ) : (!task.change &&
+              (canEdit || (isIntermediary && canRemoveIntermediary))) ||
+            onRequestChange ? (
             <div className="eb-flex eb-w-full eb-flex-wrap eb-gap-2 @[40rem]:eb-w-auto @[40rem]:eb-justify-end">
-              {canEdit ? (
+              {!task.change && canEdit ? (
                 <Button variant="outlineSurface" size="sm" onClick={onEdit}>
                   <PencilIcon />
                   {t('placeholders.editBusiness')}
                 </Button>
               ) : null}
-              {isIntermediary && canRemoveIntermediary ? (
+              {!task.change && isIntermediary && canRemoveIntermediary ? (
                 <Button
                   variant="outlineSurface"
                   size="sm"
@@ -447,6 +456,7 @@ export function MaintenanceOrganizationView({
                   {t('removeIntermediary.action')}
                 </Button>
               ) : null}
+              {requestChangeButton}
             </div>
           ) : null}
         </div>

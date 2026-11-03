@@ -279,5 +279,18 @@
       "notUsAch": "\"ACH\" and \"Wire\" here are FX settlement tiers (low-value vs. high-value) — not US domestic ACH or Fedwire. The rails available depend on the destination currency.",
       "rtpUnavailable": "Not available for cross-currency payments"
     }
+  },
+  "formValidation": {
+    "bankNameRequired": "Bank name is required",
+    "accountNumberRequired": "Account number is required",
+    "routingNumberDigits": "Routing number must be 9 digits",
+    "nameRequired": "Name is required",
+    "wireDetailsRequired": "Wire transfer details are required",
+    "nicknameRequired": "Account nickname is required",
+    "beneficiaryAddressRequired": "Beneficiary address is required",
+    "cityRequired": "City is required",
+    "stateRequired": "State is required",
+    "zipRequired": "ZIP code is required",
+    "bankAddressRequired": "Bank address is required"
   }
 }

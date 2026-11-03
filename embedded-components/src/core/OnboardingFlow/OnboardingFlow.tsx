@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
+import { isEqual } from 'lodash';
 
 import { cn } from '@/lib/utils';
 import { trackUserEvent, useUserEventTracking } from '@/lib/utils/userTracking';
@@ -27,6 +28,7 @@ import {
   OnboardingContext,
   useOnboardingContext,
 } from './contexts/OnboardingContext';
+import { useRfiQuestionIds } from './hooks/useRfiQuestionIds';
 import { useStableStepSchemas } from './hooks/useStableStepSchemas';
 import { ONBOARDING_FLOW_USER_JOURNEYS } from './OnboardingFlow.constants';
 import { useQuestionTree } from './screens/OperationalDetailsForm/useQuestionTree';
@@ -280,7 +282,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({
 
 // Memoize the FlowRenderer component to ensure consistent hook order
 const FlowRenderer: React.FC = React.memo(() => {
-  const { t } = useTranslationWithTokens(['onboarding-overview']);
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
 
   // Resolve step title through content tokens at render time using titleKey.
   const resolveStepTitle = (step: { id: string; titleKey: string }) => {
@@ -322,6 +324,15 @@ const FlowRenderer: React.FC = React.memo(() => {
   // helpers below (which then run pure safeParse) so a step's `isVisible`
   // toggling or the owner count changing can't vary the hook count.
   const stableStepSchemas = useStableStepSchemas();
+
+  // Section statuses read this from session data, so RFI questions get their own section.
+  const rfiQuestionIds = useRfiQuestionIds(clientData);
+  useEffect(() => {
+    if (!isEqual(rfiQuestionIds, sessionData.rfiQuestionIds)) {
+      updateSessionData({ rfiQuestionIds });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync only when the classification changes
+  }, [rfiQuestionIds]);
 
   // When viewing a sub-screen (e.g. owner-stepper), highlight its parent
   // section in the sidebar instead of leaving no section highlighted.
@@ -737,18 +748,9 @@ const FlowRenderer: React.FC = React.memo(() => {
   // followed by the combined "Review & attest" stage. Delta mode merges the
   // review + terms into a single step, so the journey is exactly two steps.
   // Derived synchronously (no effect) so the sidebar shows the right timeline
-  // on first paint.
-  //
-  // collectBaselineDeltaPendingGroups + computeDeltaFieldProgressByGroup
-  // transitively call step schema hooks (getStepperValidation ->
-  // Component.schema() -> useGetValidationMessage -> useFormContext). They MUST
-  // run UNCONDITIONALLY at the top level of render — the same number of times
-  // every render, on every screen. Gating them behind showDeltaTimeline (which
-  // depends on sessionData.overviewViewMode / currentScreenId) changes the hook
-  // count when toggling delta -> full view or navigating screens, tripping
-  // "change in the order of Hooks". React 19 also warns when hooks run inside
-  // useMemo, so a plain top-level call is used. The schema hooks only read
-  // context, so recomputing per render is safe.
+  // on first paint. Both helpers get the pre-built step schemas so they run
+  // pure safeParse; without them they call each step's schema hooks a
+  // data-dependent number of times, which changes the hook order.
   const deltaTimelineOwnerSteps =
     staticScreens.find((s) => s.id === 'owner-stepper')?.stepperConfig?.steps ??
     [];
@@ -758,6 +760,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     savedFormValues,
     currentScreenId,
     ownerSteps: deltaTimelineOwnerSteps,
+    stepSchemas: stableStepSchemas,
   });
   const deltaTimelineLiveOverlay = {
     ...savedFormValues,
@@ -770,6 +773,7 @@ const FlowRenderer: React.FC = React.memo(() => {
     ownerSteps: deltaTimelineOwnerSteps,
     liveOverlay: deltaTimelineLiveOverlay,
     currentScreenId,
+    stepSchemas: stableStepSchemas,
   });
 
   // Delta only covers pre-submission completion; information requests on a
@@ -975,7 +979,9 @@ const FlowRenderer: React.FC = React.memo(() => {
                 goTo('owner-stepper', {
                   editingPartyId: stepId,
                   previouslyCompleted: !!validation?.allStepsValid,
-                  shortLabelOverride: 'Edit owner',
+                  shortLabelOverride: tString(
+                    'stepperRenderer.shortLabels.editOwner'
+                  ),
                   initialStepperStepId:
                     firstInvalidStep ?? ownerStepperConfig?.steps.at(-1)?.id,
                 });

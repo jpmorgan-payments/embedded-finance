@@ -1,6 +1,6 @@
 #!/bin/sh
-# Auto-sanitize package-lock.json before commit: strip internal registry
-# (Artifactory) resolved/integrity URLs so they are never committed or mirrored
+# Auto-sanitize package-lock.json before commit: strip private-registry
+# resolved/integrity URLs so they are never committed or mirrored
 # to the public GitHub repo. No-ops unless package-lock.json is part of the commit.
 #
 # Enabled via: git config core.hooksPath .githooks

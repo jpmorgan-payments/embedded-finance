@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
-import { EllipsisVerticalIcon } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  EllipsisVerticalIcon,
+  PencilLineIcon,
+} from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import {
@@ -21,24 +25,41 @@ export type MaintenanceAction = {
 
 export function MaintenanceActionMenu({
   label,
+  triggerText,
   actions,
 }: {
   label: string;
+  /** Visible trigger text; the trigger is an icon without it. */
+  triggerText?: string;
   actions: MaintenanceAction[];
 }) {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="eb-size-8 eb-shrink-0 eb-px-0"
-          aria-label={label}
-          title={label}
-        >
-          <EllipsisVerticalIcon />
-        </Button>
+        {triggerText ? (
+          <Button
+            type="button"
+            variant="outlineSurface"
+            size="sm"
+            className="eb-shrink-0"
+            aria-label={label}
+          >
+            <PencilLineIcon />
+            {triggerText}
+            <ChevronDownIcon />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="eb-size-8 eb-shrink-0 eb-px-0"
+            aria-label={label}
+            title={label}
+          >
+            <EllipsisVerticalIcon />
+          </Button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="eb-max-w-[18rem]">
         {actions.map((action) => (

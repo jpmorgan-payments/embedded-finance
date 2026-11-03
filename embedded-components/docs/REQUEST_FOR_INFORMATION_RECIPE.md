@@ -65,6 +65,28 @@ For each ID:
 
 **Recommended:** refetch the client when you receive the webhook, when the user returns to your page, and after each save. The webhook only tells you that something changed.
 
+### Tell onboarding and RFI questions apart
+
+Questions have a `category`:
+
+- `KYC`: part of onboarding. These are normally outstanding before submission.
+- `RFI`: part of a request for information. These normally arrive after submission, alongside requested documents.
+- `ARCHIVED`: an RFI question whose request has moved on. It can still be outstanding, so treat it as `RFI`.
+
+A conditional sub-question has the same category as the question that opens it.
+
+`GET /questions` accepts `category` as a filter but doesn't return it on each question. To classify outstanding questions, request them again with `category=KYC`:
+
+```http
+GET /questions?questionIds=30005,30158,500096&category=KYC
+```
+
+Questions in that response are onboarding questions; the rest are `RFI` or `ARCHIVED`. The filter only accepts upper-case values, and like any `GET /questions` call it returns at most 25 questions per page.
+
+**Must:** don't assume an RFI arrives only after submission. An RFI can be raised on a `NEW` client, and its questions then appear in `outstanding.questionIds` alongside the onboarding questions. If the category request fails, fall back to the client status: `INFORMATION_REQUESTED` and `APPROVED` mean RFI, anything else means onboarding.
+
+**Recommended:** keep the two kinds apart. Show onboarding questions with the rest of the application, and RFI questions in a place of their own.
+
 ## Fulfill a Document Request
 
 Upload each file with `POST /documents`, referencing the document request, then call `POST /document-requests/{id}/submit`. A request can accept several files. Once submitted, it is removed from `outstanding.documentRequestIds`. See [Upload documents](https://developer.payments.jpmorgan.com/docs/embedded-finance-solutions/embedded-payments/capabilities/onboard-a-client/how-to/upload-documents) for the full contract.
@@ -109,15 +131,17 @@ The `OnboardingFlow` component in this repository follows the guidance above.
 ### Overview
 
 - An **Additional information** card appears when questions are outstanding, and a **Supporting documents** card appears when document requests are outstanding. Both open their own screen.
+- RFI questions always have their own **Additional information** section, between **Operational details** and **Review and attest**. Before submission it appears only when the API files an outstanding question as `RFI`; that question then stays out of **Operational details** and the review step, and doesn't hold up operational details' completion. **Review and attest** won't continue until it's answered, and its alert links to the section. A follow-up raised by an RFI answer stays in the section with its parent.
 - The alert above the cards names what is still needed: documents, questions, or both.
 - `INFORMATION_REQUESTED`: onboarding sections stay locked. Once nothing is outstanding but the status hasn't changed yet, the alert confirms the response was received.
 - `APPROVED`: the card heading changes to "We need a few more details" and the green approval banner is replaced by a single informational alert. It confirms the business is still verified and the account stays active, then says what to provide. Once nothing is outstanding, the usual approval heading and banner return.
 
-For approved clients, only `outstanding.documentRequestIds` counts as a document request. Party-level `validationResponse` document request IDs are only used while the client is `INFORMATION_REQUESTED`.
+For approved clients, a document request for the business is in `outstanding.documentRequestIds`. A request for a related party is only in that party's `validationResponse`, and the party is listed in `outstanding.partyIds`; party-level request IDs count only while their party is listed there. The client-level list can repeat an ID, so deduplicate before counting.
 
 ### Questions screen
 
 - Shows only the outstanding questions, using the same field types as the onboarding **Operational details** form (yes/no, select, multi-select, number, date, money). Free-text answers use a multi-line field.
+- Before submission it lists only the RFI questions. After submission, **Operational details** is locked, so it lists every outstanding question.
 - Enforces `minLength` and `maxLength` from `responseSchema` for free-text answers.
 - Sends only visible answers with `PATCH /clients` and maps API validation errors to the matching questions.
 - If an answer adds a follow-up question, the screen stays open, shows an alert, and keeps the answered question visible so the follow-up has context.
@@ -125,8 +149,7 @@ For approved clients, only `outstanding.documentRequestIds` counts as a document
 
 ### Supporting documents screen
 
-- When the same request includes questions, a **Questions for you** card links to the questions screen.
-- A questions-only request shows that card instead of the "no document requests" error.
+- The overview lists the questions as their own section, so this screen only links to them in `docUploadOnlyMode`, where there is no overview: a **Questions for you** card opens the questions screen, and a questions-only request shows that card instead of the "no document requests" error.
 - An approved client with requested documents sees them instead of the "no documents required" message.
 
 ### Host props and modes
@@ -137,13 +160,23 @@ For approved clients, only `outstanding.documentRequestIds` counts as a document
 
 ### Storybook
 
-- **Core → OnboardingFlow → Client States**: _Information requested — documents only_, _Information requested — documents + questions_, _Information requested — questions only_, and _Approved — outstanding items (documents + questions)_.
+- **Core → OnboardingFlow → Client States**: _New — information requested before submission_, _Information requested — documents only_, _Information requested — documents + questions_, _Information requested — questions only_, and _Approved — outstanding items (documents + questions)_.
 - **Core → OnboardingFlow → DocumentUpload** (`docUploadOnlyMode`): _Information requested — documents + questions_, _Information requested — questions only_, and _Approved — outstanding items (documents + questions)_.
 - **Core → OnboardingFlow → Entry points → Flow stages**: _Information requested — supporting documents_ and _Information requested — additional information (questions)_ open each screen directly.
 
 Story names start with the client status (`INFORMATION_REQUESTED` or `APPROVED`). An RFI on an approved client never changes its status, so those stories are named for the outstanding items instead.
 
-The stories reuse the onboarding question mock (`efClientQuestionsMock`): the sanctions question `30158`, its free-text follow-up `30162` (outstanding alongside its parent and shown inline once `30158` is answered "Yes"), and the monthly processing volume question `30194`. The mock API returns an `INFORMATION_REQUESTED` client to `REVIEW_IN_PROGRESS` only once every question and document is done, and it keeps an approved client `APPROVED`.
+The stories use the `RFI` questions in the question mock (`efClientQuestionsMock`): `500096` and `500011` (free text) and `500099` (Yes/No). The mock's onboarding questions are `KYC`, and the story before submission adds the onboarding question `30095`. Like the API, the mock API filters by `category` without returning it. The mock API returns an `INFORMATION_REQUESTED` client to `REVIEW_IN_PROGRESS` only once every question and document is done, and it keeps an approved client `APPROVED`.
+
+## How `ClientExperience` and `ApprovedClientMaintenance` Handle It
+
+- `ClientExperience` routes an `APPROVED` client with outstanding questions or document requests (client-level, or for a party in `outstanding.partyIds`) to `ApprovedClientMaintenance`, ahead of the rule that sends unreviewed parties to onboarding.
+- With no maintenance request open, the profile overview shows an **Information requested** banner at the top. It lists one task to answer the questions (counting top-level questions only) and one per open document request. Each task opens the matching view and returns to the profile.
+- With a draft open, the banner counts only `RFI` questions, since the draft can raise onboarding questions of its own. Document requests can't be told apart, so they stay in the review step.
+- Profile pages (the overview, the business, each person, and the ownership structure) show the profile without inline edit controls. Each has **Request a change** in the same corner of its header, and it starts with what that page shows: the overview and business page list every kind of change, a person's page lists what can change about them, and the ownership structure lists ownership changes. From there it leads one choice at a time to the form. A saved change ends on the page that shows it, and goes into a draft change request (a maintenance request in the API) that the overview's request banner offers to review and submit; editing or discarding the draft happens there too. During review the button is hidden. Pass `changeActions="inline"` to show each page's changes on the page itself instead.
+- When both kinds are outstanding, the maintenance questions view lists `RFI` questions under **Requested by the review team** and the rest under **About the profile changes**.
+
+Storybook: **Draft → ApprovedClientMaintenance → Maintenance requests → Outstanding questions → Approved profile information requested** and **Draft with information request**.
 
 ## Suggested UI Checks
 
@@ -163,3 +196,4 @@ The stories reuse the onboarding question mock (`efClientQuestionsMock`): the sa
 - The UI can't tell which party a question is about. Questions about the client and its related parties appear in one list; the question text should say who it concerns.
 - The **Additional information** step only shows as completed in the sidebar for the session in which the user answered the questions. After a reload, a fulfilled RFI simply has no outstanding questions.
 - For an approved client, every item in `outstanding.questionIds` and `outstanding.documentRequestIds` is treated as part of an RFI.
+- Section status in `OnboardingFlow` uses the categories only before submission. A `KYC` question outstanding after submission is answered in **Additional information**, since **Operational details** is locked by then. The delta-mode panel still lists RFI questions raised before submission with the rest of the pending fields.

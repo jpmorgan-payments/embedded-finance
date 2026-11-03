@@ -2,12 +2,11 @@
 
 Target: Align all core components with API docs, i18n, private labeling (design/content tokens), security (OWASP), performance (Core Web Vitals), a11y (WCAG 2.1 AA), UX-tested flows, and OAS-superset client validation.
 
-**Last Updated:** July 16, 2026  
+**Last Updated:** November 2, 2026  
 **Related Documents:**
 
-- `BACKLOG.md` - Detailed task backlog with priorities and UX testing findings
-- `docs/ux-testing/` - Point-in-time UX testing session archives
-- `docs/README.md` - Docs index for this package
+- `BACKLOG.md` - Product, UX, accessibility and release-gate backlog with the cross-file priority index (incl. SALT-1 Salt pattern conformance)
+- `TECH_DEBT.md` - Tooling, dependency, architecture and test-infrastructure debt
 - `CHANGELOG.md` - Shipped releases (see v0.14–v0.16 for PTC, PaymentFlowFX, legacy removals)
 
 ## Components (scope)
@@ -21,10 +20,13 @@ Target: Align all core components with API docs, i18n, private labeling (design/
 - TransactionsDisplay
 - Accounts
 - ClientDetails
+- ApprovedClientMaintenance (**Draft** — see BACKLOG BL-900, BL-904)
+- ClientExperience (see BACKLOG BL-904)
 
 **Internal (not yet package-exported):**
 
 - IndirectOwnership
+- ClientProfile
 
 **Removed — do not plan work against these APIs:**
 
@@ -66,7 +68,7 @@ gantt
 
 - OnboardingFlow
   - ✅ Publicly Traded Companies (PTC) gated by `enablePubliclyTradedCompanies` (shipped 2026-05/06)
-  - [ ] Refine owner/controller flows; additional entity types as needed
+  - [ ] Refine owner/controller flows; additional entity types as needed [BL-901, BL-400-1]
 - LinkedAccountWidget
   - ✅ Handle verification responses, interaction stories, compact/virtualized list
   - [ ] Parity with Recipients payment methods [BL-401-2]
@@ -82,7 +84,7 @@ gantt
   - [ ] Review/confirmation UX [BL-403-3]
 - PaymentFlowFX (**Beta**)
   - ✅ Initial FX / multicurrency payout draft (v0.16.x)
-  - [ ] Stabilize API, expand corridor coverage, exit Beta
+  - [ ] Stabilize API, expand corridor coverage, exit Beta [BL-902]
 - TransactionsDisplay
   - [ ] Pagination / details mapping / PAYIN-PAYOUT derivation [BL-404-*]
   - [ ] Review PAYIN/PAYOUT derivation and counterpart display [BL-404-3]
@@ -92,8 +94,8 @@ gantt
   - ✅ Account number masking (`****${number.slice(-4)}`) and browser verification [BL-003]
   - ✅ Visual refresh, responsive cards, masking/toggle [BL-405-1, BL-405-3]
   - [ ] Review balance types mapping and tooltips [BL-405-2]
-  - [ ] Add "View Transactions" / "Transfer Funds" buttons [BL-090-1, BL-090-2]
-  - [ ] Remove redundant "Accounts" heading [BL-091-1]
+  - [ ] "View Transactions" / "Transfer Funds" buttons — product decision [BL-090]
+  - ➖ Redundant "Accounts" heading is a host/showcase concern [BL-091-1, transferred]
 - ClientDetails
   - ✅ Error/loading/skeleton + content tokens (2026-03)
   - [ ] Full UX audit [BL-810]
@@ -109,7 +111,7 @@ gantt
 - ✅ Locales: `en-US`, `fr-CA`, `es-US` with content-token overrides via `EBComponentsProvider`
 - ✅ Theme configuration aligned with Salt Design System semantic tokens
 - [ ] Continue expanding token coverage for full private labeling [BL-420-3]
-- [ ] Keep Zod / form error messages wired to i18n maps where gaps remain
+- [ ] Keep Zod / form error messages wired to i18n maps where gaps remain [BL-802-5]
 
 ## Theme 3: Functional Testing (CAT) (In Progress)
 
@@ -118,7 +120,7 @@ gantt
 
 ## Theme 4: React 19 Readiness
 
-- Verify peer compatibility, incremental adoption plan, and guardrails.
+- Verify peer compatibility, incremental adoption plan, and guardrails [REL-4, TECH_DEBT.md TD-8].
 - Migrate low-risk areas (test environment, Storybook, non-critical flows) first; keep feature flags.
 
 ## Theme 5: RUM & Analytics
@@ -132,34 +134,34 @@ gantt
 
 ## Theme 7: A11y & UX Testing (In Progress)
 
-- ✅ UX scenarios per component (completed Dec 2, 2025 - see UX_TESTING_REPORT.md) [BL-470-1]
-- ✅ Code inspection completed (Dec 9, 2025 - see PHASE1_CODE_INSPECTION.md)
-- 🚧 Mitigate found issues (see BACKLOG.md Priority 1-3 for detailed items) [BL-470-2]
+- ✅ UX scenarios per component (completed Dec 2, 2025; findings reconciled into BACKLOG.md) [BL-470-1]
+- ✅ Code inspection completed (Dec 9, 2025; findings reconciled into BACKLOG.md)
+- 🚧 Mitigate found issues (concrete items in BACKLOG.md §4 Accessibility) [BL-470-2 → BL-601, BL-908]
 - [ ] WCAG 2.1 AA compliance [BL-470-3]
-- [ ] Axe automated tests [BL-470-4]
+- [ ] Axe automated tests [BL-470-4 → BL-908]
 - [ ] Keyboard/focus management [BL-470-5]
 - [ ] ARIA correctness [BL-470-6]
 - **Key Findings from UX Testing (Dec 2, 2025):**
-  - Design system inconsistencies (button styles, colors, labels) [BL-001, BL-002, BL-009]
+  - Design system inconsistencies (button styles, colors, labels) [BL-001, BL-002; BL-009 transferred to showcase]
   - Make Payment / PaymentFlow form discoverability issues [BL-010]
   - Missing tooltips and accessibility features [BL-070]
-  - Responsive design issues [BL-080]
+  - Responsive design issues [BL-080 → BL-300]
   - Data quality and display issues [BL-050]
 - **Progress Since Dec 2 Testing:**
   - ✅ Account number masking code standardized and browser verified (Dec 9, 2025) [BL-003]
   - ✅ Payment form structure improved (PR #601; now `PaymentFlow`) [BL-010]
   - ✅ RecipientsWidget pagination / list patterns (legacy Recipients removed)
-  - ✅ Browser testing completed (Dec 9, 2025) - See `docs/ux-testing/2025-12-09/UX_TESTING_REPORT.md`
+  - ✅ Browser testing completed (Dec 9, 2025; findings reconciled into BACKLOG.md)
 - **New Findings from Dec 9 Testing:**
   - ✅ Recipients data inconsistency (table vs pagination) [BL-600] - **RESOLVED** (Dec 9, 2025 - Re-test confirmed)
-  - 🟠 Duplicate API calls across all components [BL-602]
-  - 🟡 Dialog accessibility warnings [BL-601]
-  - 🟡 MSW initialization errors [BL-603]
+  - ➖ Duplicate API calls across all components [BL-602] — dev-only (MSW / tab-switch emulation), not tracked
+  - 🟡 Dialog accessibility warnings [BL-601-2]
+  - ✅ MSW initialization errors [BL-603 → BL-200-1, done 2026-11]
 
 ## Theme 8: Comprehensive Testing
 
-- [ ] 90%+ coverage: unit (validators/hooks), component, integration (MSW), E2E for critical paths [BL-480-1]
-- [ ] Storybook scenarios: loading/error/empty/edge/i18n/theme/a11y [BL-480-2]
+- [ ] 90%+ coverage: unit (validators/hooks), component, integration (MSW), E2E for critical paths [BL-480-1 → TECH_DEBT.md TD-5a/TD-5b]
+- [ ] Storybook scenarios: loading/error/empty/edge/i18n/theme/a11y [BL-480-2 → BL-908]
 - ✅ Enhanced test setup with ResizeObserver mock (PR #582 - Dec 3, 2025) [BL-480-3]
 - ✅ Improved test reliability and structure (PR #582 - Dec 3, 2025) [BL-480-4]
 - ✅ Test warnings fixed and MSW handlers updated for onboarding (PR #602 - Dec 9, 2025)

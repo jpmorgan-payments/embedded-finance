@@ -1,5 +1,9 @@
 // @ts-nocheck
-import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
+import {
+  efClientQuestionsMock,
+  matchesQuestionCategory,
+  withoutCategory,
+} from '@/mocks/efClientQuestions.mock';
 import { efDocumentClientDetail } from '@/mocks/efDocumentClientDetail';
 import {
   mockTransactionComplete,
@@ -415,12 +419,15 @@ export const handlers = [
 
   http.get('/questions', (req) => {
     const url = new URL(req.request.url);
-    const questionIds = url.searchParams.get('questionIds');
+    const questionIds = (url.searchParams.get('questionIds') ?? '').split(',');
+    const questions = efClientQuestionsMock.questions
+      .filter(
+        (q) => questionIds.includes(q.id) && matchesQuestionCategory(q, url)
+      )
+      .map(withoutCategory);
     return HttpResponse.json({
-      metadata: efClientQuestionsMock.metadata,
-      questions: efClientQuestionsMock?.questions.filter((q) =>
-        questionIds?.includes(q.id)
-      ),
+      metadata: { page: 0, limit: 25, total: questions.length },
+      questions,
     });
   }),
 

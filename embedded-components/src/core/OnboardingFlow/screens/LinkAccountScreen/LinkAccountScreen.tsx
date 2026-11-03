@@ -73,8 +73,13 @@ export const LinkAccountScreen = () => {
     <LinkAccountFormPanel
       existingAccounts={existingAccounts}
       layout="step"
-      onSuccess={() => {
-        updateSessionData({ linkAccountJustCreated: true });
+      onSuccess={(recipient) => {
+        updateSessionData({
+          linkAccountJustCreated: {
+            id: recipient?.id,
+            status: recipient?.status,
+          },
+        });
         goTo('overview', { resetHistory: true });
       }}
       onCancel={() => goTo('overview', { resetHistory: true })}

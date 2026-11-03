@@ -1,22 +1,28 @@
-import { i18n } from '@/i18n/config';
+import { tActive } from '@/i18n/activeI18n';
 import { z } from 'zod';
 
 import { PTC_SUBSIDIARY_ELIGIBLE_ORG_TYPES } from '@/core/OnboardingFlow/consts/stockExchanges';
 
 const TICKER_PATTERN = /^[A-Z0-9]*$/;
 
+// Lazy errors resolve at validation time, so module-level schemas follow the
+// active provider's locale and content tokens.
+const requiredError = { error: () => tActive('common:validation.required') };
+const invalidOptionError = {
+  error: () => tActive('validation:common.invalidOption'),
+};
+
 export const GatewayScreenFormSchema = z.object({
   organizationTypeHierarchy: z.object({
     generalOrganizationType: z
       .union([
-        z.enum(['SOLE_PROPRIETORSHIP', 'REGISTERED_BUSINESS', 'OTHER'], {
-          message: i18n.t('validation:common.invalidOption'),
-        }),
+        z.enum(
+          ['SOLE_PROPRIETORSHIP', 'REGISTERED_BUSINESS', 'OTHER'],
+          invalidOptionError
+        ),
         z.literal(''),
       ])
-      .refine((val) => val !== '', {
-        message: i18n.t('common:validation.required'),
-      }),
+      .refine((val) => val !== '', requiredError),
     specificOrganizationType: z
       .union([
         z.enum(
@@ -34,15 +40,11 @@ export const GatewayScreenFormSchema = z.object({
             'UNINCORPORATED_ASSOCIATION',
             'PUBLICLY_TRADED_COMPANY',
           ],
-          {
-            message: i18n.t('validation:common.invalidOption'),
-          }
+          invalidOptionError
         ),
         z.literal(''),
       ])
-      .refine((val) => val !== '', {
-        message: i18n.t('common:validation.required'),
-      }),
+      .refine((val) => val !== '', requiredError),
   }),
   // Offered only when OnboardingFlow `experimental_availableCountriesOfFormation` includes a non-US country.
   countryOfFormation: z.string().default(''),
@@ -62,9 +64,9 @@ export const GatewayScreenFormSchemaWithHostOrganizationTypes =
   GatewayScreenFormSchema.extend({
     organizationTypeHierarchy:
       GatewayScreenFormSchema.shape.organizationTypeHierarchy.extend({
-        specificOrganizationType: z.string().refine((val) => val !== '', {
-          message: i18n.t('common:validation.required'),
-        }),
+        specificOrganizationType: z
+          .string()
+          .refine((val) => val !== '', requiredError),
       }),
   });
 
@@ -74,9 +76,10 @@ export const GatewayScreenFormSchemaWithHostOrganizationTypes =
  * - ticker and exchange required when PTC/subsidiary selected
  */
 export const refineGatewaySchema = (
-  schema: z.ZodObject<Record<string, z.ZodTypeAny>>
+  schema: z.ZodObject<Record<string, z.ZodType>>
 ) => {
-  return schema.superRefine((data, ctx) => {
+  return schema.superRefine((rawData, ctx) => {
+    const data = rawData as Partial<z.output<typeof GatewayScreenFormSchema>>;
     const orgType =
       data.organizationTypeHierarchy?.specificOrganizationType ?? '';
     const isPTCEligibleOrg = (
@@ -86,8 +89,8 @@ export const refineGatewaySchema = (
     // Require the radio selection when the org type is PTC-eligible
     if (isPTCEligibleOrg && !data.isPTCOrSubsidiary) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: i18n.t('common:validation.required'),
+        code: 'custom',
+        message: tActive('common:validation.required'),
         path: ['isPTCOrSubsidiary'],
       });
       return;
@@ -100,14 +103,14 @@ export const refineGatewaySchema = (
 
     if (!data.tickerSymbol) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: i18n.t('common:validation.required'),
+        code: 'custom',
+        message: tActive('common:validation.required'),
         path: ['tickerSymbol'],
       });
     } else if (!TICKER_PATTERN.test(data.tickerSymbol)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: i18n.t(
+        code: 'custom',
+        message: tActive(
           'onboarding-overview:fields.tickerSymbol.validation.pattern'
         ),
         path: ['tickerSymbol'],
@@ -116,16 +119,16 @@ export const refineGatewaySchema = (
 
     if (!data.stockExchange) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: i18n.t('common:validation.required'),
+        code: 'custom',
+        message: tActive('common:validation.required'),
         path: ['stockExchange'],
       });
     }
 
     if (data.stockExchange === 'Other' && !data.stockExchangeName) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: i18n.t('common:validation.required'),
+        code: 'custom',
+        message: tActive('common:validation.required'),
         path: ['stockExchangeName'],
       });
     }

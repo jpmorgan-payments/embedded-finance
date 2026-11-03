@@ -20,9 +20,11 @@ import {
   getClientContext,
   getControllerParty,
   getInactiveOwners,
+  getOnboardingQuestionIds,
   getOrganizationParty,
   getPartyByAssociatedPartyFilters,
   getPartyName,
+  getRequestedQuestionIds,
   isPTC,
   isUSExchangePTC,
 } from './dataUtils';
@@ -395,13 +397,45 @@ describe('dataUtils', () => {
       ).toBe(false);
     });
 
-    it('only uses client-level document requests after approval', () => {
+    it('splits a new client’s questions between the request and operational details', () => {
+      const newClient = {
+        status: 'NEW',
+        outstanding: { questionIds: ['30005', '500096'] },
+      } as unknown as ClientResponse;
+      expect(getRequestedQuestionIds(newClient, ['500096'])).toEqual([
+        '500096',
+      ]);
+      expect(getOnboardingQuestionIds(newClient, ['500096'])).toEqual([
+        '30005',
+      ]);
+      expect(clientHasRequestedQuestions(newClient, ['500096'])).toBe(true);
+      // After submission, operational details are locked, so the request takes everything.
+      expect(
+        getRequestedQuestionIds(
+          { ...newClient, status: 'INFORMATION_REQUESTED' },
+          ['500096']
+        )
+      ).toEqual(['30005', '500096']);
+    });
+
+    it('counts a related party’s document requests after approval only while the party is outstanding', () => {
       const approvedWithPartyDocs = {
         status: 'APPROVED',
-        outstanding: { documentRequestIds: [] },
-        parties: [{ validationResponse: [{ documentRequestIds: ['old'] }] }],
+        outstanding: { documentRequestIds: [], partyIds: [] },
+        parties: [
+          {
+            id: 'party-1',
+            validationResponse: [{ documentRequestIds: ['party-doc'] }],
+          },
+        ],
       } as unknown as ClientResponse;
       expect(clientHasRequestedDocuments(approvedWithPartyDocs)).toBe(false);
+      expect(
+        clientHasRequestedDocuments({
+          ...approvedWithPartyDocs,
+          outstanding: { documentRequestIds: [], partyIds: ['party-1'] },
+        } as unknown as ClientResponse)
+      ).toBe(true);
       expect(
         clientHasRequestedDocuments({
           ...approvedWithPartyDocs,
