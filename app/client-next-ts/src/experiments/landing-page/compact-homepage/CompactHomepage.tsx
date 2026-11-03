@@ -12,6 +12,8 @@ import { Link } from '@tanstack/react-router';
 import { HeroSkillInstallDialog } from '@/components/landing/hero-skill-install-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DEMO_APPS } from '@/data/demo-apps';
+import { STORIES } from '@/lib/stories-catalog';
 
 import { IntegrationScenarios } from './IntegrationScenarios';
 
@@ -23,7 +25,7 @@ const navigationCards = [
       'Working implementations showcasing embedded finance features in real-world scenarios.',
     icon: <Play className="h-6 w-6" />,
     link: '/demos',
-    count: 3,
+    count: DEMO_APPS.length,
     accentColor:
       'bg-gradient-to-br from-[rgb(26,123,153)]/15 to-[rgb(26,123,153)]/5',
     iconBg:
@@ -37,7 +39,7 @@ const navigationCards = [
       'Pre-built React components for embedded banking workflows with API integration.',
     icon: <Box className="h-6 w-6" />,
     link: '/components',
-    count: 7,
+    count: 9,
     accentColor:
       'bg-gradient-to-br from-[rgb(177,121,207)]/15 to-[rgb(177,121,207)]/5',
     iconBg:
@@ -51,7 +53,7 @@ const navigationCards = [
       'Technical guides and best practices for building embedded finance solutions.',
     icon: <BookOpen className="h-6 w-6" />,
     link: '/stories',
-    count: 3,
+    count: STORIES.length,
     accentColor:
       'bg-gradient-to-br from-[rgb(226,110,0)]/15 to-[rgb(226,110,0)]/5',
     iconBg: 'bg-gradient-to-br from-[rgb(226,110,0)]/20 to-[rgb(226,110,0)]/10',

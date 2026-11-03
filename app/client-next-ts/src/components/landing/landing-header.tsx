@@ -47,6 +47,12 @@ export function LandingHeader() {
               RECIPES
             </Link>
             <Link
+              to="/spotlight"
+              className="text-sm font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand lg:text-page-small"
+            >
+              SPOTLIGHT
+            </Link>
+            <Link
               to="/github"
               className="text-sm font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand lg:text-page-small"
             >
@@ -89,6 +95,12 @@ export function LandingHeader() {
                     className="block py-2 text-base font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand"
                   >
                     RECIPES
+                  </Link>
+                  <Link
+                    to="/spotlight"
+                    className="block py-2 text-base font-medium text-jpm-gray transition-colors duration-200 hover:text-sp-brand"
+                  >
+                    SPOTLIGHT
                   </Link>
                   <Link
                     to="/github"

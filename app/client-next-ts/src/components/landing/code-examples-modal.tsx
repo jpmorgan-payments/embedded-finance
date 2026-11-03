@@ -453,6 +453,73 @@ function PaymentSection() {
           },
         ],
       },
+      'payments-fx': {
+        title: 'PaymentFlowFX Component',
+        description:
+          'Send cross-border payouts with currency conversion (Beta)',
+        code: `import {
+  EBComponentsProvider,
+  PaymentFlowFX,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+function CrossBorderPayoutSection() {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl="https://your-api-base-url.com"
+      headers={{
+        'token': 'idp-jwt-token',
+      }}
+      contentTokens={{
+        name: 'enUS',
+      }}
+    >
+      <PaymentFlowFX
+        trigger={<Button>Send international payment</Button>}
+        fxConfig={{ mode: 'ratesheet' }}
+        onTransactionComplete={(response, error, details) => {
+          if (response) {
+            console.log('FX payout submitted:', details ?? response);
+          }
+        }}
+      />
+    </EBComponentsProvider>
+  );
+}`,
+        steps: [
+          {
+            id: 'provider',
+            title: 'Provider Configuration',
+            description: 'Core provider setup with API base URL',
+            lineRange: [8, 9],
+          },
+          {
+            id: 'headers',
+            title: 'Authentication & Headers',
+            description: 'JWT token for authentication',
+            lineRange: [10, 12],
+          },
+          {
+            id: 'contentTokens',
+            title: 'Content Tokens',
+            description: 'Locale / content token name',
+            lineRange: [13, 15],
+          },
+          {
+            id: 'component',
+            title: 'Component Props',
+            description:
+              'Trigger and completion callback; details holds the enriched transaction',
+            lineRange: [17, 25],
+          },
+          {
+            id: 'fxConfig',
+            title: 'Exchange Rate Mode',
+            description:
+              'realtime (default), ratesheet (locked executable rates), or provider (your getRate callback)',
+            lineRange: [19, 19],
+          },
+        ],
+      },
       accounts: {
         title: 'Accounts Component',
         description: 'Display account information and balances',
@@ -597,6 +664,76 @@ function ClientDetailsSection() {
             title: 'Component Props',
             description: 'clientId and viewMode (summary | accordion | cards)',
             lineRange: [27, 30],
+          },
+        ],
+      },
+      'client-maintenance': {
+        title: 'ApprovedClientMaintenance Component',
+        description:
+          'Keep an approved client profile current and request new products (in progress)',
+        code: `import {
+  EBComponentsProvider,
+  ApprovedClientMaintenance,
+} from '@jpmorgan-payments/embedded-finance-components';
+
+function ClientMaintenanceSection() {
+  return (
+    <EBComponentsProvider
+      apiBaseUrl="https://your-api-base-url.com"
+      headers={{
+        'token': 'idp-jwt-token',
+      }}
+      contentTokens={{
+        name: 'enUS',
+      }}
+    >
+      <ApprovedClientMaintenance
+        clientId="your-client-id"
+        eligibility={[
+          {
+            country: 'US',
+            organizationType: 'LIMITED_LIABILITY_COMPANY',
+            operations: ['MANAGE_PROFILE', 'ADD_LIMITED_DDA_PAYMENTS'],
+          },
+        ]}
+        onStatusChange={(status) => {
+          console.log('Maintenance request status:', status);
+        }}
+      />
+    </EBComponentsProvider>
+  );
+}`,
+        steps: [
+          {
+            id: 'provider',
+            title: 'Provider Configuration',
+            description: 'Core provider setup with API base URL',
+            lineRange: [8, 9],
+          },
+          {
+            id: 'headers',
+            title: 'Authentication & Headers',
+            description: 'JWT token for authentication',
+            lineRange: [10, 12],
+          },
+          {
+            id: 'contentTokens',
+            title: 'Content Tokens',
+            description: 'Locale / content token name',
+            lineRange: [13, 15],
+          },
+          {
+            id: 'component',
+            title: 'Component Props',
+            description: 'clientId and the maintenance request status callback',
+            lineRange: [17, 29],
+          },
+          {
+            id: 'eligibility',
+            title: 'Eligibility Rules',
+            description:
+              'Which operations each country and organization type may use; missing operations hide their controls',
+            lineRange: [19, 25],
           },
         ],
       },

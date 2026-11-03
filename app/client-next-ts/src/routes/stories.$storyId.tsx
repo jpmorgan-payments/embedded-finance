@@ -1,106 +1,67 @@
-import { lazy, Suspense } from 'react';
-import { ArrowLeft, Calendar } from 'lucide-react';
+import {
+  lazy,
+  Suspense,
+  type ComponentType,
+  type LazyExoticComponent,
+} from 'react';
+import { ArrowLeft, Calendar, RefreshCw } from 'lucide-react';
 import { z } from 'zod';
 
 import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 
 import { StoryRecipeGithubActions } from '@/components/stories/story-recipe-github-actions';
 import { Button } from '@/components/ui/button';
+import { getStory, STORY_IDS, type StoryId } from '@/lib/stories-catalog';
 import { storyHasLlmSource } from '@/lib/story-llm-sources';
+import { formatIsoDate } from '@/lib/utils';
 
-// Parameter validation schema
-const storySearchSchema = z.object({
-  storyId: z.enum([
-    'core-functional-requirements-index',
-    'cross-border-fx-payout-client-recipe',
-    'webhook-integration-recipe',
-    'date-selector-challenges',
-    'important-date-selector-component',
-    'partially-hosted-onboarding',
-  ]),
-});
+const storyIdSchema = z.enum(STORY_IDS);
 
-// Dynamic imports for stories
-const CoreFunctionalRequirementsIndex = lazy(
-  () => import('@/content/stories/core-functional-requirements-index')
-);
-const CrossBorderFxPayoutClientRecipe = lazy(
-  () => import('@/content/stories/cross-border-fx-payout-client-recipe')
-);
-const WebhookIntegrationRecipe = lazy(
-  () => import('@/content/stories/webhook-integration-recipe')
-);
-const DateSelectorChallenges = lazy(
-  () => import('@/content/stories/date-selector-challenges')
-);
-const ImportantDateSelectorComponent = lazy(
-  () => import('@/content/stories/important-date-selector-component')
-);
-const PartiallyHostedOnboarding = lazy(
-  () => import('../content/stories/partially-hosted-onboarding')
-);
-
-// Story metadata (serializable data only)
-const storyMeta = {
-  'core-functional-requirements-index': {
-    title: 'Core functional requirements — cross-reference',
-    date: '2026-04-15',
-    readTime: '5 min read',
-    tags: ['Documentation', 'Requirements', 'Core'],
-  },
-  'cross-border-fx-payout-client-recipe': {
-    title: 'Cross-border FX payout — Client UX wiring (DRAFT)',
-    date: '2026-07-20',
-    readTime: '15 min read',
-    tags: ['DRAFT', 'FX', 'Payouts', 'UX'],
-  },
-  'partially-hosted-onboarding': {
-    title: 'Partially Hosted UI Integration Guide',
-    date: '2026-03-12',
-    readTime: '25 min read',
-    tags: ['Onboarding', 'Hosted UI', 'Integration'],
-  },
-  'webhook-integration-recipe': {
-    title: 'Webhook Integration Recipe: UX Guidance',
-    date: '2026-01-08',
-    readTime: '12 min read',
-    tags: ['Webhooks', 'Integration', 'UX'],
-  },
-  'important-date-selector-component': {
-    title: 'Important Date Selector Component Recipe',
-    date: '2025-06-12',
-    readTime: '10 min read',
-    tags: ['Components', 'Accessibility', 'Dates'],
-  },
-  'date-selector-challenges': {
-    title: 'JavaScript/TypeScript Date Parsing Guide',
-    date: '2025-04-28',
-    readTime: '6 min read',
-    tags: ['TypeScript', 'Dates', 'Parsing'],
-  },
-} as const;
-
-// Component mapping (separate from serializable data)
-const storyComponents = {
-  'core-functional-requirements-index': CoreFunctionalRequirementsIndex,
-  'cross-border-fx-payout-client-recipe': CrossBorderFxPayoutClientRecipe,
-  'webhook-integration-recipe': WebhookIntegrationRecipe,
-  'date-selector-challenges': DateSelectorChallenges,
-  'important-date-selector-component': ImportantDateSelectorComponent,
-  'partially-hosted-onboarding': PartiallyHostedOnboarding,
-} as const;
+const storyComponents: Record<StoryId, LazyExoticComponent<ComponentType>> = {
+  'ux-atlas': lazy(() => import('@/content/stories/ux-atlas')),
+  'publicly-traded-companies-recipe': lazy(
+    () => import('@/content/stories/publicly-traded-companies-recipe')
+  ),
+  'approved-client-maintenance-recipe': lazy(
+    () => import('@/content/stories/approved-client-maintenance-recipe')
+  ),
+  'cross-border-fx-payout-client-recipe': lazy(
+    () => import('@/content/stories/cross-border-fx-payout-client-recipe')
+  ),
+  'core-functional-requirements-index': lazy(
+    () => import('@/content/stories/core-functional-requirements-index')
+  ),
+  'list-transactions-recipe': lazy(
+    () => import('@/content/stories/list-transactions-recipe')
+  ),
+  'partially-hosted-onboarding': lazy(
+    () => import('@/content/stories/partially-hosted-onboarding')
+  ),
+  'webhook-integration-recipe': lazy(
+    () => import('@/content/stories/webhook-integration-recipe')
+  ),
+  'important-date-selector-component': lazy(
+    () => import('@/content/stories/important-date-selector-component')
+  ),
+  'date-selector-challenges': lazy(
+    () => import('@/content/stories/date-selector-challenges')
+  ),
+  'digital-onboarding-recipe': lazy(
+    () => import('@/content/stories/digital-onboarding-recipe')
+  ),
+};
 
 export const Route = createFileRoute('/stories/$storyId')({
   // Parameter validation
   params: {
     parse: (params) => ({
-      storyId: storySearchSchema.shape.storyId.parse(params.storyId),
+      storyId: storyIdSchema.parse(params.storyId),
     }),
     stringify: ({ storyId }) => ({ storyId }),
   },
   // Loader function for data fetching
   loader: ({ params }) => {
-    const story = storyMeta[params.storyId];
+    const story = getStory(params.storyId);
     if (!story) {
       throw notFound();
     }
@@ -151,8 +112,7 @@ export const Route = createFileRoute('/stories/$storyId')({
 
 function Story() {
   const { story, storyId } = Route.useLoaderData();
-  const StoryComponent =
-    storyComponents[storyId as keyof typeof storyComponents];
+  const StoryComponent = storyComponents[storyId];
 
   return (
     <div className="bg-jpm-white py-6">
@@ -172,17 +132,20 @@ function Story() {
 
         {/* Story header */}
         <header className="mb-5">
-          <div className="mb-3 flex items-center text-page-small text-jpm-gray">
+          <div className="mb-3 flex flex-wrap items-center gap-y-1 text-page-small text-jpm-gray">
             <Calendar className="mr-2 h-4 w-4" />
-            <time dateTime={story.date}>
-              {new Date(story.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
+            <time dateTime={story.date}>{formatIsoDate(story.date)}</time>
             <span className="mx-2">•</span>
             <span>{story.readTime}</span>
+            {story.updated ? (
+              <span className="ml-3 inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                <RefreshCw className="h-3 w-3" aria-hidden="true" />
+                Updated{' '}
+                <time dateTime={story.updated}>
+                  {formatIsoDate(story.updated, 'short')}
+                </time>
+              </span>
+            ) : null}
           </div>
 
           <h1 className="mb-3 text-page-hero text-jpm-gray-900">
