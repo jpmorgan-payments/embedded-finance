@@ -145,7 +145,7 @@ The library currently provides the following components:
 | EBComponentsProvider      | Provider wrapper for all embedded components                       | Stable      |
 | OnboardingFlow            | Modern onboarding experience                                       | Stable      |
 | LinkedAccountWidget       | External bank account linking with microdeposits                   | Stable      |
-| RecipientsWidget          | Payment recipient management                                       | Stable      |
+| RecipientsWidget          | Payment recipient management                                       | In Testing  |
 | Accounts                  | Account management and display                                     | In Testing  |
 | ClientDetails             | Detailed client information (identity, ownership, KYC)             | In Testing  |
 | PaymentFlow               | Domestic payouts (ACH, RTP, Wire) from Embedded Payments accounts  | In Testing  |
@@ -436,6 +436,8 @@ const LinkedAccountSection = () => {
 ```
 
 ### 5. RecipientsWidget
+
+> **⚠️ In Testing**: This component is currently in testing state and could be not fully integrated with the OpenAPI Specification (OAS) or missing some target state functional/non-functional capabilities. It could be subject to significant changes.
 
 The `RecipientsWidget` component enables users to manage payment recipients within your application. Unlike `LinkedAccountWidget`, it provides a simpler flow without microdeposit verification, ideal for managing payees and beneficiaries.
 

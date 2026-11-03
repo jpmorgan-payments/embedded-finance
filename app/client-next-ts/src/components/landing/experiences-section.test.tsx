@@ -29,10 +29,10 @@ describe('ExperiencesSection', () => {
 
   it('renders status badges that match the library status', () => {
     render(<ExperiencesSection />);
-    // Onboarding, Linked Accounts, and Recipients are stable
-    expect(screen.getAllByText('Available')).toHaveLength(3);
-    // Payouts, Transactions, Accounts, and Client Details are in testing
-    expect(screen.getAllByText('Testing')).toHaveLength(4);
+    // Onboarding and Linked Accounts are stable
+    expect(screen.getAllByText('Available')).toHaveLength(2);
+    // Recipients, Payouts, Transactions, Accounts, and Client Details are in testing
+    expect(screen.getAllByText('Testing')).toHaveLength(5);
     expect(screen.getAllByText('Beta')).toHaveLength(1);
     expect(screen.getAllByText('In Progress')).toHaveLength(1);
     expect(screen.queryByText('Coming Soon')).not.toBeInTheDocument();

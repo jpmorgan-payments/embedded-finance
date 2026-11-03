@@ -1,6 +1,6 @@
 # Publicly Traded Companies UI Recipe
 
-> **Draft - under review.** Confirm current API and policy requirements with your J.P. Morgan representative before enabling a PTC journey for your platform.
+> **Note:** Confirm current API and policy requirements with your J.P. Morgan representative before enabling a PTC journey for your platform.
 
 ## Introduction
 

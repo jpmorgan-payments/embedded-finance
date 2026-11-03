@@ -121,7 +121,7 @@ export function ExperiencesSection() {
       description:
         'Add, view, edit, and manage third-party payment recipients with dynamic validation, multi-method support (ACH, WIRE, RTP), and secure, accessible workflows.',
       icon: <UserCheck className="h-5 w-5" />,
-      status: 'available',
+      status: 'testing',
       npmUrl:
         'https://www.npmjs.com/package/@jpmorgan-payments/embedded-finance-components#5-recipientswidget',
       demoUrl:

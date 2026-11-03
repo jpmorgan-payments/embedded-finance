@@ -32,12 +32,12 @@ const STORY_ENTRIES = [
   },
   {
     id: 'publicly-traded-companies-recipe',
-    title: 'Publicly Traded Companies UI Recipe (DRAFT)',
+    title: 'Publicly Traded Companies UI Recipe',
     excerpt:
       'Build onboarding for a US publicly traded company or one of its subsidiaries: collect the classification and listing details, adapt the remaining onboarding work, and handle verification. Source: PUBLICLY_TRADED_COMPANIES_RECIPE.md.',
     date: '2026-10-05',
     readTime: '10 min read',
-    tags: ['DRAFT', 'Onboarding', 'PTC'],
+    tags: ['Onboarding', 'PTC'],
   },
   {
     id: 'approved-client-maintenance-recipe',

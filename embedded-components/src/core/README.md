@@ -15,7 +15,7 @@ Exported from `src/index.tsx`:
 | `PaymentFlowFX/`             | `PaymentFlowFX`, `PaymentFlowFXInline`    | **Beta** — cross-border / FX payouts                                                       |
 | `Accounts/`                  | `Accounts`                                | In testing                                                                                 |
 | `ClientDetails/`             | `ClientDetails`                           | In testing                                                                                 |
-| `RecipientWidgets/`          | `LinkedAccountWidget`, `RecipientsWidget` | Stable                                                                                     |
+| `RecipientWidgets/`          | `LinkedAccountWidget`, `RecipientsWidget` | `LinkedAccountWidget` stable; `RecipientsWidget` in testing                                |
 | `TransactionsDisplay/`       | `TransactionsDisplay`                     | In testing                                                                                 |
 | `ApprovedClientMaintenance/` | `ApprovedClientMaintenance`               | **In progress** — post-approval maintenance (Storybook `Draft/`)                           |
 | `ClientExperience/`          | `ClientExperience`                        | **In progress** — routes to `OnboardingFlow` or `ApprovedClientMaintenance`                |
