@@ -44,12 +44,13 @@ refactor: extract payment validation logic to utils
 
 ## Before Committing
 
-Ensure all quality checks pass:
+Ensure all quality checks pass (see the `code-quality-workflow` skill):
 
 ```powershell
 cd embedded-components
-yarn format
-yarn test
+npx prettier --write <changed files>
+npm run build
+npm test
 ```
 
 Never commit code with:
@@ -62,10 +63,10 @@ Never commit code with:
 
 The **Build & Test EB Components** workflow runs on push and pull requests when `embedded-components/**` changes. It runs:
 
-- `yarn install --immutable`
-- `yarn build`
-- `yarn run test`
-- `yarn storybook:build`
+- `npm ci`
+- `npm run build`
+- `npm run test`
+- `npm run storybook:build`
 
 If any step fails (including Storybook build), the workflow fails and the status check will not pass.
 

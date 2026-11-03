@@ -28,15 +28,17 @@ Demo for partially hosted (drop-in) embedded components integration using sessio
 
 ## Quick Start
 
-**Prerequisites**: Node.js 18+, Yarn
+**Prerequisites**: Node.js 20.19+, npm
 
-**Run showcase:**
+**Run showcase** (it uses the local library, so build that first):
 
 ```bash
-yarn install
-cd app/client-next-ts
-yarn install
-yarn dev
+cd embedded-components
+npm install
+npm run build
+cd ../app/client-next-ts
+npm install
+npm run dev
 ```
 
 Open `http://localhost:3000`
@@ -45,8 +47,8 @@ Open `http://localhost:3000`
 
 ```bash
 cd embedded-components
-yarn install
-yarn storybook
+npm install
+npm run storybook
 ```
 
 Open `http://localhost:6006`

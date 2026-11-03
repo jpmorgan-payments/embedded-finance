@@ -21,13 +21,13 @@ The source of truth for architecture patterns is:
 - **`embedded-components/AGENTS.md`** - Package-specific instructions for embedded-components
 - **`embedded-components/docs/README.md`** - Package docs index (recipes, patterns, UX archives)
 - **`embedded-components/README.md`** - Public component inventory and integrator guide
-- **`app/client-next-ts/.cursorrules`** - App-specific configuration
+- **`app/client-next-ts/AGENTS.md`** - Showcase app instructions
 - **`docs/ptc-feature-plan.md`** - PTC feature design (implemented on OnboardingFlow)
 
 ## Additional Resources
 
-- **`.github/skills/`** - Agent Skills (GitHub Copilot; Cursor: use `.cursor` → `.github` symlink locally)
-- **`.cursorrules`** - Root configuration (cross-IDE compatible)
+- **`AGENTS.md`** (root and per package) - Agent instructions
+- **`.github/skills/`** - Agent Skills ([agentskills.io](https://agentskills.io/) format)
 
 ## Progressive Disclosure
 

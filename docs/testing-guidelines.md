@@ -1,80 +1,65 @@
 # Testing Guidelines
 
+The agent-facing version, with more detail, is the [`component-testing` skill](../.github/skills/component-testing/SKILL.md).
+
 ## Test Organization
 
-- **Colocated tests**: Tests must be next to implementation files (not in separate `__tests__/` directories)
-- **One test file per implementation**: `ComponentName.test.tsx` next to `ComponentName.tsx`
-- **Hook tests**: `useHookName.test.tsx` next to `useHookName.ts`
-- **Util tests**: `utilName.test.ts` next to `utilName.ts`
+- **Colocated tests**: next to the implementation, not in `__tests__/` folders.
+- **Naming**: `ComponentName.test.tsx` next to `ComponentName.tsx`, `useHookName.test.tsx` next to `useHookName.ts`, `utilName.test.ts` next to `utilName.ts`.
 
-## Coverage Requirements
+## Coverage
 
-- **Minimum 80% line coverage** required
-- Run coverage: `yarn test:coverage`
+- Target about **80% line coverage** for new and changed code. `vite.config.mjs` does not enforce a threshold yet (see `plans/006-enforce-coverage-thresholds.md`).
+- Run coverage: `npm run test:coverage` (report in `coverage/`).
 
-## API Mocking
+## Setup Already Provided
 
-Use **MSW (Mock Service Worker)** for API mocking in tests and development.
+- Vitest globals (`describe`, `test`, `expect`, `vi`) and the `jsdom` environment are configured in `vite.config.mjs`.
+- `vitest.setup.mjs` starts the MSW server before all tests, resets handlers after each test, and closes it at the end.
+- Default handlers: `src/msw/handlers.ts`, backed by the in-memory `src/msw/db.ts`.
 
-### Test Setup Pattern
+## Rendering Pattern
 
-```typescript
-import { render, screen, waitFor } from "@testing-library/react";
-import { userEvent } from "@test-utils";
-import { http, HttpResponse } from "msw";
-import { server } from "@/msw/server";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+Render inside `EBComponentsProvider`; it creates the React Query client, so don't add a separate `QueryClientProvider`. For a quick wrapper, `render` from `@test-utils` does this for you.
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: false },
-    mutations: { retry: false },
-  },
-});
+```tsx
+import { server } from '@/msw/server';
+import { render, screen } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 
-const renderComponent = () => {
-  server.resetHandlers();
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
-  server.use(
-    http.get("/api/endpoint", () => {
-      return HttpResponse.json(mockData);
-    })
-  );
-
-  return render(
-    <EBComponentsProvider apiBaseUrl="/" headers={{}} contentTokens={{ name: "enUS" }}>
-      <QueryClientProvider client={queryClient}>
-        <ComponentName />
-      </QueryClientProvider>
+const renderComponent = () =>
+  render(
+    <EBComponentsProvider
+      apiBaseUrl="/"
+      headers={{}}
+      contentTokens={{ name: 'enUS' }}
+      reactQueryDefaultOptions={{ queries: { retry: false } }}
+    >
+      <ComponentName />
     </EBComponentsProvider>
   );
-};
+
+test('shows an error', async () => {
+  server.use(
+    http.get('*/accounts', () => HttpResponse.json({}, { status: 500 }))
+  );
+  renderComponent();
+  expect(await screen.findByRole('alert')).toBeInTheDocument();
+});
 ```
 
-## Provider Requirements in Tests
-
-Always wrap components with `EBComponentsProvider` in tests:
-
-```typescript
-<EBComponentsProvider
-  apiBaseUrl="https://api-url"
-  theme={{
-    colorScheme: "light",
-    variables: {
-      // Theme variables
-    },
-  }}
->
-  {/* Components */}
-</EBComponentsProvider>
-```
+Override handlers per test with `server.use(...)`, and match paths with a `*/` prefix so the base URL doesn't matter.
 
 ## Running Tests
 
-- **Full test suite**: `yarn test` (includes typecheck, format, lint)
-- **Tests only**: `yarn test:unit`
-- **Watch mode**: `yarn test:watch`
-- **Coverage**: `yarn test:coverage`
+From `embedded-components/`:
+
+- **Some tests**: `npx vitest run <path-or-pattern>`
+- **Watch mode**: `npm run test:watch`
+- **Coverage**: `npm run test:coverage`
+- **Full pipeline** (what CI runs): `npm test` - typecheck, lint, then Vitest with coverage
 
 ## OnboardingFlow
 
@@ -82,10 +67,4 @@ Onboarding uses **Vitest + MSW + RTL** inside `embedded-components` for flow int
 
 ## Before Committing
 
-Always run the full quality check:
-
-```powershell
-cd embedded-components
-yarn format
-yarn test
-```
+Follow [Code Quality Workflow](code-quality-workflow.md).

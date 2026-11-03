@@ -1,430 +1,58 @@
 ---
 name: i18n-l10n
-description: Internationalization and localization patterns for multi-locale support. Use when implementing translations, formatting dates/numbers/currency, or handling locale-specific content. Keywords - i18n, l10n, translations, locale, formatting, dates, currency, numbers.
-license: MIT
+description: Translation and locale-formatting conventions for embedded-components - useTranslationWithTokens namespaces, t vs tString, adding keys across the en-US, fr-CA, and es-US JSON files, typed keys, content-token overrides, and locale-aware date, number, and currency formatting. Use when adding or changing user-visible text, translation keys or namespaces, validation messages, or code that formats dates, amounts, or currencies.
+license: Apache-2.0
 metadata:
-  version: "2.0.0"
   author: jpmorgan-payments
-  lastUpdated: "2025-12-24"
-  priority: high
 ---
 
-# i18n/l10n Guidelines
+# i18n and l10n
 
-Internationalization and localization patterns for multi-locale support. All components must support multiple locales with proper formatting for dates, numbers, and currency.
+Supported locales are `en-US` (default and fallback), `fr-CA`, and `es-US`. Partners choose one with `contentTokens={{ name: 'enUS' | 'frCA' | 'esUS' }}` on `EBComponentsProvider`.
 
-## When to Apply
+## Translating text
 
-Reference these patterns when:
-- Implementing translations
-- Formatting dates, numbers, or currency
-- Handling locale-specific content
-- Creating form labels and error messages
+Use `useTranslationWithTokens` from `@/i18n`, not `useTranslation` from `react-i18next`. It wraps i18next so partners can override copy and reveal token IDs.
 
-## Supported Locales
+```tsx
+import { useTranslationWithTokens } from '@/i18n';
 
-- **en-US** (English - United States) - Default
-- **fr-CA** (French - Canada)
-- **es-US** (Spanish - United States)
+const { t, tString } = useTranslationWithTokens(['accounts', 'common']);
 
-## ⚠️ CRITICAL: TypeScript Overload Issue
-
-Always use type assertion when calling `t()` function:
-
-```typescript
-// ✅ CORRECT - Use type assertion
-const t = useTranslation() as (key: string, options?: any) => string;
-const title = t('transactions.title', { defaultValue: 'Transactions' });
+<h2>{t('title')}</h2>                                   // first namespace is the default
+<Button>{t('common:tryAgain', { defaultValue: 'Try again' })}</Button>
+<Input placeholder={tString('search.placeholder')} />  // attributes need strings
+<p>{t('balance.updated', { date: formattedDate })}</p>  // interpolation
 ```
 
-## Quick Reference
+- `t` can return a React node (a token-ID `<span>` or rich text), so use it only as JSX children.
+- `tString` always returns a string. Use it for attributes (`aria-label`, `placeholder`, `title`), template literals, Zod messages, and toasts.
+- Reach other namespaces with the `namespace:key` prefix.
+- Keys are type-checked against the en-US resources (`src/@types/i18next.d.ts`), so a key missing from en-US fails `npm run typecheck`.
+- `defaultValue` is optional, because missing keys fall back to en-US. Some existing code passes one; follow the surrounding file.
 
-### Core Principles
+## Adding keys and namespaces
 
-1. **Always use `useTranslation` hook** - Never hardcode text strings
-2. **Locale-aware formatting** - Respect current locale for dates/numbers/currency
-3. **Default values** - Always provide `defaultValue` for fallback
-4. **Type assertion** - Use `as` to avoid TypeScript overload issues
+- Translations live in `src/i18n/<en-US|fr-CA|es-US>/<namespace>.json`, one namespace per feature (`accounts`, `recipients`, `make-payment`, `onboarding-overview`, `client-details`, ...) plus shared `common` and `validation`.
+- Add every new key to all three locales in the same change, nested by screen or area (`columns.date`, `errors.loadFailed`). If you can't produce a reliable fr-CA or es-US translation, say so in the pull request rather than copying English silently.
+- A new namespace needs a JSON file per locale plus imports and registration in `defaultResources` in `src/i18n/config.ts`.
+- Generic Zod messages are localized through `zod-i18n-map`; field-specific messages come from your schema hook (see `react-patterns`).
 
-### Essential Patterns
+Partners override copy with `contentTokens.tokens` (a deep-partial object per namespace). `showTokenIds: true` adds `data-content-token="namespace:key"` to rendered text. Design notes: [`embedded-components/docs/CONTENT_TOKENS_ARCHITECTURE.md`](../../../embedded-components/docs/CONTENT_TOKENS_ARCHITECTURE.md).
 
-- **Translation keys**: Hierarchical, descriptive (e.g., `transactions.columns.date`)
-- **Locale detection**: Use `useLocale()` hook
-- **Date formatting**: Use `toLocaleDateString(locale, {...})`
-- **Currency formatting**: Use `formatNumberToCurrency(amount, currency, locale)`
+## Formatting
 
-## Translation Pattern
+Get the active locale with `useLocale()` from `@/lib/hooks` (returns `en-US`, `fr-CA`, or `es-US`). Never hardcode `'en-US'`.
 
-```typescript
-import { useTranslation } from 'react-i18next';
-
-export const MyComponent: FC = () => {
-  // ✅ Type assertion to avoid overload issues
-  const t = useTranslation() as (key: string, options?: any) => string;
-
-  return (
-    <div>
-      <h1>{t('component.title', { defaultValue: 'Default Title' })}</h1>
-      <p>{t('component.description', { 
-        defaultValue: 'Description text',
-        name: userName 
-      })}</p>
-    </div>
-  );
-};
-```
-
-## Translation Keys
-
-### Namespace Organization
-
-- Each component/feature: own namespace (`transactions`, `accounts`)
-- Common translations: `common` namespace
-- Validation: `validation` namespace
-
-### Key Structure
-
-```typescript
-// ✅ GOOD - Hierarchical, descriptive
-t('transactions.columns.date', { defaultValue: 'Date' })
-t('transactions.errors.failedToLoadTitle', { defaultValue: 'Failed to load transactions' })
-t('transactions.toolbar.allStatuses', { defaultValue: 'All statuses' })
-
-// ❌ BAD - Flat, ambiguous
-t('date')
-t('error')
-t('all')
-```
-
-### Default Values
-
-Always provide `defaultValue`:
-
-```typescript
-// ✅ GOOD - With default
-t('transactions.title', { defaultValue: 'Transactions' })
-
-// ❌ BAD - No fallback
-t('transactions.title')
-```
-
-## Locale Detection
-
-Use the `useLocale()` hook:
-
-```typescript
-import { useLocale } from '@/lib/hooks';
-
-const MyComponent = () => {
-  const locale = useLocale(); // Returns 'en-US', 'fr-CA', etc.
-  // Use locale for formatting
-};
-```
-
-### Language Code vs Locale String
-
-- **Language Code**: i18next format ('enUS', 'frCA')
-- **Locale String**: Intl API format ('en-US', 'fr-CA')
-- **Convert** using `getLocaleFromLanguage()` utility
-
-## Date Formatting
-
-### Rules
-
-1. Always use locale parameter (never hardcode 'en-US')
-2. Use appropriate format (Date vs DateTime)
-3. Handle undefined/null with fallback
-
-### Pattern
-
-```typescript
-import { useLocale } from '@/lib/hooks';
-
-const MyComponent = () => {
-  const t = useTranslation() as (key: string, options?: any) => string;
-  const locale = useLocale();
-  const naText = t('common:na', { defaultValue: 'N/A' });
-
-  // Date only
-  const formatDate = (date?: string): string => {
-    if (!date) return naText;
-    return new Date(date).toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  // Date and time
-  const formatDateTime = (date?: string): string => {
-    if (!date) return naText;
-    return new Date(date).toLocaleString(locale, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-};
-```
-
-### Do's and Don'ts
-
-```typescript
-// ✅ DO - Use locale from hook
+```ts
 const locale = useLocale();
-const formatted = new Date(date).toLocaleDateString(locale, {...});
-
-// ✅ DO - Provide fallback
-if (!date) return naText;
-
-// ❌ DON'T - Hardcode locale
-new Date(date).toLocaleDateString('en-US', {...});
-
-// ❌ DON'T - No fallback
-new Date(date).toLocaleDateString(locale, {...});
+new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(amount);
+new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(date);
 ```
 
-## Currency Formatting
+- Pass `timeZone: 'UTC'` when displaying API date-only values (`YYYY-MM-DD`), or the date can shift a day in negative-offset time zones. Pitfalls and parsing rules are in [`embedded-components/docs/DATE_PARSING_GUIDE.md`](../../../embedded-components/docs/DATE_PARSING_GUIDE.md).
+- Shared formatters are component-local today (for example `core/TransactionsDisplay/utils/formatNumberToCurrency.ts`). Move one to `src/lib/utils/` when a second component needs it.
 
-### Rules
+## Tests
 
-1. Use `formatNumberToCurrency` utility
-2. Always pass locale
-3. Handle undefined amounts
-
-### Pattern
-
-```typescript
-import { formatNumberToCurrency } from './utils';
-import { useLocale } from '@/lib/hooks';
-
-const MyComponent = () => {
-  const locale = useLocale();
-  const t = useTranslation() as (key: string, options?: any) => string;
-  const naText = t('common:na', { defaultValue: 'N/A' });
-
-  const formattedAmount = transaction.amount
-    ? formatNumberToCurrency(
-        transaction.amount,
-        transaction.currency ?? 'USD',
-        locale
-      )
-    : naText;
-};
-```
-
-### Utility Function
-
-```typescript
-/**
- * Formats a number as currency using the specified locale
- * @param amount - The amount to format
- * @param currency - The currency code (e.g., 'USD', 'CAD')
- * @param locale - The locale string (defaults to 'en-US')
- * @returns Formatted currency string
- */
-export const formatNumberToCurrency = (
-  amount: number,
-  currency: string,
-  locale: string = 'en-US'
-): string => {
-  const formatter = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-  });
-  return formatter.format(amount);
-};
-```
-
-## Number Formatting
-
-```typescript
-// Basic number
-const formatNumber = (value: number, locale: string = 'en-US'): string => {
-  return new Intl.NumberFormat(locale).format(value);
-};
-
-// Percentage
-const formatPercentage = (value: number, locale: string = 'en-US'): string => {
-  return new Intl.NumberFormat(locale, {
-    style: 'percent',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value);
-};
-
-// Decimal places
-const formatDecimal = (
-  value: number,
-  decimals: number = 2,
-  locale: string = 'en-US'
-): string => {
-  return new Intl.NumberFormat(locale, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value);
-};
-```
-
-## Pluralization
-
-```typescript
-// Translation file
-{
-  "items": "{{count}} item",
-  "items_plural": "{{count}} items"
-}
-
-// Component
-const itemCount = t('items', { 
-  defaultValue: '{{count}} item',
-  count: items.length 
-});
-// count=1: "1 item"
-// count=2: "2 items"
-```
-
-## Interpolation
-
-```typescript
-// Translation file
-{
-  "welcome": "Welcome, {{name}}!",
-  "balance": "Your balance is {{amount}}"
-}
-
-// Component
-const welcome = t('welcome', { 
-  defaultValue: 'Welcome, {{name}}!',
-  name: userName 
-});
-
-const balance = t('balance', { 
-  defaultValue: 'Your balance is {{amount}}',
-  amount: formatNumberToCurrency(amount, 'USD', locale)
-});
-```
-
-## Context-Specific Translations
-
-```typescript
-// Translation file
-{
-  "status_pending": "Pending",
-  "status_completed": "Completed",
-  "status_failed": "Failed"
-}
-
-// Component
-const getStatusText = (status: Status): string => {
-  return t(`status_${status.toLowerCase()}`, { 
-    defaultValue: status 
-  });
-};
-```
-
-## Best Practices
-
-1. **Type assertion** - Always use `as` for `t` function
-2. **Default values** - Required for all translation calls
-3. **Locale parameter** - Never hardcode, use `useLocale()`
-4. **Fallback text** - Handle undefined/null values
-5. **Namespace organization** - Group related translations
-6. **Descriptive keys** - Use hierarchical, clear keys
-7. **Consistent formatting** - Use utility functions
-
-## Common Patterns
-
-### Form Labels and Placeholders
-
-```typescript
-const t = useTranslation() as (key: string, options?: any) => string;
-
-<Input
-  label={t('form.email.label', { defaultValue: 'Email Address' })}
-  placeholder={t('form.email.placeholder', { defaultValue: 'Enter your email' })}
-  error={t('form.email.error', { defaultValue: 'Invalid email address' })}
-/>
-```
-
-### Error Messages
-
-```typescript
-const t = useTranslation() as (key: string, options?: any) => string;
-
-<ServerErrorAlert
-  error={apiError}
-  customErrorMessage={{
-    "400": t('errors.badRequest', { 
-      defaultValue: 'Please check your information.' 
-    }),
-    "401": t('errors.unauthorized', { 
-      defaultValue: 'Please log in again.' 
-    }),
-    "500": t('errors.serverError', { 
-      defaultValue: 'An unexpected error occurred.' 
-    }),
-    default: t('errors.default', { 
-      defaultValue: 'An error occurred.' 
-    }),
-  }}
-/>
-```
-
-### Table Columns
-
-```typescript
-const columns = [
-  {
-    key: 'date',
-    label: t('columns.date', { defaultValue: 'Date' }),
-    render: (row) => formatDate(row.date, locale),
-  },
-  {
-    key: 'amount',
-    label: t('columns.amount', { defaultValue: 'Amount' }),
-    render: (row) => formatNumberToCurrency(row.amount, row.currency, locale),
-  },
-];
-```
-
-## Testing with Locales
-
-```typescript
-import { renderWithProviders } from '@test-utils';
-
-test('displays formatted date in French', () => {
-  renderWithProviders(<Component />, { locale: 'fr-CA' });
-  
-  expect(screen.getByText(/janv/i)).toBeInTheDocument();
-});
-
-test('displays formatted currency in Canadian dollars', () => {
-  renderWithProviders(<Component />, { locale: 'fr-CA' });
-  
-  expect(screen.getByText(/\$\s*1\s*234,56/)).toBeInTheDocument();
-});
-```
-
-## Anti-Patterns
-
-❌ Hardcoded text strings  
-❌ Hardcoded 'en-US' locale  
-❌ Missing default values  
-❌ No fallback for undefined values  
-❌ Not using type assertion for `t` function  
-❌ Flat, ambiguous translation keys  
-
-## How to Use
-
-For detailed instructions, examples, and patterns:
-
-- **Full guide**: `AGENTS.md` - Complete i18n/l10n documentation
-
-## References
-
-- See `AGENTS.md` for complete i18n/l10n documentation
-- i18next documentation: https://www.i18next.com/
-- Intl API: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl
+Render with `contentTokens={{ name: 'enUS' }}` and assert on the English strings from the en-US JSON.

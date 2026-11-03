@@ -14,7 +14,11 @@ import {
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
-/** Base URL must match deployed showcase (see hero copy). Path is `/skills/<id>/SKILL.md`. */
+/**
+ * Base URL must match the deployed showcase. The CLI reads
+ * `/.well-known/agent-skills/index.json` and fetches `/.well-known/agent-skills/<name>/SKILL.md`
+ * (guarded by `agent-skills-index.test.ts`).
+ */
 const SKILL_INSTALL_CLI =
   'npx skills add https://embedded-finance-dev.com/ --skill efs-components-best-practices';
 
