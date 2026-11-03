@@ -1,4 +1,4 @@
-import { i18n } from '@/i18n/config';
+import { tActive } from '@/i18n/activeI18n';
 import {
   formatPhoneNumberIntl,
   parsePhoneNumber,
@@ -47,7 +47,8 @@ export const partyFieldMap: PartyFieldMap = {
         rule: {
           interaction: 'readonly',
           required: false,
-          defaultValue: i18n.t('common:na'),
+          // Submitted to the API, so this must not vary by locale or tokens.
+          defaultValue: 'N/A',
           contentTokenOverrideKey: 'soleProp',
         },
       },
@@ -135,6 +136,12 @@ export const partyFieldMap: PartyFieldMap = {
       required: true,
       defaultValue: '',
     },
+    toStringFn: (val) =>
+      val
+        ? tActive(`onboarding-overview:organizationTypes.${val}`, {
+            defaultValue: String(val),
+          })
+        : undefined,
     conditionalRules: [],
   },
   organizationEmail: {
@@ -479,7 +486,7 @@ export const partyFieldMap: PartyFieldMap = {
   //     if (!primaryId) {
   //       return undefined;
   //     }
-  //     return `${i18n.t(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
+  //     return `${tActive(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
   //   },
   //   toStringFn: (val) => {
   //     if (val === undefined) {
@@ -615,14 +622,14 @@ export const partyFieldMap: PartyFieldMap = {
     },
     toStringFn: (val) => {
       if (val === 'ptc')
-        return i18n.t(
+        return tActive(
           'onboarding-overview:fields.isPTCOrSubsidiary.options.ptc'
         );
       if (val === 'subsidiary')
-        return i18n.t(
+        return tActive(
           'onboarding-overview:fields.isPTCOrSubsidiary.options.subsidiary'
         );
-      return i18n.t(
+      return tActive(
         'onboarding-overview:fields.isPTCOrSubsidiary.options.none'
       );
     },
@@ -749,7 +756,7 @@ export const partyFieldMap: PartyFieldMap = {
         },
       },
     ],
-    toStringFn: (val) => `${i18n.t(`common:countries.${val}`)} (${val})`,
+    toStringFn: (val) => `${tActive(`common:countries.${val}`)} (${val})`,
   },
   controllerFirstName: {
     path: 'individualDetails.firstName',
@@ -887,7 +894,7 @@ export const partyFieldMap: PartyFieldMap = {
       if (!primaryId) {
         return undefined;
       }
-      return `${i18n.t(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
+      return `${tActive(`onboarding-overview:idValueLabels.${primaryId.idType}`)} (${primaryId.issuer})`;
     },
     toStringFn: (val) => {
       if (val === undefined) {
@@ -1089,7 +1096,7 @@ export const partyFieldMap: PartyFieldMap = {
         address.secondaryAddressLine,
         address.tertiaryAddressLine,
         formatAddressLocality(address),
-        i18n.t(`common:countries.${address.country}`),
+        tActive(`common:countries.${address.country}`),
       ].filter((line) => line && line.trim() !== '');
     },
     modifyErrorField: (field) => {
@@ -1187,7 +1194,7 @@ export const partyFieldMap: PartyFieldMap = {
         address.secondaryAddressLine,
         address.tertiaryAddressLine,
         formatAddressLocality(address),
-        i18n.t(`common:countries.${address.country}`),
+        tActive(`common:countries.${address.country}`),
       ].filter((line) => line && line.trim() !== '');
     },
     modifyErrorField: (field) => {
@@ -1274,7 +1281,7 @@ export const partyFieldMap: PartyFieldMap = {
   //       primaryAddress.primaryAddressLine,
   //       ...primaryAddress.additionalAddressLines.map((line) => line.value),
   //       `${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`,
-  //       i18n.t(`common:countries.${primaryAddress.country}`),
+  //       tActive(`common:countries.${primaryAddress.country}`),
   //     ];
   //   },
   //   modifyErrorField: (field) => {

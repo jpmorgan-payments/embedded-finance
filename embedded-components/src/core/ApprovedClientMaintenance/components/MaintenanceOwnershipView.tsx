@@ -1,12 +1,16 @@
 import { useTranslationWithTokens } from '@/i18n';
 import {
   ArrowRightLeftIcon,
+  CheckIcon,
   PencilIcon,
   Trash2Icon,
   Undo2Icon,
   UserRoundCogIcon,
   WaypointsIcon,
 } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui';
 
 import type { MaintenanceParty } from '../models/maintenanceApi.types';
 import type { MaintenancePartyStatus } from '../utils/getMaintenancePartyStatus';
@@ -16,10 +20,18 @@ import {
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
 import {
+  CHANGE_CARD_CLASS,
+  CHANGE_HEADER_CLASS,
+  HEADER_CLASS,
+  MaintenanceChangeEyebrow,
+  PAGE_CLASS,
+} from './MaintenanceChangeEyebrow';
+import {
   MaintenanceOwnershipTree,
   type OwnershipNodeAction,
 } from './MaintenanceOwnershipTree';
 import { MaintenancePageBody } from './MaintenancePageBody';
+import { MaintenanceRequestChangeButton } from './MaintenanceRequestChangeButton';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
 
 export function MaintenanceOwnershipView({
@@ -53,6 +65,8 @@ export function MaintenanceOwnershipView({
   onRemovePerson,
   backLabel,
   onBack,
+  onRequestChange,
+  onDone,
 }: {
   clientPartyId: string;
   clientName: string;
@@ -85,10 +99,14 @@ export function MaintenanceOwnershipView({
   onRemovePerson: (partyId: string) => void;
   backLabel: string;
   onBack: () => void;
+  onRequestChange?: () => void;
+  /** Set while restructuring in a change request; ends it. */
+  onDone?: () => void;
 }) {
   const { t, tString } = useTranslationWithTokens(
     'approved-client-maintenance'
   );
+  const isChanging = Boolean(onDone);
 
   const getPartyActions = (partyId: string): OwnershipNodeAction[] => {
     const party = parties.find((candidate) => candidate.id === partyId);
@@ -191,18 +209,40 @@ export function MaintenanceOwnershipView({
     }
     return actions;
   };
+  const hasActions = parties.some(
+    (party) => party.id && getPartyActions(party.id).length > 0
+  );
 
   return (
-    <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background">
-      <header className="eb-border-b eb-px-4 eb-py-4">
+    <div
+      data-ownership-changing={isChanging ? '' : undefined}
+      className={cn(PAGE_CLASS, isChanging && CHANGE_CARD_CLASS)}
+    >
+      <header className={cn(HEADER_CLASS, isChanging && CHANGE_HEADER_CLASS)}>
         <MaintenanceBreadcrumb
           items={breadcrumbs}
           ariaLabel={tString('navigation.breadcrumbLabel')}
         />
-        <h2 className="eb-text-lg eb-font-semibold">{t('ownership.title')}</h2>
-        <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
-          {t('ownership.description')}
-        </p>
+        <div className="eb-flex eb-flex-wrap eb-items-start eb-justify-between eb-gap-3">
+          <div className="eb-min-w-0">
+            {isChanging ? <MaintenanceChangeEyebrow /> : null}
+            <h2 className="eb-text-lg eb-font-semibold">
+              {t(isChanging ? 'ownership.changeTitle' : 'ownership.title')}
+            </h2>
+            <p className="eb-mt-1 eb-max-w-2xl eb-text-sm eb-text-muted-foreground">
+              {t(
+                isChanging
+                  ? 'ownership.changeDescription'
+                  : hasActions
+                    ? 'ownership.description'
+                    : 'ownership.viewDescription'
+              )}
+            </p>
+          </div>
+          {onRequestChange ? (
+            <MaintenanceRequestChangeButton onClick={onRequestChange} />
+          ) : null}
+        </div>
       </header>
       <MaintenancePageBody>
         <section
@@ -220,14 +260,29 @@ export function MaintenanceOwnershipView({
             canAddIntermediary={canManageIndirectOwnership}
             ownerLimitReached={ownerLimitReached}
             getPartyActions={getPartyActions}
-            onSelectOwner={onSelectOwner}
-            onSelectBusiness={onSelectBusiness}
+            actionMenuText={
+              isChanging ? tString('ownership.nodeChangeAction') : undefined
+            }
+            // While changing, the structure is the form; details stay a step away.
+            onSelectOwner={isChanging ? undefined : onSelectOwner}
+            onSelectBusiness={isChanging ? undefined : onSelectBusiness}
             onAddBeneficialOwner={onAddBeneficialOwner}
             onAddIntermediary={onAddIntermediary}
           />
         </section>
       </MaintenancePageBody>
-      <MaintenanceViewNavigation backLabel={backLabel} onBack={onBack} />
+      <MaintenanceViewNavigation
+        backLabel={backLabel}
+        onBack={onBack}
+        action={
+          onDone ? (
+            <Button size="sm" onClick={onDone}>
+              <CheckIcon />
+              {t('requestChange.done')}
+            </Button>
+          ) : undefined
+        }
+      />
     </div>
   );
 }

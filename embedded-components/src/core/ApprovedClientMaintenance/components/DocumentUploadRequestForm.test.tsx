@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
@@ -11,7 +13,8 @@ const submitDocumentRequest = vi.fn();
 const resetUpload = vi.fn();
 const resetSubmit = vi.fn();
 
-vi.mock('@/api/generated/smbdo', () => ({
+vi.mock('@/api/generated/smbdo', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/api/generated/smbdo')>()),
   useSmbdoUploadDocument: () => ({
     mutateAsync: uploadDocument,
     error: null,
@@ -23,6 +26,15 @@ vi.mock('@/api/generated/smbdo', () => ({
     reset: resetSubmit,
   }),
 }));
+
+const renderWithQueryClient = (ui: ReactElement) => {
+  const queryClient = new QueryClient();
+  return render(ui, {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    ),
+  });
+};
 
 const documentRequest: DocumentRequestResponse = {
   id: 'document-request-1',
@@ -38,13 +50,21 @@ const documentRequest: DocumentRequestResponse = {
 describe('DocumentUploadRequestForm', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  test('uploads selected files, submits the request, and completes inline', async () => {
+  test('uploads selected files, submits the request, refreshes, and completes inline', async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
+    let finishRefresh = () => {};
+    const refreshClient = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          finishRefresh = resolve;
+        })
+    );
     const onComplete = vi.fn();
-    render(
+    renderWithQueryClient(
       <DocumentUploadRequestForm
         documentRequest={documentRequest}
         onCancel={vi.fn()}
+        refreshClient={refreshClient}
         onComplete={onComplete}
       />
     );
@@ -99,12 +119,16 @@ describe('DocumentUploadRequestForm', () => {
     expect(submitDocumentRequest).toHaveBeenCalledWith({
       id: 'document-request-1',
     });
-    expect(onComplete).toHaveBeenCalledTimes(1);
+    // The view changes only once the client is current.
+    await waitFor(() => expect(refreshClient).toHaveBeenCalledTimes(1));
+    expect(onComplete).not.toHaveBeenCalled();
+    finishRefresh();
+    await waitFor(() => expect(onComplete).toHaveBeenCalledTimes(1));
   });
 
   test('adds optional documents of other allowed types and uploads each with its own type', async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
-    render(
+    renderWithQueryClient(
       <DocumentUploadRequestForm
         documentRequest={{
           id: 'document-request-2',
@@ -121,6 +145,7 @@ describe('DocumentUploadRequestForm', () => {
           ],
         }}
         onCancel={vi.fn()}
+        refreshClient={vi.fn().mockResolvedValue(undefined)}
         onComplete={vi.fn()}
       />
     );
@@ -194,10 +219,11 @@ describe('DocumentUploadRequestForm', () => {
 
   test('rejects files over the 2 MB API limit when no limit is passed', async () => {
     const user = userEvent.setup({ pointerEventsCheck: 0 });
-    render(
+    renderWithQueryClient(
       <DocumentUploadRequestForm
         documentRequest={documentRequest}
         onCancel={vi.fn()}
+        refreshClient={vi.fn().mockResolvedValue(undefined)}
         onComplete={vi.fn()}
       />
     );

@@ -14,7 +14,7 @@
     "default": "Revise el estado del perfil y complete las acciones disponibles antes de continuar.",
     "INFORMATION_REQUESTED": {
       "title": "El perfil del cliente necesita más información",
-      "description": "Complete los elementos solicitados para que pueda continuar la revisión de su solicitud de mantenimiento."
+      "description": "Complete los elementos solicitados para que pueda continuar la revisión de su solicitud de cambio."
     },
     "REVIEW_IN_PROGRESS": {
       "title": "El perfil del cliente está en revisión",
@@ -29,9 +29,9 @@
   "navigator": {
     "label": "Secciones del perfil del negocio",
     "requestHeading": {
-      "maintenance": "Solicitud de mantenimiento",
+      "maintenance": "Solicitud de cambio",
       "product": "Mejora de producto",
-      "combined": "Mejora de producto y solicitud de mantenimiento"
+      "combined": "Mejora de producto y solicitud de cambio"
     },
     "changesReady_one": "{{count}} cambio listo para revisar",
     "changesReady_other": "{{count}} cambios listos para revisar",
@@ -40,12 +40,28 @@
     "requirementsHint": "Algunos elementos son obligatorios antes de enviar."
   },
   "home": {
-    "changesTitle": "Hacer un cambio",
-    "changesCaption": "Inicie aquí un cambio común o seleccione cualquier elemento del perfil para revisarlo o editarlo.",
-    "tasks": {
-      "editBusiness": {
-        "title": "Actualizar los datos de la empresa",
-        "description": "Corrija el nombre, la dirección o la información de contacto de la empresa."
+    "ownershipEntry": {
+      "editable": "Vea quién es propietario de la empresa y agregue, mueva o elimine las empresas a través de las cuales los propietarios mantienen su participación.",
+      "readOnly": "Vea quién es propietario de la empresa y cómo mantiene su participación."
+    }
+  },
+  "requestChange": {
+    "action": "Solicitar un cambio",
+    "title": "¿Qué desea cambiar?",
+    "ownershipTitle": "¿Qué desea cambiar de la estructura de propiedad?",
+    "empty": "No se puede cambiar nada aquí en este momento. Los cambios que ya están en la solicitud de cambio se pueden editar o descartar desde ella.",
+    "description": "Los cambios se guardan en un borrador de solicitud de cambio. Nada en el perfil cambia hasta que la envíe y el equipo de revisión la apruebe.",
+    "cancel": "Cancelar",
+    "back": "Atrás",
+    "done": "Listo",
+    "choices": {
+      "business": {
+        "title": "Datos de la empresa",
+        "description": "El nombre, la dirección, la información de contacto y otros datos de la empresa."
+      },
+      "person": {
+        "title": "Una persona o empresa del perfil",
+        "description": "Actualice sus datos, cambie su función o la forma en que es propietaria de la empresa, o elimínela."
       },
       "addOwner": {
         "title": "Agregar un beneficiario efectivo",
@@ -54,11 +70,55 @@
       "replaceController": {
         "title": "Reemplazar al controlador",
         "description": "Transfiera la administración del perfil de la empresa a otra persona."
+      },
+      "ownership": {
+        "title": "Estructura de propiedad",
+        "description": "Agregue, mueva o elimine las empresas a través de las cuales los propietarios mantienen su participación."
       }
     },
-    "ownershipEntry": {
-      "editable": "Vea quién es propietario de la empresa y agregue, mueva o elimine las empresas a través de las cuales los propietarios mantienen su participación.",
-      "readOnly": "Vea quién es propietario de la empresa y cómo mantiene su participación."
+    "person": {
+      "breadcrumb": "Elegir a quién",
+      "title": "¿A quién desea cambiar?",
+      "description": "Elija a alguien para ver los cambios que puede solicitar para esa persona."
+    },
+    "party": {
+      "title": "¿Qué desea cambiar de {{name}}?",
+      "editPerson": {
+        "title": "Sus datos",
+        "description": "Nombre, fecha de nacimiento, identificación, cargo, información de contacto o dirección."
+      },
+      "editBusiness": {
+        "title": "Los datos de la empresa",
+        "description": "Nombre, registro, dirección u otros datos."
+      },
+      "addOwnerRole": {
+        "title": "Convertirla en beneficiario efectivo",
+        "description": "Ahora posee el 25 % o más de la empresa."
+      },
+      "ownershipPath": {
+        "title": "Cómo es propietaria de la empresa",
+        "description": "Ahora mantiene su participación a través de otra empresa."
+      },
+      "move": {
+        "title": "La empresa a través de la cual es propietaria",
+        "description": "Mueva su participación a otra empresa de la estructura de propiedad."
+      },
+      "keepOwner": {
+        "title": "Mantenerla como beneficiario efectivo",
+        "description": "Deja de administrar el perfil, pero conserva su participación."
+      },
+      "remove": {
+        "title": "Eliminarla del perfil",
+        "description": "Ya no es propietaria ni administra la empresa."
+      },
+      "replaceController": {
+        "title": "Reemplazarla como controlador",
+        "description": "Elija quién administrará el perfil de la empresa."
+      },
+      "removeBusiness": {
+        "title": "Eliminarla de la estructura de propiedad",
+        "description": "Elija qué sucede con los propietarios que mantienen su participación a través de ella."
+      }
     }
   },
   "upgrade": {
@@ -162,20 +222,20 @@
   },
   "requestSummary": {
     "draftRequirements": {
-      "title": "La solicitud de mantenimiento requiere atención",
+      "title": "La solicitud de cambio requiere atención",
       "description": "Sus cambios aún se pueden editar. Complete los documentos requeridos antes de enviarlos para revisión."
     },
     "draft": {
-      "title": "Borrador de solicitud de mantenimiento",
+      "title": "Borrador de solicitud de cambio",
       "description": "Sus cambios están guardados aquí, pero no se han enviado para revisión."
     },
     "submitted": {
-      "title": "Solicitud de mantenimiento enviada",
+      "title": "Solicitud de cambio enviada",
       "description": "Estos cambios están en revisión. No se pueden editar ni cancelar hasta que finalice la revisión."
     },
     "action": {
-      "title": "La solicitud de mantenimiento requiere más información",
-      "description": "Complete las tareas devueltas en un plazo de 30 días para que la revisión pueda continuar. Después de ese plazo, su solicitud de mantenimiento se cierra automáticamente."
+      "title": "La solicitud de cambio requiere más información",
+      "description": "Complete las tareas devueltas en un plazo de 30 días para que la revisión pueda continuar. Después de ese plazo, su solicitud de cambio se cierra automáticamente."
     },
     "completeRequirements": "Completar requisitos",
     "completeRequiredActions": "Completar acciones requeridas",
@@ -202,35 +262,35 @@
     },
     "combined": {
       "draft": {
-        "title": "Mejora de producto y solicitud de mantenimiento listas para revisión",
+        "title": "Mejora de producto y solicitud de cambio listas para revisión",
         "description": "La mejora de producto y los cambios del perfil están listos para revisión."
       },
       "draftRequirements": {
-        "title": "La mejora de producto y la solicitud de mantenimiento requieren atención",
+        "title": "La mejora de producto y la solicitud de cambio requieren atención",
         "description": "Complete los requisitos antes de enviar la mejora de producto y los cambios del perfil."
       },
       "submitted": {
-        "title": "Mejora de producto y solicitud de mantenimiento enviadas",
+        "title": "Mejora de producto y solicitud de cambio enviadas",
         "description": "La mejora de producto y los cambios del perfil están en revisión."
       },
       "action": {
-        "title": "La mejora de producto y la solicitud de mantenimiento requieren más información",
+        "title": "La mejora de producto y la solicitud de cambio requieren más información",
         "description": "Complete los requisitos devueltos para que continúe la revisión."
       }
     }
   },
   "requestDetails": {
     "title": {
-      "maintenance": "Solicitud de mantenimiento",
+      "maintenance": "Solicitud de cambio",
       "product": "Solicitud de mejora de producto",
-      "combined": "Mejora de producto y solicitud de mantenimiento"
+      "combined": "Mejora de producto y solicitud de cambio"
     },
     "description": {
-      "maintenance": "Los cambios de la empresa y de las partes relacionadas de esta solicitud de mantenimiento, y lo que aún se necesita de usted.",
+      "maintenance": "Los cambios de la empresa y de las partes relacionadas de esta solicitud de cambio, y lo que aún se necesita de usted.",
       "product": "La mejora de producto que envió, y lo que aún se necesita de usted.",
       "combined": "La mejora de producto y los cambios del perfil que envió, y lo que aún se necesita de usted."
     },
-    "viewFullRequest": "Ver solicitud de mantenimiento",
+    "viewFullRequest": "Ver solicitud de cambio",
     "actionRequired": "Acción requerida",
     "noActionRequired": "No se requiere ninguna acción de su parte en este momento.",
     "lastUpdated": "Última actualización: {{date}}",
@@ -477,7 +537,11 @@
     "emptyTitle": "No se pudieron cargar las preguntas",
     "emptyDescription": "Vuelva a la revisión e inténtelo de nuevo. El envío no estará disponible hasta que se devuelvan todas las preguntas solicitadas.",
     "cancel": "Volver a la revisión",
-    "save": "Guardar respuestas"
+    "save": "Guardar respuestas",
+    "groups": {
+      "rfi": "Solicitado por el equipo de revisión",
+      "kyc": "Sobre los cambios al perfil"
+    }
   },
   "attestation": {
     "title": "Revisar y certificar",
@@ -509,6 +573,10 @@
     "title": "Estructura de propiedad",
     "description": "Seleccione a cualquier persona para ver sus detalles. Use el menú junto a ella para hacer actualizaciones.",
     "nodeMenu": "Actualizar a {{name}}",
+    "nodeChangeAction": "Actualizar",
+    "viewDescription": "Seleccione a cualquier persona para ver sus datos.",
+    "changeTitle": "Cambiar la estructura de propiedad",
+    "changeDescription": "Agregue propietarios o empresas desde las filas punteadas, o use Actualizar junto a cualquiera que ya esté aquí. Cada cambio se guarda en su borrador de solicitud de cambio.",
     "ownerLimitReached": "Puede incluir hasta 4 beneficiarios efectivos.",
     "beneficialOwnersTitle": "Beneficiarios efectivos",
     "beneficialOwnersDescription": "Agregue a cada persona que posea directamente el 25 % o más. Un controlador que también posea el 25 % o más aparece aquí como beneficiario efectivo.",
@@ -631,7 +699,7 @@
   },
   "availability": {
     "productAlreadyAdded": "Pagos DDA limitados ya está en este perfil o en sus cambios pendientes.",
-    "requestLocked": "No se pueden hacer cambios nuevos mientras su solicitud de mantenimiento está en revisión.",
+    "requestLocked": "No se pueden hacer cambios nuevos mientras su solicitud de cambio está en revisión.",
     "originalProductPending": "El producto DDA limitado original debe estar aprobado antes de agregar este producto.",
     "verificationRequired": "Complete la verificación del producto original antes de agregar Pagos DDA limitados.",
     "productLeadTime": "Pagos DDA limitados estará disponible después de las {{time}}, una vez transcurrida la ventana de verificación de cinco minutos.",
@@ -705,7 +773,7 @@
       "unresolved_one": "No se pudo resolver 1 cambio.",
       "unresolved_other": "No se pudieron resolver {{count}} cambios.",
       "conflict": "Se deben resolver los cambios pendientes en conflicto.",
-      "request": "No se pudo identificar su solicitud de mantenimiento."
+      "request": "No se pudo identificar su solicitud de cambio."
     }
   },
   "cancel": {
@@ -713,9 +781,9 @@
     "discardChanges": "Descartar cambios",
     "all": {
       "title": {
-        "maintenance": "¿Descartar esta solicitud de mantenimiento?",
+        "maintenance": "¿Descartar esta solicitud de cambio?",
         "product": "¿Descartar la mejora de producto?",
-        "combined": "¿Descartar la mejora de producto y la solicitud de mantenimiento?"
+        "combined": "¿Descartar la mejora de producto y la solicitud de cambio?"
       },
       "description": "Se descarta todo lo que aparece a continuación. Su perfil aprobado no cambia.",
       "keep": "Conservar cambios"
@@ -814,7 +882,7 @@
   },
   "locked": {
     "title": "Los cambios están en revisión",
-    "description": "No puede iniciar nuevas ediciones mientras su solicitud de mantenimiento está en revisión."
+    "description": "No puede iniciar nuevas ediciones mientras su solicitud de cambio está en revisión."
   },
   "nameEditor": {
     "eyebrow": "Editar perfil",
@@ -877,5 +945,12 @@
     "syncDescription": "La información aprobada no cambió. Vuelva a cargar antes de revisar.",
     "projectionTitle": "Estos cambios no se pueden revisar",
     "projectionDescription": "Algunos cambios pendientes están incompletos o entran en conflicto entre sí."
+  },
+  "informationRequest": {
+    "title": "Información solicitada",
+    "description": "J.P. Morgan necesita un poco más de información sobre la empresa. El perfil sigue aprobado mientras responde.",
+    "answerQuestions_one": "Responder {{count}} pregunta",
+    "answerQuestions_other": "Responder {{count}} preguntas",
+    "uploadDocuments": "Subir documentos para {{name}}"
   }
 }

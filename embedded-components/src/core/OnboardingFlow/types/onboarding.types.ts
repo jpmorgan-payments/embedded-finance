@@ -295,10 +295,15 @@ export type OnboardingDeltaModeProp = boolean | OnboardingDeltaModeConfig;
  * Composite fields lock as a unit — listing `organizationAddress` locks every
  * address sub-input (address lines, city, state, postal code, country).
  *
+ * Locks follow the party a field belongs to. Organization fields check the
+ * organization's own values. Individual fields (e.g. `controllerEmail`,
+ * `controllerPhone`) check and lock only the controller — beneficial-owner
+ * forms reuse those field names but are never locked.
+ *
  * `mode` controls when each listed field locks:
  * - `'whenPopulated'` (**default**) — lock when the field already has a value
- *   from the GET client response. Empty fields stay editable so onboarding can
- *   still be completed.
+ *   on its party in the GET client response. Empty fields stay editable so
+ *   onboarding can still be completed.
  * - `'always'` — the field is always read-only, regardless of value or whether
  *   it is required.
  *

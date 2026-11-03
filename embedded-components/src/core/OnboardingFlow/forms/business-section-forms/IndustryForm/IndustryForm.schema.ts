@@ -20,7 +20,9 @@ export const useIndustryFormSchema = () => {
         (val) => !/(https?:\/\/[^\s]+)/g.test(val),
         v('organizationDescription', 'noUrls')
       )
-      .transform(sanitizeInput),
+      // Zod 4 `overwrite` sanitizes in place, keeping this a plain string
+      // schema (a `transform` would wrap it in a pipe).
+      .overwrite(sanitizeInput),
     industry: z.string().min(1, v('industry', 'required')),
   });
 };

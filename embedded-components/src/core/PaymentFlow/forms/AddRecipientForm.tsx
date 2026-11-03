@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 
 import { DEFAULT_PAYMENT_METHODS } from '../PaymentFlow.constants';
 import type { PaymentMethod, PaymentMethodType } from '../PaymentFlow.types';
+import { paymentFormError } from './paymentFormError';
 
 /**
  * Form schema for adding a recipient
@@ -31,11 +32,13 @@ const addRecipientSchema = z
     firstName: z.string().optional(),
     lastName: z.string().optional(),
     businessName: z.string().optional(),
-    email: z.string().email().optional().or(z.literal('')),
+    email: z.email().optional().or(z.literal('')),
     phone: z.string().optional(),
-    bankName: z.string().min(1, 'Bank name is required'),
-    accountNumber: z.string().min(1, 'Account number is required'),
-    routingNumber: z.string().min(9, 'Routing number must be 9 digits').max(9),
+    bankName: z.string().min(1, paymentFormError('bankNameRequired')),
+    accountNumber: z.string().min(1, paymentFormError('accountNumberRequired')),
+    routingNumber: z
+      .string()
+      .length(9, paymentFormError('routingNumberDigits')),
     selectedPaymentMethods: z
       .array(z.enum(['ACH', 'RTP', 'WIRE', 'SAME_DAY_ACH']))
       .min(1),
@@ -55,7 +58,7 @@ const addRecipientSchema = z
       return data.businessName;
     },
     {
-      message: 'Name is required',
+      ...paymentFormError('nameRequired'),
       path: ['firstName'],
     }
   )
@@ -73,7 +76,7 @@ const addRecipientSchema = z
       return true;
     },
     {
-      message: 'Wire transfer details are required',
+      ...paymentFormError('wireDetailsRequired'),
       path: ['beneficiaryAddress'],
     }
   );

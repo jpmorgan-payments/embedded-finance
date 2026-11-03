@@ -26,7 +26,7 @@ export type LinkAccountFormPanelProps = {
   existingAccounts: Recipient[];
   /** `step` wraps content in StepLayout; `inline` is for Overview embedding. */
   layout: 'step' | 'inline';
-  onSuccess: () => void;
+  onSuccess: (recipient?: Recipient) => void;
   /** When omitted, cancel controls are hidden (typical for Overview inline). */
   onCancel?: () => void;
 };
@@ -105,9 +105,9 @@ export function LinkAccountFormPanel({
     recipientType: 'LINKED_ACCOUNT',
     clientId,
     partyId: effectivePartyId,
-    onSuccess: () => {
+    onSuccess: (recipient) => {
       reset();
-      onSuccess();
+      onSuccess(recipient);
     },
   });
 

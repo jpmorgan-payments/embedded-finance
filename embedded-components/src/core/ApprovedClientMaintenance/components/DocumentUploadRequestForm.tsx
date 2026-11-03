@@ -3,16 +3,13 @@ import { useTranslationWithTokens } from '@/i18n';
 import { RefreshCwIcon } from 'lucide-react';
 import { useForm, useWatch, type FieldValues } from 'react-hook-form';
 
-import {
-  useSmbdoSubmitDocumentRequest,
-  useSmbdoUploadDocument,
-} from '@/api/generated/smbdo';
 import type {
   DocumentRequestResponse,
   DocumentTypeSmbdo,
 } from '@/api/generated/smbdo.schemas';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Form } from '@/components/ui';
+import { useDocumentRequestUpload } from '@/core/OnboardingFlow/hooks/useDocumentRequestUpload';
 import { DocumentRequestCard } from '@/core/OnboardingFlow/screens/DocumentUploadScreen/DocumentRequestCard';
 
 import {
@@ -29,7 +26,10 @@ type DocumentUploadRequestFormProps = {
   /** Shown above the upload fields, scrolling with them. */
   intro?: ReactNode;
   onCancel: () => void;
-  onComplete: () => Promise<void> | void;
+  /** Refreshes the client once the upload is submitted. */
+  refreshClient: () => Promise<unknown>;
+  /** Called after the refresh, so the next view shows the result. */
+  onComplete: () => void;
 };
 
 export function DocumentUploadRequestForm({
@@ -37,6 +37,7 @@ export function DocumentUploadRequestForm({
   maxFileSizeBytes,
   intro,
   onCancel,
+  refreshClient,
   onComplete,
 }: DocumentUploadRequestFormProps) {
   const { t } = useTranslationWithTokens([
@@ -44,8 +45,12 @@ export function DocumentUploadRequestForm({
     'onboarding-overview',
   ]);
   const [resetKey, setResetKey] = useState(0);
-  const uploadMutation = useSmbdoUploadDocument();
-  const submitMutation = useSmbdoSubmitDocumentRequest();
+  const {
+    uploadAndSubmit,
+    uploadError,
+    submitError,
+    reset: resetUpload,
+  } = useDocumentRequestUpload({ refreshClient });
   const form = useForm<FieldValues>({
     defaultValues: documentRequest.id ? { [documentRequest.id]: {} } : {},
   });
@@ -78,27 +83,15 @@ export function DocumentUploadRequestForm({
 
   const reset = () => {
     form.reset(documentRequest.id ? { [documentRequest.id]: {} } : {});
-    uploadMutation.reset();
-    submitMutation.reset();
+    resetUpload();
     setResetKey((currentKey) => currentKey + 1);
   };
 
   const submit = form.handleSubmit(async () => {
     if (!documentRequest.id || !isReady) return;
     try {
-      for (const upload of uploads) {
-        await uploadMutation.mutateAsync({
-          data: {
-            documentData: JSON.stringify({
-              documentType: upload.documentType,
-              documentRequestId: documentRequest.id,
-            }),
-            file: upload.file,
-          },
-        });
-      }
-      await submitMutation.mutateAsync({ id: documentRequest.id });
-      await onComplete();
+      await uploadAndSubmit(documentRequest.id, uploads);
+      onComplete();
     } catch {
       // Mutation errors are rendered below without clearing selected files.
     }
@@ -138,9 +131,7 @@ export function DocumentUploadRequestForm({
               </Button>
             </div>
 
-            <ServerErrorAlert
-              error={uploadMutation.error ?? submitMutation.error}
-            />
+            <ServerErrorAlert error={uploadError ?? submitError} />
           </div>
         </MaintenancePageBody>
 

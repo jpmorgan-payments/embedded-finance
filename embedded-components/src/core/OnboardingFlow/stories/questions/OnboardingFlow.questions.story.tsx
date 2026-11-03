@@ -11,6 +11,7 @@
  * | `boolean`           | —               | 1               | RadioGroup (Yes / No)      |
  * | `string`            | yes             | > 1             | Checkbox list (multi)      |
  * | `string`            | yes             | 1 or omitted    | Select dropdown            |
+ * | `string`            | > 10 options    | any             | Searchable list (+ chips if multi) |
  * | `string`            | no              | 1               | Text input                 |
  * | `integer`           | —               | 1               | Number input               |
  * | (money ID override) | —               | 1               | Currency input ($, 0.01)   |
@@ -23,8 +24,13 @@
  * to land directly on the Operational Details view.
  */
 
+import {
+  naics524114LicensingQuestions,
+  significantOperationsCountriesQuestion,
+} from '@/mocks/efClientQuestionsCountries.mock';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import type { ClientResponse } from '@/api/generated/smbdo.schemas';
 
@@ -450,6 +456,72 @@ export const BooleanOnly: Story = {
           booleanWithChildQuestion,
           childEnumQuestion,
         ]),
+        ...defaultHandlers,
+      ],
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: QUESTIONS_FLOW_ENTRY,
+  },
+};
+
+/**
+ * The licensing questions a client in NAICS 524114 (direct health and medical
+ * insurance carriers) gets from the API. Choosing Licensed and Registered
+ * reveals the country of license and of registration, each a single choice
+ * from the API's 237 countries, so they render as searchable lists.
+ */
+export const CountryQuestionsNaics524114: Story = {
+  name: 'Country questions (NAICS 524114)',
+  loaders: [
+    seedQuestionsClient(
+      naics524114LicensingQuestions.map((question) => question.id)
+    ),
+  ],
+  parameters: {
+    msw: {
+      handlers: [
+        questionsHandler(naics524114LicensingQuestions),
+        ...defaultHandlers,
+      ],
+    },
+  },
+  args: {
+    ...commonArgs,
+    clientId: DEFAULT_CLIENT_ID,
+    flowEntry: QUESTIONS_FLOW_ENTRY,
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(
+      await canvas.findByRole(
+        'checkbox',
+        { name: 'Licensed' },
+        { timeout: 15000 }
+      )
+    );
+    await userEvent.click(canvas.getByRole('checkbox', { name: 'Registered' }));
+    await waitFor(() =>
+      expect(
+        canvas.getByText('What is the country of registration?')
+      ).toBeInTheDocument()
+    );
+  },
+};
+
+/**
+ * A question that allows any number of the 237 countries. It renders as a
+ * searchable list, with each chosen country shown as a removable chip.
+ */
+export const CountryMultiSelect: Story = {
+  name: 'Country multi-select (237 options)',
+  loaders: [seedQuestionsClient([significantOperationsCountriesQuestion.id])],
+  parameters: {
+    msw: {
+      handlers: [
+        questionsHandler([significantOperationsCountriesQuestion]),
         ...defaultHandlers,
       ],
     },

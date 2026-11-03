@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, InfoIcon, Loader2Icon } from 'lucide-react';
 import { useForm, useFormState } from 'react-hook-form';
-import { z } from 'zod';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -20,6 +19,7 @@ import {
   useOnboardingContext,
 } from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
+import { getOnboardingQuestionIds } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { createDynamicZodSchema } from './OperationalDetailsForm.schema';
 import { QuestionList } from './QuestionField';
@@ -38,16 +38,29 @@ export const OperationalDetailsForm = () => {
   const queryClient = useQueryClient();
   const { clientData } = useOnboardingContext();
 
-  const { originScreenId, goTo, updateSessionData, setIsFormSubmitting } =
-    useFlowContext();
+  const {
+    originScreenId,
+    goTo,
+    sessionData,
+    updateSessionData,
+    setIsFormSubmitting,
+  } = useFlowContext();
 
   const reviewMode = originScreenId === 'review-attest-section';
 
-  // Get outstanding question IDs and existing question responses
-  const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
+  // Questions from a request for information are answered in their own section.
+  const outstandingQuestionIds = getOnboardingQuestionIds(
+    clientData,
+    sessionData.rfiQuestionIds
+  );
   const existingQuestionResponses = useMemo(
-    () => clientData?.questionResponses ?? [],
-    [clientData?.questionResponses]
+    () =>
+      (clientData?.questionResponses ?? []).filter(
+        (response) =>
+          !response.questionId ||
+          !sessionData.rfiQuestionIds?.includes(response.questionId)
+      ),
+    [clientData?.questionResponses, sessionData.rfiQuestionIds]
   );
 
   // Fetch the full question tree (handles arbitrary nesting depth)
@@ -85,8 +98,10 @@ export const OperationalDetailsForm = () => {
 
         // Check if the response has new outstanding questions.
         // If so, stay on the page so the user can answer them.
-        const newOutstandingQuestionIds =
-          response?.outstanding?.questionIds ?? [];
+        const newOutstandingQuestionIds = getOnboardingQuestionIds(
+          response,
+          sessionData.rfiQuestionIds
+        );
         if (newOutstandingQuestionIds.length > 0) {
           setHasNewQuestions(true);
           // Scroll alert into view after render
@@ -113,10 +128,10 @@ export const OperationalDetailsForm = () => {
     },
   });
 
-  const dynamicSchema = useMemo(() => {
-    if (!allQuestions.length) return z.object({});
-    return createDynamicZodSchema(allQuestions);
-  }, [allQuestions]);
+  const dynamicSchema = useMemo(
+    () => createDynamicZodSchema(allQuestions),
+    [allQuestions]
+  );
 
   const form = useForm({
     resolver: zodResolver(dynamicSchema),

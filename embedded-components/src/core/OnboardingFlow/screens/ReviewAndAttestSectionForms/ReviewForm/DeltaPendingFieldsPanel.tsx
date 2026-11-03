@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle2Icon,
-  DollarSignIcon,
   TagIcon,
   Users2Icon,
   type LucideIcon,
@@ -30,22 +29,6 @@ import {
   useUpdateParty,
 } from '@/api/generated/smbdo';
 import { QuestionResponse } from '@/api/generated/smbdo.schemas';
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Badge, Card } from '@/components/ui';
 import {
   AddressFields,
@@ -59,16 +42,16 @@ import {
   JOB_TITLES,
 } from '@/core/OnboardingFlow/consts';
 import {
+  ReadonlyFieldsScopeContext,
   useFlowContext,
   useOnboardingContext,
+  type ReadonlyFieldsScope,
 } from '@/core/OnboardingFlow/contexts';
 import { useOrganizationDescriptionTooltip } from '@/core/OnboardingFlow/forms/business-section-forms/IndustryForm/useOrganizationDescriptionTooltip';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { useStableStepSchemas } from '@/core/OnboardingFlow/hooks/useStableStepSchemas';
-import {
-  createDynamicZodSchema,
-  MONEY_INPUT_QUESTION_IDS,
-} from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm.schema';
+import { createDynamicZodSchema } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm.schema';
+import { QuestionList } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/QuestionField';
 import { useQuestionTree } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/useQuestionTree';
 import type {
   SectionScreenConfig,
@@ -88,13 +71,9 @@ import {
 import {
   convertPartyResponseToFormValues,
   generatePartyRequestBody,
+  isIndividualPartyFieldKey,
 } from '@/core/OnboardingFlow/utils/formUtils';
-import {
-  isQuestionVisible as computeQuestionVisibility,
-  getChildQuestions,
-  isTopLevelQuestion,
-  normalizeQuestionId,
-} from '@/core/OnboardingFlow/utils/questionTree';
+import { getChildQuestions } from '@/core/OnboardingFlow/utils/questionTree';
 
 type DeltaPendingFieldsPanelProps = {
   sections: SectionScreenConfig[];
@@ -1286,6 +1265,12 @@ const SIMPLE_DELTA_INPUT_TYPES = [
 ] as const;
 type SimpleDeltaInputType = (typeof SIMPLE_DELTA_INPUT_TYPES)[number];
 
+/** Readonly scope for a pending field whose party is not in the GET client. */
+const NEW_PARTY_READONLY_SCOPE: ReadonlyFieldsScope = {
+  party: undefined,
+  isController: false,
+};
+
 /**
  * Inline editors for fields still pending on the delta-mode review screen,
  * grouped by section step (e.g. Personal → Your ID details).
@@ -1310,6 +1295,22 @@ function DeltaPendingFieldsPanelComponent({
     'common',
   ]);
   const { clientData } = useOnboardingContext();
+  // Each pending party field is rendered inside its own party's scope, so a
+  // `readonlyFields` lock follows that party's saved values and owner fields
+  // never inherit the controller's lock.
+  const readonlyScopeByPartyId = useMemo(
+    () =>
+      new Map<string | undefined, ReadonlyFieldsScope>(
+        (clientData?.parties ?? []).map((party) => [
+          party.id,
+          {
+            party,
+            isController: !!party.roles?.includes('CONTROLLER'),
+          },
+        ])
+      ),
+    [clientData]
+  );
   const {
     currentScreenId,
     savedFormValues,
@@ -1419,8 +1420,8 @@ function DeltaPendingFieldsPanelComponent({
   const isQuestionAnswered = (questionId: string): boolean =>
     isDeltaQuestionAnswered(currentValues, questionId) &&
     // Blur-gate like the party text fields: a typed answer counts only once the
-    // field is blurred (touched). Radios/selects mark themselves touched on
-    // selection (setValue shouldTouch), so discrete answers still count at once.
+    // field is blurred (touched). Choice inputs mark themselves touched as an
+    // option is picked, so those answers count at once.
     isDirtyTree(getValueAtPath(touchedFields, `question_${questionId}`));
 
   const hasOutstandingQuestions = outstandingQuestionIds.length > 0;
@@ -1464,21 +1465,14 @@ function DeltaPendingFieldsPanelComponent({
     clientData,
   });
 
-  const getResponseValues = (questionId: string) => {
-    // Read current values (the panel re-renders on question changes via the
-    // scoped useWatch compute above, so this is fresh).
-    const live = currentValues?.[`question_${questionId}`] as
-      | string[]
-      | undefined;
-    if (live) return live;
-    return existingQuestionResponses.find(
-      (r) =>
-        normalizeQuestionId(r.questionId) === normalizeQuestionId(questionId)
-    )?.values;
-  };
-
-  const isQuestionVisible = (question: QuestionResponse): boolean =>
-    computeQuestionVisibility(question, allQuestions, getResponseValues);
+  // Show the questions still to answer, along with any parent whose
+  // follow-up is outstanding.
+  const isOutstandingOrHasOutstandingChild = (question: QuestionResponse) =>
+    !!question.id &&
+    (outstandingQuestionIds.includes(question.id) ||
+      getChildQuestions(question.id, allQuestions).some((child) =>
+        outstandingQuestionIds.includes(child.id ?? '')
+      ));
 
   const renderAddressField = (field: PendingField): React.ReactNode => {
     const logicalKey = field.fieldKey;
@@ -1683,241 +1677,6 @@ function DeltaPendingFieldsPanelComponent({
     );
   };
 
-  const renderQuestionInput = (question: QuestionResponse) => {
-    const fieldName = `question_${question.id ?? 'undefined'}`;
-    const itemType = question?.responseSchema?.items?.type ?? 'string';
-    const itemEnum = question?.responseSchema?.items?.enum;
-
-    const questionLabel = (
-      <div>
-        {question.description?.split('\n')?.map((line, index) => (
-          <div key={`${question.id}-label-${index}`}>
-            <FormLabel
-              className={cn({
-                'eb-ml-4': index > 0,
-              })}
-            >
-              {line}
-            </FormLabel>
-          </div>
-        ))}
-      </div>
-    );
-
-    if (question.id && MONEY_INPUT_QUESTION_IDS.includes(question.id)) {
-      return (
-        <FormField
-          control={form.control}
-          name={fieldName}
-          render={({ field }) => (
-            <FormItem>
-              {questionLabel}
-              <div className="eb-relative">
-                <DollarSignIcon
-                  aria-hidden="true"
-                  className="eb-pointer-events-none eb-absolute eb-inset-y-0 eb-left-3 eb-my-auto eb-size-4 eb-text-gray-500"
-                />
-                <FormControl>
-                  <Input
-                    {...field}
-                    type="number"
-                    min={0}
-                    max={10000000000}
-                    step={1}
-                    inputMode="decimal"
-                    placeholder="0"
-                    className="eb-pl-9"
-                    value={(field.value as string[] | undefined)?.[0] ?? ''}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      const numeric = parseFloat(raw);
-                      if (
-                        raw === '' ||
-                        (numeric >= 0 && numeric <= 10000000000)
-                      ) {
-                        field.onChange([raw]);
-                      }
-                    }}
-                    onBlur={field.onBlur}
-                  />
-                </FormControl>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      );
-    }
-
-    switch (itemType) {
-      case 'boolean':
-        return (
-          <FormField
-            control={form.control}
-            name={fieldName}
-            render={({ field }) => (
-              <FormItem className="eb-space-y-3">
-                {questionLabel}
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={(value) => {
-                      // Discrete choice has no blur: mark it dirty (so the
-                      // delta save, which submits only dirty fields, includes
-                      // this answer) and touched (so completion gating counts
-                      // it now, unlike text answers which wait for blur), and
-                      // validate to clear any post-submit error.
-                      form.setValue(fieldName as never, [value] as never, {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                        shouldValidate: true,
-                      });
-                    }}
-                    value={(field.value as string[] | undefined)?.[0] ?? ''}
-                    className="eb-flex eb-flex-col eb-space-y-1"
-                  >
-                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="true" />
-                      </FormControl>
-                      <FormLabel className="eb-font-normal">
-                        {t('common:yes', 'Yes')}
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="eb-flex eb-items-center eb-space-x-3 eb-space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="false" />
-                      </FormControl>
-                      <FormLabel className="eb-font-normal">
-                        {t('common:no', 'No')}
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-      case 'integer':
-        return (
-          <FormField
-            control={form.control}
-            name={fieldName}
-            render={({ field }) => (
-              <FormItem>
-                {questionLabel}
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    value={(field.value as string[] | undefined)?.[0] ?? ''}
-                    onChange={(e) => field.onChange([e.target.value])}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-      default:
-        if (itemEnum?.length) {
-          return (
-            <FormField
-              control={form.control}
-              name={fieldName}
-              render={({ field }) => (
-                <FormItem>
-                  {questionLabel}
-                  <Select
-                    onValueChange={(value) => {
-                      // Discrete choice has no blur: mark it dirty (so the
-                      // delta save, which submits only dirty fields, includes
-                      // this answer) and touched (so completion gating counts
-                      // it now, unlike text answers which wait for blur), and
-                      // validate to clear any post-submit error.
-                      form.setValue(fieldName as never, [value] as never, {
-                        shouldDirty: true,
-                        shouldTouch: true,
-                        shouldValidate: true,
-                      });
-                    }}
-                    value={(field.value as string[] | undefined)?.[0] ?? ''}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {itemEnum.map((option: string) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          );
-        }
-        return (
-          <FormField
-            control={form.control}
-            name={fieldName}
-            render={({ field }) => (
-              <FormItem>
-                {questionLabel}
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={(field.value as string[] | undefined)?.[0] ?? ''}
-                    onChange={(e) => field.onChange([e.target.value])}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        );
-    }
-  };
-
-  const renderSubQuestions = (
-    parentId: string | undefined
-  ): React.ReactNode => {
-    if (!parentId) return null;
-    const childQuestions = getChildQuestions(parentId, allQuestions).filter(
-      isQuestionVisible
-    );
-    return childQuestions.map((subQuestion) => (
-      <Fragment key={subQuestion.id}>
-        {renderQuestionInput(subQuestion)}
-        {renderSubQuestions(subQuestion.id)}
-      </Fragment>
-    ));
-  };
-
-  const renderQuestionsList = () =>
-    allQuestions
-      .filter((question) => isTopLevelQuestion(question, allQuestions))
-      .filter(isQuestionVisible)
-      .filter(
-        (q) =>
-          q.id &&
-          (outstandingQuestionIds.includes(q.id) ||
-            getChildQuestions(q.id, allQuestions).some((child) =>
-              outstandingQuestionIds.includes(child.id ?? '')
-            ))
-      )
-      .map((question) => (
-        <Fragment key={question.id}>
-          {renderQuestionInput(question)}
-          {renderSubQuestions(question.id)}
-        </Fragment>
-      ));
-
   return (
     <FormProvider {...form}>
       <div className="eb-space-y-4">
@@ -1978,13 +1737,26 @@ function DeltaPendingFieldsPanelComponent({
                 </div>
               </div>
               <div className="eb-space-y-6 eb-px-4 eb-pb-4">
-                {summary.isQuestionsSection
-                  ? renderQuestionsList()
-                  : summary.groups.flatMap((group) =>
-                      dedupeCompositeFields(group.fields).map((field) =>
-                        renderPartyField(field)
-                      )
-                    )}
+                {summary.isQuestionsSection ? (
+                  <QuestionList
+                    questions={allQuestions}
+                    filterTopLevel={isOutstandingOrHasOutstandingChild}
+                  />
+                ) : (
+                  summary.groups.flatMap((group) =>
+                    dedupeCompositeFields(group.fields).map((field) => (
+                      <ReadonlyFieldsScopeContext.Provider
+                        key={field.formPath}
+                        value={
+                          readonlyScopeByPartyId.get(field.partyId) ??
+                          NEW_PARTY_READONLY_SCOPE
+                        }
+                      >
+                        {renderPartyField(field)}
+                      </ReadonlyFieldsScopeContext.Provider>
+                    ))
+                  )
+                )}
               </div>
             </Card>
           );
@@ -2139,7 +1911,7 @@ export function useDeltaPendingFieldsForm(sections: SectionScreenConfig[]) {
   // the pre-built step schemas inside the resolver below).
   const questionSchema = useMemo(() => {
     if (allQuestions.length === 0) {
-      return z.object({}).passthrough();
+      return z.object({}).loose();
     }
     return createDynamicZodSchema(allQuestions);
   }, [allQuestions]);
@@ -2288,15 +2060,7 @@ const ORG_PARTY_FIELD_KEYS = new Set(
 );
 
 const INDIVIDUAL_PARTY_FIELD_KEYS = new Set(
-  [...ALL_PARTY_FIELD_KEYS].filter((key) => {
-    const path = partyFieldMap[key as keyof typeof partyFieldMap]?.path ?? '';
-    return (
-      path.startsWith('individualDetails') ||
-      key === 'controllerEmail' ||
-      key === 'controllerPhone' ||
-      key === 'solePropSsn'
-    );
-  })
+  [...ALL_PARTY_FIELD_KEYS].filter(isIndividualPartyFieldKey)
 );
 
 /** Read a nested value by dot-path (handles array indices as string keys). */

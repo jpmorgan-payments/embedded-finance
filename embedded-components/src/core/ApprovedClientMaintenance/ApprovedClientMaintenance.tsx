@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { useElementWidth } from '@/utils/useElementWidth';
-import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react';
+import {
+  AlertCircleIcon,
+  ArrowRightLeftIcon,
+  CircleMinusIcon,
+  PencilLineIcon,
+  RefreshCwIcon,
+  UserRoundCheckIcon,
+  UserRoundCogIcon,
+  UserRoundMinusIcon,
+  UserRoundPenIcon,
+  UserRoundPlusIcon,
+} from 'lucide-react';
 
 import { useIPAddress } from '@/lib/hooks';
 import { cn } from '@/lib/utils';
@@ -9,6 +20,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Skeleton } from '@/components/ui';
 import { useClientId } from '@/core/EBComponentsProvider/EBComponentsProvider';
+import { getQuestionCategory } from '@/core/OnboardingFlow/utils/questionCategory';
+import { isTopLevelQuestion } from '@/core/OnboardingFlow/utils/questionTree';
 
 import type {
   ApprovedClientMaintenanceOperation,
@@ -20,6 +33,10 @@ import { MaintenanceAddPartyView } from './components/MaintenanceAddPartyView';
 import { MaintenanceAttestationView } from './components/MaintenanceAttestationView';
 import type { MaintenanceBreadcrumbItem } from './components/MaintenanceBreadcrumb';
 import { MaintenanceBusyProvider } from './components/MaintenanceBusyContext';
+import {
+  MaintenanceChangePickerView,
+  type MaintenanceChangeChoice,
+} from './components/MaintenanceChangePickerView';
 import { MaintenanceControllerReplacementView } from './components/MaintenanceControllerReplacementView';
 import { MaintenanceDocumentDiscoveryView } from './components/MaintenanceDocumentDiscoveryView';
 import { MaintenanceDocumentView } from './components/MaintenanceDocumentView';
@@ -36,7 +53,10 @@ import { MaintenanceOwnerRelationshipView } from './components/MaintenanceOwnerR
 import type { OwnershipPickerNode } from './components/MaintenanceOwnershipPicker';
 import { MaintenanceOwnershipView } from './components/MaintenanceOwnershipView';
 import { MaintenanceProductAdditionView } from './components/MaintenanceProductAdditionView';
-import { MaintenanceProfileOverview } from './components/MaintenanceProfileOverview';
+import {
+  MaintenanceProfileOverview,
+  type MaintenanceInformationRequest,
+} from './components/MaintenanceProfileOverview';
 import { MaintenanceQuestionsView } from './components/MaintenanceQuestionsView';
 import { MaintenanceReceiptView } from './components/MaintenanceReceiptView';
 import { MaintenanceReviewView } from './components/MaintenanceReviewView';
@@ -73,7 +93,10 @@ import { getMaintenanceRequestSummaryState } from './utils/getMaintenanceRequest
 import { getOwnershipChanges } from './utils/getOwnershipChanges';
 import { getOwnershipDescendants } from './utils/getOwnershipDescendants';
 import { isProductUpgradeGateOpen } from './utils/isProductUpgradeGateOpen';
-import { getMaintenancePartyIdentity } from './utils/maintenanceDisplay';
+import {
+  formatMaintenanceRoles,
+  getMaintenancePartyIdentity,
+} from './utils/maintenanceDisplay';
 import {
   createMaintenanceReviewFingerprint,
   getMaintenanceSubmissionBlockers,
@@ -95,10 +118,25 @@ type MaintenanceReturnView =
     }
   | { id: 'review' }
   | { id: 'submitted-review' }
-  | { id: 'ownership'; returnTo: MaintenanceReturnView };
+  | {
+      id: 'ownership';
+      returnTo: MaintenanceReturnView;
+      /** Set when restructuring was chosen in a change request. */
+      changeFrom?: RequestChangeView;
+    };
+
+type RequestChangeView = {
+  id: 'request-change';
+  step?: 'person' | 'party' | 'ownership';
+  partyId?: string;
+  /** The page the change was requested from; cancelling returns there. */
+  returnTo: MaintenanceReturnView;
+  back?: RequestChangeView;
+};
 
 type MaintenanceView =
   | MaintenanceReturnView
+  | RequestChangeView
   | { id: 'add-product' }
   | {
       id: 'add-party';
@@ -155,6 +193,21 @@ type CancelTarget =
   | { scope: 'party'; partyId: string }
   | { scope: 'pending-addition'; partyId: string }
   | { scope: 'organization'; partyId: string };
+
+/** Pages that make up a change request; every other page only shows the profile. */
+const CHANGE_VIEW_IDS = new Set<MaintenanceView['id']>([
+  'request-change',
+  'review',
+  'add-party',
+  'owner-relationship',
+  'controller-replacement',
+  'add-intermediary',
+  'edit-organization',
+  'edit',
+]);
+
+/** What the ownership structure page offers when a change is requested from it. */
+const OWNERSHIP_CHOICE_IDS = new Set(['person', 'add-owner', 'ownership']);
 
 type PendingDocumentNavigation = {
   partyId?: string;
@@ -236,6 +289,7 @@ export function ApprovedClientMaintenanceWorkspace({
   onRequestLimitedDda,
   className,
   onStatusChange,
+  changeActions = 'guided',
   workspace,
 }: ApprovedClientMaintenanceWorkspaceProps) {
   const { t, tString } = useTranslationWithTokens(
@@ -294,7 +348,7 @@ export function ApprovedClientMaintenanceWorkspace({
     verificationMutation,
     submitForReview,
     resetVerificationAttempt,
-    refreshMaintenanceWorkspace,
+    refreshMaintenanceClient,
   } = workspace;
   // Mutations settle only after their refresh, so the request changes while these are pending.
   const isApplyingOwnChange = [
@@ -480,6 +534,26 @@ export function ApprovedClientMaintenanceWorkspace({
     selectedTask,
     view.id,
   ]);
+
+  // A person's change options are gone with them, so step back from their page of the picker.
+  const pickedPartyId =
+    view.id === 'request-change' && view.step === 'party'
+      ? view.partyId
+      : undefined;
+  const isPickedPartyGone =
+    !!pickedPartyId &&
+    !!entityTasks &&
+    ![...entityTasks.parties, ...entityTasks.intermediaryOrganizations].some(
+      (task) => task.partyId === pickedPartyId
+    );
+  useEffect(() => {
+    if (!isPickedPartyGone) return;
+    setView((current) =>
+      current.id === 'request-change'
+        ? (current.back ?? current.returnTo)
+        : current
+    );
+  }, [isPickedPartyGone]);
 
   useEffect(() => {
     if (
@@ -818,10 +892,25 @@ export function ApprovedClientMaintenanceWorkspace({
     });
   };
 
+  // A change made from the picker ends on the page that shows it.
+  const getPickedPartyPage = (partyId: string): MaintenanceReturnView => {
+    const origin: MaintenanceReturnView =
+      view.id === 'request-change' ? view.returnTo : { id: 'profile' };
+    return origin.id === 'entity' && origin.partyId === partyId
+      ? origin
+      : { id: 'entity', partyId, returnTo: origin };
+  };
+  const showChangedParty = (partyId: string) => {
+    if (view.id === 'request-change') {
+      setView(getPickedPartyPage(partyId));
+    }
+  };
+
   const confirmPartyRemoval = async () => {
     if (!removePartyId) return;
     await updateParty(removePartyId, { active: false });
     setRemovePartyId(undefined);
+    showChangedParty(removePartyId);
   };
 
   const confirmIntermediaryRemoval = async (
@@ -986,7 +1075,15 @@ export function ApprovedClientMaintenanceWorkspace({
     !verificationMutation.data &&
     !isLockedForEditing &&
     (client.status === 'APPROVED' || activeRequestStatus === 'NEW');
-  const canManageProfile = canMutateDraft && allows('MANAGE_PROFILE');
+  const canRequestChanges = canMutateDraft && allows('MANAGE_PROFILE');
+  const isChangeView =
+    view.id === 'ownership'
+      ? Boolean(view.changeFrom)
+      : CHANGE_VIEW_IDS.has(view.id);
+  // Guided: profile pages only show the profile; changes happen inside a change request.
+  const showChangeActions = changeActions === 'inline' || isChangeView;
+  const canChangeProfile = canMutateDraft;
+  const canManageProfile = canChangeProfile && allows('MANAGE_PROFILE');
   const canEdit = canManageProfile;
   const canEditOrganization = canManageProfile;
   const canRequestProduct = allows('ADD_LIMITED_DDA_PAYMENTS');
@@ -1091,7 +1188,7 @@ export function ApprovedClientMaintenanceWorkspace({
   // Everything about an intermediary business is part of indirect ownership.
   const canEditIntermediary = canManageIndirectOwnership;
   const canRemoveRelatedParty = (task?: PartyMaintenanceEntityTask) => {
-    if (!task || task.change || task.isUnreviewed || !canMutateDraft) {
+    if (!task || task.change || task.isUnreviewed || !canChangeProfile) {
       return false;
     }
     // A sole controller leaves only through replacement; see needsReplacementController.
@@ -1139,7 +1236,7 @@ export function ApprovedClientMaintenanceWorkspace({
         task.proposedParty.parentPartyId === client.partyId);
     return Boolean(
       task &&
-        canMutateDraft &&
+        canChangeProfile &&
         !task.isUnreviewed &&
         !task.change?.removesParty &&
         task.proposedParty.roles?.some(
@@ -1241,34 +1338,40 @@ export function ApprovedClientMaintenanceWorkspace({
               };
         })
       : [];
-  const canAddBeneficialOwnerRole = Boolean(
-    selectedTask &&
-      !selectedTask.isUnreviewed &&
-      !selectedTask.change?.removesParty &&
-      selectedTask.proposedParty.roles?.includes('CONTROLLER') &&
-      !selectedTask.proposedParty.roles?.includes('BENEFICIAL_OWNER') &&
-      beneficialOwnerCount < 4 &&
-      canManageDirectOwnership
-  );
-  const canKeepReplacedControllerAsOwner = Boolean(
-    selectedTask?.change?.removesParty &&
-      getControllerReplacement(currentProjection)?.outgoingPartyId ===
-        selectedTask.partyId &&
-      (selectedTask.party.roles?.includes('BENEFICIAL_OWNER') ||
-        beneficialOwnerCount < 4) &&
-      canManageDirectOwnership
-  );
+  const canAddBeneficialOwnerRole = (task?: PartyMaintenanceEntityTask) =>
+    Boolean(
+      task &&
+        !task.isUnreviewed &&
+        !task.change?.removesParty &&
+        task.proposedParty.roles?.includes('CONTROLLER') &&
+        !task.proposedParty.roles?.includes('BENEFICIAL_OWNER') &&
+        beneficialOwnerCount < 4 &&
+        canManageDirectOwnership
+    );
+  const canKeepReplacedControllerAsOwner = (
+    task?: PartyMaintenanceEntityTask
+  ) =>
+    Boolean(
+      task?.change?.removesParty &&
+        getControllerReplacement(currentProjection)?.outgoingPartyId ===
+          task.partyId &&
+        (task.party.roles?.includes('BENEFICIAL_OWNER') ||
+          beneficialOwnerCount < 4) &&
+        canManageDirectOwnership
+    );
   // Reverse the removal and apply the owner role together, so control never flips back on screen.
-  const keepReplacedControllerAsOwner = async () => {
+  const keepReplacedControllerAsOwner = async (
+    task: PartyMaintenanceEntityTask
+  ) => {
     const requestId = currentProjection.activeRequestId;
-    if (!selectedTask || !requestId) return;
-    const approvedRoles = selectedTask.party.roles ?? [];
+    if (!requestId) return;
+    const approvedRoles = task.party.roles ?? [];
     const wasOwner = approvedRoles.includes('BENEFICIAL_OWNER');
     await applyPartySteps([
-      { kind: 'discard', requestId, partyId: selectedTask.partyId },
+      { kind: 'discard', requestId, partyId: task.partyId },
       {
         kind: 'update',
-        partyId: selectedTask.partyId,
+        partyId: task.partyId,
         requestBody: {
           roles: [
             ...new Set([
@@ -1283,12 +1386,13 @@ export function ApprovedClientMaintenanceWorkspace({
       },
     ]);
   };
-  const canManageSelectedOwnership = Boolean(
-    canManageIndirectOwnership &&
-      !selectedTask?.isUnreviewed &&
-      !selectedTask?.change?.removesParty &&
-      selectedTask?.proposedParty.roles?.includes('BENEFICIAL_OWNER')
-  );
+  const canChangeOwnershipPath = (task?: PartyMaintenanceEntityTask) =>
+    Boolean(
+      canManageIndirectOwnership &&
+        !task?.isUnreviewed &&
+        !task?.change?.removesParty &&
+        task?.proposedParty.roles?.includes('BENEFICIAL_OWNER')
+    );
   const pendingReplacementController = currentProjection.partyChanges.find(
     (change) =>
       change.action === 'ADD' && change.proposal.roles?.includes('CONTROLLER')
@@ -1299,7 +1403,7 @@ export function ApprovedClientMaintenanceWorkspace({
         task?.party.roles?.includes('CONTROLLER') &&
         task.proposedParty.roles?.includes('CONTROLLER') &&
         (controllerCount === 1 || pendingReplacementController) &&
-        canMutateDraft &&
+        canChangeProfile &&
         allows('MANAGE_PROFILE') &&
         // Adding the owner role first is how an outgoing controller stays on as an owner.
         (!task.change ||
@@ -1322,6 +1426,66 @@ export function ApprovedClientMaintenanceWorkspace({
     !verificationMutation.data &&
     activeRequestStatus === 'NEW' &&
     Boolean(currentProjection.activeRequestId);
+  // Discarding is a change too, so read-only pages leave it to the request.
+  const canCancelHere = canCancel && showChangeActions;
+  const hasActiveUpdate = Boolean(activeRequestStatus || displayedRequestId);
+  // With a draft open, only questions the API files as RFI came from review rather than the draft.
+  const isDraftOpen = activeRequestStatus === 'NEW';
+  const outstandingQuestions = questionsQuery?.data ?? [];
+  // With no request open, outstanding work on an approved profile is a request for information.
+  const informationRequest: MaintenanceInformationRequest | undefined =
+    client.status === 'APPROVED' && (!hasActiveUpdate || isDraftOpen)
+      ? {
+          questionCount: (client.outstanding?.questionIds ?? []).filter(
+            (questionId) => {
+              const question = outstandingQuestions.find(
+                (candidate) => candidate.id === questionId
+              );
+              if (isDraftOpen) {
+                return (
+                  !!question &&
+                  isTopLevelQuestion(question, outstandingQuestions) &&
+                  getQuestionCategory(question, outstandingQuestions) === 'RFI'
+                );
+              }
+              return (
+                !question || isTopLevelQuestion(question, outstandingQuestions)
+              );
+            }
+          ).length,
+          documents: isDraftOpen
+            ? []
+            : [
+                {
+                  // The document view opens the business's own requests without a party.
+                  partyId: undefined,
+                  name: clientOrganizationName,
+                  documentRequests:
+                    currentEntityTasks.organization.documentRequests,
+                },
+                ...[
+                  ...currentEntityTasks.parties,
+                  ...currentEntityTasks.intermediaryOrganizations,
+                ].map((task) => ({
+                  partyId: task.partyId,
+                  name:
+                    task.proposedParty.organizationDetails?.organizationName ??
+                    getMaintenancePartyIdentity(
+                      task.proposedParty,
+                      undefined,
+                      tString('notProvided')
+                    ).displayName,
+                  documentRequests: task.documentRequests,
+                })),
+              ].flatMap(({ partyId, name, documentRequests }) =>
+                documentRequests.flatMap((documentRequest) =>
+                  documentRequest.id && documentRequest.status !== 'CLOSED'
+                    ? [{ partyId, name, documentRequestId: documentRequest.id }]
+                    : []
+                )
+              ),
+        }
+      : undefined;
   const findRelatedPartyTask = (partyId: string) =>
     [
       ...currentEntityTasks.parties,
@@ -1359,7 +1523,7 @@ export function ApprovedClientMaintenanceWorkspace({
   const canEditReviewParty = (partyId: string) => {
     const task = findRelatedPartyTask(partyId);
     if (!task || task.change?.removesParty || task.isUnreviewed) return false;
-    if (task.isPendingAddition) return canMutateDraft;
+    if (task.isPendingAddition) return canChangeProfile;
     return isIntermediaryParty(partyId) ? canEditIntermediary : canEdit;
   };
   const canDiscardPendingOwnershipParty = (partyId: string) => {
@@ -1367,7 +1531,7 @@ export function ApprovedClientMaintenanceWorkspace({
     return Boolean(
       task?.isPendingAddition &&
         task.change?.proposal.updateRequest?.status === 'NEW' &&
-        canCancel
+        canCancelHere
     );
   };
   const findPersonTask = (partyId: string) =>
@@ -1554,12 +1718,329 @@ export function ApprovedClientMaintenanceWorkspace({
           : returnView?.id === 'submitted-review'
             ? tString('requestDetails.back')
             : tString('submission.backToProfile');
+  const translateRole = (role: string, fallback: string) =>
+    tString([`common:partyRoles.${role}`] as unknown as TemplateStringsArray, {
+      defaultValue: fallback,
+    });
+  const changePicker = view.id === 'request-change' ? view : undefined;
+  const changeOrigin: MaintenanceReturnView = changePicker?.returnTo ?? {
+    id: 'profile',
+  };
+  const startChangeRequest = (
+    returnTo: MaintenanceReturnView,
+    target: Pick<RequestChangeView, 'step' | 'partyId'> = {}
+  ) => setView({ id: 'request-change', ...target, returnTo });
+  const continueChangeRequest = (
+    target: Pick<RequestChangeView, 'step' | 'partyId'>
+  ) =>
+    setView({
+      id: 'request-change',
+      ...target,
+      returnTo: changeOrigin,
+      back: changePicker,
+    });
+  const closeChangePicker = () => setView(changeOrigin);
+  const getRelatedPartyName = (task: PartyMaintenanceEntityTask) =>
+    task.proposedParty.organizationDetails?.organizationName ??
+    getMaintenancePartyIdentity(
+      task.proposedParty,
+      undefined,
+      tString('notProvided')
+    ).displayName;
+  const getPartyChangeChoices = (
+    task: PartyMaintenanceEntityTask
+  ): MaintenanceChangeChoice[] => {
+    const { partyId } = task;
+    const partyPage = getPickedPartyPage(partyId);
+    const canEditTask =
+      !task.isUnreviewed &&
+      !task.change?.removesParty &&
+      (task.isPendingAddition
+        ? canChangeProfile
+        : isIntermediaryParty(partyId)
+          ? canEditIntermediary
+          : canEdit);
+    const moveChoice = canMoveOwnershipParty(partyId) && {
+      id: 'move',
+      kind: 'structure',
+      icon: ArrowRightLeftIcon,
+      title: tString('requestChange.party.move.title'),
+      description: tString('requestChange.party.move.description'),
+      onSelect: () => setOwnershipMovePartyId(partyId),
+    };
+    if (isIntermediaryParty(partyId)) {
+      return [
+        canEditTask && {
+          id: 'edit',
+          kind: 'business',
+          icon: PencilLineIcon,
+          title: tString('requestChange.party.editBusiness.title'),
+          description: tString('requestChange.party.editBusiness.description'),
+          onSelect: () =>
+            setView({ id: 'edit-organization', partyId, returnTo: partyPage }),
+        },
+        moveChoice,
+        canRemoveIntermediary(partyId) && {
+          id: 'remove',
+          kind: 'business',
+          icon: CircleMinusIcon,
+          title: tString('requestChange.party.removeBusiness.title'),
+          description: tString(
+            'requestChange.party.removeBusiness.description'
+          ),
+          onSelect: () =>
+            setIntermediaryRemovalTarget({
+              partyId,
+              // The business's own page goes away with it.
+              returnTo:
+                changeOrigin.id === 'entity' && changeOrigin.partyId === partyId
+                  ? (changeOrigin.returnTo ?? { id: 'profile' })
+                  : changeOrigin,
+            }),
+        },
+      ].filter(Boolean) as MaintenanceChangeChoice[];
+    }
+    const replacesController = needsReplacementController(task);
+    return [
+      canEditTask && {
+        id: 'edit',
+        kind: 'person',
+        icon: UserRoundPenIcon,
+        title: tString('requestChange.party.editPerson.title'),
+        description: tString('requestChange.party.editPerson.description'),
+        onSelect: () => setView({ id: 'edit', partyId, returnTo: partyPage }),
+      },
+      canAddBeneficialOwnerRole(task) && {
+        id: 'add-owner-role',
+        kind: 'person',
+        icon: UserRoundPlusIcon,
+        title: tString('requestChange.party.addOwnerRole.title'),
+        description: tString('requestChange.party.addOwnerRole.description'),
+        onSelect: () =>
+          setView({
+            id: 'owner-relationship',
+            mode: 'controller-owner',
+            partyId,
+            returnTo: partyPage,
+          }),
+      },
+      canChangeOwnershipPath(task) && {
+        id: 'ownership-path',
+        kind: 'structure',
+        title: tString('requestChange.party.ownershipPath.title'),
+        description: tString('requestChange.party.ownershipPath.description'),
+        onSelect: () =>
+          setView({
+            id: 'owner-relationship',
+            mode: 'change-owner-path',
+            partyId,
+            returnTo: partyPage,
+          }),
+      },
+      moveChoice,
+      canKeepReplacedControllerAsOwner(task) && {
+        id: 'keep-owner',
+        kind: 'person',
+        icon: UserRoundCheckIcon,
+        title: tString('requestChange.party.keepOwner.title'),
+        description: tString('requestChange.party.keepOwner.description'),
+        onSelect: () => {
+          setView(partyPage);
+          void keepReplacedControllerAsOwner(task);
+        },
+      },
+      (canRemoveRelatedParty(task) || replacesController) && {
+        id: replacesController ? 'replace-controller' : 'remove',
+        kind: 'person',
+        icon: replacesController ? UserRoundCogIcon : UserRoundMinusIcon,
+        title: tString(
+          replacesController
+            ? 'requestChange.party.replaceController.title'
+            : 'requestChange.party.remove.title'
+        ),
+        description: tString(
+          replacesController
+            ? 'requestChange.party.replaceController.description'
+            : 'requestChange.party.remove.description'
+        ),
+        onSelect: () => setRemovePartyId(partyId),
+      },
+    ].filter(Boolean) as MaintenanceChangeChoice[];
+  };
+  const changeablePartyTasks = [
+    ...currentEntityTasks.parties,
+    ...currentEntityTasks.intermediaryOrganizations,
+  ].filter((task) => getPartyChangeChoices(task).length > 0);
+  const changeChoices = [
+    canEditOrganization && {
+      id: 'business',
+      kind: 'business',
+      title: tString('requestChange.choices.business.title'),
+      description: tString('requestChange.choices.business.description'),
+      onSelect: () =>
+        setView({
+          id: 'edit-organization',
+          returnTo:
+            changeOrigin.id === 'organization'
+              ? changeOrigin
+              : { id: 'organization', returnTo: changeOrigin },
+        }),
+    },
+    changeablePartyTasks.length > 0 && {
+      id: 'person',
+      kind: 'person',
+      title: tString('requestChange.choices.person.title'),
+      description: tString('requestChange.choices.person.description'),
+      onSelect: () => continueChangeRequest({ step: 'person' }),
+    },
+    canManageDirectOwnership &&
+      beneficialOwnerCount < 4 &&
+      client.partyId && {
+        id: 'add-owner',
+        kind: 'person',
+        icon: UserRoundPlusIcon,
+        title: tString('requestChange.choices.addOwner.title'),
+        description: tString('requestChange.choices.addOwner.description'),
+        onSelect: () =>
+          setView(
+            canManageIndirectOwnership
+              ? {
+                  id: 'owner-relationship',
+                  mode: 'add-owner',
+                  returnTo: changeOrigin,
+                }
+              : {
+                  id: 'add-party',
+                  parentPartyId: client.partyId!,
+                  natureOfOwnership: 'Direct',
+                  allowedRoles: ['BENEFICIAL_OWNER'],
+                  returnTo: changeOrigin,
+                }
+          ),
+      },
+    replaceableControllerTask && {
+      id: 'replace-controller',
+      kind: 'person',
+      icon: UserRoundCogIcon,
+      title: tString('requestChange.choices.replaceController.title'),
+      description: tString(
+        'requestChange.choices.replaceController.description'
+      ),
+      onSelect: () => setRemovePartyId(replaceableControllerTask.partyId),
+    },
+    canManageIndirectOwnership && {
+      id: 'ownership',
+      kind: 'structure',
+      title: tString('requestChange.choices.ownership.title'),
+      description: tString('requestChange.choices.ownership.description'),
+      onSelect: () =>
+        setView({
+          id: 'ownership',
+          returnTo:
+            changeOrigin.id === 'ownership'
+              ? changeOrigin.returnTo
+              : changeOrigin,
+          changeFrom: changePicker,
+        }),
+    },
+  ].filter(Boolean) as MaintenanceChangeChoice[];
+  const personChoices: MaintenanceChangeChoice[] = changeablePartyTasks.map(
+    (task) => ({
+      id: task.partyId,
+      kind: isIntermediaryParty(task.partyId) ? 'business' : 'person',
+      title: getRelatedPartyName(task),
+      description: formatMaintenanceRoles(
+        task.proposedParty.roles?.filter((role) =>
+          ['CONTROLLER', 'BENEFICIAL_OWNER', 'INTERMEDIARY_OWNER'].includes(
+            role
+          )
+        ),
+        translateRole,
+        tString('noRoles')
+      ),
+      onSelect: () =>
+        continueChangeRequest({ step: 'party', partyId: task.partyId }),
+    })
+  );
+  const getChangePartyTask = (picker: RequestChangeView) =>
+    picker.step === 'party'
+      ? findRelatedPartyTask(picker.partyId ?? '')
+      : undefined;
+  const getChangeStep = (picker: RequestChangeView) => {
+    const partyTask = getChangePartyTask(picker);
+    if (partyTask) {
+      return {
+        title: tString('requestChange.party.title', {
+          name: getRelatedPartyName(partyTask),
+        }),
+        description: tString('requestChange.description'),
+        choices: getPartyChangeChoices(partyTask),
+      };
+    }
+    if (picker.step === 'person') {
+      return {
+        title: tString('requestChange.person.title'),
+        description: tString('requestChange.person.description'),
+        choices: personChoices,
+      };
+    }
+    return {
+      title: tString(
+        picker.step === 'ownership'
+          ? 'requestChange.ownershipTitle'
+          : 'requestChange.title'
+      ),
+      description: tString('requestChange.description'),
+      choices:
+        picker.step === 'ownership'
+          ? changeChoices.filter((choice) =>
+              OWNERSHIP_CHOICE_IDS.has(choice.id)
+            )
+          : changeChoices,
+    };
+  };
+  // The first step is the request itself, whichever page it began on.
+  const getChangeStepLabel = (picker: RequestChangeView) => {
+    const partyTask = getChangePartyTask(picker);
+    return !picker.back
+      ? tString('requestChange.action')
+      : partyTask
+        ? getRelatedPartyName(partyTask)
+        : tString('requestChange.person.breadcrumb');
+  };
+  const getChangeBreadcrumbs = (
+    picker: RequestChangeView
+  ): MaintenanceBreadcrumbItem[] => [
+    ...(picker.back
+      ? getChangeBreadcrumbs(picker.back)
+      : getReturnViewBreadcrumbs(picker.returnTo)),
+    { label: getChangeStepLabel(picker), onSelect: () => setView(picker) },
+  ];
+  // Every profile page starts a change about what it shows; inline mode shows those changes in place.
+  const requestChangeFrom = (
+    returnTo: MaintenanceReturnView,
+    target: Pick<RequestChangeView, 'step' | 'partyId'> = {}
+  ) => {
+    if (
+      !canRequestChanges ||
+      (changeActions === 'inline' && returnTo.id !== 'profile')
+    ) {
+      return undefined;
+    }
+    const partyTask = target.partyId
+      ? findRelatedPartyTask(target.partyId)
+      : undefined;
+    if (partyTask && getPartyChangeChoices(partyTask).length === 0) {
+      return undefined;
+    }
+    return () => startChangeRequest(returnTo, target);
+  };
   const profileOverview = (
     <MaintenanceProfileOverview
       client={client}
       entityTasks={currentEntityTasks}
       ownershipParties={currentProjection.proposedClient.parties ?? []}
-      hasActiveUpdate={Boolean(activeRequestStatus || displayedRequestId)}
+      hasActiveUpdate={hasActiveUpdate}
       updateScope={updateScope}
       activeRequestStatus={activeRequestStatus}
       isDocumentDiscoveryPending={isDocumentDiscoveryPending}
@@ -1576,6 +2057,7 @@ export function ApprovedClientMaintenanceWorkspace({
       onSelectOrganization={() => setView({ id: 'organization' })}
       onSelectParty={openParty}
       onSelectIntermediary={openParty}
+      onRequestChange={requestChangeFrom({ id: 'profile' })}
       onAddProduct={() => {
         if (shouldOfferLimitedDda) {
           void requestLimitedDda();
@@ -1595,38 +2077,7 @@ export function ApprovedClientMaintenanceWorkspace({
           ? () => setView({ id: 'ownership', returnTo: { id: 'profile' } })
           : undefined
       }
-      onEditBusiness={
-        canEditOrganization
-          ? () =>
-              setView({ id: 'edit-organization', returnTo: { id: 'profile' } })
-          : undefined
-      }
-      onAddBeneficialOwner={
-        canManageDirectOwnership && beneficialOwnerCount < 4 && client.partyId
-          ? () =>
-              setView(
-                canManageIndirectOwnership
-                  ? {
-                      id: 'owner-relationship',
-                      mode: 'add-owner',
-                      returnTo: { id: 'profile' },
-                    }
-                  : {
-                      id: 'add-party',
-                      parentPartyId: client.partyId!,
-                      natureOfOwnership: 'Direct',
-                      allowedRoles: ['BENEFICIAL_OWNER'],
-                      returnTo: { id: 'profile' },
-                    }
-              )
-          : undefined
-      }
-      onReplaceController={
-        replaceableControllerTask
-          ? () => setRemovePartyId(replaceableControllerTask.partyId)
-          : undefined
-      }
-      canRestructureOwnership={canManageIndirectOwnership}
+      canRestructureOwnership={showChangeActions && canManageIndirectOwnership}
       onReviewAndSubmit={() => {
         resetVerificationAttempt();
         setView({ id: 'review' });
@@ -1639,6 +2090,18 @@ export function ApprovedClientMaintenanceWorkspace({
           id: activeRequestStatus === 'NEW' ? 'review' : 'submitted-review',
         });
       }}
+      informationRequest={informationRequest}
+      onAnswerQuestions={() =>
+        setView({ id: 'questions', returnTo: { id: 'profile' } })
+      }
+      onOpenRequestedDocument={(partyId, documentRequestId) =>
+        setView({
+          id: 'document',
+          partyId,
+          documentRequestId,
+          returnTo: { id: 'profile' },
+        })
+      }
     />
   );
   // The overview lists the whole profile itself, so it doesn't need the navigator beside it.
@@ -1659,6 +2122,10 @@ export function ApprovedClientMaintenanceWorkspace({
       case 'entity':
       case 'edit':
         return { kind: 'party', partyId: currentView.partyId };
+      case 'request-change':
+        return currentView.partyId
+          ? { kind: 'party', partyId: currentView.partyId }
+          : getNavigatorTarget(currentView.returnTo);
       case 'edit-organization':
       case 'document':
       case 'document-discovery':
@@ -1794,6 +2261,18 @@ export function ApprovedClientMaintenanceWorkspace({
                     error={addProductMutation?.error}
                     onBack={() => setView({ id: 'profile' })}
                     onConfirm={confirmProductAddition}
+                  />
+                ) : view.id === 'request-change' ? (
+                  <MaintenanceChangePickerView
+                    {...getChangeStep(view)}
+                    emptyMessage={tString('requestChange.empty')}
+                    breadcrumbs={getChangeBreadcrumbs(view)}
+                    backLabel={tString(
+                      view.back ? 'requestChange.back' : 'requestChange.cancel'
+                    )}
+                    onBack={() =>
+                      view.back ? setView(view.back) : closeChangePicker()
+                    }
                   />
                 ) : view.id === 'document-discovery' ? (
                   <MaintenanceDocumentDiscoveryView
@@ -2027,11 +2506,12 @@ export function ApprovedClientMaintenanceWorkspace({
                       ),
                       { label: tString('organization') },
                     ]}
-                    canEdit={canEditOrganization}
+                    canEdit={showChangeActions && canEditOrganization}
                     canCancel={
-                      canCancel &&
+                      canCancelHere &&
                       Boolean(currentEntityTasks.organization.change)
                     }
+                    onRequestChange={requestChangeFrom(view)}
                     backLabel={getDetailBackLabel(view.returnTo)}
                     onBack={() => setView(view.returnTo ?? { id: 'profile' })}
                     onEdit={() =>
@@ -2077,17 +2557,26 @@ export function ApprovedClientMaintenanceWorkspace({
                     nodeChanges={ownershipChanges.changes}
                     previousParentIds={ownershipChanges.previousParentIds}
                     getPartyStatus={getRelatedPartyStatus}
-                    canCancelPendingRemoval={canCancel}
+                    canCancelPendingRemoval={canCancelHere}
                     onCancelPendingRemoval={(partyId) =>
                       setCancelTarget({ scope: 'party', partyId })
                     }
                     breadcrumbs={[
-                      profileBreadcrumb(),
+                      ...(view.changeFrom
+                        ? getChangeBreadcrumbs(view.changeFrom)
+                        : [profileBreadcrumb()]),
                       { label: tString('ownership.title') },
                     ]}
-                    canAddOwner={canManageDirectOwnership}
+                    onRequestChange={
+                      view.changeFrom
+                        ? undefined
+                        : requestChangeFrom(view, { step: 'ownership' })
+                    }
+                    canAddOwner={showChangeActions && canManageDirectOwnership}
                     ownerLimitReached={beneficialOwnerCount >= 4}
-                    canManageIndirectOwnership={canManageIndirectOwnership}
+                    canManageIndirectOwnership={
+                      showChangeActions && canManageIndirectOwnership
+                    }
                     onAddBeneficialOwner={(parentPartyId) => {
                       if (parentPartyId === client.partyId) {
                         // With only direct ownership allowed there is nothing to choose.
@@ -2138,8 +2627,12 @@ export function ApprovedClientMaintenanceWorkspace({
                         returnTo: view,
                       })
                     }
-                    canMoveParty={canMoveOwnershipParty}
-                    canRemoveIntermediary={canRemoveIntermediary}
+                    canMoveParty={(partyId) =>
+                      showChangeActions && canMoveOwnershipParty(partyId)
+                    }
+                    canRemoveIntermediary={(partyId) =>
+                      showChangeActions && canRemoveIntermediary(partyId)
+                    }
                     canDiscardPendingParty={canDiscardPendingOwnershipParty}
                     onRequestRemoveIntermediary={(partyId) =>
                       setIntermediaryRemovalTarget({ partyId, returnTo: view })
@@ -2147,21 +2640,33 @@ export function ApprovedClientMaintenanceWorkspace({
                     onDiscardPendingParty={(partyId) =>
                       discardPendingAddition(partyId, view)
                     }
-                    canEditParty={canEditReviewParty}
+                    canEditParty={(partyId) =>
+                      showChangeActions && canEditReviewParty(partyId)
+                    }
                     onEditParty={(partyId) => editRelatedParty(partyId, view)}
                     canRemovePerson={(partyId) => {
                       const task = findPersonTask(partyId);
                       return (
-                        canRemoveRelatedParty(task) ||
-                        needsReplacementController(task)
+                        showChangeActions &&
+                        (canRemoveRelatedParty(task) ||
+                          needsReplacementController(task))
                       );
                     }}
                     removeRequiresControllerReplacement={(partyId) =>
                       needsReplacementController(findPersonTask(partyId))
                     }
                     onRemovePerson={setRemovePartyId}
-                    backLabel={getDetailBackLabel(view.returnTo)}
-                    onBack={() => setView(view.returnTo)}
+                    backLabel={
+                      view.changeFrom
+                        ? tString('requestChange.back')
+                        : getDetailBackLabel(view.returnTo)
+                    }
+                    onBack={() => setView(view.changeFrom ?? view.returnTo)}
+                    onDone={
+                      view.changeFrom
+                        ? () => setView(view.changeFrom!.returnTo)
+                        : undefined
+                    }
                   />
                 ) : view.id === 'controller-replacement' ? (
                   <MaintenanceControllerReplacementView
@@ -2463,21 +2968,28 @@ export function ApprovedClientMaintenanceWorkspace({
                       },
                     ]}
                     canEdit={
+                      showChangeActions &&
                       !selectedIntermediaryTask.isUnreviewed &&
                       (selectedIntermediaryTask.isPendingAddition
-                        ? canMutateDraft
+                        ? canChangeProfile
                         : canEditIntermediary)
                     }
                     canCancel={
-                      canCancel && Boolean(selectedIntermediaryTask.change)
+                      canCancelHere && Boolean(selectedIntermediaryTask.change)
                     }
+                    onRequestChange={requestChangeFrom(view, {
+                      step: 'party',
+                      partyId: view.partyId,
+                    })}
                     clientPartyId={client.partyId}
                     clientName={clientOrganizationName}
                     ownershipParties={ownershipDisplayParties}
                     ownershipPath={selectedOwnershipPath}
-                    canRemoveIntermediary={canRemoveIntermediary(view.partyId)}
+                    canRemoveIntermediary={
+                      showChangeActions && canRemoveIntermediary(view.partyId)
+                    }
                     onChangeConnection={
-                      canMoveOwnershipParty(view.partyId)
+                      showChangeActions && canMoveOwnershipParty(view.partyId)
                         ? () => setOwnershipMovePartyId(view.partyId)
                         : undefined
                     }
@@ -2541,18 +3053,29 @@ export function ApprovedClientMaintenanceWorkspace({
                   <MaintenanceEntityView
                     task={selectedTask}
                     canEdit={
+                      showChangeActions &&
                       !selectedTask.isUnreviewed &&
                       (selectedTask.isPendingAddition
-                        ? canMutateDraft
+                        ? canChangeProfile
                         : canEdit)
                     }
-                    canCancel={canCancel && Boolean(selectedTask.change)}
+                    canCancel={canCancelHere && Boolean(selectedTask.change)}
                     canRemove={
-                      canRemoveSelectedParty ||
-                      selectedPartyNeedsReplacementController
+                      showChangeActions &&
+                      (canRemoveSelectedParty ||
+                        selectedPartyNeedsReplacementController)
                     }
-                    canAddBeneficialOwnerRole={canAddBeneficialOwnerRole}
-                    canManageOwnership={canManageSelectedOwnership}
+                    canAddBeneficialOwnerRole={
+                      showChangeActions &&
+                      canAddBeneficialOwnerRole(selectedTask)
+                    }
+                    canManageOwnership={
+                      showChangeActions && canChangeOwnershipPath(selectedTask)
+                    }
+                    onRequestChange={requestChangeFrom(view, {
+                      step: 'party',
+                      partyId: view.partyId,
+                    })}
                     isLoadingDocuments={isDocumentDiscoveryPending}
                     documentError={documentRequestsQuery.error}
                     breadcrumbs={[
@@ -2604,13 +3127,14 @@ export function ApprovedClientMaintenanceWorkspace({
                     }
                     onRemove={() => setRemovePartyId(view.partyId)}
                     onChangeConnection={
-                      canMoveOwnershipParty(view.partyId)
+                      showChangeActions && canMoveOwnershipParty(view.partyId)
                         ? () => setOwnershipMovePartyId(view.partyId)
                         : undefined
                     }
                     onKeepAsBeneficialOwner={
-                      canKeepReplacedControllerAsOwner
-                        ? keepReplacedControllerAsOwner
+                      showChangeActions &&
+                      canKeepReplacedControllerAsOwner(selectedTask)
+                        ? () => keepReplacedControllerAsOwner(selectedTask)
                         : undefined
                     }
                     onAddBeneficialOwnerRole={() => {
@@ -2698,10 +3222,8 @@ export function ApprovedClientMaintenanceWorkspace({
                     ]}
                     maxFileSizeBytes={docUploadMaxFileSizeBytes}
                     onBack={() => setView(view.returnTo)}
-                    onComplete={async () => {
-                      await refreshMaintenanceWorkspace();
-                      setView(view.returnTo);
-                    }}
+                    refreshClient={refreshMaintenanceClient}
+                    onComplete={() => setView(view.returnTo)}
                   />
                 ) : view.id === 'document' && !view.partyId ? (
                   <MaintenanceDocumentView
@@ -2718,10 +3240,8 @@ export function ApprovedClientMaintenanceWorkspace({
                     ]}
                     maxFileSizeBytes={docUploadMaxFileSizeBytes}
                     onBack={() => setView(view.returnTo)}
-                    onComplete={async () => {
-                      await refreshMaintenanceWorkspace();
-                      setView(view.returnTo);
-                    }}
+                    refreshClient={refreshMaintenanceClient}
+                    onComplete={() => setView(view.returnTo)}
                   />
                 ) : null}
               </MaintenanceBusyProvider>
@@ -2816,6 +3336,7 @@ export function ApprovedClientMaintenanceWorkspace({
           if (!ownershipMovePartyId) return;
           await moveOwner(ownershipMovePartyId, destinationPartyId);
           setOwnershipMovePartyId(undefined);
+          showChangedParty(ownershipMovePartyId);
         }}
       />
       <RemoveRelatedPartyDialog
@@ -2871,7 +3392,7 @@ export function ApprovedClientMaintenanceWorkspace({
           const returnTo: MaintenanceReturnView =
             view.id === 'entity' || view.id === 'ownership'
               ? view
-              : { id: 'entity', partyId };
+              : getPickedPartyPage(partyId);
           setRemovePartyId(undefined);
           setView({
             id: 'controller-replacement',

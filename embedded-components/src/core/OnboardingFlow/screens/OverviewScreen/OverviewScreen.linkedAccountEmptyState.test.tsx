@@ -13,7 +13,7 @@
 import { i18n } from '@/i18n/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@test-utils';
+import { render, screen, userEvent, waitFor, within } from '@test-utils';
 
 import { useGetAllRecipients } from '@/api/generated/ep-recipients';
 import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
@@ -46,8 +46,24 @@ vi.mock('@/api/generated/ep-recipients', async (importOriginal) => {
 vi.mock(
   '@/core/OnboardingFlow/screens/LinkAccountScreen/LinkAccountFormPanel',
   () => ({
-    LinkAccountFormPanel: () => (
-      <div data-testid="inline-link-account-form-panel" />
+    LinkAccountFormPanel: ({
+      onSuccess,
+    }: {
+      onSuccess: (recipient?: { id: string; status: string }) => void;
+    }) => (
+      <div data-testid="inline-link-account-form-panel">
+        <button
+          type="button"
+          onClick={() =>
+            onSuccess({
+              id: 'recipient-new',
+              status: 'MICRODEPOSITS_INITIATED',
+            })
+          }
+        >
+          Link account
+        </button>
+      </div>
     ),
   })
 );
@@ -159,6 +175,30 @@ describe('OverviewScreen — linked account empty state', () => {
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /^Start$/i })
+    ).not.toBeInTheDocument();
+  });
+
+  test('after linking, the banner shows the new account status before the list refreshes', async () => {
+    const user = userEvent.setup();
+    renderOverview({ clientData: buildClient('APPROVED') });
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Link account' })
+    );
+
+    expect(
+      await screen.findByText(
+        i18n.t(
+          'onboarding-overview:screens.overview.bankAccountSection.successAlert.MICRODEPOSITS_INITIATED'
+        )
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        i18n.t(
+          'onboarding-overview:screens.overview.bankAccountSection.successAlert.ACTIVE'
+        )
+      )
     ).not.toBeInTheDocument();
   });
 });

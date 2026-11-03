@@ -47,7 +47,7 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 | `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process                                             |
 | `HOSTED_LINKED_ACCOUNTS_UI`       | Standalone linked bank account management, including linking and microdeposit verification |
 
-> **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
+> **Default:** If no `experienceType` is specified, the default is `HOSTED_ONBOARDING_UI`.
 
 ## 1. Integration Overview
 
@@ -527,7 +527,7 @@ onboardingUI.subscribe((event) => {
 | Parameter          | Type     | Required | Description                                                                                                                                                                                |
 | ------------------ | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `sessionToken`     | `string` | Yes      | JWT token from session transfer API                                                                                                                                                        |
-| `experienceType`   | `string` | No       | Type of hosted experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'`                                                    |
+| `experienceType`   | `string` | No       | Type of hosted experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_ONBOARDING_UI'`                                                               |
 | `theme`            | `object` | No       | Theme customization object (see [Embedded Components Theme Docs](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#theming))                   |
 | `contentTokens`    | `object` | No       | Content localization tokens (see [Embedded Components Content Tokens](https://github.com/jpmorgan-payments/embedded-finance/blob/main/embedded-components/README.md#internationalization)) |
 | `iframeAttributes` | `object` | No       | Additional iframe attributes (e.g., `{ allowfullscreen: true }`)                                                                                                                           |

@@ -70,4 +70,55 @@ describe('resolveClientExperience', () => {
       })
     ).toEqual({ kind: 'onboarding' });
   });
+
+  test('selects maintenance for an approved client with a request for information', () => {
+    expect(
+      resolveClientExperience({
+        ...complete,
+        client: { ...approvedClient, outstanding: { questionIds: ['500096'] } },
+        maintenanceParties: [],
+      })
+    ).toEqual({ kind: 'maintenance' });
+    const withPartyDocument = {
+      ...approvedClient,
+      parties: [
+        {
+          id: 'person-1',
+          validationResponse: [{ documentRequestIds: ['document-1'] }],
+        },
+      ],
+    };
+    expect(
+      resolveClientExperience({
+        ...complete,
+        client: {
+          ...withPartyDocument,
+          outstanding: { partyIds: ['person-1'] },
+        },
+        maintenanceParties: [],
+      })
+    ).toEqual({ kind: 'maintenance' });
+    // Without the party in outstanding.partyIds, its document request isn't current.
+    expect(
+      resolveClientExperience({
+        ...complete,
+        client: withPartyDocument,
+        maintenanceParties: [],
+      })
+    ).toEqual({ kind: 'approved-profile', hasMaintenanceHistory: false });
+  });
+
+  test('keeps an information request during onboarding review in onboarding', () => {
+    expect(
+      resolveClientExperience({
+        ...complete,
+        client: {
+          ...approvedClient,
+          status: 'INFORMATION_REQUESTED',
+          outstanding: { questionIds: ['30158'] },
+        },
+        maintenanceParties: [],
+      })
+    ).toEqual({ kind: 'onboarding' });
+  });
 });

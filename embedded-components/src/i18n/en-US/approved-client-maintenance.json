@@ -14,7 +14,7 @@
     "default": "Review the profile status and complete any available actions before continuing.",
     "INFORMATION_REQUESTED": {
       "title": "The client profile needs more information",
-      "description": "Complete the requested items so review of your maintenance request can continue."
+      "description": "Complete the requested items so review of your change request can continue."
     },
     "REVIEW_IN_PROGRESS": {
       "title": "The client profile is under review",
@@ -29,9 +29,9 @@
   "navigator": {
     "label": "Business profile sections",
     "requestHeading": {
-      "maintenance": "Maintenance request",
+      "maintenance": "Change request",
       "product": "Product upgrade",
-      "combined": "Product upgrade and maintenance request"
+      "combined": "Product upgrade and change request"
     },
     "changesReady_one": "{{count}} change ready to review",
     "changesReady_other": "{{count}} changes ready to review",
@@ -40,12 +40,28 @@
     "requirementsHint": "Some items are required before you can submit."
   },
   "home": {
-    "changesTitle": "Make a change",
-    "changesCaption": "Start a common change here, or select any item in the profile to review or edit it.",
-    "tasks": {
-      "editBusiness": {
-        "title": "Update business details",
-        "description": "Correct the business's name, address, or contact information."
+    "ownershipEntry": {
+      "editable": "See who owns the business, and add, move, or remove the businesses owners hold their stake through.",
+      "readOnly": "See who owns the business and how they hold their stake."
+    }
+  },
+  "requestChange": {
+    "action": "Request a change",
+    "title": "What would you like to change?",
+    "ownershipTitle": "What would you like to change about the ownership structure?",
+    "empty": "Nothing here can be changed right now. Changes already in the change request can be edited or discarded from it.",
+    "description": "Changes are saved to a draft change request. Nothing on the profile changes until you submit it and the review team approves it.",
+    "cancel": "Cancel",
+    "back": "Back",
+    "done": "Done",
+    "choices": {
+      "business": {
+        "title": "Business details",
+        "description": "The business's name, address, contact information, and other details."
+      },
+      "person": {
+        "title": "A person or business on the profile",
+        "description": "Update their details, change their role or how they own the business, or remove them."
       },
       "addOwner": {
         "title": "Add a beneficial owner",
@@ -54,11 +70,55 @@
       "replaceController": {
         "title": "Replace the controller",
         "description": "Hand management of the business profile to someone else."
+      },
+      "ownership": {
+        "title": "Ownership structure",
+        "description": "Add, move, or remove the businesses owners hold their stake through."
       }
     },
-    "ownershipEntry": {
-      "editable": "See who owns the business, and add, move, or remove the businesses owners hold their stake through.",
-      "readOnly": "See who owns the business and how they hold their stake."
+    "person": {
+      "breadcrumb": "Choose who",
+      "title": "Who would you like to change?",
+      "description": "Choose someone to see the changes you can request for them."
+    },
+    "party": {
+      "title": "What would you like to change about {{name}}?",
+      "editPerson": {
+        "title": "Their details",
+        "description": "Name, date of birth, identification, job title, contact information, or address."
+      },
+      "editBusiness": {
+        "title": "The business's details",
+        "description": "Name, registration, address, or other details."
+      },
+      "addOwnerRole": {
+        "title": "Make them a beneficial owner",
+        "description": "They now own 25% or more of the business."
+      },
+      "ownershipPath": {
+        "title": "How they own the business",
+        "description": "They now hold their stake through another business."
+      },
+      "move": {
+        "title": "The business they own through",
+        "description": "Move their stake under a different business in the ownership structure."
+      },
+      "keepOwner": {
+        "title": "Keep them as a beneficial owner",
+        "description": "They stop managing the profile but keep their stake."
+      },
+      "remove": {
+        "title": "Remove them from the profile",
+        "description": "They no longer own or manage the business."
+      },
+      "replaceController": {
+        "title": "Replace them as controller",
+        "description": "Choose who manages the business profile instead."
+      },
+      "removeBusiness": {
+        "title": "Remove it from the ownership structure",
+        "description": "Choose what happens to the owners who hold their stake through it."
+      }
     }
   },
   "upgrade": {
@@ -162,20 +222,20 @@
   },
   "requestSummary": {
     "draftRequirements": {
-      "title": "Maintenance request needs attention",
+      "title": "Change request needs attention",
       "description": "Your changes are still editable. Complete the required documents before submitting them for review."
     },
     "draft": {
-      "title": "Draft maintenance request",
+      "title": "Draft change request",
       "description": "Your changes are saved here but have not been submitted for review."
     },
     "submitted": {
-      "title": "Maintenance request submitted",
+      "title": "Change request submitted",
       "description": "These changes are being reviewed. Editing and cancellation are unavailable until review is complete."
     },
     "action": {
-      "title": "Maintenance request needs more information",
-      "description": "Complete the returned tasks within 30 days so review can continue. After that, your maintenance request is closed automatically."
+      "title": "Change request needs more information",
+      "description": "Complete the returned tasks within 30 days so review can continue. After that, your change request is closed automatically."
     },
     "completeRequirements": "Complete requirements",
     "completeRequiredActions": "Complete required actions",
@@ -202,35 +262,35 @@
     },
     "combined": {
       "draft": {
-        "title": "Product upgrade and maintenance request ready to review",
+        "title": "Product upgrade and change request ready to review",
         "description": "The product upgrade and profile changes are ready for review."
       },
       "draftRequirements": {
-        "title": "Product upgrade and maintenance request need attention",
+        "title": "Product upgrade and change request need attention",
         "description": "Complete the requirements before submitting the product upgrade and profile changes."
       },
       "submitted": {
-        "title": "Product upgrade and maintenance request submitted",
+        "title": "Product upgrade and change request submitted",
         "description": "The product upgrade and profile changes are under review."
       },
       "action": {
-        "title": "Product upgrade and maintenance request need more information",
+        "title": "Product upgrade and change request need more information",
         "description": "Complete the returned requirements so review can continue."
       }
     }
   },
   "requestDetails": {
     "title": {
-      "maintenance": "Maintenance request",
+      "maintenance": "Change request",
       "product": "Product upgrade request",
-      "combined": "Product upgrade and maintenance request"
+      "combined": "Product upgrade and change request"
     },
     "description": {
-      "maintenance": "The business and related-party changes in this maintenance request, and anything still needed from you.",
+      "maintenance": "The business and related-party changes in this change request, and anything still needed from you.",
       "product": "The product upgrade you submitted, and anything still needed from you.",
       "combined": "The product upgrade and profile changes you submitted, and anything still needed from you."
     },
-    "viewFullRequest": "View maintenance request",
+    "viewFullRequest": "View change request",
     "actionRequired": "Action required",
     "noActionRequired": "No action is required from you right now.",
     "lastUpdated": "Last updated {{date}}",
@@ -477,7 +537,11 @@
     "emptyTitle": "Questions could not be loaded",
     "emptyDescription": "Return to review and try again. Submission remains unavailable until every requested question is returned.",
     "cancel": "Back to review",
-    "save": "Save answers"
+    "save": "Save answers",
+    "groups": {
+      "rfi": "Requested by the review team",
+      "kyc": "About the profile changes"
+    }
   },
   "attestation": {
     "title": "Review and attest",
@@ -509,6 +573,10 @@
     "title": "Ownership structure",
     "description": "Select anyone to see their details. Use the menu next to them to make updates.",
     "nodeMenu": "Update {{name}}",
+    "nodeChangeAction": "Update",
+    "viewDescription": "Select anyone to see their details.",
+    "changeTitle": "Change the ownership structure",
+    "changeDescription": "Add owners or businesses from the dashed rows, or use Update next to anyone already here. Each change is saved to your draft change request.",
     "ownerLimitReached": "You can list up to 4 beneficial owners.",
     "beneficialOwnersTitle": "Beneficial owners",
     "beneficialOwnersDescription": "Add each person who directly owns 25% or more. A controller who also owns 25% or more appears here as a beneficial owner.",
@@ -631,7 +699,7 @@
   },
   "availability": {
     "productAlreadyAdded": "Limited DDA Payments is already on this profile or in your pending changes.",
-    "requestLocked": "New changes are unavailable while your maintenance request is under review.",
+    "requestLocked": "New changes are unavailable while your change request is under review.",
     "originalProductPending": "The original Limited DDA product must be approved before this product can be added.",
     "verificationRequired": "Complete the original product verification before adding Limited DDA Payments.",
     "productLeadTime": "Limited DDA Payments becomes available after {{time}}, once the five-minute verification window has passed.",
@@ -705,7 +773,7 @@
       "unresolved_one": "1 change could not be resolved.",
       "unresolved_other": "{{count}} changes could not be resolved.",
       "conflict": "Conflicting pending changes must be resolved.",
-      "request": "Your maintenance request could not be identified."
+      "request": "Your change request could not be identified."
     }
   },
   "cancel": {
@@ -713,9 +781,9 @@
     "discardChanges": "Discard changes",
     "all": {
       "title": {
-        "maintenance": "Discard this maintenance request?",
+        "maintenance": "Discard this change request?",
         "product": "Discard the product upgrade?",
-        "combined": "Discard the product upgrade and maintenance request?"
+        "combined": "Discard the product upgrade and change request?"
       },
       "description": "Everything below is dropped. Your approved profile stays as it is.",
       "keep": "Keep changes"
@@ -814,7 +882,7 @@
   },
   "locked": {
     "title": "Changes are being reviewed",
-    "description": "You can't start new edits while your maintenance request is under review."
+    "description": "You can't start new edits while your change request is under review."
   },
   "nameEditor": {
     "eyebrow": "Edit profile",
@@ -877,5 +945,12 @@
     "syncDescription": "Approved information was not changed. Retry loading before you review.",
     "projectionTitle": "These changes cannot be reviewed",
     "projectionDescription": "Some pending changes are incomplete or conflict with each other."
+  },
+  "informationRequest": {
+    "title": "Information requested",
+    "description": "J.P. Morgan needs a little more information about the business. The profile stays approved while you respond.",
+    "answerQuestions_one": "Answer {{count}} question",
+    "answerQuestions_other": "Answer {{count}} questions",
+    "uploadDocuments": "Upload documents for {{name}}"
   }
 }

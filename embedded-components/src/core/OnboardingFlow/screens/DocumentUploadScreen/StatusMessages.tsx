@@ -32,6 +32,8 @@ interface StatusMessagesProps {
   hasRequestedQuestions?: boolean;
   /** Whether an information request is waiting on document uploads. */
   hasRequestedDocuments?: boolean;
+  /** Whether outstanding questions belong to onboarding rather than to a request for information. */
+  hasOnboardingQuestions?: boolean;
   clientOutstanding: ClientResponseOutstanding | undefined;
 }
 
@@ -45,6 +47,7 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
   hasDocumentRequests,
   hasRequestedQuestions = false,
   hasRequestedDocuments = false,
+  hasOnboardingQuestions,
   clientOutstanding,
 }): ReactElement | undefined => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
@@ -158,7 +161,8 @@ export const StatusMessages: FC<StatusMessagesProps> = ({
     ((clientOutstanding?.attestationDocumentIds?.length ?? 0) > 0 ||
       (clientOutstanding?.partyIds?.length ?? 0) > 0 ||
       (clientOutstanding?.partyRoles?.length ?? 0) > 0 ||
-      (clientOutstanding?.questionIds?.length ?? 0) > 0)
+      (hasOnboardingQuestions ??
+        (clientOutstanding?.questionIds?.length ?? 0) > 0))
   ) {
     return (
       <Alert variant="warning">

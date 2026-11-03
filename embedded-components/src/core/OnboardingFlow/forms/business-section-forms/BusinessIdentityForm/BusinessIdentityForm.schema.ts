@@ -238,7 +238,7 @@ export const useBusinessIdentityFormSchema = () => {
 };
 
 export const refineBusinessIdentityFormSchema = (
-  schema: z.ZodObject<Record<string, z.ZodTypeAny>>
+  schema: z.ZodObject<Record<string, z.ZodType>>
 ) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks -- pre-existing: i18n hook used inside a schema-refine helper invoked during render; tracked as debt.
   const v = useGetValidationMessage();
@@ -248,7 +248,7 @@ export const refineBusinessIdentityFormSchema = (
   // When non-US formation is allowed, the EIN is validated only for US businesses.
   const collectsRegistrationId =
     !!organizationIdEin && !!allowedCountries?.some((code) => code !== 'US');
-  const baseSchema: z.ZodObject<Record<string, z.ZodTypeAny>> =
+  const baseSchema: z.ZodObject<Record<string, z.ZodType>> =
     collectsRegistrationId
       ? schema.extend({ organizationIdEin: z.string().optional() })
       : schema;
@@ -260,14 +260,14 @@ export const refineBusinessIdentityFormSchema = (
           .safeParse(values.organizationIdEin)
           .error?.issues.forEach((issue) => {
             context.addIssue({
-              code: z.ZodIssueCode.custom,
+              code: 'custom',
               message: issue.message,
               path: ['organizationIdEin', ...issue.path],
             });
           });
       } else if (!values.organizationIdRegistration) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: v('organizationIdRegistration', 'required'),
           path: ['organizationIdRegistration'],
         });
@@ -280,7 +280,7 @@ export const refineBusinessIdentityFormSchema = (
       !values.organizationIdEin
     ) {
       context.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         message: v('organizationIdEin', 'required'),
         path: ['organizationIdEin'],
       });

@@ -36,7 +36,7 @@ export function createProfileAddressSchema(
     .superRefine((values, context) => {
       getAddressValidationIssues(values).forEach((issue) => {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: [issue.field],
           message: getValidationMessage(
             issue.field,

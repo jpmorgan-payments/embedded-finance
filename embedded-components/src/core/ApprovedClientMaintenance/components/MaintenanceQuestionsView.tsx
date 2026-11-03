@@ -12,6 +12,7 @@ import { InfoIcon, Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { cn } from '@/lib/utils';
 import type { QuestionResponse } from '@/api/generated/smbdo.schemas';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Form } from '@/components/ui/form';
@@ -19,6 +20,7 @@ import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button, Separator } from '@/components/ui';
 import { createDynamicZodSchema } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/OperationalDetailsForm.schema';
 import { QuestionField } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/QuestionField';
+import { getQuestionCategory } from '@/core/OnboardingFlow/utils/questionCategory';
 import {
   getChildQuestions,
   isQuestionVisible,
@@ -99,6 +101,17 @@ export function MaintenanceQuestionsView({
     hasAnswer(values[`question_${question.id}`]) &&
     getVisibleFollowUps(question.id).every(isFullyAnswered);
   const answeredCount = topLevelQuestions.filter(isFullyAnswered).length;
+  // On an approved profile, a question with no known category answers a request for information.
+  const questionGroups = (['RFI', 'KYC'] as const)
+    .map((category) => ({
+      category,
+      questions: topLevelQuestions.filter(
+        (question) =>
+          (getQuestionCategory(question, questions) ?? 'RFI') === category
+      ),
+    }))
+    .filter((group) => group.questions.length > 0);
+  const showsGroupHeadings = questionGroups.length > 1;
 
   const submit = form.handleSubmit(async (formValues) => {
     const responses = visibleQuestions.flatMap((question) => {
@@ -193,17 +206,40 @@ export function MaintenanceQuestionsView({
                     total: topLevelQuestions.length,
                   })}
                 </p>
-                <div className="eb-space-y-6">
-                  {topLevelQuestions.map((question, index) => (
-                    <Fragment key={question.id ?? `question-${index}`}>
-                      {index > 0 ? <Separator /> : null}
-                      <div data-question-id={question.id}>
-                        <QuestionField question={question} />
-                        {renderFollowUps(question.id)}
-                      </div>
-                    </Fragment>
-                  ))}
-                </div>
+                {questionGroups.map((group, groupIndex) => (
+                  <section
+                    key={group.category}
+                    data-question-category={group.category}
+                    aria-label={
+                      showsGroupHeadings
+                        ? group.category === 'RFI'
+                          ? tString('questions.groups.rfi')
+                          : tString('questions.groups.kyc')
+                        : undefined
+                    }
+                    className={cn(
+                      'eb-space-y-6',
+                      groupIndex > 0 && 'eb-border-t eb-pt-6'
+                    )}
+                  >
+                    {showsGroupHeadings ? (
+                      <h3 className="eb-text-xs eb-font-semibold eb-uppercase eb-tracking-wider">
+                        {group.category === 'RFI'
+                          ? t('questions.groups.rfi')
+                          : t('questions.groups.kyc')}
+                      </h3>
+                    ) : null}
+                    {group.questions.map((question, index) => (
+                      <Fragment key={question.id ?? `question-${index}`}>
+                        {index > 0 ? <Separator /> : null}
+                        <div data-question-id={question.id}>
+                          <QuestionField question={question} />
+                          {renderFollowUps(question.id)}
+                        </div>
+                      </Fragment>
+                    ))}
+                  </section>
+                ))}
               </>
             )}
           </MaintenancePageBody>

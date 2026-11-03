@@ -34,18 +34,18 @@ type OnboardingFormSchemaType = [
   ReturnType<typeof useIntermediaryAddressSchema>,
 ];
 
-type MergeSchemaInputs<TSchemas extends readonly z.ZodTypeAny[]> =
+type MergeSchemaInputs<TSchemas extends readonly z.ZodType[]> =
   TSchemas extends readonly [
-    infer First extends z.ZodTypeAny,
-    ...infer Rest extends readonly z.ZodTypeAny[],
+    infer First extends z.ZodType,
+    ...infer Rest extends readonly z.ZodType[],
   ]
     ? z.input<First> & MergeSchemaInputs<Rest>
     : unknown;
 
-type MergeSchemaOutputs<TSchemas extends readonly z.ZodTypeAny[]> =
+type MergeSchemaOutputs<TSchemas extends readonly z.ZodType[]> =
   TSchemas extends readonly [
-    infer First extends z.ZodTypeAny,
-    ...infer Rest extends readonly z.ZodTypeAny[],
+    infer First extends z.ZodType,
+    ...infer Rest extends readonly z.ZodType[],
   ]
     ? z.output<First> & MergeSchemaOutputs<Rest>
     : unknown;

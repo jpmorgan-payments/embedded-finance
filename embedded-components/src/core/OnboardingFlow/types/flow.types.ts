@@ -1,6 +1,7 @@
 import { LucideIcon } from 'lucide-react';
 import { z } from 'zod';
 
+import type { Recipient } from '@/api/generated/ep-recipients.schemas';
 import {
   ClientResponse,
   CreatePartyRequestInline,
@@ -10,14 +11,18 @@ import {
 import { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types/form.types';
 import type { StepSchemaMap } from '@/core/OnboardingFlow/utils/flowUtils';
 
-type DefaultSchema = z.ZodObject<Record<string, z.ZodTypeAny>>;
+// Zod 4's `z.ZodType` defaults to `unknown` (Zod 3's `ZodTypeAny` was `any`);
+// step schemas are dynamic, so keep the permissive inference for the default
+// step schema shape.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DefaultSchema = z.ZodObject<Record<string, z.ZodType<any, any>>>;
 
 export type FormStepComponent<TSchema extends DefaultSchema = DefaultSchema> =
   React.ComponentType<{
     currentPartyData?: PartyResponse;
   }> & {
     schema: TSchema | (() => TSchema);
-    refineSchemaFn?: (schema: TSchema) => z.ZodEffects<TSchema>;
+    refineSchemaFn?: (schema: TSchema) => TSchema;
     modifyFormValuesBeforeSubmit?: (
       values: z.output<TSchema>,
       partyData: PartyResponse | undefined
@@ -166,7 +171,7 @@ export interface StepperValidation {
 export type StepValidationMap = Record<
   string,
   {
-    result: z.SafeParseReturnType<unknown, unknown> | undefined;
+    result: z.ZodSafeParseResult<unknown> | undefined;
     isValid: boolean;
   }
 >;
@@ -193,14 +198,19 @@ export type FlowSessionData = {
   hideGatewayInfoAlert?: boolean;
   hideOverviewInfoAlert?: boolean;
   completedStaticStepIds?: string[];
-  /** Transient flag set after successfully creating a linked account; cleared when overview dismisses the banner. */
-  linkAccountJustCreated?: boolean;
+  /** The linked account just created, for overview's banner; cleared when the banner is dismissed. */
+  linkAccountJustCreated?: Partial<Pick<Recipient, 'id' | 'status'>>;
   /** Set when the user answers the PTC question on the gateway screen. */
   isPTCQuestionAnswered?: boolean;
   /** Delta mode: which Overview view the user last selected ('delta' pending-fields vs 'full' section list). */
   overviewViewMode?: 'delta' | 'full';
   /** Set once the user has answered every question in an information request this session. */
   requestedQuestionsSubmitted?: boolean;
+  /**
+   * Outstanding or answered question IDs the API files as RFI (or ARCHIVED)
+   * rather than KYC. Undefined until known; kept in sync by the flow.
+   */
+  rfiQuestionIds?: string[];
 };
 
 export type StepperStepProps = {

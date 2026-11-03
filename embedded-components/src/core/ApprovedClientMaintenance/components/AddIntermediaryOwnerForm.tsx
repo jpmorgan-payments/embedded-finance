@@ -109,7 +109,7 @@ export function AddIntermediaryOwnerForm({
       const validationIssue = getEinValidationIssue(value);
       if (validationIssue) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           message: getValidationMessage('organizationIdEin', validationIssue),
         });
       }

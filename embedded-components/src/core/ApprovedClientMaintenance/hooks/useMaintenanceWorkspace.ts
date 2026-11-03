@@ -142,21 +142,26 @@ export function useMaintenanceWorkspace(clientId: string) {
       },
     }
   );
+  const refreshMaintenanceClient = useCallback(
+    () =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getMaintenanceClientQueryKey(clientId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getMaintenancePartiesQueryKey(clientId),
+        }),
+      ]),
+    [clientId, queryClient]
+  );
   const refreshMaintenanceWorkspace = useCallback(async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: getMaintenanceClientQueryKey(clientId),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: getMaintenancePartiesQueryKey(clientId),
-      }),
-    ]);
+    await refreshMaintenanceClient();
     await queryClient.invalidateQueries({
       predicate: ({ queryKey }) =>
         typeof queryKey[0] === 'string' &&
         queryKey[0].startsWith('/document-requests'),
     });
-  }, [clientId, queryClient]);
+  }, [queryClient, refreshMaintenanceClient]);
   const updatePartyNameMutation = useMutation({
     mutationFn: ({
       partyId,
@@ -432,7 +437,7 @@ export function useMaintenanceWorkspace(clientId: string) {
     verificationMutation,
     submitForReview,
     resetVerificationAttempt,
-    refreshMaintenanceWorkspace,
+    refreshMaintenanceClient,
   };
 }
 

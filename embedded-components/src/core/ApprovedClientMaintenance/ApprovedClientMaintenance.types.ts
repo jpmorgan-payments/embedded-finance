@@ -27,4 +27,10 @@ export type ApprovedClientMaintenanceProps = {
   onRequestLimitedDda?: () => void | Promise<void>;
   className?: string;
   onStatusChange?: (status: KycUpdateRequestStatus | undefined) => void;
+  /**
+   * Where profile changes start. `'guided'` (default): profile pages are
+   * read-only and every change starts from "Request a change" on the overview.
+   * `'inline'`: each profile page also offers the changes it can make.
+   */
+  changeActions?: 'guided' | 'inline';
 };

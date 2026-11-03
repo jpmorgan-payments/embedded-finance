@@ -13,7 +13,7 @@
 // ahead of lint. ESLint here is syntactic-only: React / hooks / a11y / tailwind
 // / import + the syntactic typescript-eslint rules. The type-aware rules we
 // forgo (e.g. no-floating-promises) are tracked as an opt-in `lint:types`
-// follow-up under BACKLOG BL-505.
+// follow-up under TECH_DEBT.md BL-505-N1.
 //
 // Docs: https://eslint.org/docs/latest/use/configure/configuration-files
 
@@ -32,8 +32,9 @@ import tseslint from 'typescript-eslint';
 // Opt-in style linting (`npm run lint:styles`, ESLINT_STYLES=1).
 // The tailwind / eb- prefix rules — above all `no-custom-classname` — are
 // pathologically slow in eslint-plugin-tailwindcss@3 (~90% of total lint time,
-// see BL-505). They are non-blocking (all "warn"), so they are excluded from the
-// fast default `npm run lint` and only run on demand via `npm run lint:styles`.
+// see TECH_DEBT.md BL-505). They are non-blocking (all "warn"), so they are
+// excluded from the fast default `npm run lint` and only run on demand via
+// `npm run lint:styles`.
 const includeStyleRules = process.env.ESLINT_STYLES === '1';
 
 export default tseslint.config(
@@ -124,7 +125,7 @@ export default tseslint.config(
       // Type-aware rules (e.g. `@typescript-eslint/no-floating-promises`) are
       // intentionally omitted: they require a full TS program that slows lint
       // dramatically. Unhandled-promise safety is deferred to a future opt-in
-      // `lint:types` step (BACKLOG BL-505).
+      // `lint:types` step (TECH_DEBT.md BL-505-N1).
 
       // -----------------------------------------------------------------------
       // Migration triage (ESLint 8 -> 10).
@@ -163,7 +164,7 @@ export default tseslint.config(
       // per import (~24% of total lint time) for zero violations. TypeScript
       // (no `allowImportingTsExtensions`) + the bundler already reject bad or
       // extensioned import paths, so this airbnb holdover added cost, not safety.
-      // See BL-505.
+      // See TECH_DEBT.md BL-505.
       'import/extensions': 'off',
       'import/order': 'off', // handled by @ianvs/prettier-plugin-sort-imports
 
@@ -176,6 +177,42 @@ export default tseslint.config(
   // 6. Storybook stories
   // ---------------------------------------------------------------------------
   ...storybook.configs['flat/recommended'],
+
+  // ---------------------------------------------------------------------------
+  // 6b. Keep translations provider-scoped — the global i18n instance is always
+  //     en-US and ignores `contentTokens`. Use `useTranslationWithTokens` in
+  //     components and `tActive` (`@/i18n/activeI18n`) elsewhere.
+  // ---------------------------------------------------------------------------
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: [
+      'src/i18n/**',
+      '**/*.{test,spec}.{ts,tsx}',
+      '**/*.story.tsx',
+      '**/stories/**',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/i18n/config',
+              importNames: ['i18n'],
+              message:
+                'The global i18n instance ignores the provider locale and content tokens. Use useTranslationWithTokens in components or tActive from @/i18n/activeI18n.',
+            },
+            {
+              name: 'i18next',
+              importNames: ['default'],
+              message:
+                'The global i18next instance ignores the provider locale and content tokens. Use useTranslationWithTokens in components or tActive from @/i18n/activeI18n.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 
   // ---------------------------------------------------------------------------
   // 7. Test files & test utilities — relax a few rules

@@ -318,6 +318,13 @@
       "continueToNextSection": "Continuer à la section suivante",
       "continueToSection": "Continuer à {{sectionLabel}}",
       "backToSection": "Retour à {{sectionLabel}}"
+    },
+    "shortLabels": {
+      "editOwner": "Modifier le propriétaire",
+      "addOwner": "Ajouter un propriétaire",
+      "editBusiness": "Modifier l'entreprise",
+      "editOwnerDetails": "Modifier les détails du propriétaire",
+      "editIntermediaryDetails": "Modifier les détails de l'intermédiaire"
     }
   },
   "screens": {
@@ -354,7 +361,10 @@
       "suggestButtonLabel": "Suggérer",
       "analyzing": "Analyse de la description de votre entreprise...",
       "recommendationsHeader": "Industries recommandées selon votre description :",
-      "recommendationsInfo": "Ces recommandations sont générées par l'IA à partir de la description de votre entreprise et peuvent ne pas être parfaitement exactes. Veuillez les examiner attentivement avant de faire votre sélection."
+      "recommendationsInfo": "Ces recommandations sont générées par l'IA à partir de la description de votre entreprise et peuvent ne pas être parfaitement exactes. Veuillez les examiner attentivement avant de faire votre sélection.",
+      "emptyRecommendationTitle": "Améliorez la description de votre entreprise",
+      "recommendationErrorTitle": "Impossible de générer des recommandations",
+      "viewExamplesAriaLabel": "Voir des exemples de bonnes descriptions d'entreprise (s'ouvre dans un nouvel onglet)"
     },
     "owners": {
       "title": "Propriétaires et rôles clés",
@@ -465,7 +475,8 @@
         "ptcExchange": "Bourse : {{exchange}}",
         "ptcHint": "Si votre entreprise est cotée en bourse ou filiale d'une société cotée, sélectionnez Modifier pour ajouter ces renseignements.",
         "changeWarning": "Si vous modifiez ceci après avoir commencé la demande, vous pourriez perdre votre progression enregistrée.",
-        "editBusinessType": "Modifier"
+        "editBusinessType": "Modifier",
+        "editBusinessTypeAriaLabel": "Modifier le type d'entreprise"
       },
       "bankAccountSection": {
         "title": "Lier un compte bancaire pour les paiements",
@@ -482,7 +493,13 @@
           "READY_FOR_VALIDATION": "Les informations de votre compte bancaire ont été soumises. Veuillez vérifier les montants des dépôts pour compléter la configuration.",
           "REJECTED": "Les informations de votre compte bancaire ont été soumises mais n'ont pas pu être vérifiées.",
           "INACTIVE": "Les informations de votre compte bancaire ont été soumises."
-        }
+        },
+        "accountActionsAriaLabel": "Actions du compte"
+      },
+      "sectionStatus": {
+        "completed": "Terminé",
+        "notStarted": "Non commencé",
+        "missingDetails": "Détails manquants"
       }
     },
     "linkAccount": {
@@ -555,7 +572,29 @@
     "intermediarySteps": {
       "orgDetails": {
         "title": "Détails de l'intermédiaire",
-        "description": "Nom de l'organisation, pourcentage de propriété et pays de constitution"
+        "description": "Nom de l'organisation, pourcentage de propriété et pays de constitution",
+        "fields": {
+          "organizationName": {
+            "label": "Dénomination sociale",
+            "description": "Saisissez-la exactement comme elle figure sur les documents d'immatriculation de l'entreprise",
+            "required": "Le nom de l'organisation est obligatoire"
+          },
+          "organizationType": {
+            "label": "Type d'organisation",
+            "description": "La classification juridique de l'entité",
+            "required": "Le type d'organisation est obligatoire"
+          },
+          "organizationIdEin": {
+            "label": "EIN (numéro d'identification d'employeur)",
+            "description": "Numéro d'identification délivré par le gouvernement",
+            "required": "L'EIN est obligatoire"
+          },
+          "countryOfFormation": {
+            "label": "Pays de constitution",
+            "description": "Pays où cette entité a été légalement constituée",
+            "required": "Le pays de constitution est obligatoire"
+          }
+        }
       },
       "orgAddress": {
         "title": "Adresse de l'entreprise",
@@ -682,11 +721,52 @@
       "title": "Détails opérationnels",
       "description": "Veuillez répondre à ces questions supplémentaires pour nous aider à comprendre les opérations de votre entreprise.",
       "selectPlaceholder": "Sélectionner une option",
+      "selectMultiplePlaceholder": "Sélectionner une ou plusieurs options",
+      "searchOptions": "Rechercher",
+      "selectedCount_one": "{{count}} sélectionnée",
+      "selectedCount_other": "{{count}} sélectionnées",
+      "removeOption": "Retirer {{option}}",
+      "maxSelected_one": "Vous pouvez sélectionner {{count}} option.",
+      "maxSelected_other": "Vous pouvez sélectionner jusqu’à {{count}} options.",
       "noQuestions": "Il n'y a pas de questions supplémentaires. Vous pouvez passer à l'étape suivante.",
       "loadingQuestions": "Chargement des questions...",
       "saveAndReturn": "Enregistrer et revenir à la révision",
       "saveAndContinue": "Enregistrer et continuer vers la révision",
       "newQuestionsGenerated": "En fonction de vos réponses, quelques questions supplémentaires sont nécessaires. Veuillez les compléter pour continuer."
+    },
+    "indirectOwnerDetails": {
+      "title": "Fournir les détails des propriétaires et des entités",
+      "description": "Veuillez fournir les renseignements requis pour chaque propriétaire et entité intermédiaire indiqués dans votre structure de propriété.",
+      "backToOwnershipStructure": "Retour à la structure de propriété",
+      "individuals": {
+        "title": "Particuliers",
+        "description": "Fournissez les renseignements personnels de chaque propriétaire bénéficiaire.",
+        "empty": "Aucun propriétaire individuel trouvé."
+      },
+      "intermediaryEntities": {
+        "title": "Entités intermédiaires",
+        "description": "Fournissez les détails de l'organisation pour chaque entité intermédiaire par laquelle les propriétaires indirects détiennent leur participation.",
+        "empty": "Aucune entité intermédiaire trouvée."
+      },
+      "noParties": "Aucune partie trouvée. Veuillez revenir en arrière et compléter d'abord votre structure de propriété.",
+      "saveAndContinue": "Enregistrer et continuer",
+      "completeAllToContinue": "Remplissez tous les détails pour continuer ({{completed}}/{{total}})",
+      "status": {
+        "notStarted": "Non commencé",
+        "incomplete": "Incomplet",
+        "complete": "Terminé"
+      },
+      "roles": {
+        "directOwner": "Propriétaire bénéficiaire direct",
+        "indirectOwner": "Propriétaire bénéficiaire indirect",
+        "intermediaryEntity": "Entité intermédiaire"
+      },
+      "actions": {
+        "start": "Commencer",
+        "edit": "Modifier"
+      },
+      "unnamedOrganization": "Organisation sans nom",
+      "unnamedOwner": "Propriétaire sans nom"
     }
   },
   "additionalQuestions": {
@@ -1546,6 +1626,8 @@
     },
     "thereIsAProblem": "Il y a un problème",
     "provideMissingDetails": "Veuillez fournir les détails manquants avant de terminer votre demande.",
+    "answerRequestedQuestions": "Répondez aux questions de l'équipe d'examen avant de terminer votre demande.",
+    "goToRequestedQuestions": "Répondre aux questions",
     "owners": "Propriétaires",
     "noStakeholders": "Aucune partie prenante ajoutée pour le moment.",
     "manageOwners": "Gérer les propriétaires",
@@ -1598,8 +1680,10 @@
     },
     "disclosure": {
       "footer": "Services bancaires fournis par JPMorgan Chase Bank, N.A., membre de la FDIC. {{platformName}} n'est pas une banque.",
-      "fdic": "{{productName}} sont assurés par la FDIC jusqu'à 250 000 $ par déposant pour chaque catégorie de propriété de compte. La disponibilité de l'assurance-dépôts de la FDIC protège contre la faillite de JPMorgan Chase Bank, N.A., membre de la FDIC, et non de {{platformName}}."
-    }
+      "fdic": "{{productName}} sont assurés par la FDIC jusqu'à 250 000 $ par déposant pour chaque catégorie de propriété de compte. La disponibilité de l'assurance-dépôts de la FDIC protège contre la faillite de JPMorgan Chase Bank, N.A., membre de la FDIC, et non de {{platformName}}.",
+      "ariaLabel": "Divulgation réglementaire"
+    },
+    "provideMissingDetailsTitle": "Fournissez les détails manquants"
   },
   "industrySelect": {
     "placeholder": "Sélectionner une industrie",

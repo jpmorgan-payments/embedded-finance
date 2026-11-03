@@ -18,16 +18,19 @@ import {
 import { Input } from '@/components/ui/input';
 
 import type { Payee, PaymentMethod } from '../PaymentFlow.types';
+import { paymentFormError } from './paymentFormError';
 
 /**
  * Form schema for enabling a payment method
  */
 const enablePaymentMethodSchema = z.object({
-  beneficiaryAddress: z.string().min(1, 'Beneficiary address is required'),
-  beneficiaryCity: z.string().min(1, 'City is required'),
-  beneficiaryState: z.string().min(2, 'State is required').max(2),
-  beneficiaryZip: z.string().min(5, 'ZIP code is required'),
-  bankAddress: z.string().min(1, 'Bank address is required'),
+  beneficiaryAddress: z
+    .string()
+    .min(1, paymentFormError('beneficiaryAddressRequired')),
+  beneficiaryCity: z.string().min(1, paymentFormError('cityRequired')),
+  beneficiaryState: z.string().min(2, paymentFormError('stateRequired')).max(2),
+  beneficiaryZip: z.string().min(5, paymentFormError('zipRequired')),
+  bankAddress: z.string().min(1, paymentFormError('bankAddressRequired')),
   swiftBic: z.string().optional(),
 });
 

@@ -14,7 +14,7 @@
     "default": "Examinez l'état du profil et effectuez les actions disponibles avant de continuer.",
     "INFORMATION_REQUESTED": {
       "title": "Le profil du client nécessite des renseignements supplémentaires",
-      "description": "Fournissez les éléments demandés afin que l'examen de votre demande de maintenance puisse se poursuivre."
+      "description": "Fournissez les éléments demandés afin que l'examen de votre demande de changement puisse se poursuivre."
     },
     "REVIEW_IN_PROGRESS": {
       "title": "Le profil du client est en cours d'examen",
@@ -29,9 +29,9 @@
   "navigator": {
     "label": "Sections du profil d’entreprise",
     "requestHeading": {
-      "maintenance": "Demande de maintenance",
+      "maintenance": "Demande de changement",
       "product": "Mise à niveau du produit",
-      "combined": "Mise à niveau du produit et demande de maintenance"
+      "combined": "Mise à niveau du produit et demande de changement"
     },
     "changesReady_one": "{{count}} changement prêt pour l'examen",
     "changesReady_other": "{{count}} changements prêts pour l'examen",
@@ -40,12 +40,28 @@
     "requirementsHint": "Certains éléments sont requis avant de soumettre."
   },
   "home": {
-    "changesTitle": "Apporter un changement",
-    "changesCaption": "Commencez ici un changement courant, ou sélectionnez un élément du profil pour le consulter ou le modifier.",
-    "tasks": {
-      "editBusiness": {
-        "title": "Mettre à jour les renseignements de l'entreprise",
-        "description": "Corrigez le nom, l'adresse ou les coordonnées de l'entreprise."
+    "ownershipEntry": {
+      "editable": "Voyez qui détient l'entreprise, et ajoutez, déplacez ou retirez les entreprises par lesquelles les propriétaires détiennent leur participation.",
+      "readOnly": "Voyez qui détient l'entreprise et comment la participation est détenue."
+    }
+  },
+  "requestChange": {
+    "action": "Demander un changement",
+    "title": "Que souhaitez-vous changer?",
+    "ownershipTitle": "Que souhaitez-vous changer dans la structure de propriété?",
+    "empty": "Rien ne peut être changé ici pour le moment. Les changements déjà dans la demande de changement peuvent y être modifiés ou annulés.",
+    "description": "Les changements sont enregistrés dans une demande de changement provisoire. Rien ne change dans le profil tant que vous ne l'avez pas soumise et que l'équipe d'examen ne l'a pas approuvée.",
+    "cancel": "Annuler",
+    "back": "Retour",
+    "done": "Terminé",
+    "choices": {
+      "business": {
+        "title": "Renseignements de l'entreprise",
+        "description": "Le nom, l'adresse, les coordonnées et les autres renseignements de l'entreprise."
+      },
+      "person": {
+        "title": "Une personne ou une entreprise du profil",
+        "description": "Mettez à jour ses renseignements, changez son rôle ou la façon dont elle détient l'entreprise, ou retirez-la."
       },
       "addOwner": {
         "title": "Ajouter un bénéficiaire effectif",
@@ -54,11 +70,55 @@
       "replaceController": {
         "title": "Remplacer le contrôleur",
         "description": "Confiez la gestion du profil de l'entreprise à une autre personne."
+      },
+      "ownership": {
+        "title": "Structure de propriété",
+        "description": "Ajoutez, déplacez ou retirez les entreprises par lesquelles les propriétaires détiennent leur participation."
       }
     },
-    "ownershipEntry": {
-      "editable": "Voyez qui détient l'entreprise, et ajoutez, déplacez ou retirez les entreprises par lesquelles les propriétaires détiennent leur participation.",
-      "readOnly": "Voyez qui détient l'entreprise et comment la participation est détenue."
+    "person": {
+      "breadcrumb": "Choisir qui",
+      "title": "Qui souhaitez-vous changer?",
+      "description": "Choisissez quelqu'un pour voir les changements que vous pouvez demander à son sujet."
+    },
+    "party": {
+      "title": "Que souhaitez-vous changer pour {{name}}?",
+      "editPerson": {
+        "title": "Ses renseignements",
+        "description": "Nom, date de naissance, pièce d'identité, titre du poste, coordonnées ou adresse."
+      },
+      "editBusiness": {
+        "title": "Les renseignements de l'entreprise",
+        "description": "Nom, immatriculation, adresse ou autres renseignements."
+      },
+      "addOwnerRole": {
+        "title": "En faire un bénéficiaire effectif",
+        "description": "Cette personne détient maintenant 25 % ou plus de l'entreprise."
+      },
+      "ownershipPath": {
+        "title": "Sa façon de détenir l'entreprise",
+        "description": "Cette personne détient maintenant sa participation par l'intermédiaire d'une autre entreprise."
+      },
+      "move": {
+        "title": "L'entreprise par laquelle elle détient sa participation",
+        "description": "Déplacez sa participation sous une autre entreprise de la structure de propriété."
+      },
+      "keepOwner": {
+        "title": "La garder comme bénéficiaire effectif",
+        "description": "Elle cesse de gérer le profil, mais conserve sa participation."
+      },
+      "remove": {
+        "title": "La retirer du profil",
+        "description": "Elle ne détient plus l'entreprise et ne la gère plus."
+      },
+      "replaceController": {
+        "title": "La remplacer comme contrôleur",
+        "description": "Choisissez qui gérera le profil de l'entreprise."
+      },
+      "removeBusiness": {
+        "title": "La retirer de la structure de propriété",
+        "description": "Choisissez ce qu'il advient des propriétaires qui détiennent leur participation par son intermédiaire."
+      }
     }
   },
   "upgrade": {
@@ -162,20 +222,20 @@
   },
   "requestSummary": {
     "draftRequirements": {
-      "title": "La demande de maintenance nécessite une intervention",
+      "title": "La demande de changement nécessite une intervention",
       "description": "Vos changements peuvent encore être modifiés. Fournissez les documents requis avant de les soumettre pour examen."
     },
     "draft": {
-      "title": "Brouillon de demande de maintenance",
+      "title": "Brouillon de demande de changement",
       "description": "Vos changements sont enregistrés ici, mais n'ont pas été soumis pour examen."
     },
     "submitted": {
-      "title": "Demande de maintenance soumise",
+      "title": "Demande de changement soumise",
       "description": "Ces changements sont en cours d'examen. La modification et l'annulation ne sont pas disponibles avant la fin de l'examen."
     },
     "action": {
-      "title": "La demande de maintenance nécessite plus de renseignements",
-      "description": "Effectuez les tâches retournées dans les 30 jours afin que l'examen puisse se poursuivre. Après ce délai, votre demande de maintenance est fermée automatiquement."
+      "title": "La demande de changement nécessite plus de renseignements",
+      "description": "Effectuez les tâches retournées dans les 30 jours afin que l'examen puisse se poursuivre. Après ce délai, votre demande de changement est fermée automatiquement."
     },
     "completeRequirements": "Remplir les exigences",
     "completeRequiredActions": "Effectuer les actions requises",
@@ -202,35 +262,35 @@
     },
     "combined": {
       "draft": {
-        "title": "Mise à niveau du produit et demande de maintenance prêtes à examiner",
+        "title": "Mise à niveau du produit et demande de changement prêtes à examiner",
         "description": "La mise à niveau du produit et les changements du profil sont prêts à être examinés."
       },
       "draftRequirements": {
-        "title": "La mise à niveau du produit et la demande de maintenance nécessitent une intervention",
+        "title": "La mise à niveau du produit et la demande de changement nécessitent une intervention",
         "description": "Remplissez les exigences avant de soumettre la mise à niveau du produit et les changements du profil."
       },
       "submitted": {
-        "title": "Mise à niveau du produit et demande de maintenance soumises",
+        "title": "Mise à niveau du produit et demande de changement soumises",
         "description": "La mise à niveau du produit et les changements du profil sont en cours d’examen."
       },
       "action": {
-        "title": "La mise à niveau du produit et la demande de maintenance nécessitent plus de renseignements",
+        "title": "La mise à niveau du produit et la demande de changement nécessitent plus de renseignements",
         "description": "Remplissez les exigences retournées afin que l’examen puisse se poursuivre."
       }
     }
   },
   "requestDetails": {
     "title": {
-      "maintenance": "Demande de maintenance",
+      "maintenance": "Demande de changement",
       "product": "Demande de mise à niveau du produit",
-      "combined": "Mise à niveau du produit et demande de maintenance"
+      "combined": "Mise à niveau du produit et demande de changement"
     },
     "description": {
-      "maintenance": "Les changements de l’entreprise et des parties liées de cette demande de maintenance, et ce qu’il vous reste à fournir.",
+      "maintenance": "Les changements de l’entreprise et des parties liées de cette demande de changement, et ce qu’il vous reste à fournir.",
       "product": "La mise à niveau du produit que vous avez soumise, et ce qu’il vous reste à fournir.",
       "combined": "La mise à niveau du produit et les changements du profil que vous avez soumis, et ce qu’il vous reste à fournir."
     },
-    "viewFullRequest": "Voir la demande de maintenance",
+    "viewFullRequest": "Voir la demande de changement",
     "actionRequired": "Action requise",
     "noActionRequired": "Aucune action n'est requise de votre part pour le moment.",
     "lastUpdated": "Dernière mise à jour : {{date}}",
@@ -477,7 +537,11 @@
     "emptyTitle": "Les questions n'ont pas pu être chargées",
     "emptyDescription": "Retournez à l'examen et réessayez. La soumission demeure indisponible jusqu'à ce que toutes les questions demandées soient retournées.",
     "cancel": "Retour à l'examen",
-    "save": "Enregistrer les réponses"
+    "save": "Enregistrer les réponses",
+    "groups": {
+      "rfi": "Demandé par l'équipe d'examen",
+      "kyc": "Au sujet des modifications du profil"
+    }
   },
   "attestation": {
     "title": "Examiner et attester",
@@ -509,6 +573,10 @@
     "title": "Structure de propriété",
     "description": "Sélectionnez une personne pour voir ses détails. Utilisez le menu à côté pour faire des mises à jour.",
     "nodeMenu": "Mettre à jour {{name}}",
+    "nodeChangeAction": "Mettre à jour",
+    "viewDescription": "Sélectionnez une personne pour voir ses renseignements.",
+    "changeTitle": "Modifier la structure de propriété",
+    "changeDescription": "Ajoutez des propriétaires ou des entreprises à partir des lignes pointillées, ou utilisez Mettre à jour à côté de toute personne déjà présente. Chaque changement est enregistré dans votre demande de changement provisoire.",
     "ownerLimitReached": "Vous pouvez inscrire jusqu’à 4 bénéficiaires effectifs.",
     "beneficialOwnersTitle": "Bénéficiaires effectifs",
     "beneficialOwnersDescription": "Ajoutez chaque personne qui détient directement au moins 25 %. Un contrôleur qui détient également au moins 25 % apparaît ici comme bénéficiaire effectif.",
@@ -631,7 +699,7 @@
   },
   "availability": {
     "productAlreadyAdded": "Paiements DDA limités figure déjà dans ce profil ou dans vos changements en attente.",
-    "requestLocked": "Les nouveaux changements ne sont pas disponibles pendant l'examen de votre demande de maintenance.",
+    "requestLocked": "Les nouveaux changements ne sont pas disponibles pendant l'examen de votre demande de changement.",
     "originalProductPending": "Le produit DDA limité d'origine doit être approuvé avant que ce produit puisse être ajouté.",
     "verificationRequired": "Terminez la vérification du produit d'origine avant d'ajouter Paiements DDA limités.",
     "productLeadTime": "Paiements DDA limités devient disponible après {{time}}, une fois la fenêtre de vérification de cinq minutes écoulée.",
@@ -705,7 +773,7 @@
       "unresolved_one": "Un changement n'a pas pu être résolu.",
       "unresolved_other": "{{count}} changements n'ont pas pu être résolus.",
       "conflict": "Les changements en attente contradictoires doivent être résolus.",
-      "request": "Votre demande de maintenance n'a pas pu être identifiée."
+      "request": "Votre demande de changement n'a pas pu être identifiée."
     }
   },
   "cancel": {
@@ -713,9 +781,9 @@
     "discardChanges": "Ignorer les changements",
     "all": {
       "title": {
-        "maintenance": "Abandonner cette demande de maintenance?",
+        "maintenance": "Abandonner cette demande de changement?",
         "product": "Abandonner la mise à niveau du produit?",
-        "combined": "Abandonner la mise à niveau du produit et la demande de maintenance?"
+        "combined": "Abandonner la mise à niveau du produit et la demande de changement?"
       },
       "description": "Tout ce qui figure ci-dessous est abandonné. Votre profil approuvé reste inchangé.",
       "keep": "Conserver les changements"
@@ -814,7 +882,7 @@
   },
   "locked": {
     "title": "Les changements sont en cours d'examen",
-    "description": "Vous ne pouvez pas commencer de nouvelles modifications pendant l'examen de votre demande de maintenance."
+    "description": "Vous ne pouvez pas commencer de nouvelles modifications pendant l'examen de votre demande de changement."
   },
   "nameEditor": {
     "eyebrow": "Modifier le profil",
@@ -877,5 +945,12 @@
     "syncDescription": "Les renseignements approuvés n'ont pas changé. Rechargez avant l'examen.",
     "projectionTitle": "Ces changements ne peuvent pas être examinés",
     "projectionDescription": "Certains changements en attente sont incomplets ou contradictoires."
+  },
+  "informationRequest": {
+    "title": "Renseignements demandés",
+    "description": "J.P. Morgan a besoin d'un peu plus de renseignements sur l'entreprise. Le profil reste approuvé pendant que vous répondez.",
+    "answerQuestions_one": "Répondre à {{count}} question",
+    "answerQuestions_other": "Répondre à {{count}} questions",
+    "uploadDocuments": "Téléverser des documents pour {{name}}"
   }
 }

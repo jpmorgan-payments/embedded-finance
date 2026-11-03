@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftIcon, InfoIcon, Loader2Icon } from 'lucide-react';
 import { useForm, useFormState } from 'react-hook-form';
-import { z } from 'zod';
 
 import {
   getSmbdoGetClientQueryKey,
@@ -28,7 +27,12 @@ import {
   useApplyQuestionServerErrors,
 } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/questionForm';
 import { useQuestionTree } from '@/core/OnboardingFlow/screens/OperationalDetailsForm/useQuestionTree';
-import { clientHasRequestedDocuments } from '@/core/OnboardingFlow/utils/dataUtils';
+import {
+  clientHasRequestedDocuments,
+  getRequestedQuestionIds,
+} from '@/core/OnboardingFlow/utils/dataUtils';
+import { getQuestionCategory } from '@/core/OnboardingFlow/utils/questionCategory';
+import { normalizeQuestionId } from '@/core/OnboardingFlow/utils/questionTree';
 
 /**
  * Answers the questions in a Request for Information (RFI), raised during
@@ -43,7 +47,8 @@ export const RequestedQuestionsScreen = () => {
   ]);
   const queryClient = useQueryClient();
   const { clientData, docUploadOnlyMode } = useOnboardingContext();
-  const { goTo, updateSessionData, setIsFormSubmitting } = useFlowContext();
+  const { goTo, sessionData, updateSessionData, setIsFormSubmitting } =
+    useFlowContext();
 
   const returnScreenId = docUploadOnlyMode
     ? 'upload-documents-section'
@@ -54,8 +59,8 @@ export const RequestedQuestionsScreen = () => {
   const [answeredQuestionIds, setAnsweredQuestionIds] = useState<string[]>([]);
 
   const outstandingQuestionIds = useMemo(
-    () => clientData?.outstanding?.questionIds ?? [],
-    [clientData?.outstanding?.questionIds]
+    () => getRequestedQuestionIds(clientData, sessionData.rfiQuestionIds),
+    [clientData, sessionData.rfiQuestionIds]
   );
 
   // Earlier onboarding answers are not part of this request, so only seed
@@ -87,8 +92,7 @@ export const RequestedQuestionsScreen = () => {
   );
 
   const dynamicSchema = useMemo(
-    () =>
-      allQuestions.length ? createDynamicZodSchema(allQuestions) : z.object({}),
+    () => createDynamicZodSchema(allQuestions),
     [allQuestions]
   );
 
@@ -103,6 +107,18 @@ export const RequestedQuestionsScreen = () => {
 
   const [hasFollowUpQuestions, setHasFollowUpQuestions] = useState(false);
   const alertRef = useRef<HTMLDivElement>(null);
+
+  // A follow-up isn't loaded until it's outstanding; it takes the category of the question that lists it.
+  const isRfiFollowUp = (questionId: string) =>
+    allQuestions.some(
+      (question) =>
+        question.subQuestions?.some((subQuestion) =>
+          subQuestion.questionIds?.some(
+            (childId) =>
+              normalizeQuestionId(childId) === normalizeQuestionId(questionId)
+          )
+        ) && getQuestionCategory(question, allQuestions) === 'RFI'
+    );
 
   const {
     mutate: updateClient,
@@ -128,7 +144,16 @@ export const RequestedQuestionsScreen = () => {
         ]);
         form.reset(form.getValues());
 
-        if ((response?.outstanding?.questionIds?.length ?? 0) > 0) {
+        const newFollowUpIds = (response.outstanding?.questionIds ?? []).filter(
+          (id) => !sessionData.rfiQuestionIds?.includes(id) && isRfiFollowUp(id)
+        );
+        // The next category lookup confirms these; until then they stay in this section.
+        const rfiQuestionIds = [
+          ...(sessionData.rfiQuestionIds ?? []),
+          ...newFollowUpIds,
+        ];
+        if (getRequestedQuestionIds(response, rfiQuestionIds).length > 0) {
+          if (newFollowUpIds.length > 0) updateSessionData({ rfiQuestionIds });
           setHasFollowUpQuestions(true);
           setTimeout(() => {
             alertRef.current?.scrollIntoView({

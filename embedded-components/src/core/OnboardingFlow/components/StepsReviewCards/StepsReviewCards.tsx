@@ -99,13 +99,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
               ? step.Component.schema()
               : step.Component.schema
           );
-          schemaKeys = Object.keys(
-            'shape' in modifiedSchema
-              ? modifiedSchema.shape
-              : 'innerType' in modifiedSchema
-                ? modifiedSchema.innerType().shape
-                : {}
-          );
+          schemaKeys = Object.keys(modifiedSchema.shape);
         }
 
         // Skip cards where every field is hidden in review
@@ -173,7 +167,7 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
               <Alert variant="warning" className="eb-mb-4" noTitle>
                 <AlertTriangleIcon className="eb-mt-0.5 eb-size-5" />
                 <AlertTitle className="eb-text-base eb-font-semibold">
-                  Provide missing details
+                  {t('reviewAndAttest.provideMissingDetailsTitle')}
                 </AlertTitle>
               </Alert>
             )}
@@ -247,7 +241,9 @@ export const StepsReviewCards: React.FC<StepsReviewCardsProps> = ({
                       ?.includes(field) ? (
                       <div className="eb-flex eb-items-center eb-gap-1 eb-text-warning">
                         <TriangleAlertIcon className="eb-size-4" />
-                        <p className="eb-italic">This field is missing</p>
+                        <p className="eb-italic">
+                          {t('reviewAndAttest.fieldIsMissing')}
+                        </p>
                       </div>
                     ) : Array.isArray(valueString) ? (
                       valueString.map((val, index) => (

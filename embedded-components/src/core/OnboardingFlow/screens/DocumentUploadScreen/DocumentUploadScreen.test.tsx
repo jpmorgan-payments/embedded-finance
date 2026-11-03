@@ -388,11 +388,12 @@ describe('DocumentUploadScreen', () => {
       },
     };
 
-    test('links to the questions screen alongside document requests', async () => {
+    test('links to the questions screen in document-upload-only mode', async () => {
       const goToMock = vi.fn();
       renderDocumentUploadScreen({
         client: informationRequestedWithQuestions,
         flow: { goTo: goToMock },
+        onboarding: { docUploadOnlyMode: true },
       });
 
       await waitForDocumentListReady();
@@ -406,10 +407,22 @@ describe('DocumentUploadScreen', () => {
       expect(goToMock).toHaveBeenCalledWith('requested-questions-section');
     });
 
+    test('leaves the questions to their own section when the overview lists it', async () => {
+      renderDocumentUploadScreen({
+        client: informationRequestedWithQuestions,
+      });
+
+      await waitForDocumentListReady();
+      expect(
+        screen.queryByRole('heading', { name: /questions for you/i })
+      ).not.toBeInTheDocument();
+    });
+
     test('questions-only request shows the questions card instead of an error', async () => {
       renderDocumentUploadScreen({
         client: informationRequestedWithQuestions,
         documentRequests: [],
+        onboarding: { docUploadOnlyMode: true },
       });
 
       expect(
@@ -433,6 +446,7 @@ describe('DocumentUploadScreen', () => {
             questionIds: ['30158'],
           },
         },
+        onboarding: { docUploadOnlyMode: true },
       });
 
       await waitForDocumentListReady();
@@ -442,6 +456,25 @@ describe('DocumentUploadScreen', () => {
       expect(
         screen.queryByText(/your onboarding has been approved/i)
       ).not.toBeInTheDocument();
+    });
+
+    test('before submission, links to the review team questions in document-upload-only mode', async () => {
+      renderDocumentUploadScreen({
+        client: {
+          outstanding: { ...mockClient.outstanding, questionIds: ['500096'] },
+        },
+        documentRequests: [],
+        flow: { sessionData: { rfiQuestionIds: ['500096'] } },
+        onboarding: { docUploadOnlyMode: true },
+      });
+
+      expect(
+        await screen.findByRole('button', { name: /answer questions/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText(/no document requests found/i)
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/outstanding items/i)).not.toBeInTheDocument();
     });
 
     test('no questions card outside an information request', async () => {

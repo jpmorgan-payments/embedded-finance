@@ -71,7 +71,7 @@ describe('i18n/config', () => {
         const translatedNamespaces = defaultResources[locale];
 
         for (const namespace of Object.keys(englishNamespaces)) {
-          if (namespace === 'locale' || namespace === 'zod') continue;
+          if (namespace === 'locale') continue;
 
           const englishLeaves = getTranslationLeaves(
             englishNamespaces[namespace as keyof typeof englishNamespaces]
@@ -126,7 +126,14 @@ describe('i18n/config', () => {
         'inc',
         'enUS'
       );
-      expect(formatted).toBe(6);
+      expect(formatted).toBe('6');
+    });
+
+    it('interpolation format handles "datetime" format with the locale', () => {
+      const date = new Date(2026, 2, 15, 9, 30);
+      expect(
+        i18n.options.interpolation?.format?.(date, 'datetime', 'frCA')
+      ).toBe(date.toLocaleString('fr-CA'));
     });
 
     it('interpolation format handles non-numeric "inc"', () => {

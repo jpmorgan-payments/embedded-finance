@@ -1,11 +1,7 @@
-import { FC, useEffect, useRef } from 'react';
+import { FC } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
-import { useQueryClient } from '@tanstack/react-query';
 
-import {
-  getSmbdoGetClientQueryKey,
-  useSmbdoListDocumentRequests,
-} from '@/api/generated/smbdo';
+import { useSmbdoListDocumentRequests } from '@/api/generated/smbdo';
 import { Button } from '@/components/ui/button';
 import { FormLoadingState, StepLayout } from '@/core/OnboardingFlow/components';
 import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext';
@@ -13,6 +9,7 @@ import { useOnboardingContext } from '@/core/OnboardingFlow/contexts/OnboardingC
 import {
   clientHasRequestedDocuments,
   clientHasRequestedQuestions,
+  getOnboardingQuestionIds,
 } from '@/core/OnboardingFlow/utils/dataUtils';
 
 import { DocumentRequestsSection } from './DocumentRequestsSection';
@@ -27,9 +24,7 @@ export const DocumentUploadScreen: FC = () => {
   const { t } = useTranslationWithTokens(['onboarding-overview']);
   const { clientData, clientGetStatus, docUploadOnlyMode } =
     useOnboardingContext();
-  const { goTo } = useFlowContext();
-  const queryClient = useQueryClient();
-  const prevDocRequestsRef = useRef<string | null>(null);
+  const { goTo, sessionData } = useFlowContext();
 
   // Fetch document requests
   const {
@@ -50,27 +45,10 @@ export const DocumentUploadScreen: FC = () => {
 
   const documentRequests = documentRequestListResponse?.documentRequests;
   const hasDocumentRequests = !!documentRequests?.length;
-  const hasRequestedQuestions = clientHasRequestedQuestions(clientData);
-
-  // Refetch client data when document requests change to ensure client status is up-to-date
-  useEffect(() => {
-    if (clientData?.id && documentRequests) {
-      const currentDocRequestsString = JSON.stringify(documentRequests);
-
-      // Only invalidate if we have a previous value AND the value has changed
-      if (
-        prevDocRequestsRef.current !== null &&
-        prevDocRequestsRef.current !== currentDocRequestsString
-      ) {
-        queryClient.invalidateQueries({
-          queryKey: getSmbdoGetClientQueryKey(clientData.id),
-        });
-      }
-
-      // Update the ref after checking
-      prevDocRequestsRef.current = currentDocRequestsString;
-    }
-  }, [clientData?.id, documentRequests, queryClient]);
+  const hasRequestedQuestions = clientHasRequestedQuestions(
+    clientData,
+    sessionData.rfiQuestionIds
+  );
 
   /**
    * Handler for when a party is selected to upload documents
@@ -92,6 +70,9 @@ export const DocumentUploadScreen: FC = () => {
       documentRequestStatus: documentRequestGetListStatus,
       hasDocumentRequests,
       hasRequestedQuestions,
+      hasOnboardingQuestions:
+        getOnboardingQuestionIds(clientData, sessionData.rfiQuestionIds)
+          .length > 0,
       hasRequestedDocuments: clientHasRequestedDocuments(clientData),
       clientOutstanding: clientData?.outstanding,
     });
@@ -120,11 +101,13 @@ export const DocumentUploadScreen: FC = () => {
     const { businessDocumentRequests, individualDocumentRequests } =
       groupDocumentRequests(documentRequests, clientData);
 
-    const requestedQuestionsCard = hasRequestedQuestions ? (
-      <RequestedQuestionsCard
-        onAnswerClick={() => goTo('requested-questions-section')}
-      />
-    ) : null;
+    // The overview lists requested questions as their own section; without it, link to them here.
+    const requestedQuestionsCard =
+      docUploadOnlyMode && hasRequestedQuestions ? (
+        <RequestedQuestionsCard
+          onAnswerClick={() => goTo('requested-questions-section')}
+        />
+      ) : null;
 
     // A questions-only information request has nothing to upload.
     if (!hasDocumentRequests) {

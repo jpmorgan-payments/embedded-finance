@@ -24,7 +24,9 @@ type MaintenanceDocumentViewProps = {
   breadcrumbs: MaintenanceBreadcrumbItem[];
   maxFileSizeBytes?: number;
   onBack: () => void;
-  onComplete: () => Promise<void> | void;
+  /** Refreshes the client once the upload is submitted. */
+  refreshClient: () => Promise<unknown>;
+  onComplete: () => void;
 };
 
 export function MaintenanceDocumentView({
@@ -35,6 +37,7 @@ export function MaintenanceDocumentView({
   breadcrumbs,
   maxFileSizeBytes,
   onBack,
+  refreshClient,
   onComplete,
 }: MaintenanceDocumentViewProps) {
   const { t, tString } = useTranslationWithTokens(
@@ -139,6 +142,7 @@ export function MaintenanceDocumentView({
             ) : undefined
           }
           onCancel={onBack}
+          refreshClient={refreshClient}
           onComplete={onComplete}
         />
       ) : null}

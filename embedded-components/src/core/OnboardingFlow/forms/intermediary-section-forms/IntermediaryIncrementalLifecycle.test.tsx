@@ -19,7 +19,7 @@ import { useFlowContext } from '@/core/OnboardingFlow/contexts/FlowContext/FlowC
 import { createOrReuseIntermediaryChain } from '@/core/OnboardingFlow/screens/OwnersSectionScreen/OwnersSectionScreen';
 
 /**
- * End-to-end coverage for the incremental intermediary lifecycle (SMBDO-15013):
+ * End-to-end coverage for the incremental intermediary lifecycle:
  * an intermediary organization is created first as a draft (name + defaults
  * only), then its required fields are completed later through an update to the
  * same party — the draft-to-complete lifecycle the reviewer accepted as the

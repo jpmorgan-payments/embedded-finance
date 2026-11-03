@@ -15,8 +15,11 @@ export const useContactDetailsFormSchema = () => {
     controllerEmail: z
       .string()
       .min(1, v('controllerEmail', 'required'))
-      .email(v('controllerEmail', 'invalid'))
-      .max(100, v('controllerEmail', 'maxLength')),
+      .pipe(
+        z
+          .email(v('controllerEmail', 'invalid'))
+          .max(100, v('controllerEmail', 'maxLength'))
+      ),
     controllerPhone: PhoneSchema,
     individualAddress: AddressSchema,
   });

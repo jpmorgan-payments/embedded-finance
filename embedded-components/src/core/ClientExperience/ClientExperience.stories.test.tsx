@@ -6,45 +6,54 @@ import { describe, expect, test, vi } from 'vitest';
 
 import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
-import * as stories from './ClientExperience.story';
+import * as approvedProfileStories from './stories/ClientExperience.ApprovedProfile.story';
+import * as maintenanceStories from './stories/ClientExperience.Maintenance.story';
+import * as onboardingStories from './stories/ClientExperience.Onboarding.story';
 
-// The load failure story retries by design; ClientExperience.test.tsx covers it.
-const { ClientLoadFailure: _clientLoadFailure, ...routedStories } =
-  composeStories(stories);
-
-const expectedKinds: Record<keyof typeof routedStories, string> = {
-  OnboardingInProgress: 'onboarding',
-  OnboardingUnderReview: 'onboarding',
-  ApprovedProfile: 'approved-profile',
-  ActiveMaintenanceRequest: 'maintenance',
-  UnreviewedPartyRoutesToOnboarding: 'onboarding',
-};
+// Loading and error stories never resolve a route; ClientExperience.test.tsx covers them.
+const groups = [
+  {
+    stories: composeStories(onboardingStories),
+    expected: () => ({ kind: 'onboarding' }),
+  },
+  {
+    stories: composeStories(approvedProfileStories),
+    expected: (storyName: string) => ({
+      kind: 'approved-profile',
+      hasMaintenanceHistory: storyName.startsWith('After'),
+    }),
+  },
+  {
+    stories: composeStories(maintenanceStories),
+    expected: () => ({ kind: 'maintenance' }),
+  },
+];
 
 describe('ClientExperience stories', () => {
-  Object.entries(routedStories).forEach(([storyName, Story]) => {
-    test(`${storyName} resolves to ${expectedKinds[storyName as keyof typeof routedStories]}`, async () => {
-      server.use(
-        ...(Story.parameters as { msw: { handlers: HttpHandler[] } }).msw
-          .handlers
-      );
-      await Story.load();
-      const onExperienceResolved = vi.fn();
+  groups.forEach(({ stories, expected }) => {
+    Object.entries(stories).forEach(([storyName, Story]) => {
+      test(`${storyName} resolves to ${expected(storyName).kind}`, async () => {
+        server.use(
+          ...(Story.parameters as { msw: { handlers: HttpHandler[] } }).msw
+            .handlers
+        );
+        await Story.load();
+        const onExperienceResolved = vi.fn();
 
-      render(
-        <EBComponentsProvider apiBaseUrl="" clientId={Story.args.clientId}>
-          <Story onExperienceResolved={onExperienceResolved} />
-        </EBComponentsProvider>
-      );
+        render(
+          <EBComponentsProvider apiBaseUrl="" clientId={Story.args.clientId}>
+            <Story onExperienceResolved={onExperienceResolved} />
+          </EBComponentsProvider>
+        );
 
-      await waitFor(
-        () =>
-          expect(onExperienceResolved).toHaveBeenCalledWith(
-            expect.objectContaining({
-              kind: expectedKinds[storyName as keyof typeof routedStories],
-            })
-          ),
-        { timeout: 5000 }
-      );
+        await waitFor(
+          () =>
+            expect(onExperienceResolved).toHaveBeenCalledWith(
+              expected(storyName)
+            ),
+          { timeout: 5000 }
+        );
+      });
     });
   });
 });

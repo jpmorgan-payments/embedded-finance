@@ -1,8 +1,11 @@
 import { i18n } from '@/i18n/config';
+import { efClientCorpEBMock } from '@/mocks/efClientCorpEB.mock';
 import { server } from '@/msw/server';
+import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { render, screen, userEvent, waitFor } from '@test-utils';
 
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 import { OnboardingFlow } from '@/core/OnboardingFlow';
 import { OnboardingFlowProps } from '@/core/OnboardingFlow/types/onboarding.types';
 
@@ -30,9 +33,8 @@ describe('OnboardingFlow', () => {
     // Reset MSW handlers before each test
     server.resetHandlers();
 
-    // Suppress React hook order warnings in development mode
-    // These warnings occur because different screen components have different hook counts,
-    // which is expected and intentional in a multi-screen flow application.
+    // Hook-order warnings are kept out of the output but still recorded; a
+    // warning means a real Rules of Hooks bug (see the hook order test below).
     const originalError = console.error;
     vi.spyOn(console, 'error').mockImplementation((...args) => {
       if (
@@ -47,6 +49,49 @@ describe('OnboardingFlow', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  test('keeps the same hook order while an existing client loads', async () => {
+    server.use(
+      http.get(`/clients/${efClientCorpEBMock.id}`, () =>
+        HttpResponse.json({
+          ...efClientCorpEBMock,
+          status: 'INFORMATION_REQUESTED',
+          outstanding: {
+            ...efClientCorpEBMock.outstanding,
+            attestationDocumentIds: [],
+            questionIds: [],
+          },
+        })
+      ),
+      http.get('/document-requests', () =>
+        HttpResponse.json({ documentRequests: [] })
+      )
+    );
+
+    render(
+      <EBComponentsProvider apiBaseUrl="/" clientId={efClientCorpEBMock.id}>
+        <OnboardingFlow
+          availableProducts={['EMBEDDED_PAYMENTS']}
+          availableJurisdictions={['US']}
+          docUploadOnlyMode
+          hideSidebar
+        />
+      </EBComponentsProvider>
+    );
+
+    expect(
+      await screen.findByText(/no document requests found/i)
+    ).toBeInTheDocument();
+    expect(
+      vi
+        .mocked(console.error)
+        .mock.calls.some(
+          ([message]) =>
+            typeof message === 'string' &&
+            message.includes('change in the order of Hooks')
+        )
+    ).toBe(false);
   });
 
   test('completes end-to-end journey', async () => {

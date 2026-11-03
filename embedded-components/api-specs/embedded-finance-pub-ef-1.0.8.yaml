@@ -4614,7 +4614,7 @@ components:
             Customer Card Information Message
         link:
           type: string
-          example: https://prepaid-dev.jpmchase.net:8801/chp-logon/index.html#/iframecard?id=ZcJ/Vk8ZPKhrE0QZOI35yzL71vB62rvV9yAgUhWqAH/9NL1kjhkfjjhkmerjgVcNLtK1oLnKy6YYv%2BIkhokaSM1b4SLeTl%2B2sqg5kDSYOeA==
+          example: https://example.com/iframecard?id=ZcJ/Vk8ZPKhrE0QZOI35yzL71vB62rvV9yAgUhWqAH/9NL1kjhkfjjhkmerjgVcNLtK1oLnKy6YYv%2BIkhokaSM1b4SLeTl%2B2sqg5kDSYOeA==
           description: |
             Link to the Customer Profile
         id:
@@ -4637,7 +4637,7 @@ components:
             Account Identifier/ Payment Routing Number
         link:
           type: string
-          example: https://prepaid-dev.jpmchase.net:8801/chp-logon/index.html#/iframecard?id=ZcJ/Vk8ZPKhrE0QZOI35yzL71vB62rvV9yAgUhWqAH/9NL1kjhkfjjhkmerjgVcNLtK1oLnKy6YYv%2BIkhokaSM1b4SLeTl%2B2sqg5kDSYOeA==
+          example: https://example.com/iframecard?id=ZcJ/Vk8ZPKhrE0QZOI35yzL71vB62rvV9yAgUhWqAH/9NL1kjhkfjjhkmerjgVcNLtK1oLnKy6YYv%2BIkhokaSM1b4SLeTl%2B2sqg5kDSYOeA==
           description: |
             Web link to the Card Holder Profile
     CardUpdateRequest:
@@ -8474,7 +8474,7 @@ components:
         accountId: '501012453095'
         cardHolderID: '580633638893320560990237467298'
         message: XXXX-XXXX-XXXX-2682 card successfully created.
-        link: https://prepaid-dev.jpmchase.net:8801/chp-logon/index.html#/iframecard?id=Oypjp7N2X3Zlo0LtYJ6eXhVq/eDDD1xm6GLjYv1%2BevgyNIRG21lR/DNKe%2BNPLk6s2ifUtBY5R6WDaY44DT8EzGeePAIO9dKvcoRnsCexcYup8V4oa8ZMVw==
+        link: https://example.com/iframecard?id=Oypjp7N2X3Zlo0LtYJ6eXhVq/eDDD1xm6GLjYv1%2BevgyNIRG21lR/DNKe%2BNPLk6s2ifUtBY5R6WDaY44DT8EzGeePAIO9dKvcoRnsCexcYup8V4oa8ZMVw==
         serialNumber: '100001561240'
     setPinPayload:
       summary: Payload to set PIN

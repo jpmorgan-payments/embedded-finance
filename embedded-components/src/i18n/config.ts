@@ -3,10 +3,6 @@ import { cloneDeep } from 'lodash';
 import type { DeepPartial } from 'react-hook-form';
 import { initReactI18next } from 'react-i18next';
 import { z } from 'zod';
-import { zodI18nMap } from 'zod-i18n-map';
-import en_zod from 'zod-i18n-map/locales/en/zod.json';
-import es_zod from 'zod-i18n-map/locales/es/zod.json';
-import fr_zod from 'zod-i18n-map/locales/fr/zod.json';
 
 import enUS_accounts from './en-US/accounts.json';
 import enUS_approvedClientMaintenance from './en-US/approved-client-maintenance.json';
@@ -19,6 +15,7 @@ import enUS_onboardingOverview from './en-US/onboarding-overview.json';
 import enUS_recipients from './en-US/recipients.json';
 import enUS_transactions from './en-US/transactions.json';
 import enUS_validation from './en-US/validation.json';
+import enUS_zod from './en-US/zod.json';
 import esUS_accounts from './es-US/accounts.json';
 import esUS_approvedClientMaintenance from './es-US/approved-client-maintenance.json';
 import esUS_bankAccountForm from './es-US/bank-account-form.json';
@@ -30,6 +27,7 @@ import esUS_onboardingOverview from './es-US/onboarding-overview.json';
 import esUS_recipients from './es-US/recipients.json';
 import esUS_transactions from './es-US/transactions.json';
 import esUS_validation from './es-US/validation.json';
+import esUS_zod from './es-US/zod.json';
 import frCA_accounts from './fr-CA/accounts.json';
 import frCA_approvedClientMaintenance from './fr-CA/approved-client-maintenance.json';
 import frCA_bankAccountForm from './fr-CA/bank-account-form.json';
@@ -41,6 +39,8 @@ import frCA_onboardingOverview from './fr-CA/onboarding-overview.json';
 import frCA_recipients from './fr-CA/recipients.json';
 import frCA_transactions from './fr-CA/transactions.json';
 import frCA_validation from './fr-CA/validation.json';
+import frCA_zod from './fr-CA/zod.json';
+import { zodI18nErrorMap } from './zodErrorMap';
 
 export const defaultResources = {
   enUS: {
@@ -56,7 +56,7 @@ export const defaultResources = {
     accounts: enUS_accounts,
     recipients: enUS_recipients,
     transactions: enUS_transactions,
-    zod: en_zod,
+    zod: enUS_zod,
   },
   frCA: {
     locale: 'fr-CA',
@@ -71,7 +71,7 @@ export const defaultResources = {
     accounts: frCA_accounts,
     recipients: frCA_recipients,
     transactions: frCA_transactions,
-    zod: fr_zod,
+    zod: frCA_zod,
   },
   esUS: {
     locale: 'es-US',
@@ -86,7 +86,7 @@ export const defaultResources = {
     accounts: esUS_accounts,
     recipients: esUS_recipients,
     transactions: esUS_transactions,
-    zod: es_zod,
+    zod: esUS_zod,
   },
 };
 
@@ -109,6 +109,38 @@ export type EBContentTokens = {
 };
 
 export const resources = cloneDeep(defaultResources);
+
+const getLocaleForLanguage = (lng: string | undefined) =>
+  (lng && defaultResources[lng as keyof typeof defaultResources]?.locale) ||
+  'en-US';
+
+/** Custom interpolation formats shared by the global and provider instances. */
+const formatInterpolation = (
+  value: unknown,
+  format: string | undefined,
+  lng: string | undefined
+): string => {
+  if (format === 'inc' && !Number.isNaN(Number(value))) {
+    return String(Number(value) + 1);
+  }
+
+  if (value instanceof Date) {
+    // Format dateOnly as date without time
+    if (format === 'dateOnly') {
+      return value.toLocaleDateString(getLocaleForLanguage(lng), {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    // Used by the `zod` namespace for date range messages
+    if (format === 'datetime') {
+      return value.toLocaleString(getLocaleForLanguage(lng));
+    }
+  }
+
+  return value as string;
+};
 
 /**
  * Global i18n instance - LEGACY
@@ -142,32 +174,11 @@ i18n.use(initReactI18next).init({
   resources,
   interpolation: {
     escapeValue: false,
-    format: (value, format, lng) => {
-      if (format === 'inc') {
-        if (!Number.isNaN(Number(value))) {
-          return Number(value) + 1;
-        }
-      }
-
-      // Format dateOnly as date without time
-      if (format === 'dateOnly' && value instanceof Date) {
-        const locale =
-          (lng &&
-            defaultResources[lng as keyof typeof defaultResources]?.locale) ||
-          'en-US';
-        return value.toLocaleDateString(locale, {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        });
-      }
-
-      return value;
-    },
+    format: formatInterpolation,
   },
 });
 
-z.setErrorMap(zodI18nMap);
+z.config({ customError: zodI18nErrorMap });
 
 export { i18n };
 
@@ -203,28 +214,7 @@ export const createI18nInstance = (
     resources: cloneDeep(defaultResources),
     interpolation: {
       escapeValue: false,
-      format: (value: unknown, format?: string, lng?: string) => {
-        if (format === 'inc') {
-          if (!Number.isNaN(Number(value))) {
-            return String(Number(value) + 1);
-          }
-        }
-
-        // Format dateOnly as date without time
-        if (format === 'dateOnly' && value instanceof Date) {
-          const locale =
-            (lng &&
-              defaultResources[lng as keyof typeof defaultResources]?.locale) ||
-            'en-US';
-          return value.toLocaleDateString(locale, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          });
-        }
-
-        return value as string;
-      },
+      format: formatInterpolation,
     },
   });
 

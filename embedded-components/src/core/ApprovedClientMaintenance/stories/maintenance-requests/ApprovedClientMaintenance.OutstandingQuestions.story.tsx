@@ -17,6 +17,8 @@ import {
 const QUESTION_TREE = ['30005', '30026', '30027', '30088', '30089', '30090'];
 // The same questions without their follow-ups, which the API adds once an answer opens them.
 const TOP_LEVEL_QUESTIONS = ['30005', '30026', '30088'];
+// Request for information questions from the same mock, modeled on ones raised in UAT.
+const RFI_QUESTIONS = ['500096', '500099'];
 
 /**
  * Client-level questions the API lists in `outstanding.questionIds`, before
@@ -104,6 +106,32 @@ export const ProductInformationRequested: Story = {
     client: LLC_WITH_DIRECT_OWNERS,
     productUpgrade: 'INFORMATION_REQUESTED',
     questionIds: QUESTION_TREE,
+  }),
+};
+
+/**
+ * An approved profile with no request open, where review later asked for
+ * answers and a document. A banner at the top lists each task; the profile
+ * stays view-only until "Make changes".
+ */
+export const ApprovedProfileInformationRequested: Story = {
+  parameters: withScenario({
+    client: LLC_WITH_DIRECT_OWNERS,
+    questionIds: RFI_QUESTIONS,
+    documentRequests: [identityDocumentRequest(PETER.id!, 'Peter Pan')],
+  }),
+};
+
+/**
+ * Review asked a question while a draft is open, and the draft raised one of
+ * its own. The banner counts only the question from review; the questions page
+ * lists each kind in its own group.
+ */
+export const DraftWithInformationRequest: Story = {
+  parameters: withScenario({
+    client: LLC_WITH_DIRECT_OWNERS,
+    proposals: [renamePeter()],
+    questionIds: ['30005', '500096'],
   }),
 };
 

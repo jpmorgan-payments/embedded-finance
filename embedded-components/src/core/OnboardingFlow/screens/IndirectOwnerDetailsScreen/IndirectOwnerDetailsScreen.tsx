@@ -1,3 +1,4 @@
+import { useTranslationWithTokens } from '@/i18n';
 import {
   ArrowLeftIcon,
   Building,
@@ -94,43 +95,49 @@ function getPartyCompletionStatus(party: PartyResponse): PartyCompletionStatus {
   return signals.some(Boolean) ? 'incomplete' : 'not-started';
 }
 
-function getPartyDisplayName(party: PartyResponse): string {
+function getPartyDisplayName(
+  party: PartyResponse,
+  fallbacks: { organization: string; owner: string }
+): string {
   if (party.partyType === 'ORGANIZATION') {
     return (
-      party.organizationDetails?.organizationName || 'Unnamed Organization'
+      party.organizationDetails?.organizationName || fallbacks.organization
     );
   }
   const first = party.individualDetails?.firstName || '';
   const last = party.individualDetails?.lastName || '';
-  return `${first} ${last}`.trim() || 'Unnamed Owner';
+  return `${first} ${last}`.trim() || fallbacks.owner;
 }
+
+const SCREEN_KEY = 'screens.indirectOwnerDetails';
 
 const statusConfig: Record<
   PartyCompletionStatus,
   {
-    label: string;
+    labelKey: `${typeof SCREEN_KEY}.status.${'notStarted' | 'incomplete' | 'complete'}`;
     variant: 'default' | 'secondary' | 'outline';
     className: string;
   }
 > = {
   'not-started': {
-    label: 'Not started',
+    labelKey: `${SCREEN_KEY}.status.notStarted`,
     variant: 'outline',
     className: 'eb-border-muted-foreground/50 eb-text-muted-foreground',
   },
   incomplete: {
-    label: 'Incomplete',
+    labelKey: `${SCREEN_KEY}.status.incomplete`,
     variant: 'secondary',
     className: 'eb-border-orange-300 eb-bg-orange-50 eb-text-orange-700',
   },
   complete: {
-    label: 'Complete',
+    labelKey: `${SCREEN_KEY}.status.complete`,
     variant: 'default',
     className: 'eb-border-green-300 eb-bg-green-50 eb-text-green-700',
   },
 };
 
 export const IndirectOwnerDetailsScreen = () => {
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
   const { clientData } = useOnboardingContext();
   const { goTo } = useFlowContext();
 
@@ -138,21 +145,27 @@ export const IndirectOwnerDetailsScreen = () => {
   const intermediaryEntities = getIntermediaryEntities(clientData);
 
   const allParties = [...individualParties, ...intermediaryEntities];
+  const completedCount = allParties.filter(
+    (p) => getPartyCompletionStatus(p) === 'complete'
+  ).length;
   const allComplete =
-    allParties.length > 0 &&
-    allParties.every((p) => getPartyCompletionStatus(p) === 'complete');
+    allParties.length > 0 && completedCount === allParties.length;
 
   const handleEditIndividual = (partyId: string) => {
     goTo('owner-stepper', {
       editingPartyId: partyId,
-      shortLabelOverride: 'Edit owner details',
+      shortLabelOverride: tString(
+        'stepperRenderer.shortLabels.editOwnerDetails'
+      ),
     });
   };
 
   const handleEditOrganization = (partyId: string) => {
     goTo('intermediary-stepper', {
       editingPartyId: partyId,
-      shortLabelOverride: 'Edit intermediary details',
+      shortLabelOverride: tString(
+        'stepperRenderer.shortLabels.editIntermediaryDetails'
+      ),
     });
   };
 
@@ -162,7 +175,7 @@ export const IndirectOwnerDetailsScreen = () => {
 
   return (
     <StepLayout
-      title="Provide Details for Owners & Entities"
+      title={t(`${SCREEN_KEY}.title`)}
       subTitle={
         <Button
           variant="link"
@@ -174,19 +187,19 @@ export const IndirectOwnerDetailsScreen = () => {
           className="eb-h-auto eb-gap-1 eb-p-0 eb-text-sm"
         >
           <ArrowLeftIcon className="eb-size-3.5" />
-          Back to ownership structure
+          {t(`${SCREEN_KEY}.backToOwnershipStructure`)}
         </Button>
       }
-      description="Please provide the required information for each owner and intermediary entity identified in your ownership structure."
+      description={t(`${SCREEN_KEY}.description`)}
     >
       <div className="eb-mt-6 eb-space-y-8">
         {/* Section 1: Individuals that need information collected */}
         <section className="eb-space-y-3">
           <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-            Individuals
+            {t(`${SCREEN_KEY}.individuals.title`)}
           </h3>
           <p className="eb-text-sm eb-text-muted-foreground">
-            Provide personal details for each beneficial owner.
+            {t(`${SCREEN_KEY}.individuals.description`)}
           </p>
           {individualParties.length > 0 ? (
             individualParties.map((party) => {
@@ -196,7 +209,7 @@ export const IndirectOwnerDetailsScreen = () => {
                 <PartyCard
                   key={party.id}
                   party={party}
-                  statusLabel={config.label}
+                  statusLabel={t(config.labelKey)}
                   statusClassName={config.className}
                   icon={<User className="eb-size-5 eb-text-primary" />}
                   onEdit={() => party.id && handleEditIndividual(party.id)}
@@ -205,7 +218,7 @@ export const IndirectOwnerDetailsScreen = () => {
             })
           ) : (
             <p className="eb-text-sm eb-italic eb-text-muted-foreground">
-              No individual owners found.
+              {t(`${SCREEN_KEY}.individuals.empty`)}
             </p>
           )}
         </section>
@@ -213,11 +226,10 @@ export const IndirectOwnerDetailsScreen = () => {
         {/* Section 2: Entities that need information collected */}
         <section className="eb-space-y-3">
           <h3 className="eb-text-sm eb-font-semibold eb-uppercase eb-tracking-wide eb-text-muted-foreground">
-            Intermediary Entities
+            {t(`${SCREEN_KEY}.intermediaryEntities.title`)}
           </h3>
           <p className="eb-text-sm eb-text-muted-foreground">
-            Provide organization details for each intermediary entity through
-            which indirect owners hold their ownership.
+            {t(`${SCREEN_KEY}.intermediaryEntities.description`)}
           </p>
           {intermediaryEntities.length > 0 ? (
             intermediaryEntities.map((party) => {
@@ -227,7 +239,7 @@ export const IndirectOwnerDetailsScreen = () => {
                 <PartyCard
                   key={party.id}
                   party={party}
-                  statusLabel={config.label}
+                  statusLabel={t(config.labelKey)}
                   statusClassName={config.className}
                   icon={<Building className="eb-size-5 eb-text-primary" />}
                   onEdit={() => party.id && handleEditOrganization(party.id)}
@@ -236,15 +248,14 @@ export const IndirectOwnerDetailsScreen = () => {
             })
           ) : (
             <p className="eb-text-sm eb-italic eb-text-muted-foreground">
-              No intermediary entities found.
+              {t(`${SCREEN_KEY}.intermediaryEntities.empty`)}
             </p>
           )}
         </section>
 
         {allParties.length === 0 && (
           <Card className="eb-p-6 eb-text-center eb-text-muted-foreground">
-            No parties found. Please go back and complete your ownership
-            structure first.
+            {t(`${SCREEN_KEY}.noParties`)}
           </Card>
         )}
       </div>
@@ -260,8 +271,11 @@ export const IndirectOwnerDetailsScreen = () => {
           disabled={!allComplete && allParties.length > 0}
         >
           {allComplete
-            ? 'Save and Continue'
-            : `Complete all details to continue (${allParties.filter((p) => getPartyCompletionStatus(p) === 'complete').length}/${allParties.length})`}
+            ? t(`${SCREEN_KEY}.saveAndContinue`)
+            : t(`${SCREEN_KEY}.completeAllToContinue`, {
+                completed: completedCount,
+                total: allParties.length,
+              })}
         </Button>
       </div>
     </StepLayout>
@@ -272,7 +286,7 @@ export const IndirectOwnerDetailsScreen = () => {
 
 interface PartyCardProps {
   party: PartyResponse;
-  statusLabel: string;
+  statusLabel: React.ReactNode;
   statusClassName: string;
   icon: React.ReactNode;
   onEdit: () => void;
@@ -285,16 +299,20 @@ const PartyCard: React.FC<PartyCardProps> = ({
   icon,
   onEdit,
 }) => {
-  const name = getPartyDisplayName(party);
+  const { t, tString } = useTranslationWithTokens(['onboarding-overview']);
+  const name = getPartyDisplayName(party, {
+    organization: tString(`${SCREEN_KEY}.unnamedOrganization`),
+    owner: tString(`${SCREEN_KEY}.unnamedOwner`),
+  });
   const status = getPartyCompletionStatus(party);
   const isOrg = party.partyType === 'ORGANIZATION';
   const isIndirectOwner =
     party.individualDetails?.natureOfOwnership === 'Indirect';
-  let roleLabel = 'Direct Beneficial Owner';
+  let roleLabel = t(`${SCREEN_KEY}.roles.directOwner`);
   if (isOrg) {
-    roleLabel = 'Intermediary Entity';
+    roleLabel = t(`${SCREEN_KEY}.roles.intermediaryEntity`);
   } else if (isIndirectOwner) {
-    roleLabel = 'Indirect Beneficial Owner';
+    roleLabel = t(`${SCREEN_KEY}.roles.indirectOwner`);
   }
 
   return (
@@ -322,7 +340,9 @@ const PartyCard: React.FC<PartyCardProps> = ({
         </Badge>
         <Button variant="outline" size="sm" onClick={onEdit}>
           <PencilIcon className="eb-size-3.5" />
-          {status === 'not-started' ? 'Start' : 'Edit'}
+          {status === 'not-started'
+            ? t(`${SCREEN_KEY}.actions.start`)
+            : t(`${SCREEN_KEY}.actions.edit`)}
         </Button>
       </div>
     </Card>

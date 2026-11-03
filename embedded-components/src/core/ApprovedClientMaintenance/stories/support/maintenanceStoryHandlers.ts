@@ -1,4 +1,8 @@
-import { efClientQuestionsMock } from '@/mocks/efClientQuestions.mock';
+import {
+  efClientQuestionsMock,
+  matchesQuestionCategory,
+  withoutCategory,
+} from '@/mocks/efClientQuestions.mock';
 import { http, HttpResponse, type HttpHandler } from 'msw';
 
 import type {
@@ -251,14 +255,20 @@ export function createMaintenanceStoryHandlers(
           { status: 503 }
         );
       }
-      const questionIds = (
-        new URL(request.url).searchParams.get('questionIds') ?? ''
-      ).split(',');
+      const url = new URL(request.url);
+      const questionIds = (url.searchParams.get('questionIds') ?? '').split(
+        ','
+      );
+      const questions = efClientQuestionsMock.questions
+        .filter(
+          (question) =>
+            questionIds.includes(question.id) &&
+            matchesQuestionCategory(question, url)
+        )
+        .map(withoutCategory);
       return HttpResponse.json({
-        metadata: efClientQuestionsMock.metadata,
-        questions: efClientQuestionsMock.questions.filter((question) =>
-          questionIds.includes(question.id)
-        ),
+        metadata: { page: 0, limit: 25, total: questions.length },
+        questions,
       });
     }),
     http.get('/documents/:documentId', ({ params }) =>

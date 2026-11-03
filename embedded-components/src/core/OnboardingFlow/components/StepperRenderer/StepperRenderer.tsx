@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslationWithTokens } from '@/i18n';
 import { defineStepper } from '@stepperize/react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -23,8 +23,10 @@ import { Badge, Button, Form } from '@/components/ui';
 import { StepLayout, StepsReviewCards } from '@/core/OnboardingFlow/components';
 import { partyFieldMap } from '@/core/OnboardingFlow/config';
 import {
+  ReadonlyFieldsScopeContext,
   useFlowContext,
   useOnboardingContext,
+  type ReadonlyFieldsScope,
 } from '@/core/OnboardingFlow/contexts';
 import { useFlowUnsavedChangesSync } from '@/core/OnboardingFlow/hooks/useFlowUnsavedChangesSync';
 import { useStableStepSchemas } from '@/core/OnboardingFlow/hooks/useStableStepSchemas';
@@ -592,9 +594,26 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
     savedFormValues,
     saveFormValue,
     currentScreenId,
+    sections,
     isFormSubmitting: isFormSubmittingContext,
     setIsFormSubmitting,
   } = useFlowContext();
+
+  const readonlyFieldsScope = useMemo<ReadonlyFieldsScope>(
+    () => ({
+      party: existingPartyData,
+      // A party not yet created has no roles, so fall back to the section's
+      // party filter (the personal section always edits the controller).
+      isController:
+        !!existingPartyData?.roles?.includes('CONTROLLER') ||
+        !!sections
+          .find((s) => s.id === currentScreenId)
+          ?.stepperConfig?.associatedPartyFilters?.roles?.includes(
+            'CONTROLLER'
+          ),
+    }),
+    [existingPartyData, sections, currentScreenId]
+  );
 
   const formValuesFromResponse = existingPartyData
     ? convertPartyResponseToFormValues(existingPartyData)
@@ -1015,7 +1034,9 @@ const StepperFormStep: React.FC<StepperFormStepProps> = ({
         className="eb-flex eb-flex-auto eb-flex-col"
       >
         <div className="eb-flex-auto">
-          <Component currentPartyData={existingPartyData} />
+          <ReadonlyFieldsScopeContext.Provider value={readonlyFieldsScope}>
+            <Component currentPartyData={existingPartyData} />
+          </ReadonlyFieldsScopeContext.Provider>
         </div>
         <div className="eb-mt-6 eb-space-y-6">
           <ServerErrorAlert error={clientUpdateError || partyUpdateError} />

@@ -31,7 +31,7 @@ The `experienceType` parameter controls which hosted UI is rendered inside the i
 | `HOSTED_DOC_UPLOAD_ONBOARDING_UI` | Document upload step of the onboarding process                                 |
 | `HOSTED_LINKED_ACCOUNTS_UI`       | Standalone linked bank account management, including microdeposit verification |
 
-> **Default:** If no `experienceType` is specified, the default is `HOSTED_DOC_UPLOAD_ONBOARDING_UI`.
+> **Default:** If no `experienceType` is specified, the default is `HOSTED_ONBOARDING_UI`.
 
 ## Installation
 
@@ -132,7 +132,7 @@ new PartiallyHostedUIComponent(config);
 | Parameter                    | Type      | Required | Description                                                                                                                      |
 | ---------------------------- | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `config.sessionToken`        | `string`  | ✅ Yes   | JWT session token from your backend                                                                                              |
-| `config.experienceType`      | `string`  | ❌ No    | Type of experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_DOC_UPLOAD_ONBOARDING_UI'` |
+| `config.experienceType`      | `string`  | ❌ No    | Type of experience (see [Supported Experience Types](#supported-experience-types)). Default: `'HOSTED_ONBOARDING_UI'` |
 | `config.baseUrl`             | `string`  | ❌ No    | Base URL for hosted UI (default: production URL)                                                                                 |
 | `config.theme`               | `object`  | ❌ No    | Theme configuration object                                                                                                       |
 | `config.contentTokens`       | `object`  | ❌ No    | Content localization tokens                                                                                                      |

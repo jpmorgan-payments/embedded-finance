@@ -1,6 +1,7 @@
 import { useTranslationWithTokens } from '@/i18n';
 import { ChevronRightIcon, Loader2Icon, UserPlusIcon } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { ServerErrorAlert } from '@/components/ServerErrorAlert';
 import { Button } from '@/components/ui';
 
@@ -12,6 +13,13 @@ import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
+import {
+  CHANGE_CARD_CLASS,
+  CHANGE_HEADER_CLASS,
+  HEADER_CLASS,
+  MaintenanceChangeEyebrow,
+  PAGE_CLASS,
+} from './MaintenanceChangeEyebrow';
 import { MaintenanceEntityMedallion } from './MaintenanceEntityMedallion';
 import { MaintenancePageBody } from './MaintenancePageBody';
 import { MaintenanceViewNavigation } from './MaintenanceViewNavigation';
@@ -56,12 +64,13 @@ export function MaintenanceControllerReplacementView({
   };
 
   return (
-    <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background">
-      <header className="eb-border-b eb-px-4 eb-py-4">
+    <div className={cn(PAGE_CLASS, CHANGE_CARD_CLASS)}>
+      <header className={cn(HEADER_CLASS, CHANGE_HEADER_CLASS)}>
         <MaintenanceBreadcrumb
           items={breadcrumbs}
           ariaLabel={tString('navigation.breadcrumbLabel')}
         />
+        <MaintenanceChangeEyebrow />
         <h2 className="eb-text-lg eb-font-semibold">
           {t('controllerReplacement.title')}
         </h2>

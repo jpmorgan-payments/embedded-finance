@@ -9,13 +9,11 @@ export const useMicrodepositsFormSchema = () => {
 
   const MicrodepositsFormSchema = z.object({
     amount1: z.coerce
-      .number({
-        required_error: tString(
-          'forms.microdeposits.amount1.validation.required'
-        ),
-        invalid_type_error: tString(
-          'forms.microdeposits.amount1.validation.invalid'
-        ),
+      .number<number>({
+        error: (issue) =>
+          issue.input === undefined
+            ? tString('forms.microdeposits.amount1.validation.required')
+            : tString('forms.microdeposits.amount1.validation.invalid'),
       })
       .min(0.01, tString('forms.microdeposits.amount1.validation.min'))
       .max(0.99, tString('forms.microdeposits.amount1.validation.max'))
@@ -27,13 +25,11 @@ export const useMicrodepositsFormSchema = () => {
         { message: tString('forms.microdeposits.amount1.validation.decimals') }
       ),
     amount2: z.coerce
-      .number({
-        required_error: tString(
-          'forms.microdeposits.amount2.validation.required'
-        ),
-        invalid_type_error: tString(
-          'forms.microdeposits.amount2.validation.invalid'
-        ),
+      .number<number>({
+        error: (issue) =>
+          issue.input === undefined
+            ? tString('forms.microdeposits.amount2.validation.required')
+            : tString('forms.microdeposits.amount2.validation.invalid'),
       })
       .min(0.01, tString('forms.microdeposits.amount2.validation.min'))
       .max(0.99, tString('forms.microdeposits.amount2.validation.max'))

@@ -54,7 +54,9 @@ import {
 import type { OnboardingFormValuesSubmit } from '@/core/OnboardingFlow/types/form.types';
 import {
   asPlainString,
+  clientHasRequestedQuestions,
   formatQuestionResponse,
+  getOnboardingQuestionIds,
   getOrganizationParty,
   getPartyName,
 } from '@/core/OnboardingFlow/utils/dataUtils';
@@ -251,9 +253,18 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     stableStepSchemas
   );
 
-  // Get outstanding question IDs and existing question responses
-  const outstandingQuestionIds = clientData?.outstanding?.questionIds ?? [];
-  const existingQuestionResponses = clientData?.questionResponses ?? [];
+  // Questions from a request for information aren't part of the application.
+  const outstandingQuestionIds = getOnboardingQuestionIds(
+    clientData,
+    sessionData.rfiQuestionIds
+  );
+  const existingQuestionResponses = (
+    clientData?.questionResponses ?? []
+  ).filter(
+    (response) =>
+      !response.questionId ||
+      !sessionData.rfiQuestionIds?.includes(response.questionId)
+  );
 
   // Use the same question-tree hook as the OperationalDetailsForm so both
   // screens always render the exact same set of questions (including deeply
@@ -299,11 +310,17 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
     stableStepSchemas
   );
 
-  const isMissingDetails = sectionIdsToReview
+  const hasMissingSectionDetails = sectionIdsToReview
     .filter((id) => sections.some((section) => section.id === id))
     .some((sectionId) => {
       return sectionStatuses[sectionId] !== 'completed';
     });
+  // Once submitted, the review team's questions leave the flow, so they're answered first.
+  const hasRequestedQuestions = clientHasRequestedQuestions(
+    clientData,
+    sessionData.rfiQuestionIds
+  );
+  const isMissingDetails = hasMissingSectionDetails || hasRequestedQuestions;
 
   const [shouldDisplayAlert, setShouldDisplayAlert] = useState(false);
 
@@ -611,10 +628,25 @@ export const ReviewForm: React.FC<StepperStepProps> = ({
                 {t('reviewAndAttest.thereIsAProblem', 'There is a problem')}
               </AlertTitle>
               <AlertDescription>
-                {t(
-                  'reviewAndAttest.provideMissingDetails',
-                  'Please provide missing details before finishing your application.'
-                )}
+                {hasMissingSectionDetails
+                  ? t(
+                      'reviewAndAttest.provideMissingDetails',
+                      'Please provide missing details before finishing your application.'
+                    )
+                  : null}
+                {hasRequestedQuestions ? (
+                  <p className="eb-flex eb-flex-wrap eb-items-center eb-gap-x-2">
+                    {t('reviewAndAttest.answerRequestedQuestions')}
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="eb-h-auto eb-p-0"
+                      onClick={() => goTo('requested-questions-section')}
+                    >
+                      {t('reviewAndAttest.goToRequestedQuestions')}
+                    </Button>
+                  </p>
+                ) : null}
               </AlertDescription>
             </Alert>
           )}

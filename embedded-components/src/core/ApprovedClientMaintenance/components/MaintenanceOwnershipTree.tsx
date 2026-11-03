@@ -54,6 +54,7 @@ export function MaintenanceOwnershipTree({
   previousParentIds,
   getPartyStatus,
   getPartyActions,
+  actionMenuText,
   onSelectOwner,
   onSelectBusiness,
   onAddBeneficialOwner,
@@ -69,6 +70,8 @@ export function MaintenanceOwnershipTree({
   previousParentIds?: ReadonlyMap<string, string>;
   getPartyStatus?: (partyId: string) => MaintenancePartyStatus | undefined;
   getPartyActions?: (partyId: string) => OwnershipNodeAction[];
+  /** Shows each node's menu as a labelled button instead of an icon. */
+  actionMenuText?: string;
   onSelectOwner?: (partyId: string) => void;
   onSelectBusiness?: (partyId: string) => void;
   onAddBeneficialOwner?: (parentPartyId: string) => void;
@@ -341,6 +344,7 @@ export function MaintenanceOwnershipTree({
                   >
                     <MaintenanceActionMenu
                       label={tString('ownership.nodeMenu', { name: nodeName })}
+                      triggerText={actionMenuText}
                       actions={actions}
                     />
                   </div>

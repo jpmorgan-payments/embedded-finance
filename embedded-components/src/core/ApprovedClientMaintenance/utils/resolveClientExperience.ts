@@ -19,6 +19,18 @@ type ResolveClientExperienceInput = {
   isMaintenanceComplete: boolean;
 };
 
+const hasOutstandingInformation = (client: MaintenanceClient) =>
+  (client.outstanding?.questionIds?.length ?? 0) > 0 ||
+  (client.outstanding?.documentRequestIds?.length ?? 0) > 0 ||
+  (client.parties ?? []).some(
+    (party) =>
+      !!party.id &&
+      client.outstanding?.partyIds?.includes(party.id) &&
+      party.validationResponse?.some(
+        (validation) => (validation.documentRequestIds?.length ?? 0) > 0
+      )
+  );
+
 export function resolveClientExperience({
   client,
   maintenanceParties,
@@ -37,6 +49,11 @@ export function resolveClientExperience({
     isActiveMaintenanceStatus(request.status)
   );
   if (hasActiveMaintenance) return { kind: 'maintenance' };
+
+  // An approved client's request for information usually follows a change they asked for.
+  if (client.status === 'APPROVED' && hasOutstandingInformation(client)) {
+    return { kind: 'maintenance' };
+  }
 
   if (getUnreviewedPartyIds(client, maintenanceParties ?? []).size > 0) {
     return { kind: 'onboarding' };

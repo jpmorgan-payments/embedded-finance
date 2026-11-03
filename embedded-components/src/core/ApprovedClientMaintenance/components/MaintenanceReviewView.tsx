@@ -52,6 +52,13 @@ import {
   MaintenanceBreadcrumb,
   type MaintenanceBreadcrumbItem,
 } from './MaintenanceBreadcrumb';
+import {
+  CHANGE_CARD_CLASS,
+  CHANGE_HEADER_CLASS,
+  HEADER_CLASS,
+  MaintenanceChangeEyebrow,
+  PAGE_CLASS,
+} from './MaintenanceChangeEyebrow';
 import { MaintenanceChangeTable } from './MaintenanceChangeTable';
 import { MaintenanceDocumentRequestRow } from './MaintenanceDocumentRequestRow';
 import { MaintenancePageBody } from './MaintenancePageBody';
@@ -816,13 +823,17 @@ export function MaintenanceReviewView({
     </>
   );
 
+  // Reviewing a draft of profile changes is the last step of requesting them.
+  const isChangeStep = mode === 'draft' && updateScope !== 'product';
+
   return (
-    <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background">
-      <header className="eb-border-b eb-px-4 eb-py-4">
+    <div className={cn(PAGE_CLASS, isChangeStep && CHANGE_CARD_CLASS)}>
+      <header className={cn(HEADER_CLASS, isChangeStep && CHANGE_HEADER_CLASS)}>
         <MaintenanceBreadcrumb
           items={breadcrumbs}
           ariaLabel={tString('navigation.breadcrumbLabel')}
         />
+        {isChangeStep ? <MaintenanceChangeEyebrow /> : null}
         <h2
           ref={headingRef}
           tabIndex={-1}

@@ -194,7 +194,7 @@ describe('PTC Feature — End-to-End User Journey', () => {
       expect(screen.getByText(/Exchange:.*New York/i)).toBeInTheDocument();
     });
 
-    // SMBDO-11695: skipped due to CI timing flake (re-enabled accidentally by a "sync latest" merge).
+    // Skipped due to CI timing flake (re-enabled accidentally by a "sync latest" merge).
     test.skip('user selects LLC (subsidiary-only eligible), answers "Yes, subsidiary", fills parent company info', async () => {
       const user = userEvent.setup();
       renderOnboardingFlow();

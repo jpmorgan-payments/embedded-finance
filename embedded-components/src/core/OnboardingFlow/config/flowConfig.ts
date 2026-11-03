@@ -44,6 +44,7 @@ import {
   clientHasRequestedDocuments,
   clientHasRequestedQuestions,
   getActiveOwners,
+  getOnboardingQuestionIds,
   getOrganizationParty,
   isInformationRequestStatus,
   isUSExchangePTC,
@@ -455,9 +456,10 @@ const sectionScreens: SectionScreenConfig[] = [
         'screens.additionalQuestionsSection.requirementsList.0',
         'screens.additionalQuestionsSection.requirementsList.1',
       ],
-      statusResolver: (_sessionData, clientData) => {
+      statusResolver: (sessionData, clientData) => {
         const sectionCompleted =
-          clientData?.outstanding?.questionIds?.length === 0;
+          getOnboardingQuestionIds(clientData, sessionData.rfiQuestionIds)
+            .length === 0;
         if (
           clientData?.status === 'INFORMATION_REQUESTED' ||
           clientData?.status === 'REVIEW_IN_PROGRESS' ||
@@ -480,6 +482,36 @@ const sectionScreens: SectionScreenConfig[] = [
       },
     },
     Component: OperationalDetailsForm,
+  },
+  {
+    id: 'requested-questions-section',
+    isSection: true,
+    type: 'component',
+    sectionConfig: {
+      labelKey: 'screens.requestedQuestionsSection.label',
+      icon: MessageSquareTextIcon,
+      requirementsListKeys: [
+        'screens.requestedQuestionsSection.requirementsList.0',
+      ],
+      // Request for Information (RFI) questions: the ones the API files as RFI
+      // before submission, and every outstanding question during review
+      // (INFORMATION_REQUESTED) or after approval (APPROVED).
+      statusResolver: (sessionData, clientData) => {
+        if (
+          clientHasRequestedQuestions(clientData, sessionData.rfiQuestionIds)
+        ) {
+          return 'not_started';
+        }
+        if (
+          isInformationRequestStatus(clientData) &&
+          sessionData.requestedQuestionsSubmitted
+        ) {
+          return 'completed_disabled';
+        }
+        return 'hidden';
+      },
+    },
+    Component: RequestedQuestionsScreen,
   },
   {
     id: 'review-attest-section',
@@ -527,34 +559,6 @@ const sectionScreens: SectionScreenConfig[] = [
         },
       ],
     },
-  },
-  {
-    id: 'requested-questions-section',
-    isSection: true,
-    type: 'component',
-    sectionConfig: {
-      labelKey: 'screens.requestedQuestionsSection.label',
-      icon: MessageSquareTextIcon,
-      requirementsListKeys: [
-        'screens.requestedQuestionsSection.requirementsList.0',
-      ],
-      // Request for Information (RFI) questions, raised during review
-      // (INFORMATION_REQUESTED) or after approval (APPROVED). Onboarding
-      // questions use the operational details section instead.
-      statusResolver: (sessionData, clientData) => {
-        if (clientHasRequestedQuestions(clientData)) {
-          return 'not_started';
-        }
-        if (
-          isInformationRequestStatus(clientData) &&
-          sessionData.requestedQuestionsSubmitted
-        ) {
-          return 'completed_disabled';
-        }
-        return 'hidden';
-      },
-    },
-    Component: RequestedQuestionsScreen,
   },
   {
     id: 'upload-documents-section',

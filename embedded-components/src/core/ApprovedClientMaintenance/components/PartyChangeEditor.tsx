@@ -200,8 +200,11 @@ export function PartyChangeEditor({
       email: z
         .string()
         .min(1, getValidationMessage('controllerEmail', 'required'))
-        .email(getValidationMessage('controllerEmail', 'invalid'))
-        .max(100, getValidationMessage('controllerEmail', 'maxLength')),
+        .pipe(
+          z
+            .email(getValidationMessage('controllerEmail', 'invalid'))
+            .max(100, getValidationMessage('controllerEmail', 'maxLength'))
+        ),
       phone: z.object({
         phoneType: z.string(),
         countryCode: z.string(),
@@ -216,14 +219,14 @@ export function PartyChangeEditor({
       const birthDateIssue = getBirthDateValidationIssue(values.birthDate);
       if (birthDateIssue) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['birthDate'],
           message: getValidationMessage('birthDate', birthDateIssue),
         });
       }
       if (values.jobTitle === 'Other' && !values.jobTitleDescription) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['jobTitleDescription'],
           message: getValidationMessage(
             'controllerJobTitleDescription',
@@ -239,7 +242,7 @@ export function PartyChangeEditor({
           );
       if (taxIdIssue) {
         context.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: 'custom',
           path: ['individualId', 'value'],
           message: getValidationMessage('controllerIds.value', taxIdIssue),
         });
@@ -250,7 +253,7 @@ export function PartyChangeEditor({
       if (hasPhone) {
         if (!values.phone.phoneType) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['phone', 'phoneType'],
             message: tString('editor.phoneIncomplete'),
           });
@@ -261,7 +264,7 @@ export function PartyChangeEditor({
           )
         ) {
           context.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             path: ['phone', 'phoneNumber'],
             message: getValidationMessage(
               'controllerPhone.phoneNumber',

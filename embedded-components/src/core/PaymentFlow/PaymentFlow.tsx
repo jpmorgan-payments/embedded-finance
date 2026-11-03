@@ -3091,7 +3091,7 @@ export function PaymentFlowInline({
     0;
 
   // Extract usable accounts from response. Closed accounts cannot be used as a
-  // payment source, so exclude them from the "From" selector (SMBDO-11730).
+  // payment source, so exclude them from the "From" selector.
   const accounts: AccountResponse[] = useMemo(
     () =>
       accountsData?.items?.filter(

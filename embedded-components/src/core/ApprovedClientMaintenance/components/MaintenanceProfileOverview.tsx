@@ -9,11 +9,10 @@ import {
   Clock3Icon,
   FileTextIcon,
   InfoIcon,
+  MessageSquareTextIcon,
   PackagePlusIcon,
   PencilLineIcon,
   Undo2Icon,
-  UserRoundCogIcon,
-  UserRoundPlusIcon,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -43,6 +42,7 @@ import {
   type MaintenanceProductState,
   type MaintenanceSubProductItem,
 } from './MaintenanceProductFamily';
+import { MaintenanceRequestChangeButton } from './MaintenanceRequestChangeButton';
 import { ProductCancellationDialog } from './ProductCancellationDialog';
 
 type MaintenanceProfileOverviewProps = {
@@ -65,18 +65,32 @@ type MaintenanceProfileOverviewProps = {
   onSelectOrganization: () => void;
   onSelectParty: (partyId: string) => void;
   onSelectIntermediary: (partyId: string) => void;
+  /** Starts a change request; omitted while the profile can't change. */
+  onRequestChange?: () => void;
   onAddProduct: () => void;
   onCancelProductAddition?: () => Promise<void>;
   /** Omitted when the business has no ownership structure, such as a sole proprietorship. */
   onManageOwnership?: () => void;
-  /** Shortcuts to common changes; each is omitted when the change isn't allowed. */
-  onEditBusiness?: () => void;
-  onAddBeneficialOwner?: () => void;
-  onReplaceController?: () => void;
   /** Whether the ownership structure allows adding, moving, or removing businesses. */
   canRestructureOwnership?: boolean;
   onReviewAndSubmit: () => void;
   onViewRequestDetails: () => void;
+  /** Outstanding work from a request for information on an approved profile. */
+  informationRequest?: MaintenanceInformationRequest;
+  onAnswerQuestions?: () => void;
+  onOpenRequestedDocument?: (
+    partyId: string | undefined,
+    documentRequestId: string
+  ) => void;
+};
+
+export type MaintenanceInformationRequest = {
+  questionCount: number;
+  documents: Array<{
+    partyId?: string;
+    documentRequestId: string;
+    name: string;
+  }>;
 };
 
 const formatEnumLabel = (value: string) =>
@@ -139,15 +153,16 @@ export function MaintenanceProfileOverview({
   onSelectOrganization,
   onSelectParty,
   onSelectIntermediary,
+  onRequestChange,
   onAddProduct,
   onCancelProductAddition,
   onManageOwnership,
-  onEditBusiness,
-  onAddBeneficialOwner,
-  onReplaceController,
   canRestructureOwnership = false,
   onReviewAndSubmit,
   onViewRequestDetails,
+  informationRequest,
+  onAnswerQuestions,
+  onOpenRequestedDocument,
 }: MaintenanceProfileOverviewProps) {
   const [isProductCancellationOpen, setIsProductCancellationOpen] =
     useState(false);
@@ -410,35 +425,6 @@ export function MaintenanceProfileOverview({
       ).length,
     },
   ].filter((item) => item.count > 0);
-  const homeTasks = [
-    onEditBusiness && {
-      id: 'edit-business',
-      Icon: PencilLineIcon,
-      title: t('home.tasks.editBusiness.title'),
-      description: t('home.tasks.editBusiness.description'),
-      onClick: onEditBusiness,
-    },
-    onAddBeneficialOwner && {
-      id: 'add-owner',
-      Icon: UserRoundPlusIcon,
-      title: t('home.tasks.addOwner.title'),
-      description: t('home.tasks.addOwner.description'),
-      onClick: onAddBeneficialOwner,
-    },
-    onReplaceController && {
-      id: 'replace-controller',
-      Icon: UserRoundCogIcon,
-      title: t('home.tasks.replaceController.title'),
-      description: t('home.tasks.replaceController.description'),
-      onClick: onReplaceController,
-    },
-  ].filter((task) => Boolean(task)) as Array<{
-    id: string;
-    Icon: LucideIcon;
-    title: ReactNode;
-    description: ReactNode;
-    onClick: () => void;
-  }>;
   const renderPartyRows = () =>
     relatedPartyTasks.length > 0 ? (
       <ul className="eb-divide-y">
@@ -562,65 +548,79 @@ export function MaintenanceProfileOverview({
       <div className={CARD_CLASS}>{renderPartyRows()}</div>
     </OverviewPanel>
   );
-  // Shortcuts, not profile content: no card, no micro heading, descriptions for assistive tech only.
-  const tasksPanel =
-    homeTasks.length > 0 ? (
-      <section
-        aria-labelledby="maintenance-home-tasks-heading"
-        data-home-tasks=""
-        className="eb-min-w-0 eb-rounded-md eb-bg-muted/40 eb-p-3"
-      >
-        <h3
-          id="maintenance-home-tasks-heading"
-          className="eb-text-sm eb-font-medium"
-        >
-          {t('home.changesTitle')}
-        </h3>
-        <p className="eb-mt-0.5 eb-text-xs eb-text-muted-foreground">
-          {t('home.changesCaption')}
-        </p>
-        <ul className="-eb-mx-1.5 eb-mt-2">
-          {homeTasks.map(({ id, Icon, title, description, onClick }) => (
-            <li key={id}>
-              <button
-                type="button"
-                data-home-task={id}
-                aria-describedby={`maintenance-home-task-${id}-description`}
-                className="eb-group eb-flex eb-w-full eb-items-center eb-gap-2 eb-rounded eb-px-1.5 eb-py-1.5 eb-text-left eb-text-sm hover:eb-bg-background focus-visible:eb-outline-none focus-visible:eb-ring-2 focus-visible:eb-ring-ring"
-                onClick={onClick}
-              >
-                <Icon
-                  aria-hidden="true"
-                  className="group-hover:eb-text-foreground eb-size-4 eb-shrink-0 eb-text-muted-foreground"
-                />
-                <span className="eb-min-w-0 eb-flex-1 eb-truncate">
-                  {title}
-                </span>
-                <span
-                  id={`maintenance-home-task-${id}-description`}
-                  className="eb-sr-only"
-                >
-                  {description}
-                </span>
-                <ChevronRightIcon
-                  aria-hidden="true"
-                  className="group-hover:eb-opacity-100 group-focus-visible:eb-opacity-100 eb-size-3.5 eb-shrink-0 eb-text-muted-foreground eb-opacity-0"
-                />
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
-    ) : null;
 
   return (
     <div className="eb-component eb-w-full eb-overflow-hidden eb-rounded eb-border eb-bg-background eb-@container">
-      <header className="eb-border-b eb-px-4 eb-py-4">
+      <header className="eb-flex eb-flex-wrap eb-items-start eb-justify-between eb-gap-3 eb-border-b eb-px-4 eb-py-4">
         <div className="eb-min-w-0">
           <h2 className="eb-text-lg eb-font-semibold">{t('flow.title')}</h2>
           <p className="eb-mt-0.5 eb-truncate eb-text-sm">{organizationName}</p>
         </div>
+        {onRequestChange ? (
+          <MaintenanceRequestChangeButton onClick={onRequestChange} />
+        ) : null}
       </header>
+
+      {informationRequest &&
+      (informationRequest.questionCount > 0 ||
+        informationRequest.documents.length > 0) ? (
+        <section
+          aria-labelledby="maintenance-information-request-heading"
+          data-information-request=""
+          className="eb-flex eb-items-start eb-gap-3 eb-border-b eb-border-warning/50 eb-bg-warning-accent eb-px-4 eb-py-3.5"
+        >
+          <AlertTriangleIcon
+            aria-hidden="true"
+            className="eb-mt-0.5 eb-size-5 eb-shrink-0 eb-text-warning-foreground"
+          />
+          <div className="eb-min-w-0 eb-flex-1">
+            <h3
+              id="maintenance-information-request-heading"
+              className="eb-text-sm eb-font-semibold"
+            >
+              {t('informationRequest.title')}
+            </h3>
+            <p className="eb-mt-1 eb-text-sm eb-text-muted-foreground">
+              {t('informationRequest.description')}
+            </p>
+            <ul className="eb-mt-2.5 eb-flex eb-flex-wrap eb-gap-2">
+              {informationRequest.questionCount > 0 && onAnswerQuestions ? (
+                <li>
+                  <Button
+                    size="sm"
+                    data-information-request-task="questions"
+                    onClick={onAnswerQuestions}
+                  >
+                    <MessageSquareTextIcon />
+                    {t('informationRequest.answerQuestions', {
+                      count: informationRequest.questionCount,
+                    })}
+                  </Button>
+                </li>
+              ) : null}
+              {onOpenRequestedDocument
+                ? informationRequest.documents.map(
+                    ({ partyId, documentRequestId, name }) => (
+                      <li key={documentRequestId}>
+                        <Button
+                          size="sm"
+                          variant="outlineSurface"
+                          data-information-request-task="document"
+                          onClick={() =>
+                            onOpenRequestedDocument(partyId, documentRequestId)
+                          }
+                        >
+                          <FileTextIcon />
+                          {t('informationRequest.uploadDocuments', { name })}
+                        </Button>
+                      </li>
+                    )
+                  )
+                : null}
+            </ul>
+          </div>
+        </section>
+      ) : null}
 
       {client.status !== 'APPROVED' ? (
         <section
@@ -979,7 +979,6 @@ export function MaintenanceProfileOverview({
               </p>
             )}
           </OverviewPanel>
-          {tasksPanel}
         </div>
       </div>
 
