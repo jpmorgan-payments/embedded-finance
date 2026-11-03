@@ -10,7 +10,12 @@ import {
   type WindowPoint,
 } from './derive';
 import type { ParsedSeries, RecordedName, ReferrerRow } from './parse';
-import { summarizeReferrers, type ReferrerSummary } from './referrers';
+import {
+  referrerTrend,
+  summarizeReferrers,
+  type ReferrerSummary,
+  type ReferrerTrendPoint,
+} from './referrers';
 import type { RepoSource } from './sources';
 
 export interface RepoView {
@@ -30,6 +35,8 @@ export interface RepoView {
   gaps: Gap[];
   names: RecordedName[];
   referrers: ReferrerSummary;
+  /** Referrals per band for each day; `null` when the referrer file has no dates. */
+  referrerTrend: ReferrerTrendPoint[] | null;
   skippedRows: number;
 }
 
@@ -79,6 +86,11 @@ export function buildRepoView(
     gaps: findGaps(collected),
     names,
     referrers: summarizeReferrers(referrers),
+    referrerTrend: referrerTrend(
+      referrers,
+      collected.map((c) => c.date),
+      new Set(collected.filter((c) => c.observed).map((c) => c.date))
+    ),
     skippedRows: views.skippedRows + clones.skippedRows,
   };
 }

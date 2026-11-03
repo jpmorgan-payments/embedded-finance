@@ -17,7 +17,7 @@ export function daysBetween(from: string, to: string): number {
   );
 }
 
-function eachDay(from: string, to: string): string[] {
+export function eachDay(from: string, to: string): string[] {
   const out: string[] = [];
   for (let d = from; d <= to; d = addDays(d, 1)) out.push(d);
   return out;
