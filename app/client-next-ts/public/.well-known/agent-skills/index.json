@@ -4,9 +4,10 @@
     {
       "name": "efs-components-best-practices",
       "type": "skill-md",
-      "description": "EF&S integration links — REST APIs behind partner platforms; partially hosted onboarding; recipes/webhooks; monorepo as WS reference; released embedded UI + provider wiring.",
-      "url": "https://embedded-finance-dev.com/skills/efs-components-best-practices/SKILL.md",
-      "digest": "sha256:a3d9027c4a43410b1408993900e4b79a4c1cb5d62b4d1200eb135c9426ce27f5"
+      "description": "Integrate J.P. Morgan Embedded Finance & Solutions (EF&S) into a partner platform - Embedded Payments and Digital Onboarding REST APIs, the @jpmorgan-payments/embedded-finance-components React library (EBComponentsProvider, OnboardingFlow, LinkedAccountWidget, RecipientsWidget, PaymentFlow, Accounts, TransactionsDisplay), partially hosted onboarding through session transfer and an iframe, and webhooks. Use when building or debugging an EF&S integration, choosing between REST-only, embedded components, or hosted UI, or looking up the official recipes, OpenAPI specs, and showcase demos.",
+      "url": "/.well-known/agent-skills/efs-components-best-practices/SKILL.md",
+      "digest": "sha256:42b12d0e628fb58ef4fc90a94079dde0e95862d2b9be941520258ea1ee0512b2",
+      "files": ["SKILL.md"]
     }
   ]
 }

@@ -4,17 +4,34 @@ Showcase application for JPMorgan Embedded Finance. Demonstrates the `@jpmorgan-
 
 ## Package Setup
 
-All commands run from this directory (`app/client-next-ts/`):
+All commands run from this directory (`app/client-next-ts/`). The app depends on the library through `file:../../embedded-components`, so run `npm install` and `npm run build` in `embedded-components/` first (CI does the same).
 
-- Install: `yarn install`
-- Dev server: `yarn dev` (http://localhost:3000)
-- Build: `yarn build`
+- Install: `npm install`
+- Dev server: `npm run dev` (http://localhost:3000)
+- Build: `npm run build`
 - Type check: `npx tsc --noEmit`
-- Format: `yarn format`
-- Tests: `yarn test`
-- Coverage (Vitest + `@vitest/coverage-v8`): `yarn test:coverage` (HTML report in `coverage/`). Totals omit auxiliary demos, generated route tree, very large SellSense drawers, TanStack route modules, several embedded shell components, and `msw/browser.ts` (see `vite.config.js` `test.coverage.exclude`).
-- Health checks: `yarn health-check:all`
-- Playwright E2E (optional; hit deployed or local demo): `yarn e2e:sellsense-urls`, `yarn e2e:recipients`, `yarn e2e:onboarding` — use `ONBOARDING_E2E_URL` / `RECIPIENTS_E2E_URL` for non-default bases.
+- Format: `npm run format`
+- Tests: `npm test`
+- Coverage (Vitest + `@vitest/coverage-v8`): `npm run test:coverage` (HTML report in `coverage/`). Totals omit auxiliary demos, generated route tree, very large SellSense drawers, TanStack route modules, several embedded shell components, and `msw/browser.ts` (see `vite.config.js` `test.coverage.exclude`).
+- Health checks: `npm run health-check:all`
+- Playwright E2E (optional; hit deployed or local demo): `npm run e2e:sellsense-urls`, `npm run e2e:recipients`, `npm run e2e:onboarding` — use `ONBOARDING_E2E_URL` / `RECIPIENTS_E2E_URL` for non-default bases.
+
+## Published Agent Skill
+
+The hero's **Install skills** button (`src/components/landing/hero-skill-install-dialog.tsx`) gives users `npx skills add https://embedded-finance-dev.com/ --skill efs-components-best-practices`. The CLI reads:
+
+- `public/.well-known/agent-skills/index.json` - discovery index ([RFC v0.2.0](https://github.com/cloudflare/agent-skills-discovery-rfc) fields `type`/`url`/`digest`, plus a `files` array the `skills` CLI still requires)
+- `public/.well-known/agent-skills/<name>/SKILL.md` - the skill itself
+
+After editing a published `SKILL.md`, update its `digest` (SHA-256 of the file bytes, LF line endings) and `description` in `index.json`. `src/components/landing/agent-skills-index.test.ts` fails and shows the expected digest if they drift.
+
+**Hosting requirement:** the Amplify SPA rewrite must not catch `.md` files, or `/.well-known/agent-skills/**/SKILL.md` is served as `index.html` and installs fail with "not a valid SKILL.md". The rewrite rules live in the Amplify console (not `amplify.yml`); add `md` to the extension allowlist of the `/index.html` rewrite (keep the extensions already listed there), for example:
+
+```
+</^[^.]+$|\.(?!(css|gif|ico|jpg|js|json|map|md|png|svg|txt|ttf|webp|woff|woff2)$)([^.]+$)/>  ->  /index.html  (200)
+```
+
+Check after deploy: `curl -sI https://embedded-finance-dev.com/.well-known/agent-skills/efs-components-best-practices/SKILL.md` should not report `content-type: text/html`.
 
 ## Technology Stack
 

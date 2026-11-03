@@ -1,500 +1,79 @@
 ---
 name: react-patterns
-description: React 18 patterns, hooks best practices, component composition, and optimization techniques. Use when creating hooks, optimizing performance, or following React patterns. Keywords - React, hooks, useState, useEffect, useMemo, useCallback, patterns, composition.
-license: MIT
+description: React conventions specific to embedded-components - Orval-generated React Query hooks and query keys, react-hook-form with translated Zod schema hooks, ServerErrorAlert and useServerError, Skeleton loading, shared hooks, user-event tracking, and React 18/19 compatibility. Use when writing or refactoring components, hooks, data fetching, mutations, or forms in embedded-components.
+license: Apache-2.0
 metadata:
-  version: "2.0.0"
   author: jpmorgan-payments
-  lastUpdated: "2025-12-24"
-  priority: high
 ---
 
-# React Patterns
+# React patterns
 
-React 18 patterns, hooks best practices, component composition, and optimization techniques for the embedded-components repository.
+Where files go is covered by `embedded-banking-architecture`; this skill covers how the code inside them is written.
 
-## When to Apply
+## Data fetching
 
-Reference these patterns when:
-- Creating new React components or hooks
-- Optimizing component performance
-- Implementing state management
-- Handling forms and user input
-- Managing side effects with useEffect
-- Implementing error boundaries
-- Using React Context for state sharing
+Use the Orval-generated React Query hooks; don't hand-write `fetch` or axios calls. Generated requests go through `src/api/use-axios-instance.ts`, which applies the provider's `apiBaseUrl`, `headers`, `queryParams`, and `apiBaseUrlTransforms`.
 
-## Quick Reference
+```tsx
+import { useQueryClient } from '@tanstack/react-query';
 
-### Component Patterns
+import {
+  getSmbdoGetClientQueryKey,
+  useSmbdoGetClient,
+  useSmbdoUpdateClient,
+} from '@/api/generated/smbdo';
 
-- **Functional Components**: Always use `FC` with explicit props
-- **Component Composition**: Use props to control visibility and enable composition
-- **Individual Hook Files**: One hook per file with colocated tests
-
-### Key Patterns
-
-- **Custom Hooks**: Extract reusable logic into individual hook files
-- **React Query**: Use for data fetching with automatic caching
-- **Form Handling**: Use react-hook-form with Zod validation
-- **State Management**: useState for local, useReducer for complex state
-- **Performance**: useMemo for expensive computations, useCallback for callbacks
-- **Error Handling**: Error boundaries and ServerErrorAlert for API errors
-
-## How to Use
-
-For detailed instructions, examples, and patterns:
-
-- **Full guide**: `AGENTS.md` - Complete React patterns documentation
-
-## References
-
-- See `embedded-components/ARCHITECTURE.md` for file structure
-- See `AGENTS.md` for complete React patterns documentation
-
-```typescript
-import { FC } from "react";
-
-export interface ComponentNameProps {
-  /** Clear prop description */
-  title: string;
-  /** Optional prop with default */
-  variant?: "default" | "compact";
-  /** Callback handlers */
-  onAction?: () => void;
-}
-
-export const ComponentName: FC<ComponentNameProps> = ({
-  title,
-  variant = "default",
-  onAction,
-}) => {
-  // Implementation
-  return <div>{title}</div>;
-};
-```
-
-### Component Composition
-
-Use props to control visibility and enable composition:
-
-```typescript
-type ComponentProps = {
-  hideActions?: boolean;
-  customComponent?: React.ReactNode;
-  variant?: "default" | "compact";
-  children?: React.ReactNode;
-};
-
-export const Component: FC<ComponentProps> = ({
-  hideActions = false,
-  customComponent,
-  variant = "default",
-  children,
-}) => {
-  return (
-    <div>
-      {children}
-      {!hideActions && <ActionButtons />}
-      {customComponent}
-    </div>
-  );
-};
-```
-
-## Hook Patterns (Modern 2025)
-
-### Individual Hook Files
-
-```typescript
-// ✅ CORRECT - Individual hook files
-// File: hooks/useComponentData.ts
-import { useQuery } from "@tanstack/react-query";
-
-export function useComponentData(id: string) {
-  return useQuery({
-    queryKey: ["component-data", id],
-    queryFn: () => fetch(`/api/data/${id}`),
-  });
-}
-
-// File: hooks/useComponentData.test.tsx
-import { renderHook, waitFor } from "@testing-library/react";
-import { useComponentData } from "./useComponentData";
-
-describe("useComponentData", () => {
-  test("fetches data", async () => {
-    const { result } = renderHook(() => useComponentData("123"));
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  });
+const { data: client, status, error, refetch } = useSmbdoGetClient(clientId, {
+  query: { enabled: Boolean(clientId) },
 });
 
-// File: hooks/index.ts
-export { useComponentData } from "./useComponentData";
-export { useComponentForm } from "./useComponentForm";
-```
-
-### Custom Hooks
-
-```typescript
-import { useState, useCallback, useEffect } from "react";
-
-interface UseToggleReturn {
-  isOpen: boolean;
-  open: () => void;
-  close: () => void;
-  toggle: () => void;
-}
-
-export function useToggle(initialValue = false): UseToggleReturn {
-  const [isOpen, setIsOpen] = useState(initialValue);
-
-  const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
-  const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
-
-  return { isOpen, open, close, toggle };
-}
-```
-
-### Data Fetching with React Query
-
-```typescript
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSmbdoGetClientQueryKey } from "@/api/generated/smbdo";
-
-// Query
-export function useAccountData(accountId: string) {
-  return useQuery({
-    queryKey: ["account", accountId],
-    queryFn: () => fetch(`/api/accounts/${accountId}`).then((r) => r.json()),
-    enabled: !!accountId, // Only run if accountId exists
-  });
-}
-
-// Mutation with cache invalidation
-export function useUpdateAccount() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: AccountData) => 
-      fetch("/api/accounts", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
-    onSuccess: (response, variables) => {
-      // Invalidate related queries
+const queryClient = useQueryClient();
+const { mutate: updateClient } = useSmbdoUpdateClient({
+  mutation: {
+    onSuccess: () =>
       queryClient.invalidateQueries({
-        queryKey: ["account", variables.id],
-      });
-    },
-  });
-}
-```
-
-## Form Handling
-
-### Basic Form Setup
-
-```typescript
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-const formSchema = z.object({
-  email: z.string().email("Invalid email"),
-  name: z.string().min(1, "Name is required"),
+        queryKey: getSmbdoGetClientQueryKey(clientId),
+      }),
+  },
 });
-
-type FormData = z.infer<typeof formSchema>;
-
-export const FormComponent: FC = () => {
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    mode: "onBlur", // Validates on blur for better UX
-    reValidateMode: "onBlur",
-  });
-
-  const onSubmit = (data: FormData) => {
-    // Handle submission
-  };
-
-  return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
-      {/* Form fields */}
-    </form>
-  );
-};
 ```
 
-### Discriminated Union Schemas
+- Invalidate with the generated `get…QueryKey` helpers, never hand-built arrays.
+- Put mapping or merging of API data in a component hook (for example `TransactionsDisplay/hooks/useTransactionsData.ts`) rather than in the component.
+- Generated types come from `@/api/generated/<spec>.schemas`.
 
-For conditional validation:
+## Loading and errors
 
-```typescript
-import { z } from "zod";
+- Loading: `Skeleton` from `@/components/ui/skeleton`.
+- API errors: `ServerErrorAlert` from `@/components/ServerErrorAlert`, with `error`, optional `customErrorMessage` (a node or a map by status such as `{ '400': ..., default: ... }`), and `tryAgainAction={refetch}`.
+- Custom error UI: `useServerError(error)` from the same module returns the parsed status, title, and reasons.
 
-const baseSchema = z.object({
-  commonField: z.string(),
-});
+## Forms
 
-export const formSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("INDIVIDUAL"),
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-  }).merge(baseSchema),
-  z.object({
-    type: z.literal("ORGANIZATION"),
-    businessName: z.string().min(1, "Business name is required"),
-  }).merge(baseSchema),
-]);
-```
+react-hook-form with `zodResolver` and **Zod 3**. A form's schema lives next to it in `forms/<Form>/<Form>.schema.ts` and is exposed as a hook, so validation messages can be translated:
 
-## State Management
-
-### Local State
-
-```typescript
-import { useState } from "react";
-
-export const Component: FC = () => {
-  const [count, setCount] = useState(0);
-  const [user, setUser] = useState<User | null>(null);
-
-  // Update state
-  setCount((prev) => prev + 1);
-  setUser({ id: 1, name: "John" });
-};
-```
-
-### Complex State
-
-```typescript
-import { useReducer } from "react";
-
-type State = {
-  data: Data[];
-  isLoading: boolean;
-  error: Error | null;
-};
-
-type Action =
-  | { type: "LOADING" }
-  | { type: "SUCCESS"; payload: Data[] }
-  | { type: "ERROR"; error: Error };
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case "LOADING":
-      return { ...state, isLoading: true, error: null };
-    case "SUCCESS":
-      return { ...state, isLoading: false, data: action.payload };
-    case "ERROR":
-      return { ...state, isLoading: false, error: action.error };
-    default:
-      return state;
-  }
-}
-
-export const Component: FC = () => {
-  const [state, dispatch] = useReducer(reducer, {
-    data: [],
-    isLoading: false,
-    error: null,
+```ts
+// OnboardingFlow/forms/personal-section-forms/ContactDetailsForm/ContactDetailsForm.schema.ts
+export const useContactDetailsFormSchema = () => {
+  const v = useGetValidationMessage(); // OnboardingFlow helper over i18n
+  return z.object({
+    controllerEmail: z
+      .string()
+      .min(1, v('controllerEmail', 'required'))
+      .email(v('controllerEmail', 'invalid')),
   });
 };
 ```
 
-## Performance Optimization
+Outside OnboardingFlow, build messages with `tString` from `useTranslationWithTokens`. Cross-field rules go in a separate `refine<Form>Schema` function next to the schema hook.
 
-### Memoization
+## Shared building blocks
 
-```typescript
-import { useMemo, useCallback } from "react";
+- `useDialogState()` from `@/lib/hooks` for open/close state.
+- `useLocale()` from `@/lib/hooks` for formatting (see `i18n-l10n`).
+- `useUserEventTracking({ containerId, userEventsHandler })` from `@/lib/utils/userTracking` wires up the public `userEventsHandler` prop so partners can send user-journey events to their RUM tools. Wire it up in new public components.
+- Text always goes through `useTranslationWithTokens` (see `i18n-l10n`).
 
-export const Component: FC<Props> = ({ data, onAction }) => {
-  // Memoize expensive computations
-  const processedData = useMemo(() => {
-    return data.map((item) => expensiveOperation(item));
-  }, [data]);
+## React 18 and 19
 
-  // Memoize callbacks
-  const handleClick = useCallback(() => {
-    onAction();
-  }, [onAction]);
-
-  return <div onClick={handleClick}>{processedData}</div>;
-};
-```
-
-### React.memo
-
-```typescript
-import { memo } from "react";
-
-export const ExpensiveComponent = memo<Props>(({ data }) => {
-  // Component only re-renders if props change
-  return <div>{data}</div>;
-});
-```
-
-## Side Effects
-
-### useEffect Best Practices
-
-```typescript
-import { useEffect } from "react";
-
-export const Component: FC = () => {
-  // Run once on mount
-  useEffect(() => {
-    console.log("Component mounted");
-    
-    // Cleanup on unmount
-    return () => {
-      console.log("Component unmounted");
-    };
-  }, []);
-
-  // Run when dependencies change
-  useEffect(() => {
-    if (userId) {
-      fetchUserData(userId);
-    }
-  }, [userId]);
-
-  // Avoid: Missing dependencies
-  useEffect(() => {
-    // ❌ Missing dependency warning
-    doSomething(prop);
-  }, []); // Should include [prop]
-};
-```
-
-## Error Handling
-
-### Error Boundaries
-
-```typescript
-import { Component, ErrorInfo, ReactNode } from "react";
-
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-interface State {
-  hasError: boolean;
-}
-
-export class ErrorBoundary extends Component<Props, State> {
-  state = { hasError: false };
-
-  static getDerivedStateFromError(): State {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Error caught:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback || <div>Something went wrong</div>;
-    }
-
-    return this.props.children;
-  }
-}
-```
-
-### API Error Handling
-
-Always use ServerErrorAlert for API errors:
-
-```typescript
-import { ServerErrorAlert } from "@/components/ServerErrorAlert";
-
-<ServerErrorAlert
-  error={apiError}
-  customErrorMessage={{
-    "400": "Please check the information you entered.",
-    "401": "Please log in and try again.",
-    "500": "An unexpected error occurred.",
-    default: "An unexpected error occurred.",
-  }}
-  tryAgainAction={() => refetch()}
-/>
-```
-
-For custom error rendering without the alert UI, use `useServerError`:
-
-```typescript
-import { useServerError } from "@/components/ServerErrorAlert";
-
-const errorInfo = useServerError(error);
-// errorInfo?.httpStatus, title, apiMessage, reasons, context, hasDetails
-// errorInfo?.getErrorMessage({ "404": "Not found", default: "Error" })
-```
-
-## Context Patterns
-
-```typescript
-import { createContext, useContext, FC, ReactNode } from "react";
-
-interface ThemeContext {
-  theme: "light" | "dark";
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContext | undefined>(undefined);
-
-export const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
-  const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  }, []);
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme must be used within ThemeProvider");
-  }
-  return context;
-}
-```
-
-## Best Practices
-
-1. **Use TypeScript** - Strict mode, explicit types
-2. **Functional components** - Always use FC with explicit props
-3. **Individual hook files** - One hook per file with colocated tests
-4. **Memoize appropriately** - useMemo for expensive computations, useCallback for callbacks passed to children
-5. **Handle cleanup** - Always return cleanup function in useEffect
-6. **Provide types** - Export interfaces for all props
-7. **Component composition** - Build complex UI from simple components
-8. **Error boundaries** - Wrap components that might throw
-
-## Anti-Patterns to Avoid
-
-❌ Using class components (use functional components)  
-❌ Missing dependencies in useEffect  
-❌ Not memoizing expensive computations  
-❌ Prop drilling (use context or composition)  
-❌ Mutating state directly  
-❌ Using any type  
-❌ Not handling loading/error states  
-
-## References
-
-- See `embedded-components/ARCHITECTURE.md` for file structure
-- See `AGENTS.md` for complete React patterns documentation
+Development uses React 18, but the peer range is `^18.2.0 || ^19`, so code must run on both: no React 19-only APIs (`use`, `useActionState`, `useOptimistic`, `ref` as a prop) and nothing removed in 19 (`defaultProps` on function components, string refs).

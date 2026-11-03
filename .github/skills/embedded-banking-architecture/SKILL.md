@@ -1,250 +1,76 @@
 ---
 name: embedded-banking-architecture
-description: Core architecture patterns for embedded-components monorepo. Use when creating new components, organizing code structure, or following 2025 React/TypeScript patterns. Keywords - component creation, file structure, hooks, utils, TypeScript, React patterns, monorepo, architecture.
-license: MIT
+description: File layout, public API, and code-placement rules for the embedded-components library (src/core/<Component>, hooks/, utils/, components/, forms/, .types.ts, index.ts, generated API code). Use when creating a component, adding hooks, utils, sub-components, or forms, moving code into shared folders, or deciding what a component exports.
+license: Apache-2.0
 metadata:
-  version: "2.0.0"
   author: jpmorgan-payments
-  lastUpdated: "2025-12-24"
-  priority: critical
 ---
 
-# Embedded Banking Architecture
+# Embedded components architecture
 
-Core architecture patterns for the embedded-components monorepo. This skill provides comprehensive guidance on component structure, file organization, import patterns, and code placement decisions.
+[`embedded-components/ARCHITECTURE.md`](../../../embedded-components/ARCHITECTURE.md) is the source of truth. Read it before creating or reorganizing component code; this skill summarizes it and adds repo facts it doesn't cover.
 
-## When to Apply
+## Where code goes
 
-Reference these patterns when:
-- Creating new components
-- Organizing code structure
-- Following 2025 React/TypeScript patterns
-- Making code placement decisions
-- Defining public APIs
+| New code | Used by one component | Used by two or more |
+| --- | --- | --- |
+| Hook | `src/core/<Component>/hooks/useThing.ts` | `src/lib/hooks/useThing.ts` |
+| Util | `src/core/<Component>/utils/thing.ts` | `src/lib/utils/thing.ts` |
+| UI piece | `src/core/<Component>/components/Thing/Thing.tsx` | `src/components/Thing/` (primitives live in `src/components/ui/`) |
+| Form with a Zod schema | `src/core/<Component>/forms/ThingForm/` | - |
 
-## ⚠️ CRITICAL: Follow ARCHITECTURE.md
+Start local; move code to a shared folder only when a second consumer appears. A UI piece without a `.schema.ts` is a component, not a form.
 
-**ALWAYS review `embedded-components/ARCHITECTURE.md` before generating any component code** - it is the source of truth.
-
-## Repository Structure
-
-Active development is in the `embedded-components/` package:
+## Component folder
 
 ```
-/
-├── app/                    # Showcase web application (not active)
-│   ├── client/            # Frontend React application
-│   └── server/            # Backend server
-└── embedded-components/    # Main UI component library (ACTIVE)
-    ├── src/               # Source code
-    ├── .storybook/        # Storybook configuration
-    └── public/            # Static assets and MSW worker
+src/core/<Component>/
+├── index.ts                  # public API only
+├── <Component>.tsx
+├── <Component>.test.tsx
+├── <Component>.types.ts      # public props only
+├── <Component>.constants.ts  # optional
+├── FUNCTIONAL_REQUIREMENTS.md  # behavior spec, where present
+├── hooks/        useX.ts + useX.test.tsx, index.ts barrel allowed
+├── utils/        x.ts + x.test.ts, index.ts barrel allowed
+├── components/   Sub/Sub.tsx + Sub.test.tsx, no index.ts
+├── forms/        Form/Form.tsx + Form.schema.ts + Form.test.tsx
+└── stories/      <Component>.story.tsx
 ```
 
-## ⚠️ CRITICAL: Follow ARCHITECTURE.md
+## Rules
 
-**All code generation MUST follow the patterns defined in `embedded-components/ARCHITECTURE.md`.**
+- One hook or util per file, with its test next to it, always inside `hooks/` or `utils/`.
+- No aggregation barrels for components: import `./components/Sub/Sub`, not `./components`.
+- `<Component>.types.ts` holds only exported props; internal prop and option types live next to the code that uses them.
+- The root `index.ts` exports the component and its public types only. Library-level exports are added in `src/index.tsx`.
+- Stories use the `.story.tsx` suffix (not `.stories.tsx`).
+- When behavior changes, update the component's `FUNCTIONAL_REQUIREMENTS.md` if it has one.
 
-Before generating any component code:
-1. Read `embedded-components/ARCHITECTURE.md` for complete patterns
-2. Follow the decision tree for code placement
-3. Use the correct directory structure
-4. Export minimal public API only
+## Generated API code
 
-## Core Architecture Principles
+`src/api/generated/` is produced by Orval from `api-specs/*.yaml` (`orval.config.mjs`). Don't edit it by hand; change the spec or config and run `npm run generate-api`.
 
-### 1. Individual Hook/Util Files
+- React Query hooks and query-key getters: `@/api/generated/<spec>` (for example `useSmbdoListClients`, `getSmbdoListClientsQueryKey`).
+- Request/response types: `@/api/generated/<spec>.schemas`.
+- Requests go through `src/api/use-axios-instance.ts`, which applies the provider's `apiBaseUrl`, `headers`, `queryParams`, and `apiBaseUrlTransforms`.
 
-- ✅ Each hook/util in its own file: `useHookName.ts`, `utilName.ts`
-- ✅ Always use `hooks/` and `utils/` directories, even for single files
-- ✅ Tests colocated: `useHookName.test.tsx` next to `useHookName.ts`
-- ❌ NO monolithic files like `ComponentName.hooks.tsx`
+## Pinned majors
 
-### 2. Type Colocation
+Use the APIs of these versions, not newer ones you may know better (exact versions in `embedded-components/package.json`):
 
-- **Central `.types.ts`**: ONLY public API (exported component props)
-- **Component files**: Internal component props/interfaces
-- **Hook files**: Hook options, return types
-- **Util files**: Inline parameter types
+| Library | Major | Watch out for |
+| --- | --- | --- |
+| Tailwind CSS | 3 | Config in `tailwind.config.js` with `prefix: 'eb-'`; no v4 `@theme` or CSS-first config |
+| Zod | 3 | v3 API (`z.string().email()`, `errorMap`), not v4 |
+| TanStack Query | 5 | Object-form options; Orval generates the hooks |
+| React | 18 (peer `^18.2.0 \|\| ^19`) | Must run on both; see `react-patterns` |
+| MSW / Vitest / Storybook | 2 / 4 / 10 | |
 
-```typescript
-// ✅ Public API only
-// ComponentName.types.ts
-export interface ComponentNameProps { ... }
+`app/client-next-ts` is a consumer of this library with its own conventions (unprefixed Tailwind, TanStack Router); see `app/client-next-ts/AGENTS.md`.
 
-// ✅ Internal types colocated
-// components/SubComponent.tsx
-interface SubComponentProps { ... }
+## Related skills
 
-// hooks/useHook.ts
-interface UseHookOptions { ... }
-export function useHook(options: UseHookOptions) { ... }
-```
-
-### 3. No Aggregation Barrels
-
-- ❌ NO `components/index.ts` exporting all components
-- ✅ Direct imports for tree-shaking
-- ✅ Barrel exports ONLY for: `hooks/index.ts`, `utils/index.ts`, component root `index.ts`
-
-## Standard Component Structure
-
-```
-ComponentName/
-├── index.ts                          # Public API exports only
-├── ComponentName.tsx                 # Main component
-├── ComponentName.test.tsx            # Colocated test
-├── ComponentName.types.ts            # Public types ONLY
-├── ComponentName.constants.ts        # Constants
-│
-├── hooks/                            # Individual files (flat)
-│   ├── useData.ts
-│   ├── useData.test.tsx
-│   ├── useForm.ts
-│   ├── useForm.test.tsx
-│   └── index.ts                      # Barrel export
-│
-├── utils/                            # Individual files (flat)
-│   ├── helper.ts
-│   ├── helper.test.ts
-│   └── index.ts                      # Barrel export
-│
-├── components/                       # NO index files
-│   ├── SubCard/
-│   │   ├── SubCard.tsx
-│   │   └── SubCard.test.tsx
-│   └── SubSkeleton/
-│       ├── SubSkeleton.tsx
-│       └── SubSkeleton.test.tsx
-│
-├── forms/                            # Only if .schema.ts exists
-│   └── CreateForm/
-│       ├── CreateForm.tsx
-│       ├── CreateForm.test.tsx
-│       └── CreateForm.schema.ts      # Zod schema
-│
-└── stories/
-    └── ComponentName.story.tsx
-```
-
-## Import Patterns
-
-```typescript
-// ✅ CORRECT - Direct imports (tree-shakeable)
-import { ComponentCard } from "./components/ComponentCard";
-import { ComponentSkeleton } from "./components/ComponentSkeleton";
-import { useComponentData } from "./hooks"; // Can use barrel for convenience
-
-// ❌ WRONG - Aggregation barrel (prevents tree-shaking)
-import { ComponentCard, ComponentSkeleton } from "./components"; // No index.ts!
-```
-
-## Code Organization Decision Tree
-
-```
-New Code?
-  ├─→ Hook?
-  │   ├─→ Used by 2+ components? → src/lib/hooks/useHookName.ts
-  │   └─→ Used by 1 component? → ComponentName/hooks/useHookName.ts
-  │
-  ├─→ Utility?
-  │   ├─→ Used by 2+ components? → src/lib/utils/utilName.ts
-  │   └─→ Used by 1 component? → ComponentName/utils/utilName.ts
-  │
-  ├─→ Component?
-  │   ├─→ Used by 2+ features? → src/components/ComponentName/
-  │   └─→ Used by 1 feature? → ComponentName/components/SubComponent/
-  │
-  ├─→ Form?
-  │   ├─→ Has .schema.ts? → ComponentName/forms/FormName/
-  │   └─→ No schema? → ComponentName/components/DialogName/
-```
-
-## Public API Pattern
-
-**Minimal, explicit exports in component root `index.ts`:**
-
-```typescript
-/**
- * ComponentName - Public API
- */
-
-// Main component
-export { ComponentName } from './ComponentName';
-
-// Public types only
-export type { ComponentNameProps } from './ComponentName.types';
-
-// ❌ DON'T export internals:
-// - Hooks, sub-components, utils, constants
-```
-
-## Technology Stack
-
-- React 18.x with TypeScript (strict mode)
-- Radix UI primitives for base components
-- Tailwind CSS with `eb-` prefix for styling
-- Tanstack React Query v5 for data fetching
-- Zod for validation
-- MSW for API mocking
-- Storybook 8.x for component development
-
-## Component Locations
-
-New components MUST be placed in `embedded-components/src/core/` following the architecture pattern.
-
-## Anti-Patterns to Avoid
-
-❌ Aggregation barrel exports (`components/index.ts`)  
-❌ Generic names in specific places (`RecipientCard.tsx` in `LinkedAccountWidget`)  
-❌ All types in central file (only public API)  
-❌ Forms without schemas (use `components/` instead)  
-❌ Using `&&` in PowerShell (use `;` instead)  
-❌ Missing `eb-` prefix on Tailwind classes  
-
-## Key Principles
-
-✅ Individual files for hooks/utils with colocated tests  
-✅ Direct imports for components (no aggregation barrels)  
-✅ Type colocation - only public API in `.types.ts`  
-✅ Minimal public API - export only what consumers need  
-✅ Start specific - move to shared only when used by 2+ components  
-✅ Forms = schemas - no schema? It's a component, not a form
-
-## Quick Reference
-
-### Core Principles
-
-- ✅ Individual files for hooks/utils with colocated tests
-- ✅ Direct imports for components (no aggregation barrels)
-- ✅ Type colocation - only public API in `.types.ts`
-- ✅ Minimal public API - export only what consumers need
-- ✅ Start specific - move to shared only when used by 2+ components
-
-### Component Structure
-
-```
-ComponentName/
-├── index.ts              # Public API exports only
-├── ComponentName.tsx     # Main component
-├── ComponentName.test.tsx
-├── ComponentName.types.ts
-├── hooks/                # Individual files
-├── utils/                # Individual files
-├── components/           # NO index files
-└── forms/                # Only if .schema.ts exists
-```
-
-## How to Use
-
-For detailed instructions, examples, and patterns:
-
-- **Full guide**: `AGENTS.md` - Complete architecture documentation
-- **Source of truth**: `embedded-components/ARCHITECTURE.md` - Primary reference
-
-## References
-
-- See `embedded-components/ARCHITECTURE.md` for complete patterns
-- See `AGENTS.md` for complete architecture documentation
-- See `.github/skills/component-testing/` for testing patterns
-- See `.github/skills/styling-guidelines/` for CSS patterns
+- `component-testing` for test structure and MSW.
+- `styling-guidelines` for `eb-` classes and tokens.
+- `react-patterns` for data fetching, forms, and errors.

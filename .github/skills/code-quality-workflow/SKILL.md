@@ -1,108 +1,36 @@
 ---
 name: code-quality-workflow
-description: Mandatory code quality workflow that must run after ANY code changes. Use after creating/editing files, before commits, or when fixing errors. Keywords - testing, linting, formatting, typecheck, quality gates, workflow.
-license: MIT
+description: The format, typecheck, lint, test, and build sequence for embedded-components, matching what CI runs, plus how to triage failures. Use after editing .ts or .tsx files (including tests, mocks, and stories), before committing or opening a pull request, or when a typecheck, lint, test, or build step fails locally or in CI.
+license: Apache-2.0
 metadata:
-  version: "2.0.0"
   author: jpmorgan-payments
-  lastUpdated: "2025-12-24"
-  priority: critical
 ---
 
-# Code Quality Workflow
+# Code quality workflow
 
-Mandatory code quality workflow ensuring all code meets standards before commits. This workflow runs automated type checking, formatting, linting, and testing.
+Run everything from `embedded-components/` with npm (the package has a `package-lock.json`).
 
-## When to Apply
+CI (`.github/workflows/buildAndTestEBComponents.yml`) runs `npm ci`, then `npm run build`, `npm run test`, and `npm run storybook:build`. A change is ready when those pass locally.
 
-Use this workflow:
+## After editing code
 
-- After making ANY code changes
-- Before committing code
-- When fixing errors or issues
-- During code review preparation
+1. **Format only the files you touched:** `npx prettier --write <file> <file>`. Prettier also sorts imports. Avoid `npm run format` unless you mean to reformat every `.ts`/`.tsx` file in the package.
+2. **Type check:** `npm run typecheck`. ESLint is not type-aware, so type errors only show up here or in the build.
+3. **Lint:** `npm run lint` (`npm run lint:fix` applies safe fixes). If you changed `className` strings, also run `npm run lint:styles`, the slower opt-in check for the `eb-` prefix and class order.
+4. **Run the tests you affected:** `npx vitest run <path-or-pattern>`.
+5. **Build:** `npm run build`. It runs `tsc` over test files, mocks, and stories as well, and catches typing errors Vitest doesn't (for example a mock with the wrong return type). Run it for test-only changes too.
+6. **Before pushing:** `npm test`, which runs `typecheck`, then `lint`, then the full Vitest suite with coverage. It does not check formatting, and neither does CI, so step 1 is the only formatting gate.
 
-## ⚠️ CRITICAL: Mandatory Steps
+For Storybook-related changes, also run `npm run storybook:build`.
 
-**After making ANY code changes, you MUST:**
+## Triage
 
-1. **Format code**: `cd embedded-components; yarn format`
-2. **Run build**: `cd embedded-components; yarn build` — required for substantive `.ts`/`.tsx` edits **including tests/mocks** (errors may not appear in Vitest alone).
-3. **Run tests**: `cd embedded-components; yarn test`
-4. **Fix any errors that appear**
-5. **Re-run until all pass**
+| Symptom | Likely cause and fix |
+| --- | --- |
+| Missing properties on a generated type | A mock or payload is typed as a `src/api/generated/*.schemas.ts` type; add the required fields or cast a partial mock through `unknown` (see `component-testing`). |
+| Fails only in `npm run build` | A test, mock, or story has a type error; read the `tsc` output path. |
+| Timeout | Usually an unmocked request; check MSW handlers before raising timeouts (config default 20 s; `npm test` uses 45 s with one retry). |
 
-**Large changes** (new components, refactors, many files): run **`yarn typecheck`** immediately before **`yarn build`** when you want an explicit extra gate:  
-`yarn format; yarn typecheck; yarn build; yarn test`.
+## Showcase app
 
-## Quick Reference
-
-### The Test Command
-
-```powershell
-cd embedded-components
-yarn test
-```
-
-This runs in sequence:
-
-1. `typecheck` - TypeScript type checking
-2. `format:check` - Prettier formatting verification
-3. `lint` - ESLint linting
-4. `test:unit` - Vitest unit tests
-
-### Quick Fix Commands
-
-```powershell
-cd embedded-components
-
-# Auto-fix formatting
-yarn format
-
-# Auto-fix linting
-yarn lint:fix
-
-# Check types only
-yarn typecheck
-
-# Full package build — run after substantive edits (including tests)
-yarn build
-
-# Run tests only
-yarn test:unit
-
-# Full test suite
-yarn test
-```
-
-**Typical sequence:** `yarn format` → **`yarn build`** → **`yarn test`**. For large changes: `yarn format`, **`yarn typecheck`**, **`yarn build`**, **`yarn test`**.
-
-## Never Commit Code With
-
-- ❌ TypeScript errors
-- ❌ Build failures — run **`yarn build`** after edits (including tests)
-- ❌ Formatting errors (Prettier)
-- ❌ Linting errors
-- ❌ Failing tests
-
-## Coverage Requirements
-
-- ✅ Minimum 80% line coverage
-- ✅ All new code must have tests
-- ✅ Tests must be colocated with implementation
-- ✅ Use MSW for API mocking
-
-## How to Use
-
-For detailed instructions, examples, and troubleshooting:
-
-- **Full guide**: `AGENTS.md` - Complete workflow documentation
-- **Related skills**:
-  - `test-and-fix-workflow` - Systematic debugging workflow
-  - `component-testing` - Testing patterns and examples
-
-## References
-
-- See `embedded-components/package.json` for all scripts
-- See `AGENTS.md` for complete workflow documentation
-- See `embedded-components/CONTRIBUTING.md` for contribution guidelines
+`app/client-next-ts` has its own pipeline (`.github/workflows/buildAndTestShowcase.yml`), which builds embedded-components first and then runs `npm run build` and `npm test` in the app folder. `npm run format:check` is available there but not run by CI. See `app/client-next-ts/AGENTS.md`.

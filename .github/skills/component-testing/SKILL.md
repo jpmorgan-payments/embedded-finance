@@ -1,62 +1,91 @@
 ---
 name: component-testing
-description: Comprehensive testing patterns for React components with MSW, React Query, and Vitest. Use when writing tests, setting up mocks, testing API interactions, or ensuring 80% coverage. Keywords - testing, MSW, React Query, Vitest, mocks, coverage, API testing.
-license: MIT
+description: Vitest, React Testing Library, and MSW patterns for embedded-components tests - EBComponentsProvider wrapper, @test-utils, server.use handler overrides, and typed mocks of generated API schemas. Use when writing, fixing, or reviewing *.test.ts(x) files, mocking API calls, or resolving type or lint errors that only appear in tests.
+license: Apache-2.0
 metadata:
-  version: "2.0.0"
   author: jpmorgan-payments
-  lastUpdated: "2025-12-24"
-  priority: critical
 ---
 
-# Component Testing Patterns
+# Component testing
 
-Comprehensive testing patterns for React components with MSW, React Query, and Vitest. All components require comprehensive tests with minimum 80% coverage.
+## What's already set up
 
-## When to Apply
+- Vitest globals are on (`describe`, `test`, `expect`, `vi` need no import), environment `jsdom`.
+- `vitest.setup.mjs` starts the MSW `server` before all tests, resets handlers after each test, and closes it at the end. Don't call `server.listen()` yourself.
+- Default handlers live in `src/msw/handlers.ts` and are backed by the in-memory `src/msw/db.ts`.
+- Tests sit next to the file they test: `Thing.tsx` and `Thing.test.tsx`.
 
-Reference these patterns when:
-- Writing new component tests
-- Setting up MSW mocks for API interactions
-- Testing React Query data fetching
-- Ensuring test coverage requirements
-- Testing user interactions and form validation
-- Testing error states and loading states
+## Rendering
 
-## Quick Reference
+For a quick render inside the provider, use `render` from `@test-utils` (it also re-exports Testing Library and `userEvent`).
 
-### Test File Structure
+When you need provider props such as content tokens or no retries, wrap explicitly. `EBComponentsProvider` owns the React Query client, so don't add a separate `QueryClientProvider`:
 
-- **File naming:** `ComponentName.test.tsx` next to `ComponentName.tsx`
-- **Minimum coverage:** 80% line coverage
-- **Colocation:** Tests must be next to implementation files
+```tsx
+import { server } from '@/msw/server';
+import { render, screen, waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 
-### Essential Setup
+import type { ListAccountsResponse } from '@/api/generated/ep-accounts.schemas';
+import { EBComponentsProvider } from '@/core/EBComponentsProvider';
 
-```typescript
-import { render, screen, waitFor } from "@testing-library/react";
-import { http, HttpResponse } from "msw";
-import { server } from "@/msw/server";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Accounts } from './Accounts';
+import type { AccountsProps } from './Accounts.types';
+
+const renderComponent = (props: Partial<AccountsProps> = {}) =>
+  render(
+    <EBComponentsProvider
+      apiBaseUrl="/"
+      headers={{}}
+      contentTokens={{ name: 'enUS' }}
+      reactQueryDefaultOptions={{ queries: { retry: false } }}
+    >
+      <Accounts allowedCategories={['LIMITED_DDA']} {...props} />
+    </EBComponentsProvider>
+  );
+
+test('shows the empty state', async () => {
+  const empty: ListAccountsResponse = {
+    metadata: { page: 0, limit: 25, total_items: 0 },
+    items: [],
+  };
+  server.use(http.get('*/accounts', () => HttpResponse.json(empty)));
+
+  renderComponent();
+
+  expect(await screen.findByText(/no accounts found/i)).toBeInTheDocument();
+});
 ```
 
-### Test Coverage Requirements
+## MSW overrides
 
-- ✅ Minimum 80% line coverage
-- ✅ Cover all user interaction paths
-- ✅ Test all API integration points
-- ✅ Verify error handling and edge cases
-- ✅ Test accessibility features
+- Override per test with `server.use(...)`; the reset after each test restores the defaults.
+- Match with a `*/` prefix (`'*/accounts'`, `'*/clients/:id'`) so the base URL doesn't matter.
+- Error state: `HttpResponse.json({ title: 'Server error' }, { status: 500 })`.
+- Loading state: return a promise that never resolves, `() => new Promise(() => {})`.
 
-## How to Use
+## Mocks of generated types
 
-For detailed instructions, examples, and patterns:
+`src/api/generated/*.schemas.ts` types have many required fields, and `npm run typecheck` and `npm run build` check test files too.
 
-- **Full guide**: `AGENTS.md` - Complete testing documentation
-- **Individual rules**: See `rules/` directory for specific testing patterns
+- For a partial mock, cast through `unknown`: `{ id: 'r1', status: 'ACTIVE' } as unknown as Recipient`.
+- If you annotate a mock with a type (`const r: Recipient = ...`), include every required field.
+- For arrays assigned to mutable types, use `['ACH'] as PaymentMethodType[]`, not `as const`.
 
-## References
+## What to cover
 
-- See `embedded-components/ARCHITECTURE.md` for architecture patterns
-- See `AGENTS.md` for complete testing documentation
-- See `.github/skills/code-quality-workflow/` for testing workflows
+Loading (`Skeleton`), empty, error (`ServerErrorAlert` renders `role="alert"` and a retry action), and success states, plus the interactions and validation messages a user hits.
+
+New and changed code should reach about 80% line coverage. This is a team target; `vite.config.mjs` doesn't enforce a threshold yet.
+
+## Running tests
+
+From `embedded-components/`:
+
+```bash
+npx vitest run src/core/Accounts      # while iterating
+npm run test:coverage                 # coverage report in coverage/
+npm test                              # full pipeline CI runs
+```
+
+For the onboarding flow's integration and scenario tests, see `src/core/OnboardingFlow/TESTING.md`. The `code-quality-workflow` skill covers the full pre-commit sequence.

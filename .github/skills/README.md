@@ -1,172 +1,42 @@
-# GitHub Copilot Agent Skills
+# Agent skills
 
-This directory contains Agent Skills for GitHub Copilot following the [agentskills.io](https://agentskills.io/) specification.
+Project skills for AI coding agents working in this repository, in the [Agent Skills](https://agentskills.io/specification) format. Agents that support the format discover `.github/skills/` automatically; for other agents, point them at this folder.
 
-## What are Agent Skills?
+| Skill | Use when |
+| --- | --- |
+| [embedded-banking-architecture](./embedded-banking-architecture/SKILL.md) | Creating components or deciding where hooks, utils, sub-components, and forms go |
+| [react-patterns](./react-patterns/SKILL.md) | Writing data fetching, mutations, forms, and error/loading states |
+| [component-testing](./component-testing/SKILL.md) | Writing or fixing Vitest/MSW tests |
+| [styling-guidelines](./styling-guidelines/SKILL.md) | Writing `className` strings with the `eb-` prefix and theme tokens |
+| [i18n-l10n](./i18n-l10n/SKILL.md) | Adding user-visible text or formatting dates, numbers, and currency |
+| [code-quality-workflow](./code-quality-workflow/SKILL.md) | Validating a change before committing, or triaging CI failures |
+| [ux-testing](./ux-testing/SKILL.md) | Running a UX review of the components and updating `BACKLOG.md` |
 
-Agent Skills are folders of instructions, scripts, and resources that AI agents can discover and use to perform tasks more accurately and efficiently. They follow an open format that works across multiple AI development tools including VS Code, Cursor, Claude, and others.
+These skills cover `embedded-components`. The showcase app has its own guide in [`app/client-next-ts/AGENTS.md`](../../app/client-next-ts/AGENTS.md).
 
-## Available Skills
+## Public skill for integrators
 
-### Tier 1 - Critical Core Skills
+The showcase publishes a separate skill for developers *integrating* Embedded Finance & Solutions:
 
-These skills are essential for all development work:
+- Source: [`app/client-next-ts/public/.well-known/agent-skills/efs-components-best-practices/SKILL.md`](../../app/client-next-ts/public/.well-known/agent-skills/efs-components-best-practices/SKILL.md)
+- Index: [`app/client-next-ts/public/.well-known/agent-skills/index.json`](../../app/client-next-ts/public/.well-known/agent-skills/index.json) ([discovery RFC v0.2.0](https://github.com/cloudflare/agent-skills-discovery-rfc), plus the `files` array the `skills` CLI requires)
+- Install: `npx skills add https://embedded-finance-dev.com/ --skill efs-components-best-practices`
 
-1. **[embedded-banking-architecture](./embedded-banking-architecture/)** - Core architecture patterns, component structure, and organization principles
-2. **[component-testing](./component-testing/)** - Comprehensive testing patterns with MSW, React Query, and Vitest
-3. **[code-quality-workflow](./code-quality-workflow/)** - Mandatory workflow for running tests and fixing errors
-4. **[styling-guidelines](./styling-guidelines/)** - Tailwind CSS patterns with mandatory `eb-` prefix
-5. **[react-patterns](./react-patterns/)** - React 18 patterns, hooks, and composition techniques
+After editing that `SKILL.md`, update `digest` (and `description`, if changed) in `index.json`. `app/client-next-ts/src/components/landing/agent-skills-index.test.ts` fails with the expected digest if you forget.
 
-### Tier 2 - Important Skills
+## Writing and updating skills
 
-These skills are important for specific functionality:
+- Skills are the only agent customization in this repo: no custom agents, prompt files, or tool-specific rule files. Put a reusable workflow in a skill, and keep always-on context in `AGENTS.md`.
+- Keep only project-specific knowledge an agent can't infer: paths, commands, generated code, pinned versions, and conventions that differ from defaults. Leave out general React, TypeScript, testing, or review advice that current models already know.
+- Verify every command, path, and API in a skill against the code before committing it. A wrong skill is worse than none.
+- One `SKILL.md` per skill, under about 200 lines. Link to the repo's source-of-truth docs (`embedded-components/ARCHITECTURE.md`, `DESIGN_TOKENS.md`, `docs/`) instead of copying them. If a skill needs long reference material, put it in a `references/` folder inside the skill.
+- Frontmatter: `name` matching the folder, a `description` that says what the skill covers and when to use it, `license: Apache-2.0`, and `metadata.author`.
+- Prefer automated checks (lint rules, tests) over prose for anything mechanical, and point the skill at the check.
+- Third-party skills aren't vendored here. Install them yourself with `npx skills add <owner/repo>` if you want them.
 
-6. **[i18n-l10n](./i18n-l10n/)** - Internationalization and localization patterns
-7. **[windows-powershell](./windows-powershell/)** - Windows PowerShell command patterns (NEVER use `&&`)
-8. **[test-and-fix-workflow](./test-and-fix-workflow/)** - Automated testing and debugging workflow
+Validate the frontmatter with [`skills-ref`](https://github.com/agentskills/agentskills/tree/main/skills-ref) (Python), and check discovery with the `skills` CLI:
 
-## How Skills Work
-
-Each skill is a directory containing a `SKILL.md` file with:
-
-- **Frontmatter** - Metadata about the skill (name, description, compatibility)
-- **Body Content** - Detailed instructions and examples
-
-VS Code Copilot automatically:
-1. Loads skill metadata at startup
-2. Activates relevant skills based on your task
-3. Uses skill instructions to provide better assistance
-
-## Using Skills in VS Code
-
-Skills are automatically available when using GitHub Copilot in VS Code. No additional setup required!
-
-Copilot will:
-- Reference skills when you ask questions
-- Apply skill patterns in code suggestions
-- Use skill instructions for complex tasks
-
-Example interactions:
-- "Create a new component" → Uses `embedded-banking-architecture` skill
-- "Add tests" → Uses `component-testing` skill
-- "Fix linting errors" → Uses `code-quality-workflow` skill
-- "Format a date" → Uses `i18n-l10n` skill
-
-## Skill Naming Convention
-
-Skill names must follow these rules:
-- 1-64 characters
-- Lowercase letters, numbers, and hyphens only
-- Cannot start or end with hyphen
-- No consecutive hyphens (`--`)
-- Must match parent directory name
-
-✅ Valid: `embedded-banking-architecture`, `i18n-l10n`, `code-quality-workflow`  
-❌ Invalid: `Embedded-Banking`, `i18n--l10n`, `-skill`, `skill-`
-
-## Creating New Skills
-
-To create a new skill:
-
-1. Create a directory: `.github/skills/skill-name/`
-2. Create `SKILL.md` with frontmatter:
-
-```markdown
----
-name: skill-name
-description: What the skill does and when to use it. Include keywords for discovery.
-compatibility: Optional - specific requirements
-metadata:
-  version: "1.0.0"
-  author: your-org
----
-
-# Skill Title
-
-## Overview
-
-Description of what the skill provides...
-
-## Usage
-
-Instructions and examples...
+```bash
+uvx skills-ref validate .github/skills/<skill-name>   # or: pip install skills-ref
+npx skills add . --list                              # lists the skills an agent would discover
 ```
-
-3. Validate (optional):
-
-```powershell
-skills-ref validate .github/skills/skill-name
-```
-
-## Best Practices
-
-1. **Keep SKILL.md under 500 lines** - Move detailed content to reference files
-2. **Use clear descriptions** - Include keywords for skill discovery
-3. **Provide examples** - Show correct and incorrect patterns
-4. **Reference other skills** - Build on existing skills when appropriate
-5. **Update regularly** - Keep skills in sync with codebase changes
-
-## Skill Organization
-
-Skills are organized by concern:
-
-- **Architecture** - Code organization and structure
-- **Testing** - Testing patterns and workflows
-- **Quality** - Code quality and validation
-- **Styling** - UI and CSS patterns
-- **React** - React-specific patterns
-- **i18n** - Internationalization
-- **Tooling** - Command-line and workflow automation
-
-## Source of Truth
-
-For architectural decisions, always refer to:
-
-1. **`embedded-components/ARCHITECTURE.md`** - Primary architecture reference
-2. **`AGENTS.md`** - Repository-wide guidelines
-3. **Skills in `.github/skills/`** - Specific patterns and workflows
-4. **Package `.cursorrules`** - Package-specific quick reference
-
-## Validation
-
-To validate all skills:
-
-```powershell
-# Install skills-ref tool
-npm install -g @agentskills/skills-ref
-
-# Validate all skills
-skills-ref validate .github/skills
-```
-
-## Contributing
-
-When adding or updating skills:
-
-1. Follow the agentskills.io specification
-2. Test the skill with actual usage
-3. Validate using `skills-ref` tool
-4. Update this README if adding new skills
-5. Commit with descriptive message
-
-## References
-
-- **Specification**: https://agentskills.io/specification
-- **Examples**: https://github.com/anthropics/skills
-- **Validation Tool**: https://github.com/agentskills/agentskills/tree/main/skills-ref
-
-## Support
-
-For issues or questions:
-
-1. Check skill documentation first
-2. Review `ARCHITECTURE.md` for architecture questions
-3. Consult `AGENTS.md` for repository guidelines
-4. Open an issue if problem persists
-
----
-
-**Last Updated**: December 24, 2025  
-**Version**: 2.0.0  
-**Format**: Agent Skills (agentskills.io)
