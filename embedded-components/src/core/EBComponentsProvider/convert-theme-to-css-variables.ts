@@ -1,5 +1,4 @@
 import { ColorTranslator } from 'colortranslator';
-import merge from 'deepmerge';
 
 import { EBTheme, EBThemeVariables } from './config.types';
 import { EBCSSVariable } from './css-variables.types';
@@ -196,24 +195,22 @@ const cssVariablesObjectToString = (variables: CSSVariables) =>
     .join('');
 
 export const convertThemeToCssString = (theme: EBTheme) => {
+  // Theme variables are flat, so a spread merges them.
   const cssVariables = {
-    variables: convertThemeVariablesToCssVariables(
-      merge(defaultTheme.variables ?? {}, theme.variables ?? {})
-    ),
-    light: convertThemeVariablesToCssVariables(
-      merge.all([
-        defaultTheme.light ?? {},
-        theme.variables ?? {},
-        theme.light ?? {},
-      ])
-    ),
-    dark: convertThemeVariablesToCssVariables(
-      merge.all([
-        defaultTheme.dark ?? {},
-        theme.variables ?? {},
-        theme.dark ?? {},
-      ])
-    ),
+    variables: convertThemeVariablesToCssVariables({
+      ...defaultTheme.variables,
+      ...theme.variables,
+    }),
+    light: convertThemeVariablesToCssVariables({
+      ...defaultTheme.light,
+      ...theme.variables,
+      ...theme.light,
+    }),
+    dark: convertThemeVariablesToCssVariables({
+      ...defaultTheme.dark,
+      ...theme.variables,
+      ...theme.dark,
+    }),
   };
 
   const shared = `:root{${cssVariablesObjectToString(cssVariables.variables)}}`;

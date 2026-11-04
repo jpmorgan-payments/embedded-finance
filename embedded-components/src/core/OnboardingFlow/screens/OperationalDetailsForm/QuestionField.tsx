@@ -75,6 +75,14 @@ const filterOptions = (value: string, search: string) => {
   return option.includes(query) ? 0.5 : 0;
 };
 
+const UNITED_STATES = 'United States';
+
+// The API lists countries alphabetically; most clients pick the US, so it leads the list.
+const withUnitedStatesFirst = (options: string[]) =>
+  options.includes(UNITED_STATES)
+    ? [UNITED_STATES, ...options.filter((option) => option !== UNITED_STATES)]
+    : options;
+
 // A choice has no blur of its own, so mark it touched as it's made: it then
 // validates, and counts as answered, the way a typed answer does on blur.
 const choose = (field: ControllerRenderProps, values: string[]) => {
@@ -542,7 +550,7 @@ export const QuestionField = ({
           return (
             <SearchableOptionsQuestionField
               question={question}
-              options={itemEnum}
+              options={withUnitedStatesFirst(itemEnum)}
               maxItems={maxItems}
             />
           );
