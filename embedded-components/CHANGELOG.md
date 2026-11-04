@@ -2,6 +2,14 @@
 
 All notable changes to the `embedded-components` package are documented in this file.
 
+## [0.18.1] - 2026-11-04
+
+### Changes
+
+#### Features
+
+- **onboarding-flow:** list the United States first in country questions
+
 ## [0.18.0] - 2026-11-03
 
 ### Changes

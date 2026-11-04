@@ -71,6 +71,28 @@ describe('QuestionField', () => {
     expect(valueOf()).toEqual(['Canada']);
   });
 
+  test('lists the United States first, then the rest alphabetically', async () => {
+    const user = userEvent.setup();
+    render(<QuestionHarness question={significantOperations} />);
+
+    await user.click(screen.getByRole('combobox'));
+    const names = screen
+      .getAllByRole('option')
+      .map((option) => option.textContent);
+    expect(names.slice(0, 3)).toEqual([
+      'United States',
+      'Afghanistan',
+      'Albania',
+    ]);
+    expect(names.filter((name) => name === 'United States')).toHaveLength(1);
+    expect(names).toHaveLength(QUESTION_COUNTRY_OPTIONS.length);
+
+    await user.type(screen.getByPlaceholderText('Search'), 'United');
+    expect(
+      screen.getAllByRole('option').map((option) => option.textContent)
+    ).toEqual(['United States', 'United Arab Emirates', 'United Kingdom']);
+  });
+
   test('chooses several countries and shows each as a removable chip', async () => {
     const user = userEvent.setup();
     render(<QuestionHarness question={significantOperations} />);
