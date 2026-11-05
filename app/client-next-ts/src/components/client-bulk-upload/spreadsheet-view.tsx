@@ -9,7 +9,14 @@ import {
   type FocusEvent,
   type KeyboardEvent,
 } from 'react';
-import { ChevronDown, ChevronRight, Trash2, UserPlus } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Trash2,
+  UserPlus,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -111,6 +118,19 @@ const FIELD_REF: Record<GridColumnKey, FieldRef | null> = {
 };
 
 const TOTAL_COLUMNS = GRID_COLUMNS.length + 3;
+
+/** Row # and Client ID stay visible while scrolling sideways. */
+const STICKY_FIRST = 'sticky left-0';
+const STICKY_SECOND = 'sticky left-16 border-r border-r-jpm-gray-200';
+
+/** Shown in the first row's empty cells so people see what each field expects. */
+const EXAMPLE_PLACEHOLDER: Partial<Record<GridColumnKey, string>> = {
+  externalId: 'e.g. S-1001',
+  organizationName: 'e.g. Acme Kitchen Supply LLC',
+  firstName: 'e.g. Jane',
+  lastName: 'e.g. Doe',
+  personEmail: 'e.g. jane@acme.com',
+};
 
 const PERSON_FIELD_LABEL: Record<PersonField, string> = {
   firstName: 'first name',
@@ -245,93 +265,213 @@ export function SpreadsheetView({
     setFocusedId(rowIdFrom(event.relatedTarget));
   };
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState({ left: false, right: false });
+  const [hasScrolledSideways, setHasScrolledSideways] = useState(false);
+
+  const updateOverflow = useCallback(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    const left = element.scrollLeft > 4;
+    const right =
+      element.scrollLeft + element.clientWidth < element.scrollWidth - 4;
+    setOverflow((current) =>
+      current.left === left && current.right === right
+        ? current
+        : { left, right }
+    );
+    if (left) setHasScrolledSideways(true);
+  }, []);
+
+  useEffect(() => {
+    updateOverflow();
+    // The router restores saved scroll positions after a reload, but the rows
+    // don't survive a reload, so always start at the first column.
+    const reset = window.setTimeout(() => {
+      scrollRef.current?.scrollTo?.({ left: 0, top: 0 });
+      updateOverflow();
+      setHasScrolledSideways(false);
+    }, 0);
+    window.addEventListener('resize', updateOverflow);
+    const element = scrollRef.current;
+    const observer =
+      typeof ResizeObserver === 'undefined' || !element
+        ? null
+        : new ResizeObserver(updateOverflow);
+    if (element) observer?.observe(element);
+    return () => {
+      window.clearTimeout(reset);
+      window.removeEventListener('resize', updateOverflow);
+      observer?.disconnect();
+    };
+  }, [updateOverflow]);
+
+  const scrollSideways = (direction: 1 | -1) => {
+    const element = scrollRef.current;
+    if (!element) return;
+    element.scrollBy({
+      left: direction * Math.max(240, element.clientWidth * 0.6),
+      behavior: 'smooth',
+    });
+  };
+
   return (
-    <div className="max-h-[70vh] min-h-[320px] overflow-auto rounded-lg border border-jpm-gray-200 bg-white">
-      <table className="w-max min-w-full table-fixed border-separate border-spacing-0 text-sm">
-        <thead className="sticky top-0 z-10 bg-jpm-gray-50 text-left">
-          <tr className="text-xs uppercase tracking-wide text-jpm-gray-600">
-            <th className="w-16 border-b border-jpm-gray-200 bg-jpm-gray-50" />
-            <th
-              colSpan={4}
-              className="border-b border-l border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-semibold"
-            >
-              Business
-            </th>
-            <th
-              colSpan={6}
-              className="border-b border-l border-jpm-gray-200 bg-sp-accent px-2 py-2 font-semibold text-sp-brand-800"
-            >
-              Authorized user · receives the onboarding invitation
-            </th>
-            <th className="border-b border-l border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-semibold">
-              Others
-            </th>
-            <th className="w-12 border-b border-jpm-gray-200 bg-jpm-gray-50" />
-          </tr>
-          <tr className="text-xs text-jpm-gray-700">
-            <th className="w-16 border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium">
-              Row
-            </th>
-            {GRID_COLUMNS.map((column, index) => (
+    <div className="relative">
+      <div
+        ref={scrollRef}
+        data-grid-scroll
+        onScroll={updateOverflow}
+        className="max-h-[70vh] min-h-[320px] overflow-auto rounded-lg border border-jpm-gray-200 bg-white"
+      >
+        <table className="w-max min-w-full table-fixed border-separate border-spacing-0 text-sm">
+          <colgroup>
+            <col className="w-16" />
+            {GRID_COLUMNS.map((column) => (
+              <col key={column.key} className={COLUMN_WIDTH[column.key]} />
+            ))}
+            <col className="w-36" />
+            <col className="w-12" />
+          </colgroup>
+          <thead className="sticky top-0 z-10 bg-jpm-gray-50 text-left">
+            <tr className="text-xs uppercase tracking-wide text-jpm-gray-600">
               <th
-                key={column.key}
-                title={COLUMN_HINT[column.key]}
+                colSpan={2}
                 className={cn(
-                  COLUMN_WIDTH[column.key],
-                  'border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium',
-                  (index === 0 || index === 4) && 'border-l',
-                  (column.key === 'isBeneficialOwner' ||
-                    column.key === 'isController') &&
-                    'text-center'
+                  STICKY_FIRST,
+                  'z-[3] border-b border-r border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-semibold'
                 )}
               >
-                {column.label}
-                {REQUIRED[column.key] ? (
-                  <span className="text-red-600" aria-hidden>
-                    {' '}
-                    *
-                  </span>
-                ) : null}
-                {column.key === 'email' || column.key === 'middleName' ? (
-                  <span className="font-normal text-jpm-gray-500">
-                    {' '}
-                    (optional)
-                  </span>
-                ) : null}
+                Business
               </th>
+              <th
+                colSpan={3}
+                data-tour="business-group"
+                className="border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-normal normal-case tracking-normal text-jpm-gray-500"
+              >
+                Legal name, type and email
+              </th>
+              <th
+                colSpan={6}
+                data-tour="authorized-user-group"
+                className="border-b border-l border-jpm-gray-200 bg-sp-accent px-2 py-2 font-semibold text-sp-brand-800"
+              >
+                Authorized user · receives the onboarding invitation
+              </th>
+              <th className="border-b border-l border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-semibold">
+                Others
+              </th>
+              <th className="border-b border-jpm-gray-200 bg-jpm-gray-50" />
+            </tr>
+            <tr className="text-xs text-jpm-gray-700">
+              <th
+                className={cn(
+                  STICKY_FIRST,
+                  'z-[3] border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium'
+                )}
+              >
+                Row
+              </th>
+              {GRID_COLUMNS.map((column, index) => (
+                <th
+                  key={column.key}
+                  title={COLUMN_HINT[column.key]}
+                  className={cn(
+                    'border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium',
+                    index === 0 && cn(STICKY_SECOND, 'z-[3]'),
+                    index === 4 && 'border-l',
+                    (column.key === 'isBeneficialOwner' ||
+                      column.key === 'isController') &&
+                      'text-center'
+                  )}
+                >
+                  {column.label}
+                  {REQUIRED[column.key] ? (
+                    <span className="text-red-600" aria-hidden>
+                      {' '}
+                      *
+                    </span>
+                  ) : null}
+                  {column.key === 'email' || column.key === 'middleName' ? (
+                    <span className="font-normal text-jpm-gray-500">
+                      {' '}
+                      (optional)
+                    </span>
+                  ) : null}
+                </th>
+              ))}
+              <th
+                data-tour="others-column"
+                className="border-b border-l border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium"
+                title="Other beneficial owners and controllers (optional)"
+              >
+                Owners & controllers
+              </th>
+              <th className="border-b border-jpm-gray-200 bg-jpm-gray-50">
+                <span className="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            ref={bodyRef}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          >
+            {rows.map((item, rowPos) => (
+              <ClientRow
+                key={item.client.id}
+                item={item}
+                rowPos={rowPos}
+                showAllErrors={showAllErrors}
+                isFocused={focusedId === item.client.id}
+                isExpanded={expanded.has(item.client.id)}
+                onToggleExpanded={toggleExpanded}
+                dispatch={dispatch}
+              />
             ))}
-            <th
-              className="w-36 border-b border-l border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium"
-              title="Other beneficial owners and controllers (optional)"
-            >
-              Owners & controllers
-            </th>
-            <th className="w-12 border-b border-jpm-gray-200 bg-jpm-gray-50">
-              <span className="sr-only">Actions</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody
-          ref={bodyRef}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-        >
-          {rows.map((item, rowPos) => (
-            <ClientRow
-              key={item.client.id}
-              item={item}
-              rowPos={rowPos}
-              showAllErrors={showAllErrors}
-              isFocused={focusedId === item.client.id}
-              isExpanded={expanded.has(item.client.id)}
-              onToggleExpanded={toggleExpanded}
-              dispatch={dispatch}
-            />
-          ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
+
+      {overflow.left ? (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute bottom-px left-52 top-px w-10 bg-gradient-to-r from-gray-900/10 to-transparent"
+          />
+          <button
+            type="button"
+            onClick={() => scrollSideways(-1)}
+            aria-label="Scroll left to earlier columns"
+            title="Scroll left"
+            className="absolute left-[13.5rem] top-1/2 z-20 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full border border-jpm-gray-200 bg-white text-jpm-gray-700 shadow-md hover:bg-jpm-gray-50"
+          >
+            <ChevronsLeft className="size-4" aria-hidden />
+          </button>
+        </>
+      ) : null}
+      {overflow.right ? (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute bottom-px right-px top-px w-14 rounded-r-lg bg-gradient-to-l from-gray-900/15 to-transparent"
+          />
+          <button
+            type="button"
+            onClick={() => scrollSideways(1)}
+            aria-label="Scroll right to see more columns"
+            title="Scroll right to see more columns"
+            className={cn(
+              'absolute right-3 top-1/2 z-20 inline-flex h-8 -translate-y-1/2 items-center gap-1 rounded-full bg-sp-brand text-xs font-medium text-white shadow-lg hover:bg-sp-brand-700',
+              hasScrolledSideways ? 'w-8 justify-center' : 'px-3'
+            )}
+          >
+            {hasScrolledSideways ? null : <span>More columns</span>}
+            <ChevronsRight className="size-4" aria-hidden />
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -408,7 +548,9 @@ const ClientRow = memo(function ClientRow({
     <input
       type="text"
       value={value}
-      placeholder={placeholder}
+      placeholder={
+        placeholder ?? (rowNumber === 1 ? EXAMPLE_PLACEHOLDER[key] : undefined)
+      }
       onChange={(event) => setValue(key, event.target.value)}
       spellCheck={false}
       autoComplete="off"
@@ -416,19 +558,15 @@ const ClientRow = memo(function ClientRow({
     />
   );
 
-  const rowTint = blank
-    ? ''
-    : validation.errorCount > 0 && reveal
-      ? 'bg-red-50/30'
-      : '';
-
   return (
     <>
-      <tr
-        data-client-row={client.id}
-        className={cn('group align-middle', rowTint)}
-      >
-        <td className="border-b border-jpm-gray-100 px-2 py-1 text-xs text-jpm-gray-500">
+      <tr data-client-row={client.id} className="group align-middle">
+        <td
+          className={cn(
+            STICKY_FIRST,
+            'z-[1] border-b border-jpm-gray-100 bg-white px-2 py-1 text-xs text-jpm-gray-500'
+          )}
+        >
           <span className="inline-flex items-center gap-1.5">
             <StatusIcon
               blank={blank}
@@ -438,7 +576,13 @@ const ClientRow = memo(function ClientRow({
             {rowNumber}
           </span>
         </td>
-        <td className="border-b border-l border-jpm-gray-100 px-1 py-1">
+        <td
+          data-tour={rowPos === 0 ? 'client-id' : undefined}
+          className={cn(
+            STICKY_SECOND,
+            'z-[1] border-b border-jpm-gray-100 bg-white px-1 py-1'
+          )}
+        >
           {textCell(0, 'externalId', client.externalId)}
         </td>
         <td className="border-b border-jpm-gray-100 px-1 py-1">
@@ -534,21 +678,23 @@ const ClientRow = memo(function ClientRow({
         </td>
       </tr>
       {shown.length > 0 ? (
-        <tr data-client-row={client.id} className={rowTint}>
+        <tr data-client-row={client.id}>
           <td className="border-b border-jpm-gray-100" />
           <td
             colSpan={TOTAL_COLUMNS - 1}
             className="border-b border-jpm-gray-100 px-3 pb-2 pt-0.5"
           >
-            <IssueList
-              issues={shown}
-              onFix={(fix) =>
-                dispatch({
-                  type: 'applyFixes',
-                  fixes: [{ clientId: client.id, fix }],
-                })
-              }
-            />
+            <div className="sticky left-20 w-fit max-w-[calc(100vw-10rem)]">
+              <IssueList
+                issues={shown}
+                onFix={(fix) =>
+                  dispatch({
+                    type: 'applyFixes',
+                    fixes: [{ clientId: client.id, fix }],
+                  })
+                }
+              />
+            </div>
           </td>
         </tr>
       ) : null}
@@ -559,7 +705,13 @@ const ClientRow = memo(function ClientRow({
             colSpan={TOTAL_COLUMNS - 1}
             className="border-b border-jpm-gray-100 bg-jpm-gray-50 px-3 py-3"
           >
-            <PeopleEditor client={client} issues={shown} dispatch={dispatch} />
+            <div className="sticky left-20 w-fit max-w-[calc(100vw-10rem)]">
+              <PeopleEditor
+                client={client}
+                issues={shown}
+                dispatch={dispatch}
+              />
+            </div>
           </td>
         </tr>
       ) : null}

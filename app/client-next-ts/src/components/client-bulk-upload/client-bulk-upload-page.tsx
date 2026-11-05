@@ -10,8 +10,10 @@ import {
   AlertCircle,
   AlertTriangle,
   CheckCircle2,
+  ChevronsRight,
   Download,
   FileSpreadsheet,
+  HelpCircle,
   LayoutList,
   Lock,
   Plus,
@@ -46,10 +48,12 @@ import { cn } from '@/lib/utils';
 
 import { FilePreview } from './file-preview';
 import { FormView } from './form-view';
+import { GuidedTour } from './guided-tour';
 import { ImportDialog } from './import-dialog';
 import { Instructions, STEPS } from './instructions';
 import { ReviewDialog } from './review-dialog';
 import { SpreadsheetView, type VisibleClient } from './spreadsheet-view';
+import { CLIENT_TOUR_STEPS, markTourSeen, readTourSeen } from './tour-steps';
 
 const PAGE_SIZE = 50;
 const PAGE_TITLE = 'Bulk client upload builder';
@@ -60,6 +64,12 @@ type View = 'spreadsheet' | 'form';
 interface Notice {
   tone: 'success' | 'error' | 'info';
   message: ReactNode;
+}
+
+function focusFirstCell() {
+  document
+    .querySelector<HTMLElement>('[data-row="0"][data-col="0"]')
+    ?.focus({ preventScroll: true });
 }
 
 function downloadText(fileName: string, content: string) {
@@ -141,6 +151,12 @@ export function ClientBulkUploadPage() {
   const [importText, setImportText] = useState('');
   const [reviewOpen, setReviewOpen] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [tourOpen, setTourOpen] = useState(false);
+
+  useEffect(() => {
+    focusFirstCell();
+    if (!readTourSeen()) setTourOpen(true);
+  }, []);
 
   const summary = useMemo(
     () => validateClients(state.clients),
@@ -250,6 +266,25 @@ export function ClientBulkUploadPage() {
   const handleHeaderPaste = useCallback((text: string) => {
     setImportText(text);
     setImportOpen(true);
+  }, []);
+
+  const startTour = () => {
+    setTab('clients');
+    setView('spreadsheet');
+    setIssueSnapshot(null);
+    setQuery('');
+    setPage(0);
+    setTourOpen(true);
+    window.setTimeout(focusFirstCell, 50);
+  };
+
+  const closeTour = useCallback(() => {
+    setTourOpen(false);
+    markTourSeen();
+    document
+      .querySelector<HTMLElement>('[data-grid-scroll]')
+      ?.scrollTo?.({ left: 0, behavior: 'smooth' });
+    focusFirstCell();
   }, []);
 
   const addClient = () => {
@@ -428,6 +463,7 @@ export function ClientBulkUploadPage() {
                 type="button"
                 size="sm"
                 variant="outline"
+                data-tour="import-button"
                 onClick={() => {
                   setImportText('');
                   setImportOpen(true);
@@ -435,6 +471,16 @@ export function ClientBulkUploadPage() {
               >
                 <Upload aria-hidden />
                 Import file or rows
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-sp-brand hover:text-sp-brand-700"
+                onClick={startTour}
+              >
+                <HelpCircle aria-hidden />
+                Show me how
               </Button>
               {summary.fixableCount > 0 ? (
                 <Button
@@ -507,12 +553,16 @@ export function ClientBulkUploadPage() {
             </div>
 
             {view === 'spreadsheet' ? (
-              <p className="text-xs text-jpm-gray-600">
+              <p className="flex flex-wrap items-center gap-x-1 text-xs text-jpm-gray-600">
                 <strong>Tip:</strong> copy rows in Excel and paste them into any
                 cell (Ctrl+V) — values fill to the right in the column order
-                shown, and new rows are added as needed. Press Enter to move
-                down. Fields marked <span className="text-red-600">*</span> are
-                required.
+                shown. Press Enter to move down. Fields marked{' '}
+                <span className="text-red-600">*</span> are required.
+                <span className="inline-flex items-center gap-1 font-medium text-jpm-gray-800">
+                  <ChevronsRight className="size-3.5" aria-hidden />
+                  The table continues to the right — scroll sideways for the
+                  authorized user and roles.
+                </span>
               </p>
             ) : null}
 
@@ -684,7 +734,12 @@ export function ClientBulkUploadPage() {
               </>
             )}
           </div>
-          <Button type="button" onClick={startDownload} disabled={!hasData}>
+          <Button
+            type="button"
+            data-tour="download-button"
+            onClick={startDownload}
+            disabled={!hasData}
+          >
             <Download aria-hidden />
             Review and download CSV
           </Button>
@@ -697,6 +752,11 @@ export function ClientBulkUploadPage() {
         initialText={importText}
         hasExistingData={hasData}
         onImport={handleImport}
+      />
+      <GuidedTour
+        steps={CLIENT_TOUR_STEPS}
+        open={tourOpen}
+        onClose={closeTour}
       />
       <ReviewDialog
         open={reviewOpen}
