@@ -1,8 +1,8 @@
-import { setGridValue } from './grid-values';
+import { isDetailFieldId, type DetailFieldId } from './details';
+import { setCellValue, setDetailValue, setGridValue } from './grid-values';
 import {
   createClient,
   createPerson,
-  GRID_COLUMNS,
   isClientBlank,
   type ClientDraft,
   type GridColumnKey,
@@ -10,6 +10,7 @@ import {
   type PersonRoleFlag,
 } from './model';
 import { cleanCell } from './normalize';
+import type { ColumnId } from './sheet-columns';
 import type { IssueFix } from './validate';
 
 export interface BuilderState {
@@ -44,6 +45,14 @@ export type BuilderAction =
       role: PersonRoleFlag;
       value: boolean;
     }
+  | {
+      type: 'setDetail';
+      clientId: string;
+      /** null for the business, otherwise the person's index. */
+      personIndex: number | null;
+      field: DetailFieldId;
+      value: string;
+    }
   | { type: 'addPerson'; clientId: string }
   | { type: 'removePerson'; clientId: string; personIndex: number }
   | { type: 'applyFixes'; fixes: { clientId: string; fix: IssueFix }[] }
@@ -51,7 +60,8 @@ export type BuilderAction =
       type: 'paste';
       /** Existing rows to fill, in on-screen order, starting at the focused row. */
       targetClientIds: string[];
-      startColumn: number;
+      /** Visible columns from the focused cell to the right. */
+      columns: ColumnId[];
       rows: string[][];
     }
   | { type: 'import'; clients: ClientDraft[]; mode: 'append' | 'replace' }
@@ -136,6 +146,11 @@ export function builderReducer(
         return { ...client, people };
       });
 
+    case 'setDetail':
+      return updateClient(state, action.clientId, (client) =>
+        setDetailValue(client, action.personIndex, action.field, action.value)
+      );
+
     case 'addPerson':
       return updateClient(state, action.clientId, (client) => ({
         ...client,
@@ -152,19 +167,29 @@ export function builderReducer(
     case 'applyFixes': {
       let next = state;
       for (const { clientId, fix } of action.fixes) {
-        next = builderReducer(next, {
-          type: 'setPersonField',
-          clientId,
-          personIndex: fix.personIndex,
-          field: fix.field,
-          value: fix.value,
-        });
+        next = isDetailFieldId(fix.field)
+          ? builderReducer(next, {
+              type: 'setDetail',
+              clientId,
+              personIndex: fix.personIndex,
+              field: fix.field,
+              value: fix.value,
+            })
+          : fix.personIndex === null
+            ? next
+            : builderReducer(next, {
+                type: 'setPersonField',
+                clientId,
+                personIndex: fix.personIndex,
+                field: fix.field,
+                value: fix.value,
+              });
       }
       return next;
     }
 
     case 'paste': {
-      const columns = GRID_COLUMNS.slice(action.startColumn);
+      const columns = action.columns;
       if (columns.length === 0 || action.rows.length === 0) return state;
       const byId = new Map(state.clients.map((c) => [c.id, c]));
       const updates = new Map<string, ClientDraft>();
@@ -176,7 +201,7 @@ export function builderReducer(
           (targetId && byId.get(targetId)) || createClient({ touched: true });
         columns.forEach((column, columnIndex) => {
           if (columnIndex < cells.length) {
-            client = setGridValue(client, column.key, cells[columnIndex]);
+            client = setCellValue(client, column, cells[columnIndex]);
           }
         });
         client = { ...client, touched: true };

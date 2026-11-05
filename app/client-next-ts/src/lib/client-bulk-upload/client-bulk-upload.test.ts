@@ -15,6 +15,7 @@ import {
   transliterateName,
 } from './normalize';
 import { CSV_HEADERS } from './schema';
+import { BASE_COLUMN_IDS } from './sheet-columns';
 import { builderReducer, createInitialState } from './state';
 import { getEmailProblem, validateClients } from './validate';
 
@@ -387,7 +388,7 @@ describe('builder reducer', () => {
     const next = builderReducer(state, {
       type: 'paste',
       targetClientIds: [firstId],
-      startColumn: 1,
+      columns: BASE_COLUMN_IDS.slice(1),
       rows: [
         ['Alpha LLC', 'LLC'],
         ['Beta Inc', 'C corp'],

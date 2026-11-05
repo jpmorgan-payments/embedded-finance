@@ -1,15 +1,21 @@
 import Papa from 'papaparse';
 
-import { setGridValue } from './grid-values';
+import {
+  businessDetailsToCsv,
+  DETAIL_CSV_COLUMNS,
+  isSupportedDetailColumn,
+  personDetailsToCsv,
+  readBusinessDetails,
+  readPersonDetails,
+} from './details';
+import { setCellValue } from './grid-values';
 import {
   createClient,
   createPerson,
   getAdditionalPeople,
   getEffectiveBusinessEmail,
-  GRID_COLUMNS,
   isClientBlank,
   type ClientDraft,
-  type GridColumnKey,
   type PersonDraft,
 } from './model';
 import {
@@ -24,15 +30,21 @@ import {
   LIMITS,
   PARTY_TYPE,
   ROLES,
-  type CsvHeader,
   type CsvRow,
 } from './schema';
+import {
+  ALL_SHEET_COLUMNS,
+  BASE_COLUMN_IDS,
+  buildSheetColumns,
+  type ColumnId,
+  type SheetColumn,
+} from './sheet-columns';
 import { buildPersonExternalId } from './validate';
 
 const CSV_NEWLINE = '\r\n';
 
 function emptyRow(): CsvRow {
-  return Object.fromEntries(CSV_HEADERS.map((h) => [h, ''])) as CsvRow;
+  return Object.fromEntries(CSV_HEADERS.map((h) => [h, '']));
 }
 
 function personRoles(person: PersonDraft, isAuthorizedUser: boolean): string[] {
@@ -46,7 +58,8 @@ function personRoles(person: PersonDraft, isAuthorizedUser: boolean): string[] {
 /**
  * One business row plus one row per person. Roles are packed into
  * roles.0..2 without gaps, and `products.0` belongs on the business row only
- * (it is not an individual field in the upload instructions).
+ * (it is not an individual field in the upload instructions). Optional
+ * details are added as extra columns.
  */
 export function buildClientRows(client: ClientDraft): CsvRow[] {
   const clientId = client.externalId.trim();
@@ -60,6 +73,7 @@ export function buildClientRows(client: ClientDraft): CsvRow[] {
     'organizationDetails.organizationType': client.organizationType.trim(),
     'organizationDetails.countryOfFormation': FIXED_VALUES.countryOfFormation,
     'products.0': FIXED_VALUES.product,
+    ...businessDetailsToCsv(client.details),
   };
 
   const people = [client.people[0], ...getAdditionalPeople(client)];
@@ -75,9 +89,10 @@ export function buildClientRows(client: ClientDraft): CsvRow[] {
       'individualDetails.middleName': person.middleName.trim(),
       'individualDetails.lastName': person.lastName.trim(),
       'individualDetails.countryOfResidence': FIXED_VALUES.countryOfResidence,
+      ...personDetailsToCsv(person.details),
     };
     roles.forEach((role, roleIndex) => {
-      row[`roles.${roleIndex}` as CsvHeader] = role;
+      row[`roles.${roleIndex}`] = role;
     });
     return row;
   });
@@ -91,11 +106,29 @@ export function buildCsvRows(clients: ClientDraft[]): CsvRow[] {
     .flatMap(buildClientRows);
 }
 
-function serializeLines(rows: CsvRow[], includeHeader: boolean): string {
+/** The template columns, followed by any optional columns that hold data. */
+export function getCsvHeaders(rows: CsvRow[]): string[] {
+  const used = new Set<string>();
+  for (const row of rows) {
+    for (const [key, value] of Object.entries(row)) {
+      if (value) used.add(key);
+    }
+  }
+  return [
+    ...CSV_HEADERS,
+    ...DETAIL_CSV_COLUMNS.filter((column) => used.has(column)),
+  ];
+}
+
+function serializeLines(
+  rows: CsvRow[],
+  headers: string[],
+  includeHeader: boolean
+): string {
   const text = Papa.unparse(
     {
-      fields: [...CSV_HEADERS],
-      data: rows.map((row) => CSV_HEADERS.map((header) => row[header])),
+      fields: headers,
+      data: rows.map((row) => headers.map((header) => row[header] ?? '')),
     },
     { newline: CSV_NEWLINE, header: includeHeader, quotes: false }
   );
@@ -103,8 +136,11 @@ function serializeLines(rows: CsvRow[], includeHeader: boolean): string {
 }
 
 /** UTF-8 without a byte order mark, so the first header name stays exact. */
-export function serializeCsv(rows: CsvRow[]): string {
-  return serializeLines(rows, true);
+export function serializeCsv(
+  rows: CsvRow[],
+  headers = getCsvHeaders(rows)
+): string {
+  return serializeLines(rows, headers, true);
 }
 
 export interface CsvFilePart {
@@ -134,7 +170,7 @@ export function buildFileName(
 /**
  * Builds one file, or several when the upload limits in the instructions
  * (10,000 rows or 10 MB) would be exceeded. A business and its people always
- * stay in the same file.
+ * stay in the same file. Every part uses the same columns.
  */
 export function buildCsvFiles(
   clients: ClientDraft[],
@@ -145,28 +181,28 @@ export function buildCsvFiles(
     maxRows = LIMITS.maxDataRowsPerFile,
     maxBytes = LIMITS.maxFileBytes,
   } = options;
-  const headerBytes = byteLength(serializeLines([], true));
+  const active = clients.filter((client) => !isClientBlank(client));
+  const rowsByClient = active.map(buildClientRows);
+  const headers = getCsvHeaders(rowsByClient.flat());
+  const headerBytes = byteLength(serializeLines([], headers, true));
 
   const groups: { rows: CsvRow[]; clientCount: number; bytes: number }[] = [];
   let current = { rows: [] as CsvRow[], clientCount: 0, bytes: headerBytes };
 
-  clients
-    .filter((client) => !isClientBlank(client))
-    .forEach((client) => {
-      const rows = buildClientRows(client);
-      const bytes = byteLength(serializeLines(rows, false));
-      const wouldOverflow =
-        current.clientCount > 0 &&
-        (current.rows.length + rows.length > maxRows ||
-          current.bytes + bytes > maxBytes);
-      if (wouldOverflow) {
-        groups.push(current);
-        current = { rows: [], clientCount: 0, bytes: headerBytes };
-      }
-      current.rows.push(...rows);
-      current.clientCount += 1;
-      current.bytes += bytes;
-    });
+  rowsByClient.forEach((rows) => {
+    const bytes = byteLength(serializeLines(rows, headers, false));
+    const wouldOverflow =
+      current.clientCount > 0 &&
+      (current.rows.length + rows.length > maxRows ||
+        current.bytes + bytes > maxBytes);
+    if (wouldOverflow) {
+      groups.push(current);
+      current = { rows: [], clientCount: 0, bytes: headerBytes };
+    }
+    current.rows.push(...rows);
+    current.clientCount += 1;
+    current.bytes += bytes;
+  });
   if (current.clientCount > 0) groups.push(current);
 
   return groups.map((group, index) => ({
@@ -175,16 +211,20 @@ export function buildCsvFiles(
       group.clientCount,
       groups.length > 1 ? { index: index + 1, total: groups.length } : undefined
     ),
-    content: serializeCsv(group.rows),
+    content: serializeCsv(group.rows, headers),
     clientCount: group.clientCount,
     rowCount: group.rows.length,
   }));
 }
 
-/** Blank spreadsheet (one row per business) for collecting data in Excel. */
-export function buildSpreadsheetTemplate(): string {
+const BASE_SHEET_COLUMNS = buildSheetColumns(new Set());
+
+/** Blank spreadsheet (one row per business) with the given columns. */
+export function buildSpreadsheetTemplate(
+  columns: SheetColumn[] = BASE_SHEET_COLUMNS
+): string {
   return (
-    Papa.unparse([GRID_COLUMNS.map((column) => column.templateHeader)], {
+    Papa.unparse([columns.map((column) => column.templateHeader)], {
       newline: CSV_NEWLINE,
     }) + CSV_NEWLINE
   );
@@ -213,23 +253,21 @@ export function parseDelimitedText(
   return result.data.filter((row) => row.some((cell) => cell.trim() !== ''));
 }
 
-const GRID_HEADER_LOOKUP = new Map<string, GridColumnKey>();
-for (const column of GRID_COLUMNS) {
-  for (const spelling of [
-    column.templateHeader,
-    column.label,
-    ...column.aliases,
-  ]) {
+const SHEET_HEADER_LOOKUP = new Map<string, ColumnId>();
+for (const column of ALL_SHEET_COLUMNS) {
+  const spellings = [column.templateHeader];
+  if (column.base) spellings.push(column.base.label, ...column.base.aliases);
+  for (const spelling of spellings) {
     const key = normalizeKey(spelling);
-    if (!GRID_HEADER_LOOKUP.has(key)) GRID_HEADER_LOOKUP.set(key, column.key);
+    if (!SHEET_HEADER_LOOKUP.has(key)) SHEET_HEADER_LOOKUP.set(key, column.id);
   }
 }
 
-/** Maps a header row to grid columns, or returns null if it isn't a header. */
+/** Maps a header row to spreadsheet columns, or returns null if it isn't a header. */
 export function matchGridHeader(
   row: string[]
-): (GridColumnKey | undefined)[] | null {
-  const mapped = row.map((cell) => GRID_HEADER_LOOKUP.get(normalizeKey(cell)));
+): (ColumnId | undefined)[] | null {
+  const mapped = row.map((cell) => SHEET_HEADER_LOOKUP.get(normalizeKey(cell)));
   const matches = mapped.filter(Boolean).length;
   return matches >= 2 || (row.length === 1 && matches === 1) ? mapped : null;
 }
@@ -241,32 +279,35 @@ export function isBulkUploadHeader(row: string[]): boolean {
 
 function rowsToClients(
   rows: string[][],
-  columns: (GridColumnKey | undefined)[],
+  columns: (ColumnId | undefined)[],
   firstRowNumber: number,
   notes: string[]
 ): ClientDraft[] {
   const clients: ClientDraft[] = [];
   rows.forEach((row, rowIndex) => {
     let client = createClient({ touched: true });
-    columns.forEach((key, columnIndex) => {
-      if (!key) return;
+    columns.forEach((column, columnIndex) => {
+      if (!column) return;
       const cell = row[columnIndex] ?? '';
       if (
-        (key === 'isBeneficialOwner' || key === 'isController') &&
+        (column === 'isBeneficialOwner' || column === 'isController') &&
         parseYesNo(cell) === undefined
       ) {
         notes.push(
           `Row ${firstRowNumber + rowIndex}: "${cell}" isn't Yes or No — left unticked`
         );
       }
-      client = setGridValue(client, key, cell);
+      client = setCellValue(client, column, cell);
     });
     if (!isClientBlank(client)) clients.push(client);
   });
   return clients;
 }
 
-function importSpreadsheet(rows: string[][]): ImportResult {
+function importSpreadsheet(
+  rows: string[][],
+  positionalColumns: ColumnId[]
+): ImportResult {
   const notes: string[] = [];
   const headerColumns = matchGridHeader(rows[0] ?? []);
   if (headerColumns) {
@@ -282,51 +323,55 @@ function importSpreadsheet(rows: string[][]): ImportResult {
       notes,
     };
   }
-  const columns = GRID_COLUMNS.map((column) => column.key);
   const widest = Math.max(0, ...rows.map((row) => row.length));
-  if (widest > columns.length) {
+  if (widest > positionalColumns.length) {
     notes.push(
-      `Rows have ${widest} columns; only the first ${columns.length} were used`
+      `Rows have ${widest} columns; only the first ${positionalColumns.length} were used`
     );
   }
   return {
     format: 'positional',
-    clients: rowsToClients(rows, columns, 1, notes),
+    clients: rowsToClients(rows, positionalColumns, 1, notes),
     notes,
   };
 }
 
 interface PartyRecord {
   rowNumber: number;
-  get: (header: CsvHeader) => string;
+  get: (header: string) => string;
   roles: string[];
 }
 
 function importBulkUpload(rows: string[][]): ImportResult {
   const notes: string[] = [];
   const [header, ...dataRows] = rows;
-  const indexByHeader = new Map<CsvHeader, number>();
-  const knownByKey = new Map(CSV_HEADERS.map((h) => [normalizeKey(h), h]));
+  const indexByHeader = new Map<string, number>();
+  const knownCore = new Map(CSV_HEADERS.map((h) => [normalizeKey(h), h]));
   const roleColumns: number[] = [];
   const ignored: string[] = [];
 
   header.forEach((cell, index) => {
-    const known = knownByKey.get(normalizeKey(cell));
-    if (/^roles\.\d+$/i.test(cell.trim())) roleColumns.push(index);
-    if (known) indexByHeader.set(known, index);
-    else if (cell.trim() && !/^roles\.\d+$/i.test(cell.trim()))
-      ignored.push(cell.trim());
+    const name = cell.trim();
+    if (/^roles\.\d+$/i.test(name)) {
+      roleColumns.push(index);
+      return;
+    }
+    const core = knownCore.get(normalizeKey(name));
+    if (core) indexByHeader.set(core.toLowerCase(), index);
+    else if (isSupportedDetailColumn(name))
+      indexByHeader.set(name.toLowerCase(), index);
+    else if (name) ignored.push(name);
   });
   if (ignored.length > 0) {
     notes.push(
-      `Ignored columns this file doesn't use: ${ignored.slice(0, 8).join(', ')}${ignored.length > 8 ? ` and ${ignored.length - 8} more` : ''}`
+      `Ignored columns this tool doesn't support: ${ignored.slice(0, 8).join(', ')}${ignored.length > 8 ? ` and ${ignored.length - 8} more` : ''}`
     );
   }
 
   const records: PartyRecord[] = dataRows.map((row, i) => ({
     rowNumber: i + 2,
-    get: (h) => {
-      const index = indexByHeader.get(h);
+    get: (path) => {
+      const index = indexByHeader.get(path.toLowerCase());
       return index === undefined ? '' : cleanCell(row[index] ?? '').trim();
     },
     roles: roleColumns
@@ -366,6 +411,11 @@ function importBulkUpload(rows: string[][]): ImportResult {
       ),
       email: record.get('email'),
       people: [],
+      details: readBusinessDetails(
+        record.get,
+        notes,
+        `Row ${record.rowNumber}`
+      ),
       touched: true,
     });
     const country = record.get('organizationDetails.countryOfFormation');
@@ -417,6 +467,7 @@ function importBulkUpload(rows: string[][]): ImportResult {
       email: record.get('email'),
       isBeneficialOwner: record.roles.includes(ROLES.BENEFICIAL_OWNER),
       isController: record.roles.includes(ROLES.CONTROLLER),
+      details: readPersonDetails(record.get, notes, `Row ${record.rowNumber}`),
     });
     const list = peopleByClient.get(client) ?? [];
     list.push({
@@ -475,11 +526,14 @@ function importBulkUpload(rows: string[][]): ImportResult {
  * blank spreadsheet template, or rows copied from any spreadsheet in the
  * on-screen column order.
  */
-export function importFromText(text: string): ImportResult {
+export function importFromText(
+  text: string,
+  options: { positionalColumns?: ColumnId[] } = {}
+): ImportResult {
   const rows = parseDelimitedText(text);
   if (rows.length === 0) {
     return { format: 'positional', clients: [], notes: ['No rows found'] };
   }
   if (isBulkUploadHeader(rows[0])) return importBulkUpload(rows);
-  return importSpreadsheet(rows);
+  return importSpreadsheet(rows, options.positionalColumns ?? BASE_COLUMN_IDS);
 }

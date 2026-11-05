@@ -92,6 +92,45 @@ const FIELD_ROWS: { field: string; what: string; rules: string }[] = [
   },
 ];
 
+const OPTIONAL_ROWS: { group: string; fields: string; rules: string }[] = [
+  {
+    group: 'Business profile',
+    fields: 'DBA name, business description, NAICS code, year formed, website',
+    rules:
+      'DBA name up to 100 characters (letters A–Z, numbers and basic punctuation). Description 10–1,000 characters. NAICS code 6 digits. Year formed 4 digits, not in the future',
+  },
+  {
+    group: 'Business phone / Personal phone',
+    fields: 'Phone number',
+    rules: 'US number, 10 digits. Dashes, spaces and brackets are fine',
+  },
+  {
+    group: 'Business address / Home address',
+    fields:
+      'Address line 1 and 2, city, state, ZIP code (business: address type)',
+    rules:
+      'Street address up to 60 characters per line — no PO boxes or private mailboxes, and line 1 can’t be only numbers. City up to 40 characters. US state. 5-digit ZIP or ZIP+4',
+  },
+  {
+    group: 'Business tax ID',
+    fields: 'Tax ID type, tax ID number',
+    rules:
+      'EIN by default; SSN or ITIN only for sole proprietorships and LLCs. 9 digits',
+  },
+  {
+    group: 'Personal details',
+    fields: 'Suffix, birth date, job title, nature of ownership, language',
+    rules:
+      'Suffix up to 5 characters. Must be 18 or older. Job title: CEO, CFO, COO, President, Chairman, Senior Branch Manager or Other (describe it, up to 50 characters). Ownership: Direct or Indirect. Language: English (US) or French (Canada)',
+  },
+  {
+    group: 'Personal ID',
+    fields: 'ID type, ID number',
+    rules:
+      'SSN or ITIN (9 digits; an ITIN starts with 9), passport, driver’s license or other government ID (up to 20 characters), issued in the US',
+  },
+];
+
 export function Instructions() {
   return (
     <div className="max-w-4xl space-y-8 rounded-lg border border-jpm-gray-200 bg-white p-6">
@@ -205,6 +244,41 @@ export function Instructions() {
         </dl>
       </Section>
 
+      <Section title="Optional details">
+        <p className="text-sm text-jpm-gray-700">
+          If you already have more information, add it with{' '}
+          <strong>Optional columns</strong> (for the authorized user) or in the{' '}
+          <strong>One at a time</strong> view (for every individual). Leave
+          anything out that you don’t have. Only US businesses, US addresses and
+          US phone numbers are accepted.
+        </p>
+        <div className="overflow-x-auto rounded-md border border-jpm-gray-200">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-jpm-gray-50 text-xs uppercase tracking-wide text-jpm-gray-600">
+              <tr>
+                <th className="px-3 py-2 font-semibold">Group</th>
+                <th className="px-3 py-2 font-semibold">Fields</th>
+                <th className="px-3 py-2 font-semibold">Rules</th>
+              </tr>
+            </thead>
+            <tbody>
+              {OPTIONAL_ROWS.map((row) => (
+                <tr
+                  key={row.group}
+                  className="border-t border-jpm-gray-200 align-top"
+                >
+                  <td className="whitespace-nowrap px-3 py-2 font-medium text-jpm-gray-900">
+                    {row.group}
+                  </td>
+                  <td className="px-3 py-2 text-jpm-gray-700">{row.fields}</td>
+                  <td className="px-3 py-2 text-jpm-gray-700">{row.rules}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
       <Section title="Filled in for you">
         <ul className="list-disc space-y-1 pl-5 text-sm text-jpm-gray-700">
           <li>The column headers, exactly as required.</li>
@@ -222,6 +296,17 @@ export function Instructions() {
           <li>
             Product <code>EMBEDDED_PAYMENTS</code> on business rows, and country{' '}
             <code>US</code> for formation and residence.
+          </li>
+          <li>
+            For optional details: country <code>US</code> on addresses and ID
+            issuers, country code <code>+1</code> on phone numbers, the address
+            and phone types, and <code>NAICS</code> as the industry code type.
+            Dashes and spaces are removed from tax IDs and phone numbers, and
+            birth dates are written as YYYY-MM-DD.
+          </li>
+          <li>
+            Optional columns appear in the file only when at least one row uses
+            them.
           </li>
           <li>
             A file over 10,000 rows or 10 MB is split into parts. A business and
@@ -242,6 +327,10 @@ export function Instructions() {
             keep your work. You can import it again later to continue.
           </li>
           <li>
+            Tax IDs, ID numbers and birth dates are hidden on screen unless you
+            click into the field. The downloaded file contains the full values.
+          </li>
+          <li>
             The file contains personal information. Share it only through the
             secure method agreed with your J.P. Morgan contact.
           </li>
@@ -255,7 +344,8 @@ export function Instructions() {
         <div className="mt-3 space-y-2">
           <p>
             CSV, UTF-8, one header row. Each column header is an API field name
-            — don’t rename them. Columns, in order:
+            — don’t rename them. Required columns, in order (optional detail
+            columns follow when used):
           </p>
           <code className="block overflow-x-auto whitespace-nowrap rounded bg-jpm-gray-100 p-2 text-xs">
             {CSV_HEADERS.join(',')}

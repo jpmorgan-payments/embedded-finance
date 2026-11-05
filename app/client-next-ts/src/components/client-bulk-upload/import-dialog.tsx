@@ -15,28 +15,33 @@ import {
   type ImportFormat,
   type ImportResult,
 } from '@/lib/client-bulk-upload/csv';
-import { GRID_COLUMNS } from '@/lib/client-bulk-upload/model';
+import {
+  ALL_SHEET_COLUMNS,
+  BASE_COLUMN_IDS,
+  type ColumnId,
+} from '@/lib/client-bulk-upload/sheet-columns';
 import { cn } from '@/lib/utils';
 
 const MAX_IMPORT_BYTES = 15 * 1024 * 1024;
 const NOTE_LIMIT = 30;
 
-const FORMAT_LABEL: Record<ImportFormat, string> = {
-  'bulk-upload':
-    'Bulk upload file (template format) — it will be checked and repaired where possible',
-  spreadsheet: 'Spreadsheet with column headers',
-  positional: `Rows without headers, read in on-screen column order (${GRID_COLUMNS.slice(
-    0,
-    4
-  )
-    .map((c) => c.label)
-    .join(', ')}, …)`,
-};
+function formatLabel(format: ImportFormat, columns: ColumnId[]): string {
+  if (format === 'bulk-upload') {
+    return 'Bulk upload file (template format) — it will be checked and repaired where possible';
+  }
+  if (format === 'spreadsheet') return 'Spreadsheet with column headers';
+  const names = columns
+    .slice(0, 4)
+    .map((id) => ALL_SHEET_COLUMNS.find((c) => c.id === id)?.label ?? id);
+  return `Rows without headers, read in on-screen column order (${names.join(', ')}, …)`;
+}
 
 interface ImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialText?: string;
+  /** Column order for rows pasted without a header row. */
+  positionalColumns?: ColumnId[];
   hasExistingData: boolean;
   onImport: (result: ImportResult, mode: 'append' | 'replace') => void;
 }
@@ -45,6 +50,7 @@ export function ImportDialog({
   open,
   onOpenChange,
   initialText = '',
+  positionalColumns = BASE_COLUMN_IDS,
   hasExistingData,
   onImport,
 }: ImportDialogProps) {
@@ -62,8 +68,8 @@ export function ImportDialog({
   }, [open, initialText]);
 
   const result = useMemo(
-    () => (text.trim() ? importFromText(text) : null),
-    [text]
+    () => (text.trim() ? importFromText(text, { positionalColumns }) : null),
+    [text, positionalColumns]
   );
   const peopleCount = result
     ? result.clients.reduce((total, client) => total + client.people.length, 0)
@@ -185,7 +191,7 @@ export function ImportDialog({
           <div className="space-y-2 rounded-md border border-jpm-gray-200 bg-jpm-gray-50 p-3 text-sm">
             <p className="text-jpm-gray-700">
               <span className="font-medium text-jpm-gray-900">Detected:</span>{' '}
-              {FORMAT_LABEL[result.format]}
+              {formatLabel(result.format, positionalColumns)}
             </p>
             <p className="font-medium text-jpm-gray-900">
               {result.clients.length} client

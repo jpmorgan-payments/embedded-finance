@@ -3,6 +3,7 @@
  * so the UI edits this shape and the CSV builder flattens it into one row per
  * party. `people[0]` is always the authorized user (the invitation recipient).
  */
+import { hasDetailValues, type DetailValues } from './details';
 
 export interface PersonDraft {
   id: string;
@@ -12,6 +13,8 @@ export interface PersonDraft {
   email: string;
   isBeneficialOwner: boolean;
   isController: boolean;
+  /** Optional details (birth date, phone, home address, ID…). */
+  details: DetailValues;
 }
 
 export interface ClientDraft {
@@ -22,6 +25,8 @@ export interface ClientDraft {
   /** Business email. Blank means "use the authorized user's email". */
   email: string;
   people: PersonDraft[];
+  /** Optional business details (DBA, phone, address, tax ID…). */
+  details: DetailValues;
   /** Set once the user has edited or imported this client; gates error display. */
   touched: boolean;
 }
@@ -49,6 +54,7 @@ export function createPerson(
     email: '',
     isBeneficialOwner: false,
     isController: false,
+    details: {},
     ...overrides,
   };
 }
@@ -63,6 +69,7 @@ export function createClient(
     organizationType: '',
     email: '',
     people: [createPerson()],
+    details: {},
     touched: false,
     ...overrides,
   };
@@ -75,7 +82,8 @@ export function isPersonBlank(person: PersonDraft): boolean {
     !person.lastName.trim() &&
     !person.email.trim() &&
     !person.isBeneficialOwner &&
-    !person.isController
+    !person.isController &&
+    !hasDetailValues(person.details)
   );
 }
 
@@ -86,6 +94,7 @@ export function isClientBlank(client: ClientDraft): boolean {
     !client.organizationName.trim() &&
     !client.organizationType.trim() &&
     !client.email.trim() &&
+    !hasDetailValues(client.details) &&
     client.people.every(isPersonBlank)
   );
 }

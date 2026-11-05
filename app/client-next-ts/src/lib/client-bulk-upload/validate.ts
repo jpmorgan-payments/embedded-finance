@@ -1,4 +1,10 @@
 import {
+  validateBusinessDetails,
+  validatePersonDetails,
+  type DetailFieldId,
+  type DetailIssue,
+} from './details';
+import {
   getAdditionalPeople,
   isClientBlank,
   isPersonBlank,
@@ -18,12 +24,17 @@ import { LIMITS, ORGANIZATION_TYPES } from './schema';
 export type IssueSeverity = 'error' | 'warning';
 
 export type IssueTarget =
-  | { scope: 'client'; field: ClientField | 'people' }
-  | { scope: 'person'; personIndex: number; field: PersonField | 'roles' };
+  | { scope: 'client'; field: ClientField | 'people' | DetailFieldId }
+  | {
+      scope: 'person';
+      personIndex: number;
+      field: PersonField | 'roles' | DetailFieldId;
+    };
 
 export interface IssueFix {
-  personIndex: number;
-  field: NameField;
+  /** null for a business field. */
+  personIndex: number | null;
+  field: NameField | DetailFieldId;
   value: string;
 }
 
@@ -69,6 +80,7 @@ const EMAIL_LOCAL =
   /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*$/;
 const EMAIL_DOMAIN =
   /^(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
+const BLOCKED_EMAIL_TLDS = new Set(['cu', 'ir', 'kp', 'sy']);
 
 export function getEmailProblem(email: string): string | undefined {
   if (email.length > LIMITS.emailMax) {
@@ -90,7 +102,28 @@ export function getEmailProblem(email: string): string | undefined {
   if (!EMAIL_LOCAL.test(local) || !EMAIL_DOMAIN.test(domain)) {
     return 'is not a valid email address (example: name@company.com)';
   }
+  if (BLOCKED_EMAIL_TLDS.has(domain.split('.').pop()!.toLowerCase())) {
+    return "uses an email domain that isn't accepted";
+  }
   return undefined;
+}
+
+function toIssues(
+  detailIssues: DetailIssue[],
+  personIndex: number | null
+): Issue[] {
+  return detailIssues.map((issue) => ({
+    severity: issue.severity,
+    message: issue.message,
+    required: issue.required,
+    target:
+      personIndex === null
+        ? { scope: 'client', field: issue.field }
+        : { scope: 'person', personIndex, field: issue.field },
+    fix: issue.fix
+      ? { personIndex, field: issue.field, value: issue.fix }
+      : undefined,
+  }));
 }
 
 /** Individual externalIds are derived from the client ID: <clientId>_1, _2, ... */
@@ -357,12 +390,30 @@ function validateClient(
     }
   }
 
+  issues.push(
+    ...toIssues(
+      validateBusinessDetails(client.details, {
+        who: '',
+        organizationType: client.organizationType.trim(),
+      }),
+      null
+    )
+  );
+
   const seenPeople = new Map<string, number>();
   const seenEmails = new Map<string, number>();
   let beneficialOwners = 0;
   client.people.forEach((person, personIndex) => {
     if (personIndex > 0 && isPersonBlank(person)) return;
     validatePerson(person, personIndex, issues);
+    issues.push(
+      ...toIssues(
+        validatePersonDetails(person.details, {
+          who: personLabel(personIndex),
+        }),
+        personIndex
+      )
+    );
     if (person.isBeneficialOwner) beneficialOwners += 1;
 
     const key = personKey(person);

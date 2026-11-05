@@ -64,6 +64,18 @@ export const CLIENT_TOUR_STEPS: TourStep[] = [
     ),
   },
   {
+    target: 'columns-button',
+    title: 'Optional details',
+    body: (
+      <p>
+        Already have more details, such as addresses, phone numbers, tax IDs or
+        birth dates? Add their columns here. Every optional column can be left
+        out. Tax IDs, ID numbers and birth dates stay hidden on screen unless
+        you click into the field.
+      </p>
+    ),
+  },
+  {
     target: 'import-button',
     title: 'Many clients? Paste or import',
     body: (

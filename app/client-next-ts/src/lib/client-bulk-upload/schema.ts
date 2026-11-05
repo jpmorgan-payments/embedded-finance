@@ -27,7 +27,8 @@ export const CSV_HEADERS = [
 ] as const;
 
 export type CsvHeader = (typeof CSV_HEADERS)[number];
-export type CsvRow = Record<CsvHeader, string>;
+/** Core columns plus any optional detail columns (dot-notation API paths). */
+export type CsvRow = Record<string, string>;
 
 export const PARTY_TYPE = {
   ORGANIZATION: 'ORGANIZATION',

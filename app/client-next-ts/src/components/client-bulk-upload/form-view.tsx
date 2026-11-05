@@ -1,5 +1,6 @@
-import { useState, type Dispatch, type ReactNode } from 'react';
+import { useEffect, useState, type Dispatch, type ReactNode } from 'react';
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -8,6 +9,14 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import {
+  fieldsOfGroup,
+  groupsOf,
+  hasDetailValues,
+  type DetailFieldId,
+  type DetailValues,
+  type PartyKind,
+} from '@/lib/client-bulk-upload/details';
 import {
   isClientBlank,
   type ClientDraft,
@@ -18,6 +27,7 @@ import type { Issue } from '@/lib/client-bulk-upload/validate';
 import { cn } from '@/lib/utils';
 
 import {
+  DetailInput,
   fieldStateClass,
   IssueList,
   issuesFor,
@@ -409,6 +419,22 @@ function ClientForm({
             />
           </Field>
         </div>
+        <MoreDetails
+          party="business"
+          values={client.details}
+          personIndex={null}
+          control={control}
+          idPrefix={`${idPrefix}-business-detail`}
+          onChange={(field, value) =>
+            dispatch({
+              type: 'setDetail',
+              clientId: client.id,
+              personIndex: null,
+              field,
+              value,
+            })
+          }
+        />
       </fieldset>
 
       <PersonFieldset
@@ -691,6 +717,116 @@ function PersonFieldset({
           ) : null}
         </div>
       </div>
+      <MoreDetails
+        party="person"
+        values={person.details}
+        personIndex={personIndex}
+        control={control}
+        idPrefix={id('detail')}
+        onChange={(field, value) =>
+          dispatch({
+            type: 'setDetail',
+            clientId: client.id,
+            personIndex,
+            field,
+            value,
+          })
+        }
+      />
     </fieldset>
+  );
+}
+
+/** Collapsible optional details for the business or a person. */
+function MoreDetails({
+  party,
+  values,
+  personIndex,
+  control,
+  idPrefix,
+  onChange,
+}: {
+  party: PartyKind;
+  values: DetailValues;
+  personIndex: number | null;
+  control: (ref: FieldRef) => FieldControl;
+  idPrefix: string;
+  onChange: (field: DetailFieldId, value: string) => void;
+}) {
+  const ref = (field: DetailFieldId): FieldRef =>
+    personIndex === null
+      ? { scope: 'client', field }
+      : { scope: 'person', personIndex, field };
+  const groups = groupsOf(party);
+  const filled = hasDetailValues(values);
+  const hasIssues = groups.some((group) =>
+    fieldsOfGroup(group.id).some(
+      (field) => control(ref(field.id)).issues.length > 0
+    )
+  );
+  const [open, setOpen] = useState(filled || hasIssues);
+  useEffect(() => {
+    if (hasIssues) setOpen(true);
+  }, [hasIssues]);
+
+  return (
+    <div className="rounded-md border border-dashed border-jpm-gray-300 bg-white/60">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-sp-brand hover:bg-jpm-gray-50"
+      >
+        {open ? (
+          <ChevronDown className="size-4" aria-hidden />
+        ) : (
+          <ChevronRight className="size-4" aria-hidden />
+        )}
+        More {party === 'business' ? 'business ' : ''}details
+        <span className="font-normal text-jpm-gray-500">
+          (optional{filled ? ' · some filled in' : ''})
+        </span>
+      </button>
+      {open ? (
+        <div className="space-y-4 border-t border-dashed border-jpm-gray-300 p-3">
+          {groups.map((group) => (
+            <div key={group.id} className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-jpm-gray-600">
+                {group.label}
+                <span className="ml-2 font-normal normal-case tracking-normal text-jpm-gray-500">
+                  {group.description}
+                </span>
+              </p>
+              <div className="grid gap-3 md:grid-cols-3">
+                {fieldsOfGroup(group.id).map((field) => {
+                  const fieldControl = control(ref(field.id));
+                  const inputId = `${idPrefix}-${field.id}`;
+                  return (
+                    <Field
+                      key={field.id}
+                      label={field.label}
+                      htmlFor={inputId}
+                      hint={field.hint}
+                      issues={fieldControl.issues}
+                      className={
+                        field.input === 'textarea' ? 'md:col-span-3' : undefined
+                      }
+                    >
+                      <DetailInput
+                        id={inputId}
+                        field={field}
+                        value={values[field.id] ?? ''}
+                        onChange={(value) => onChange(field.id, value)}
+                        {...fieldControl.props}
+                      />
+                    </Field>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }

@@ -114,6 +114,34 @@ describe('ClientBulkUploadPage', () => {
       screen.getByLabelText('Row 1 Authorized user email')
     ).toHaveAttribute('placeholder', 'e.g. jane@acme.com');
   });
+
+  it('adds optional columns, masks sensitive values, and keeps columns with data', async () => {
+    const user = userEvent.setup();
+    render(<ClientBulkUploadPage />);
+    expect(
+      screen.queryByLabelText('Row 1 Authorized user ID number')
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /optional columns/i }));
+    const picker = screen.getByRole('dialog', { name: 'Optional columns' });
+    await user.click(
+      within(picker).getByRole('checkbox', { name: /personal id/i })
+    );
+
+    const idNumber = screen.getByLabelText('Row 1 Authorized user ID number');
+    await user.type(idNumber, '123-45-6780');
+    expect(idNumber).toHaveValue('123-45-6780');
+    await user.tab();
+    expect(idNumber).toHaveValue('•••••6780');
+
+    await user.click(screen.getByRole('button', { name: /optional columns/i }));
+    const reopened = screen.getByRole('dialog', { name: 'Optional columns' });
+    const groupToggle = within(reopened).getByRole('checkbox', {
+      name: /personal id/i,
+    });
+    expect(groupToggle).toBeDisabled();
+    expect(within(reopened).getByText('has data')).toBeInTheDocument();
+  });
 });
 
 describe('ClientBulkUploadPage first-visit tour', () => {
@@ -173,6 +201,7 @@ describe('ClientBulkUploadPage first-visit tour', () => {
       'Business details',
       'Authorized user',
       'Other owners and controllers',
+      'Optional details',
       'Many clients? Paste or import',
       'Review, download, then check the file',
     ]);

@@ -1,4 +1,4 @@
-import type { ComponentProps } from 'react';
+import { useState, type ComponentProps, type HTMLAttributes } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -7,6 +7,11 @@ import {
   Wand2,
 } from 'lucide-react';
 
+import {
+  maskSensitive,
+  type DetailField,
+  type DetailFieldId,
+} from '@/lib/client-bulk-upload/details';
 import type { ClientField, PersonField } from '@/lib/client-bulk-upload/model';
 import { ORGANIZATION_TYPES } from '@/lib/client-bulk-upload/schema';
 import type {
@@ -17,8 +22,12 @@ import type {
 import { cn } from '@/lib/utils';
 
 export type FieldRef =
-  | { scope: 'client'; field: ClientField | 'people' }
-  | { scope: 'person'; personIndex: number; field: PersonField | 'roles' };
+  | { scope: 'client'; field: ClientField | 'people' | DetailFieldId }
+  | {
+      scope: 'person';
+      personIndex: number;
+      field: PersonField | 'roles' | DetailFieldId;
+    };
 
 export function issuesFor(issues: Issue[], ref: FieldRef): Issue[] {
   return issues.filter((issue) => {
@@ -208,6 +217,95 @@ export function RoleCheckbox({
         'size-4 cursor-pointer rounded border-jpm-gray-300 accent-sp-brand',
         invalid && 'outline outline-2 outline-offset-2 outline-red-400'
       )}
+      {...props}
+    />
+  );
+}
+
+type DetailInputProps = Omit<
+  HTMLAttributes<HTMLElement>,
+  'onChange' | 'onBlur' | 'onFocus'
+> & {
+  field: DetailField;
+  value: string;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
+};
+
+/**
+ * Input for an optional detail. Select fields show their default (if any) as
+ * the empty choice; sensitive values are masked unless the field has focus.
+ */
+export function DetailInput({
+  field,
+  value,
+  onChange,
+  className,
+  onBlur,
+  ...props
+}: DetailInputProps) {
+  const [focused, setFocused] = useState(false);
+
+  if (field.input === 'select' && field.options) {
+    const known = !value || field.options.some((o) => o.value === value);
+    const defaultLabel = field.defaultValue
+      ? field.options.find((o) => o.value === field.defaultValue)?.label
+      : undefined;
+    return (
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        onBlur={onBlur}
+        className={cn(!value && 'text-jpm-gray-400', className)}
+        {...props}
+      >
+        <option value="">
+          {defaultLabel ? `${defaultLabel} (default)` : 'Choose…'}
+        </option>
+        {!known ? <option value={value}>{value} (not accepted)</option> : null}
+        {field.options.map((option) => (
+          <option
+            key={option.value}
+            value={option.value}
+            className="text-jpm-gray-900"
+          >
+            {option.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
+  const masked = field.sensitive && !focused && value;
+  return (
+    <input
+      type="text"
+      value={masked ? maskSensitive(field.id, value) : value}
+      placeholder={field.placeholder}
+      onChange={(event) => onChange(event.target.value)}
+      onFocus={(event) => {
+        // Swap in the real value before React re-renders so a selection made
+        // right after focus (Tab, keyboard navigation) covers the real text.
+        const input = event.currentTarget;
+        if (field.sensitive && input.value !== value) {
+          input.value = value;
+          input.select();
+        }
+        setFocused(true);
+      }}
+      onBlur={() => {
+        setFocused(false);
+        onBlur?.();
+      }}
+      autoComplete="off"
+      spellCheck={false}
+      data-sensitive={field.sensitive || undefined}
+      title={
+        field.sensitive && value
+          ? 'Hidden for privacy — click to show'
+          : undefined
+      }
+      className={className}
       {...props}
     />
   );

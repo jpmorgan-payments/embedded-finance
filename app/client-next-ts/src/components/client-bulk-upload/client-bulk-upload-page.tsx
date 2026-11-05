@@ -31,10 +31,17 @@ import {
   buildCsvFiles,
   buildCsvRows,
   buildSpreadsheetTemplate,
+  getCsvHeaders,
   type ImportResult,
 } from '@/lib/client-bulk-upload/csv';
+import {
+  DETAIL_GROUPS,
+  isGroupUsed,
+  type DetailGroupId,
+} from '@/lib/client-bulk-upload/details';
 import { createClient, isClientBlank } from '@/lib/client-bulk-upload/model';
 import { normalizeKey } from '@/lib/client-bulk-upload/normalize';
+import { buildSheetColumns } from '@/lib/client-bulk-upload/sheet-columns';
 import {
   builderReducer,
   createInitialState,
@@ -46,6 +53,7 @@ import {
 } from '@/lib/client-bulk-upload/validate';
 import { cn } from '@/lib/utils';
 
+import { ColumnsPicker } from './columns-picker';
 import { FilePreview } from './file-preview';
 import { FormView } from './form-view';
 import { GuidedTour } from './guided-tour';
@@ -152,6 +160,9 @@ export function ClientBulkUploadPage() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [tourOpen, setTourOpen] = useState(false);
+  const [enabledGroups, setEnabledGroups] = useState<Set<DetailGroupId>>(
+    () => new Set()
+  );
 
   useEffect(() => {
     focusFirstCell();
@@ -164,6 +175,52 @@ export function ClientBulkUploadPage() {
   );
   const hasData = summary.activeClientCount > 0;
   useDocumentSetup(state.dirty && hasData);
+
+  // Column groups that hold data (business, or the authorized user shown in
+  // the grid) always stay visible so nothing is hidden.
+  const groupsInUse = useMemo(() => {
+    const used = new Set<DetailGroupId>();
+    for (const client of state.clients) {
+      for (const group of DETAIL_GROUPS) {
+        const values =
+          group.party === 'business'
+            ? client.details
+            : client.people[0]?.details;
+        if (isGroupUsed(values, group.id)) used.add(group.id);
+      }
+    }
+    return used;
+  }, [state.clients]);
+  const visibleGroupsKey = DETAIL_GROUPS.filter(
+    (group) => enabledGroups.has(group.id) || groupsInUse.has(group.id)
+  )
+    .map((group) => group.id)
+    .join(',');
+  const columns = useMemo(
+    () =>
+      buildSheetColumns(
+        new Set(
+          (visibleGroupsKey
+            ? visibleGroupsKey.split(',')
+            : []) as DetailGroupId[]
+        )
+      ),
+    [visibleGroupsKey]
+  );
+  const columnIds = useMemo(() => columns.map((c) => c.id), [columns]);
+
+  const toggleGroup = (group: DetailGroupId, on: boolean) =>
+    setEnabledGroups((current) => {
+      const next = new Set(current);
+      if (on) next.add(group);
+      else next.delete(group);
+      return next;
+    });
+
+  const openDetails = useCallback((clientId: string) => {
+    setSelectedId(clientId);
+    setView('form');
+  }, []);
 
   const allItems = useMemo<VisibleClient[]>(
     () =>
@@ -211,6 +268,10 @@ export function ClientBulkUploadPage() {
     () => (tab === 'preview' ? buildCsvRows(state.clients) : []),
     [tab, state.clients]
   );
+  const previewHeaders = useMemo(
+    () => getCsvHeaders(previewRows),
+    [previewRows]
+  );
 
   const issueIds = useCallback(
     (includeWarnings: boolean) =>
@@ -247,7 +308,7 @@ export function ClientBulkUploadPage() {
     dispatch({ type: 'applyFixes', fixes });
     setNotice({
       tone: 'success',
-      message: `Replaced accented or special characters in ${fixes.length} name${fixes.length === 1 ? '' : 's'}. Check they still match the legal names.`,
+      message: `Applied ${fixes.length} suggested fix${fixes.length === 1 ? '' : 'es'} (accents and special characters, dropped leading zeros). Check the names still match the legal names.`,
     });
   };
 
@@ -472,6 +533,14 @@ export function ClientBulkUploadPage() {
                 <Upload aria-hidden />
                 Import file or rows
               </Button>
+              <ColumnsPicker
+                enabled={enabledGroups}
+                inUse={groupsInUse}
+                onToggle={(group, on) => {
+                  toggleGroup(group, on);
+                  if (on) setView('spreadsheet');
+                }}
+              />
               <Button
                 type="button"
                 size="sm"
@@ -490,8 +559,8 @@ export function ClientBulkUploadPage() {
                   onClick={applyAllFixes}
                 >
                   <Wand2 aria-hidden />
-                  Fix accents in {summary.fixableCount} name
-                  {summary.fixableCount === 1 ? '' : 's'}
+                  Apply {summary.fixableCount} suggested fix
+                  {summary.fixableCount === 1 ? '' : 'es'}
                 </Button>
               ) : null}
 
@@ -586,6 +655,7 @@ export function ClientBulkUploadPage() {
             {view === 'spreadsheet' ? (
               <SpreadsheetView
                 rows={pageItems}
+                columns={columns}
                 orderedIds={orderedIds}
                 showAllErrors={state.showAllErrors}
                 canAppendOnEnter={
@@ -596,6 +666,7 @@ export function ClientBulkUploadPage() {
                 }
                 dispatch={dispatch}
                 onHeaderPaste={handleHeaderPaste}
+                onOpenDetails={openDetails}
               />
             ) : (
               <FormView
@@ -617,7 +688,7 @@ export function ClientBulkUploadPage() {
                   onClick={() =>
                     downloadText(
                       'client-bulk-upload-spreadsheet-template.csv',
-                      buildSpreadsheetTemplate()
+                      buildSpreadsheetTemplate(columns)
                     )
                   }
                   title="A CSV with one column per field shown here, for collecting details in Excel before importing them"
@@ -678,7 +749,11 @@ export function ClientBulkUploadPage() {
           </TabsContent>
 
           <TabsContent value="preview">
-            <FilePreview rows={previewRows} errorCount={summary.errorCount} />
+            <FilePreview
+              rows={previewRows}
+              headers={previewHeaders}
+              errorCount={summary.errorCount}
+            />
           </TabsContent>
 
           <TabsContent value="instructions">
@@ -750,6 +825,7 @@ export function ClientBulkUploadPage() {
         open={importOpen}
         onOpenChange={setImportOpen}
         initialText={importText}
+        positionalColumns={columnIds}
         hasExistingData={hasData}
         onImport={handleImport}
       />

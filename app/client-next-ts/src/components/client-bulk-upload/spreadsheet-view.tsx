@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ListPlus,
   Trash2,
   UserPlus,
 } from 'lucide-react';
@@ -24,14 +25,15 @@ import {
   matchGridHeader,
   parseDelimitedText,
 } from '@/lib/client-bulk-upload/csv';
+import { getGroup, type DetailGroupId } from '@/lib/client-bulk-upload/details';
 import {
-  GRID_COLUMNS,
   isClientBlank,
   isPersonBlank,
   type ClientDraft,
   type GridColumnKey,
   type PersonField,
 } from '@/lib/client-bulk-upload/model';
+import type { SheetColumn } from '@/lib/client-bulk-upload/sheet-columns';
 import type { BuilderAction } from '@/lib/client-bulk-upload/state';
 import type {
   ClientValidation,
@@ -40,6 +42,7 @@ import type {
 import { cn } from '@/lib/utils';
 
 import {
+  DetailInput,
   fieldStateClass,
   IssueList,
   issuesFor,
@@ -60,15 +63,19 @@ export interface VisibleClient {
 
 interface SpreadsheetViewProps {
   rows: VisibleClient[];
+  /** Columns to show: core columns plus the optional groups that are on. */
+  columns: SheetColumn[];
   /** Every client matching the current filter, in order (paste can spill past the page). */
   orderedIds: string[];
   showAllErrors: boolean;
   canAppendOnEnter: boolean;
   dispatch: Dispatch<BuilderAction>;
   onHeaderPaste: (text: string) => void;
+  /** Opens the client in the One-at-a-time view (all details for every person). */
+  onOpenDetails: (clientId: string) => void;
 }
 
-const COLUMN_WIDTH: Record<GridColumnKey, string> = {
+const BASE_WIDTH: Record<GridColumnKey, string> = {
   externalId: 'w-36',
   organizationName: 'w-60',
   organizationType: 'w-56',
@@ -81,7 +88,7 @@ const COLUMN_WIDTH: Record<GridColumnKey, string> = {
   isController: 'w-20',
 };
 
-const COLUMN_HINT: Partial<Record<GridColumnKey, string>> = {
+const BASE_HINT: Partial<Record<GridColumnKey, string>> = {
   externalId: 'Your own unique identifier for this business (1–50 characters)',
   organizationName: 'Legal name of the business',
   email:
@@ -104,7 +111,7 @@ const REQUIRED: Partial<Record<GridColumnKey, boolean>> = {
   personEmail: true,
 };
 
-const FIELD_REF: Record<GridColumnKey, FieldRef | null> = {
+const BASE_FIELD_REF: Record<GridColumnKey, FieldRef | null> = {
   externalId: { scope: 'client', field: 'externalId' },
   organizationName: { scope: 'client', field: 'organizationName' },
   organizationType: { scope: 'client', field: 'organizationType' },
@@ -116,12 +123,6 @@ const FIELD_REF: Record<GridColumnKey, FieldRef | null> = {
   isBeneficialOwner: null,
   isController: null,
 };
-
-const TOTAL_COLUMNS = GRID_COLUMNS.length + 3;
-
-/** Row # and Client ID stay visible while scrolling sideways. */
-const STICKY_FIRST = 'sticky left-0';
-const STICKY_SECOND = 'sticky left-16 border-r border-r-jpm-gray-200';
 
 /** Shown in the first row's empty cells so people see what each field expects. */
 const EXAMPLE_PLACEHOLDER: Partial<Record<GridColumnKey, string>> = {
@@ -139,8 +140,27 @@ const PERSON_FIELD_LABEL: Record<PersonField, string> = {
   email: 'email',
 };
 
+/** Row # and Client ID stay visible while scrolling sideways. */
+const STICKY_FIRST = 'sticky left-0';
+const STICKY_SECOND = 'sticky left-16 border-r border-r-jpm-gray-200';
+
 const cellInputClass =
   'h-8 w-full rounded border border-transparent bg-transparent px-2 text-sm text-jpm-gray-900 placeholder:text-jpm-gray-400 hover:border-jpm-gray-200 focus:border-sp-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-sp-brand/20';
+
+const columnWidth = (column: SheetColumn) =>
+  column.detail?.width ?? BASE_WIDTH[column.id as GridColumnKey];
+
+const columnHint = (column: SheetColumn) =>
+  column.detail?.hint ?? BASE_HINT[column.id as GridColumnKey];
+
+function fieldRef(column: SheetColumn): FieldRef | null {
+  if (column.detail) {
+    return column.section === 'business'
+      ? { scope: 'client', field: column.detail.id }
+      : { scope: 'person', personIndex: 0, field: column.detail.id };
+  }
+  return BASE_FIELD_REF[column.id as GridColumnKey];
+}
 
 function rowIdFrom(element: EventTarget | null): string | null {
   if (!(element instanceof HTMLElement)) return null;
@@ -149,18 +169,44 @@ function rowIdFrom(element: EventTarget | null): string | null {
   );
 }
 
+/** Header groups after the pinned Client ID: core business, each optional group, core person… */
+function headerGroups(columns: SheetColumn[]) {
+  const groups: {
+    key: string;
+    span: number;
+    group?: DetailGroupId;
+    section: SheetColumn['section'];
+  }[] = [];
+  for (const column of columns.slice(1)) {
+    const key = column.group ?? `${column.section}-core`;
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) last.span += 1;
+    else
+      groups.push({
+        key,
+        span: 1,
+        group: column.group,
+        section: column.section,
+      });
+  }
+  return groups;
+}
+
 export function SpreadsheetView({
   rows,
+  columns,
   orderedIds,
   showAllErrors,
   canAppendOnEnter,
   dispatch,
   onHeaderPaste,
+  onOpenDetails,
 }: SpreadsheetViewProps) {
   const bodyRef = useRef<HTMLTableSectionElement>(null);
   const pendingFocus = useRef<{ row: number; col: number } | null>(null);
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const totalColumns = columns.length + 3;
 
   const focusCell = useCallback((row: number, col: number): boolean => {
     const element = bodyRef.current?.querySelector<HTMLElement>(
@@ -229,10 +275,10 @@ export function SpreadsheetView({
       ) {
         event.preventDefault();
         dispatch({
-          type: 'setGridValue',
-          clientId,
-          key: GRID_COLUMNS[col].key,
-          value: text,
+          type: 'paste',
+          targetClientIds: [clientId],
+          columns: [columns[col].id],
+          rows: [[text]],
         });
       }
       return;
@@ -251,7 +297,7 @@ export function SpreadsheetView({
     dispatch({
       type: 'paste',
       targetClientIds: orderedIds.slice(start),
-      startColumn: col,
+      columns: columns.slice(col).map((column) => column.id),
       rows: pasted,
     });
   };
@@ -306,6 +352,8 @@ export function SpreadsheetView({
     };
   }, [updateOverflow]);
 
+  useEffect(updateOverflow, [columns, updateOverflow]);
+
   const scrollSideways = (direction: 1 | -1) => {
     const element = scrollRef.current;
     if (!element) return;
@@ -326,8 +374,8 @@ export function SpreadsheetView({
         <table className="w-max min-w-full table-fixed border-separate border-spacing-0 text-sm">
           <colgroup>
             <col className="w-16" />
-            {GRID_COLUMNS.map((column) => (
-              <col key={column.key} className={COLUMN_WIDTH[column.key]} />
+            {columns.map((column) => (
+              <col key={column.id} className={columnWidth(column)} />
             ))}
             <col className="w-36" />
             <col className="w-12" />
@@ -343,20 +391,51 @@ export function SpreadsheetView({
               >
                 Business
               </th>
-              <th
-                colSpan={3}
-                data-tour="business-group"
-                className="border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-normal normal-case tracking-normal text-jpm-gray-500"
-              >
-                Legal name, type and email
-              </th>
-              <th
-                colSpan={6}
-                data-tour="authorized-user-group"
-                className="border-b border-l border-jpm-gray-200 bg-sp-accent px-2 py-2 font-semibold text-sp-brand-800"
-              >
-                Authorized user · receives the onboarding invitation
-              </th>
+              {headerGroups(columns).map((group, index) => {
+                if (!group.group && group.section === 'business') {
+                  return (
+                    <th
+                      key={group.key}
+                      colSpan={group.span}
+                      data-tour="business-group"
+                      className="border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-normal normal-case tracking-normal text-jpm-gray-500"
+                    >
+                      Legal name, type and email
+                    </th>
+                  );
+                }
+                if (!group.group) {
+                  return (
+                    <th
+                      key={group.key}
+                      colSpan={group.span}
+                      data-tour="authorized-user-group"
+                      className="border-b border-l border-jpm-gray-200 bg-sp-accent px-2 py-2 font-semibold text-sp-brand-800"
+                    >
+                      Authorized user · receives the onboarding invitation
+                    </th>
+                  );
+                }
+                const isPerson = group.section === 'authorizedUser';
+                return (
+                  <th
+                    key={`${group.key}-${index}`}
+                    colSpan={group.span}
+                    className={cn(
+                      'border-b border-l border-jpm-gray-200 px-2 py-2 font-semibold',
+                      isPerson
+                        ? 'bg-sp-accent/60 text-sp-brand-800'
+                        : 'bg-jpm-gray-100'
+                    )}
+                  >
+                    {isPerson ? 'Authorized user · ' : ''}
+                    {getGroup(group.group).label}
+                    <span className="ml-1 font-normal normal-case tracking-normal text-jpm-gray-500">
+                      (optional)
+                    </span>
+                  </th>
+                );
+              })}
               <th className="border-b border-l border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-semibold">
                 Others
               </th>
@@ -371,34 +450,41 @@ export function SpreadsheetView({
               >
                 Row
               </th>
-              {GRID_COLUMNS.map((column, index) => (
-                <th
-                  key={column.key}
-                  title={COLUMN_HINT[column.key]}
-                  className={cn(
-                    'border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium',
-                    index === 0 && cn(STICKY_SECOND, 'z-[3]'),
-                    index === 4 && 'border-l',
-                    (column.key === 'isBeneficialOwner' ||
-                      column.key === 'isController') &&
-                      'text-center'
-                  )}
-                >
-                  {column.label}
-                  {REQUIRED[column.key] ? (
-                    <span className="text-red-600" aria-hidden>
-                      {' '}
-                      *
-                    </span>
-                  ) : null}
-                  {column.key === 'email' || column.key === 'middleName' ? (
-                    <span className="font-normal text-jpm-gray-500">
-                      {' '}
-                      (optional)
-                    </span>
-                  ) : null}
-                </th>
-              ))}
+              {columns.map((column, index) => {
+                const previous = columns[index - 1];
+                const startsGroup =
+                  index > 0 &&
+                  (previous.group !== column.group ||
+                    previous.section !== column.section);
+                return (
+                  <th
+                    key={column.id}
+                    title={columnHint(column)}
+                    className={cn(
+                      'border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium',
+                      index === 0 && cn(STICKY_SECOND, 'z-[3]'),
+                      startsGroup && 'border-l',
+                      (column.id === 'isBeneficialOwner' ||
+                        column.id === 'isController') &&
+                        'text-center'
+                    )}
+                  >
+                    {column.label}
+                    {REQUIRED[column.id as GridColumnKey] ? (
+                      <span className="text-red-600" aria-hidden>
+                        {' '}
+                        *
+                      </span>
+                    ) : null}
+                    {column.id === 'email' || column.id === 'middleName' ? (
+                      <span className="font-normal text-jpm-gray-500">
+                        {' '}
+                        (optional)
+                      </span>
+                    ) : null}
+                  </th>
+                );
+              })}
               <th
                 data-tour="others-column"
                 className="border-b border-l border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium"
@@ -423,10 +509,13 @@ export function SpreadsheetView({
                 key={item.client.id}
                 item={item}
                 rowPos={rowPos}
+                columns={columns}
+                totalColumns={totalColumns}
                 showAllErrors={showAllErrors}
                 isFocused={focusedId === item.client.id}
                 isExpanded={expanded.has(item.client.id)}
                 onToggleExpanded={toggleExpanded}
+                onOpenDetails={onOpenDetails}
                 dispatch={dispatch}
               />
             ))}
@@ -479,20 +568,26 @@ export function SpreadsheetView({
 interface ClientRowProps {
   item: VisibleClient;
   rowPos: number;
+  columns: SheetColumn[];
+  totalColumns: number;
   showAllErrors: boolean;
   isFocused: boolean;
   isExpanded: boolean;
   onToggleExpanded: (clientId: string) => void;
+  onOpenDetails: (clientId: string) => void;
   dispatch: Dispatch<BuilderAction>;
 }
 
 const ClientRow = memo(function ClientRow({
   item,
   rowPos,
+  columns,
+  totalColumns,
   showAllErrors,
   isFocused,
   isExpanded,
   onToggleExpanded,
+  onOpenDetails,
   dispatch,
 }: ClientRowProps) {
   const { client, rowNumber, validation } = item;
@@ -512,36 +607,27 @@ const ClientRow = memo(function ClientRow({
       issue.target.field === 'people'
   );
 
-  const setValue = (key: GridColumnKey, value: string) =>
-    dispatch({ type: 'setGridValue', clientId: client.id, key, value });
-
-  const stateFor = (key: GridColumnKey) => {
-    const ref = FIELD_REF[key];
+  const cellProps = (col: number, column: SheetColumn) => {
+    const ref = fieldRef(column);
     const fieldIssues = ref ? issuesFor(shown, ref) : [];
     const severity = worstSeverity(fieldIssues);
-    return {
-      className: fieldStateClass[severity ?? 'none'],
-      title: fieldIssues[0]?.message ?? COLUMN_HINT[key],
-      invalid: severity === 'error',
-    };
-  };
-
-  const cellProps = (col: number, key: GridColumnKey) => {
-    const state = stateFor(key);
     return {
       'data-row': rowPos,
       'data-col': col,
       'data-client': client.id,
-      'aria-label': `Row ${rowNumber} ${GRID_COLUMNS[col].templateHeader}`,
-      'aria-invalid': state.invalid || undefined,
-      title: state.title,
-      className: cn(cellInputClass, state.className),
+      'aria-label': `Row ${rowNumber} ${column.templateHeader}`,
+      'aria-invalid': severity === 'error' || undefined,
+      title: fieldIssues[0]?.message ?? columnHint(column),
+      className: cn(cellInputClass, fieldStateClass[severity ?? 'none']),
     };
   };
 
+  const setBase = (key: GridColumnKey, value: string) =>
+    dispatch({ type: 'setGridValue', clientId: client.id, key, value });
+
   const textCell = (
     col: number,
-    key: GridColumnKey,
+    column: SheetColumn,
     value: string,
     placeholder?: string
   ) => (
@@ -549,14 +635,96 @@ const ClientRow = memo(function ClientRow({
       type="text"
       value={value}
       placeholder={
-        placeholder ?? (rowNumber === 1 ? EXAMPLE_PLACEHOLDER[key] : undefined)
+        placeholder ??
+        (rowNumber === 1
+          ? EXAMPLE_PLACEHOLDER[column.id as GridColumnKey]
+          : undefined)
       }
-      onChange={(event) => setValue(key, event.target.value)}
+      onChange={(event) =>
+        setBase(column.id as GridColumnKey, event.target.value)
+      }
       spellCheck={false}
       autoComplete="off"
-      {...cellProps(col, key)}
+      {...cellProps(col, column)}
     />
   );
+
+  const renderCell = (column: SheetColumn, col: number) => {
+    if (column.detail) {
+      const field = column.detail;
+      const isBusiness = column.section === 'business';
+      const value =
+        (isBusiness ? client.details : authorizedUser.details)[field.id] ?? '';
+      return (
+        <DetailInput
+          field={field}
+          value={value}
+          onChange={(next) =>
+            dispatch({
+              type: 'setDetail',
+              clientId: client.id,
+              personIndex: isBusiness ? null : 0,
+              field: field.id,
+              value: next,
+            })
+          }
+          {...cellProps(col, column)}
+        />
+      );
+    }
+    switch (column.id as GridColumnKey) {
+      case 'externalId':
+        return textCell(col, column, client.externalId);
+      case 'organizationName':
+        return textCell(col, column, client.organizationName);
+      case 'organizationType':
+        return (
+          <OrganizationTypeSelect
+            value={client.organizationType}
+            onChange={(value) => setBase('organizationType', value)}
+            {...cellProps(col, column)}
+          />
+        );
+      case 'email':
+        return textCell(
+          col,
+          column,
+          client.email,
+          authorizedUser.email.trim() || 'Same as user email'
+        );
+      case 'firstName':
+        return textCell(col, column, authorizedUser.firstName);
+      case 'middleName':
+        return textCell(col, column, authorizedUser.middleName);
+      case 'lastName':
+        return textCell(col, column, authorizedUser.lastName);
+      case 'personEmail':
+        return textCell(col, column, authorizedUser.email);
+      case 'isBeneficialOwner':
+      case 'isController': {
+        const role = column.id as 'isBeneficialOwner' | 'isController';
+        return (
+          <RoleCheckbox
+            checked={authorizedUser[role]}
+            onChange={(checked) =>
+              dispatch({
+                type: 'setPersonRole',
+                clientId: client.id,
+                personIndex: 0,
+                role,
+                value: checked,
+              })
+            }
+            label={`Row ${rowNumber} authorized user ${role === 'isController' ? 'is a controller' : 'owns 25% or more'}`}
+            title={columnHint(column)}
+            data-row={rowPos}
+            data-col={col}
+            data-client={client.id}
+          />
+        );
+      }
+    }
+  };
 
   return (
     <>
@@ -576,69 +744,29 @@ const ClientRow = memo(function ClientRow({
             {rowNumber}
           </span>
         </td>
-        <td
-          data-tour={rowPos === 0 ? 'client-id' : undefined}
-          className={cn(
-            STICKY_SECOND,
-            'z-[1] border-b border-jpm-gray-100 bg-white px-1 py-1'
-          )}
-        >
-          {textCell(0, 'externalId', client.externalId)}
-        </td>
-        <td className="border-b border-jpm-gray-100 px-1 py-1">
-          {textCell(1, 'organizationName', client.organizationName)}
-        </td>
-        <td className="border-b border-jpm-gray-100 px-1 py-1">
-          <OrganizationTypeSelect
-            value={client.organizationType}
-            onChange={(value) => setValue('organizationType', value)}
-            {...cellProps(2, 'organizationType')}
-          />
-        </td>
-        <td className="border-b border-jpm-gray-100 px-1 py-1">
-          {textCell(
-            3,
-            'email',
-            client.email,
-            authorizedUser.email.trim() || 'Same as user email'
-          )}
-        </td>
-        <td className="border-b border-l border-jpm-gray-100 px-1 py-1">
-          {textCell(4, 'firstName', authorizedUser.firstName)}
-        </td>
-        <td className="border-b border-jpm-gray-100 px-1 py-1">
-          {textCell(5, 'middleName', authorizedUser.middleName)}
-        </td>
-        <td className="border-b border-jpm-gray-100 px-1 py-1">
-          {textCell(6, 'lastName', authorizedUser.lastName)}
-        </td>
-        <td className="border-b border-jpm-gray-100 px-1 py-1">
-          {textCell(7, 'personEmail', authorizedUser.email)}
-        </td>
-        {(['isBeneficialOwner', 'isController'] as const).map((key, offset) => (
-          <td
-            key={key}
-            className="border-b border-jpm-gray-100 px-1 py-1 text-center"
-          >
-            <RoleCheckbox
-              checked={authorizedUser[key]}
-              onChange={(checked) =>
-                dispatch({
-                  type: 'setPersonRole',
-                  clientId: client.id,
-                  personIndex: 0,
-                  role: key,
-                  value: checked,
-                })
-              }
-              label={`Row ${rowNumber} authorized user ${key === 'isController' ? 'is a controller' : 'owns 25% or more'}`}
-              title={COLUMN_HINT[key]}
-              data-row={rowPos}
-              data-col={8 + offset}
-              data-client={client.id}
-            />
-          </td>
-        ))}
+        {columns.map((column, col) => {
+          const previous = columns[col - 1];
+          const startsGroup =
+            col > 0 &&
+            (previous.group !== column.group ||
+              previous.section !== column.section);
+          return (
+            <td
+              key={column.id}
+              data-tour={col === 0 && rowPos === 0 ? 'client-id' : undefined}
+              className={cn(
+                'border-b border-jpm-gray-100 px-1 py-1',
+                col === 0 && cn(STICKY_SECOND, 'z-[1] bg-white'),
+                startsGroup && 'border-l',
+                (column.id === 'isBeneficialOwner' ||
+                  column.id === 'isController') &&
+                  'text-center'
+              )}
+            >
+              {renderCell(column, col)}
+            </td>
+          );
+        })}
         <td className="border-b border-l border-jpm-gray-100 px-1 py-1">
           <button
             type="button"
@@ -681,7 +809,7 @@ const ClientRow = memo(function ClientRow({
         <tr data-client-row={client.id}>
           <td className="border-b border-jpm-gray-100" />
           <td
-            colSpan={TOTAL_COLUMNS - 1}
+            colSpan={totalColumns - 1}
             className="border-b border-jpm-gray-100 px-3 pb-2 pt-0.5"
           >
             <div className="sticky left-20 w-fit max-w-[calc(100vw-10rem)]">
@@ -702,7 +830,7 @@ const ClientRow = memo(function ClientRow({
         <tr data-client-row={client.id}>
           <td className="border-b border-jpm-gray-100 bg-jpm-gray-50" />
           <td
-            colSpan={TOTAL_COLUMNS - 1}
+            colSpan={totalColumns - 1}
             className="border-b border-jpm-gray-100 bg-jpm-gray-50 px-3 py-3"
           >
             <div className="sticky left-20 w-fit max-w-[calc(100vw-10rem)]">
@@ -710,6 +838,7 @@ const ClientRow = memo(function ClientRow({
                 client={client}
                 issues={shown}
                 dispatch={dispatch}
+                onOpenDetails={() => onOpenDetails(client.id)}
               />
             </div>
           </td>
@@ -723,10 +852,12 @@ function PeopleEditor({
   client,
   issues,
   dispatch,
+  onOpenDetails,
 }: {
   client: ClientDraft;
   issues: Issue[];
   dispatch: Dispatch<BuilderAction>;
+  onOpenDetails: () => void;
 }) {
   const others = client.people
     .map((person, index) => ({ person, index }))
@@ -840,15 +971,29 @@ function PeopleEditor({
           </tbody>
         </table>
       ) : null}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => dispatch({ type: 'addPerson', clientId: client.id })}
-      >
-        <UserPlus aria-hidden />
-        Add owner or controller
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => dispatch({ type: 'addPerson', clientId: client.id })}
+        >
+          <UserPlus aria-hidden />
+          Add owner or controller
+        </Button>
+        {others.length > 0 ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-sp-brand"
+            onClick={onOpenDetails}
+          >
+            <ListPlus aria-hidden />
+            Add their optional details (ID, birth date, address…)
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -1,40 +1,38 @@
 import { useState } from 'react';
-import { Check, Copy } from 'lucide-react';
+import { Check, Copy, Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { serializeCsv } from '@/lib/client-bulk-upload/csv';
 import {
-  CSV_HEADERS,
-  type CsvHeader,
-  type CsvRow,
-} from '@/lib/client-bulk-upload/schema';
+  maskSensitive,
+  SENSITIVE_CSV_COLUMNS,
+} from '@/lib/client-bulk-upload/details';
+import type { CsvRow } from '@/lib/client-bulk-upload/schema';
 import { cn } from '@/lib/utils';
 
 const PREVIEW_LIMIT = 200;
 
-/** Columns the tool fills in; shown muted so people see what they don't need to type. */
-const AUTO_FILLED = new Set<CsvHeader>([
-  'partyType',
-  'roles.0',
-  'roles.1',
-  'roles.2',
-  'parentExternalId',
-  'organizationDetails.countryOfFormation',
-  'products.0',
-  'individualDetails.countryOfResidence',
-]);
+/** Values the tool fills in; shown muted so people see what they don't need to type. */
+const AUTO_FILLED =
+  /^(partyType|roles\.\d|parentExternalId|products\.0)$|countryOf|\.country$|addressType$|phoneType$|countryCode$|codeType$|issuer$|idType$/;
 
 export function FilePreview({
   rows,
+  headers,
   errorCount,
 }: {
   rows: CsvRow[];
+  headers: string[];
   errorCount: number;
 }) {
   const [copied, setCopied] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const hasSensitive = headers.some((header) =>
+    SENSITIVE_CSV_COLUMNS.has(header)
+  );
 
   const copy = async () => {
-    await navigator.clipboard.writeText(serializeCsv(rows));
+    await navigator.clipboard.writeText(serializeCsv(rows, headers));
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
   };
@@ -58,6 +56,12 @@ export function FilePreview({
               Grey values are filled in for you.
             </span>
           </p>
+          {hasSensitive && !revealed ? (
+            <p className="text-jpm-gray-500">
+              Tax IDs, ID numbers and birth dates are hidden here; the file
+              contains the full values.
+            </p>
+          ) : null}
           {errorCount > 0 ? (
             <p className="text-red-700">
               Rows with problems are shown too, but the file can’t be downloaded
@@ -65,15 +69,29 @@ export function FilePreview({
             </p>
           ) : null}
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => void copy()}
-        >
-          {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
-          {copied ? 'Copied' : 'Copy CSV text'}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {hasSensitive ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-pressed={revealed}
+              onClick={() => setRevealed(!revealed)}
+            >
+              {revealed ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
+              {revealed ? 'Hide sensitive values' : 'Show sensitive values'}
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void copy()}
+          >
+            {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+            {copied ? 'Copied' : 'Copy CSV text'}
+          </Button>
+        </div>
       </div>
       <div className="max-h-[65vh] overflow-auto rounded-lg border border-jpm-gray-200 bg-white">
         <table className="w-max min-w-full border-separate border-spacing-0 font-mono text-xs">
@@ -82,7 +100,7 @@ export function FilePreview({
               <th className="border-b border-jpm-gray-200 px-2 py-2 font-medium text-jpm-gray-500">
                 #
               </th>
-              {CSV_HEADERS.map((header) => (
+              {headers.map((header) => (
                 <th
                   key={header}
                   className="whitespace-nowrap border-b border-jpm-gray-200 px-2 py-2 font-semibold text-jpm-gray-800"
@@ -100,20 +118,25 @@ export function FilePreview({
                   <td className="border-b border-jpm-gray-100 px-2 py-1 text-jpm-gray-400">
                     {index + 2}
                   </td>
-                  {CSV_HEADERS.map((header) => (
-                    <td
-                      key={header}
-                      className={cn(
-                        'whitespace-nowrap border-b border-jpm-gray-100 px-2 py-1',
-                        AUTO_FILLED.has(header) ||
-                          (!isBusiness && header === 'externalId')
-                          ? 'text-jpm-gray-500'
-                          : 'text-jpm-gray-900'
-                      )}
-                    >
-                      {row[header]}
-                    </td>
-                  ))}
+                  {headers.map((header) => {
+                    const value = row[header] ?? '';
+                    const hide =
+                      !revealed && SENSITIVE_CSV_COLUMNS.has(header) && value;
+                    return (
+                      <td
+                        key={header}
+                        className={cn(
+                          'whitespace-nowrap border-b border-jpm-gray-100 px-2 py-1',
+                          AUTO_FILLED.test(header) ||
+                            (!isBusiness && header === 'externalId')
+                            ? 'text-jpm-gray-500'
+                            : 'text-jpm-gray-900'
+                        )}
+                      >
+                        {hide ? maskSensitive(header, value) : value}
+                      </td>
+                    );
+                  })}
                 </tr>
               );
             })}
