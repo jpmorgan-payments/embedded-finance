@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import {
   DetailInput,
   fieldStateClass,
+  FixedRole,
   IssueList,
   issuesFor,
   OrganizationTypeSelect,
@@ -660,25 +661,33 @@ function PersonFieldset({
         {isController ? (
           <div className="space-y-1">
             <span className="block text-sm font-medium text-jpm-gray-900">
-              Ownership
+              Roles
             </span>
-            <label className="inline-flex items-center gap-2 py-1.5 text-sm text-jpm-gray-800">
-              <input
-                type="checkbox"
-                checked={person.isBeneficialOwner}
-                onChange={(event) =>
-                  dispatch({
-                    type: 'setPersonRole',
-                    clientId: client.id,
-                    personIndex,
-                    role: 'isBeneficialOwner',
-                    value: event.target.checked,
-                  })
-                }
-                className="size-4 accent-sp-brand"
-              />
-              The controller also owns 25% or more (beneficial owner)
-            </label>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 py-1.5 text-sm">
+              <FixedRole label="Controller" ariaLabel="Controller" />
+              <FixedRole label="Authorized user" ariaLabel="Authorized user" />
+              <label className="inline-flex items-center gap-2 text-jpm-gray-900">
+                <input
+                  type="checkbox"
+                  checked={person.isBeneficialOwner}
+                  onChange={(event) =>
+                    dispatch({
+                      type: 'setPersonRole',
+                      clientId: client.id,
+                      personIndex,
+                      role: 'isBeneficialOwner',
+                      value: event.target.checked,
+                    })
+                  }
+                  className="size-4 accent-sp-brand"
+                />
+                Owner 25%+ (beneficial owner)
+              </label>
+            </div>
+            <p className="text-xs text-jpm-gray-500">
+              Controller and authorized user are always selected for this
+              person. Tick Owner 25%+ if they also own 25% or more.
+            </p>
           </div>
         ) : null}
       </div>

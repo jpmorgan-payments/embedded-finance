@@ -88,7 +88,7 @@ const FIELD_ROWS: { field: string; what: string; rules: string }[] = [
     field: 'Roles',
     what: 'Controller (always also the authorized user), beneficial owners (25%+)',
     rules:
-      'One controller per business — they complete onboarding and receive the login email. List every other individual who owns 25% or more as a beneficial owner',
+      'One controller per business — Controller and Authorized user are selected by default; they complete onboarding and receive the login email. List every other individual who owns 25% or more as a beneficial owner',
   },
 ];
 
@@ -219,8 +219,8 @@ export function Instructions() {
             <dd className="text-jpm-gray-700">
               An additional role that is always added to the controller, as this
               is the person who is sent an email to set up a login to access
-              onboarding. You don’t enter it separately — the tool adds it to
-              the controller for you.
+              onboarding. Controller and authorized user are selected by default
+              for the first person in each business and can’t be removed.
             </dd>
           </div>
           <div>

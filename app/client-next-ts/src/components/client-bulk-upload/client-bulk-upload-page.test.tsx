@@ -98,6 +98,29 @@ describe('ClientBulkUploadPage', () => {
     expect(screen.getByLabelText('Row 2 Client ID')).toHaveFocus();
   });
 
+  it('shows Controller and Authorized user ticked and locked, with Owner 25%+ optional', async () => {
+    const user = userEvent.setup();
+    render(<ClientBulkUploadPage />);
+
+    const controller = screen.getByRole('checkbox', {
+      name: 'Row 1 is the controller',
+    });
+    const authorizedUser = screen.getByRole('checkbox', {
+      name: 'Row 1 is the authorized user',
+    });
+    expect(controller).toBeChecked();
+    expect(controller).toBeDisabled();
+    expect(authorizedUser).toBeChecked();
+    expect(authorizedUser).toBeDisabled();
+
+    const owner = screen.getByRole('checkbox', {
+      name: 'Row 1 controller owns 25% or more',
+    });
+    expect(owner).not.toBeChecked();
+    await user.click(owner);
+    expect(owner).toBeChecked();
+  });
+
   it('shows examples in the first row and focuses its Client ID on load', () => {
     render(<ClientBulkUploadPage />);
 

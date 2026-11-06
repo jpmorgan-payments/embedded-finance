@@ -44,6 +44,7 @@ import { cn } from '@/lib/utils';
 import {
   DetailInput,
   fieldStateClass,
+  FixedRole,
   IssueList,
   issuesFor,
   OrganizationTypeSelect,
@@ -84,7 +85,7 @@ const BASE_WIDTH: Record<GridColumnKey, string> = {
   middleName: 'w-28',
   lastName: 'w-32',
   personEmail: 'w-56',
-  isBeneficialOwner: 'w-24',
+  isBeneficialOwner: 'w-80',
 };
 
 const BASE_HINT: Partial<Record<GridColumnKey, string>> = {
@@ -97,7 +98,7 @@ const BASE_HINT: Partial<Record<GridColumnKey, string>> = {
   personEmail:
     'The controller is sent an email to set up a login and complete onboarding',
   isBeneficialOwner:
-    'Tick if the controller also owns 25% or more of the business',
+    'Controller and authorized user are always selected for this person. Tick Owner 25%+ if they also own 25% or more of the business',
 };
 
 const REQUIRED: Partial<Record<GridColumnKey, boolean>> = {
@@ -461,11 +462,10 @@ export function SpreadsheetView({
                     className={cn(
                       'border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium',
                       index === 0 && cn(STICKY_SECOND, 'z-[3]'),
-                      startsGroup && 'border-l',
-                      column.id === 'isBeneficialOwner' && 'text-center'
+                      startsGroup && 'border-l'
                     )}
                   >
-                    {column.label}
+                    {column.id === 'isBeneficialOwner' ? 'Roles' : column.label}
                     {REQUIRED[column.id as GridColumnKey] ? (
                       <span className="text-red-600" aria-hidden>
                         {' '}
@@ -698,23 +698,38 @@ const ClientRow = memo(function ClientRow({
         return textCell(col, column, controller.email);
       case 'isBeneficialOwner':
         return (
-          <RoleCheckbox
-            checked={controller.isBeneficialOwner}
-            onChange={(checked) =>
-              dispatch({
-                type: 'setPersonRole',
-                clientId: client.id,
-                personIndex: 0,
-                role: 'isBeneficialOwner',
-                value: checked,
-              })
-            }
-            label={`Row ${rowNumber} controller owns 25% or more`}
-            title={columnHint(column)}
-            data-row={rowPos}
-            data-col={col}
-            data-client={client.id}
-          />
+          <div className="flex items-center gap-3 whitespace-nowrap px-1 text-xs">
+            <FixedRole
+              label="Controller"
+              ariaLabel={`Row ${rowNumber} is the controller`}
+            />
+            <FixedRole
+              label="Authorized user"
+              ariaLabel={`Row ${rowNumber} is the authorized user`}
+            />
+            <label
+              className="inline-flex cursor-pointer items-center gap-1.5 text-jpm-gray-900"
+              title={columnHint(column)}
+            >
+              <RoleCheckbox
+                checked={controller.isBeneficialOwner}
+                onChange={(checked) =>
+                  dispatch({
+                    type: 'setPersonRole',
+                    clientId: client.id,
+                    personIndex: 0,
+                    role: 'isBeneficialOwner',
+                    value: checked,
+                  })
+                }
+                label={`Row ${rowNumber} controller owns 25% or more`}
+                data-row={rowPos}
+                data-col={col}
+                data-client={client.id}
+              />
+              Owner 25%+
+            </label>
+          </div>
         );
     }
   };
@@ -750,8 +765,7 @@ const ClientRow = memo(function ClientRow({
               className={cn(
                 'border-b border-jpm-gray-100 px-1 py-1',
                 col === 0 && cn(STICKY_SECOND, 'z-[1] bg-white'),
-                startsGroup && 'border-l',
-                column.id === 'isBeneficialOwner' && 'text-center'
+                startsGroup && 'border-l'
               )}
             >
               {renderCell(column, col)}

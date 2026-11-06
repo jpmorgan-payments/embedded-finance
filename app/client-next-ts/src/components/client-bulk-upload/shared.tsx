@@ -194,6 +194,40 @@ export function OrganizationTypeSelect({
   );
 }
 
+export const FIXED_ROLE_HINT =
+  'Always selected: the controller is also the authorized user, who completes onboarding and receives the email to set up a login';
+
+/** A role that is always on for the controller: shown ticked and locked. */
+export function FixedRole({
+  label,
+  ariaLabel,
+  className,
+}: {
+  label: string;
+  ariaLabel: string;
+  className?: string;
+}) {
+  return (
+    <label
+      className={cn(
+        'inline-flex cursor-default items-center gap-1.5 text-jpm-gray-700',
+        className
+      )}
+      title={FIXED_ROLE_HINT}
+    >
+      <input
+        type="checkbox"
+        checked
+        readOnly
+        disabled
+        aria-label={ariaLabel}
+        className="size-4 rounded border-jpm-gray-300 accent-sp-brand"
+      />
+      {label}
+    </label>
+  );
+}
+
 export function RoleCheckbox({
   checked,
   onChange,

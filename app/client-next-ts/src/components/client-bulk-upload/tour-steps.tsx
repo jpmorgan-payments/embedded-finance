@@ -37,10 +37,10 @@ export const CLIENT_TOUR_STEPS: TourStep[] = [
         <p>
           The individual with significant responsibility and control over the
           business, such as an executive officer or senior manager. They
-          complete onboarding and are sent the email to set up a login, so the
-          tool also gives them the authorized user role. Enter their legal name
-          and email, and tick <strong>Owner 25%+</strong> if they own 25% or
-          more.
+          complete onboarding and are sent the email to set up a login.{' '}
+          <strong>Controller</strong> and <strong>Authorized user</strong> are
+          already selected for this person; tick <strong>Owner 25%+</strong> if
+          they also own 25% or more. Enter their legal name and email.
         </p>
         <p className="flex items-start gap-1.5 rounded-md bg-amber-50 p-2 text-amber-900">
           <ChevronsRight className="mt-0.5 size-4 shrink-0" aria-hidden />
