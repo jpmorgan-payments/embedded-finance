@@ -26,9 +26,15 @@ function RootComponent() {
   const isPartiallyHostedPresentation =
     location.pathname === '/partially-hosted-presentation';
   const isRepoEvolution = location.pathname === '/repo-evolution';
+  const isClientBulkUpload = location.pathname === '/client-bulk-upload';
   const isTestScenario = isTestScenarioPath(location.pathname);
 
-  if (isProsperityBay || isPartiallyHostedPresentation || isRepoEvolution) {
+  if (
+    isProsperityBay ||
+    isPartiallyHostedPresentation ||
+    isRepoEvolution ||
+    isClientBulkUpload
+  ) {
     return (
       <>
         <main>

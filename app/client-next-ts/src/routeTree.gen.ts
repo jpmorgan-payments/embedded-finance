@@ -37,6 +37,7 @@ import { Route as FortressGameRouteImport } from './routes/fortress-game'
 import { Route as DocumentationRouteImport } from './routes/documentation'
 import { Route as DemosRouteImport } from './routes/demos'
 import { Route as ComponentsRouteImport } from './routes/components'
+import { Route as ClientBulkUploadRouteImport } from './routes/client-bulk-upload'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestScenarioIndexRouteImport } from './routes/test-scenario.index'
 import { Route as StoriesIndexRouteImport } from './routes/stories.index'
@@ -185,6 +186,11 @@ const ComponentsRoute = ComponentsRouteImport.update({
   path: '/components',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientBulkUploadRoute = ClientBulkUploadRouteImport.update({
+  id: '/client-bulk-upload',
+  path: '/client-bulk-upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -218,6 +224,7 @@ const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/client-bulk-upload': typeof ClientBulkUploadRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -254,6 +261,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/client-bulk-upload': typeof ClientBulkUploadRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -289,6 +297,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/client-bulk-upload': typeof ClientBulkUploadRoute
   '/components': typeof ComponentsRoute
   '/demos': typeof DemosRoute
   '/documentation': typeof DocumentationRoute
@@ -327,6 +336,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/client-bulk-upload'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -363,6 +373,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/client-bulk-upload'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/client-bulk-upload'
     | '/components'
     | '/demos'
     | '/documentation'
@@ -434,6 +446,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClientBulkUploadRoute: typeof ClientBulkUploadRoute
   ComponentsRoute: typeof ComponentsRoute
   DemosRoute: typeof DemosRoute
   DocumentationRoute: typeof DocumentationRoute
@@ -662,6 +675,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComponentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/client-bulk-upload': {
+      id: '/client-bulk-upload'
+      path: '/client-bulk-upload'
+      fullPath: '/client-bulk-upload'
+      preLoaderRoute: typeof ClientBulkUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -738,6 +758,7 @@ const TestScenarioRouteWithChildren = TestScenarioRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClientBulkUploadRoute: ClientBulkUploadRoute,
   ComponentsRoute: ComponentsRoute,
   DemosRoute: DemosRoute,
   DocumentationRoute: DocumentationRoute,
