@@ -19,16 +19,10 @@ async function fillFirstClient(user: ReturnType<typeof userEvent.setup>) {
     screen.getByLabelText('Row 1 Business type'),
     'LIMITED_LIABILITY_COMPANY'
   );
+  await user.type(screen.getByLabelText('Row 1 Controller first name'), 'Jane');
+  await user.type(screen.getByLabelText('Row 1 Controller last name'), 'Doe');
   await user.type(
-    screen.getByLabelText('Row 1 Authorized user first name'),
-    'Jane'
-  );
-  await user.type(
-    screen.getByLabelText('Row 1 Authorized user last name'),
-    'Doe'
-  );
-  await user.type(
-    screen.getByLabelText('Row 1 Authorized user email'),
+    screen.getByLabelText('Row 1 Controller email'),
     'jane@acme.com'
   );
 }
@@ -110,16 +104,17 @@ describe('ClientBulkUploadPage', () => {
     const clientId = screen.getByLabelText('Row 1 Client ID');
     expect(clientId).toHaveFocus();
     expect(clientId).toHaveAttribute('placeholder', 'e.g. S-1001');
-    expect(
-      screen.getByLabelText('Row 1 Authorized user email')
-    ).toHaveAttribute('placeholder', 'e.g. jane@acme.com');
+    expect(screen.getByLabelText('Row 1 Controller email')).toHaveAttribute(
+      'placeholder',
+      'e.g. jane@acme.com'
+    );
   });
 
   it('adds optional columns, masks sensitive values, and keeps columns with data', async () => {
     const user = userEvent.setup();
     render(<ClientBulkUploadPage />);
     expect(
-      screen.queryByLabelText('Row 1 Authorized user ID number')
+      screen.queryByLabelText('Row 1 Controller ID number')
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /optional columns/i }));
@@ -128,7 +123,7 @@ describe('ClientBulkUploadPage', () => {
       within(picker).getByRole('checkbox', { name: /personal id/i })
     );
 
-    const idNumber = screen.getByLabelText('Row 1 Authorized user ID number');
+    const idNumber = screen.getByLabelText('Row 1 Controller ID number');
     await user.type(idNumber, '123-45-6780');
     expect(idNumber).toHaveValue('123-45-6780');
     await user.tab();
@@ -199,8 +194,8 @@ describe('ClientBulkUploadPage first-visit tour', () => {
     expect(titles).toEqual([
       'Start here: one row per business',
       'Business details',
-      'Authorized user',
-      'Other owners and controllers',
+      'Controller',
+      'Other beneficial owners',
       'Optional details',
       'Many clients? Paste or import',
       'Review, download, then check the file',

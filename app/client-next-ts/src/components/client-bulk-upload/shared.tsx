@@ -26,7 +26,7 @@ export type FieldRef =
   | {
       scope: 'person';
       personIndex: number;
-      field: PersonField | 'roles' | DetailFieldId;
+      field: PersonField | DetailFieldId;
     };
 
 export function issuesFor(issues: Issue[], ref: FieldRef): Issue[] {

@@ -1,7 +1,9 @@
 /**
  * Client-centric draft model. Users think in "businesses and their people",
  * so the UI edits this shape and the CSV builder flattens it into one row per
- * party. `people[0]` is always the authorized user (the invitation recipient).
+ * party. `people[0]` is always the controller, who is also the authorized
+ * user (completes onboarding and receives the login email). Anyone else is a
+ * beneficial owner.
  */
 import { hasDetailValues, type DetailValues } from './details';
 
@@ -11,8 +13,8 @@ export interface PersonDraft {
   middleName: string;
   lastName: string;
   email: string;
+  /** Only used for the controller; other people are always beneficial owners. */
   isBeneficialOwner: boolean;
-  isController: boolean;
   /** Optional details (birth date, phone, home address, ID…). */
   details: DetailValues;
 }
@@ -22,7 +24,7 @@ export interface ClientDraft {
   externalId: string;
   organizationName: string;
   organizationType: string;
-  /** Business email. Blank means "use the authorized user's email". */
+  /** Business email. Blank means "use the controller's email". */
   email: string;
   people: PersonDraft[];
   /** Optional business details (DBA, phone, address, tax ID…). */
@@ -34,7 +36,7 @@ export interface ClientDraft {
 export type ClientField =
   'externalId' | 'organizationName' | 'organizationType' | 'email';
 export type PersonField = 'firstName' | 'middleName' | 'lastName' | 'email';
-export type PersonRoleFlag = 'isBeneficialOwner' | 'isController';
+export type PersonRoleFlag = 'isBeneficialOwner';
 export type NameField = 'firstName' | 'middleName' | 'lastName';
 
 let sequence = 0;
@@ -53,7 +55,6 @@ export function createPerson(
     lastName: '',
     email: '',
     isBeneficialOwner: false,
-    isController: false,
     details: {},
     ...overrides,
   };
@@ -82,7 +83,6 @@ export function isPersonBlank(person: PersonDraft): boolean {
     !person.lastName.trim() &&
     !person.email.trim() &&
     !person.isBeneficialOwner &&
-    !person.isController &&
     !hasDetailValues(person.details)
   );
 }
@@ -121,8 +121,7 @@ export type GridColumnKey =
   | 'middleName'
   | 'lastName'
   | 'personEmail'
-  | 'isBeneficialOwner'
-  | 'isController';
+  | 'isBeneficialOwner';
 
 export interface GridColumn {
   key: GridColumnKey;
@@ -171,45 +170,63 @@ export const GRID_COLUMNS: GridColumn[] = [
   {
     key: 'firstName',
     label: 'First name',
-    templateHeader: 'Authorized user first name',
-    aliases: ['First name', 'individualDetails.firstName'],
+    templateHeader: 'Controller first name',
+    aliases: [
+      'First name',
+      'individualDetails.firstName',
+      'Authorized user first name',
+    ],
   },
   {
     key: 'middleName',
     label: 'Middle name',
-    templateHeader: 'Authorized user middle name (optional)',
+    templateHeader: 'Controller middle name (optional)',
     aliases: [
       'Middle name',
-      'Authorized user middle name',
+      'Controller middle name',
       'individualDetails.middleName',
+      'Authorized user middle name',
+      'Authorized user middle name (optional)',
     ],
   },
   {
     key: 'lastName',
     label: 'Last name',
-    templateHeader: 'Authorized user last name',
-    aliases: ['Last name', 'individualDetails.lastName'],
+    templateHeader: 'Controller last name',
+    aliases: [
+      'Last name',
+      'individualDetails.lastName',
+      'Authorized user last name',
+    ],
   },
   {
     key: 'personEmail',
     label: 'Email',
-    templateHeader: 'Authorized user email',
-    aliases: ['Authorized user email address', 'Invitation email'],
+    templateHeader: 'Controller email',
+    aliases: [
+      'Controller email address',
+      'Authorized user email',
+      'Authorized user email address',
+      'Invitation email',
+    ],
   },
   {
     key: 'isBeneficialOwner',
     label: 'Owner 25%+',
-    templateHeader: 'Authorized user owns 25% or more (Y/N)',
+    templateHeader: 'Controller owns 25% or more (Y/N)',
     aliases: [
+      'Controller is beneficial owner',
+      'Controller is beneficial owner (Y/N)',
+      'Authorized user owns 25% or more (Y/N)',
       'Authorized user is beneficial owner',
       'Authorized user is beneficial owner (Y/N)',
       'Beneficial owner',
     ],
   },
-  {
-    key: 'isController',
-    label: 'Controller',
-    templateHeader: 'Authorized user is controller (Y/N)',
-    aliases: ['Authorized user is controller', 'Controller'],
-  },
+];
+
+/** Headers from earlier template versions that are no longer needed. */
+export const RETIRED_TEMPLATE_HEADERS = [
+  'Authorized user is controller (Y/N)',
+  'Authorized user is controller',
 ];

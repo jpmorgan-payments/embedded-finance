@@ -148,7 +148,7 @@ describe('optional details: validation', () => {
     );
   const person = (values: DetailValues) =>
     messages(
-      validatePersonDetails(values, { who: 'Authorized user', today: TODAY })
+      validatePersonDetails(values, { who: 'Controller', today: TODAY })
     );
 
   it('accepts a complete, valid set of details', () => {
@@ -228,7 +228,7 @@ describe('optional details: validation', () => {
         'person.state': 'MA',
         'person.postalCode': '2134',
       },
-      { who: 'Authorized user', today: TODAY }
+      { who: 'Controller', today: TODAY }
     );
     expect(issues[0].fix).toBe('02134');
   });
@@ -439,7 +439,6 @@ describe('spreadsheet columns', () => {
       'lastName',
       'personEmail',
       'isBeneficialOwner',
-      'isController',
       'person.idType',
       'person.idValue',
     ]);
@@ -451,9 +450,9 @@ describe('spreadsheet columns', () => {
     );
     const template = buildSpreadsheetTemplate(columns).trim();
     expect(template).toContain('Business phone');
-    expect(template).toContain('Authorized user birth date');
+    expect(template).toContain('Controller birth date');
     const row =
-      'S-9,Beta Inc,S corp,,212-555-0100,Sam,,Ito,sam@beta.com,Y,N,,1990-01-02,CEO,,Direct,English';
+      'S-9,Beta Inc,S corp,,212-555-0100,Sam,,Ito,sam@beta.com,Y,,1990-01-02,CEO,,Direct,English';
     const { clients } = importFromText(`${template}\r\n${row}`);
     expect(clients[0].details['business.phone']).toBe('212-555-0100');
     expect(clients[0].people[0].details).toMatchObject({

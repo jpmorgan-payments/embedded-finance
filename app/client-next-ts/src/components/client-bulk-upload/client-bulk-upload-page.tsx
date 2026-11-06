@@ -176,8 +176,8 @@ export function ClientBulkUploadPage() {
   const hasData = summary.activeClientCount > 0;
   useDocumentSetup(state.dirty && hasData);
 
-  // Column groups that hold data (business, or the authorized user shown in
-  // the grid) always stay visible so nothing is hidden.
+  // Column groups that hold data (business, or the controller shown in the
+  // grid) always stay visible so nothing is hidden.
   const groupsInUse = useMemo(() => {
     const used = new Set<DetailGroupId>();
     for (const client of state.clients) {
@@ -630,7 +630,7 @@ export function ClientBulkUploadPage() {
                 <span className="inline-flex items-center gap-1 font-medium text-jpm-gray-800">
                   <ChevronsRight className="size-3.5" aria-hidden />
                   The table continues to the right — scroll sideways for the
-                  authorized user and roles.
+                  controller and beneficial owners.
                 </span>
               </p>
             ) : null}

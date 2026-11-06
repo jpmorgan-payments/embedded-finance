@@ -32,7 +32,7 @@ export function setDetailValue(
   return { ...client, people };
 }
 
-/** Writes a spreadsheet cell: core columns or optional details (authorized user for person fields). */
+/** Writes a spreadsheet cell: core columns or optional details (person fields belong to the controller). */
 export function setCellValue(
   client: ClientDraft,
   column: ColumnId,
@@ -74,31 +74,30 @@ export function setGridValue(
     case 'firstName':
     case 'middleName':
     case 'lastName':
-      return updateAuthorizedUser(client, { [key]: value });
+      return updateController(client, { [key]: value });
     case 'personEmail':
-      return updateAuthorizedUser(client, { email: value });
+      return updateController(client, { email: value });
     case 'isBeneficialOwner':
-    case 'isController':
-      return updateAuthorizedUser(client, {
-        [key]: parseYesNo(value) ?? false,
+      return updateController(client, {
+        isBeneficialOwner: parseYesNo(value) ?? false,
       });
   }
 }
 
-function updateAuthorizedUser(
+function updateController(
   client: ClientDraft,
   patch: Partial<PersonDraft>
 ): ClientDraft {
-  const [authorizedUser, ...others] = client.people;
+  const [controller, ...others] = client.people;
   const changed = (Object.keys(patch) as (keyof PersonDraft)[]).some(
-    (field) => authorizedUser[field] !== patch[field]
+    (field) => controller[field] !== patch[field]
   );
   if (!changed) return client;
-  return { ...client, people: [{ ...authorizedUser, ...patch }, ...others] };
+  return { ...client, people: [{ ...controller, ...patch }, ...others] };
 }
 
 export function getGridValue(client: ClientDraft, key: GridColumnKey): string {
-  const authorizedUser = client.people[0];
+  const controller = client.people[0];
   switch (key) {
     case 'externalId':
     case 'organizationName':
@@ -108,11 +107,10 @@ export function getGridValue(client: ClientDraft, key: GridColumnKey): string {
     case 'firstName':
     case 'middleName':
     case 'lastName':
-      return authorizedUser[key];
+      return controller[key];
     case 'personEmail':
-      return authorizedUser.email;
+      return controller.email;
     case 'isBeneficialOwner':
-    case 'isController':
-      return authorizedUser[key] ? 'Y' : 'N';
+      return controller.isBeneficialOwner ? 'Y' : 'N';
   }
 }

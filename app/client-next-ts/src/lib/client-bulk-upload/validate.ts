@@ -28,7 +28,7 @@ export type IssueTarget =
   | {
       scope: 'person';
       personIndex: number;
-      field: PersonField | 'roles' | DetailFieldId;
+      field: PersonField | DetailFieldId;
     };
 
 export interface IssueFix {
@@ -142,7 +142,7 @@ export function getPersonExternalIds(client: ClientDraft): string[] {
 }
 
 export function personLabel(personIndex: number): string {
-  return personIndex === 0 ? 'Authorized user' : `Person ${personIndex + 1}`;
+  return personIndex === 0 ? 'Controller' : `Person ${personIndex + 1}`;
 }
 
 const NAME_RULES: Record<
@@ -164,7 +164,7 @@ function validatePerson(
   issues: Issue[]
 ): void {
   const who = personLabel(personIndex);
-  const isAuthorizedUser = personIndex === 0;
+  const isController = personIndex === 0;
 
   (Object.keys(NAME_RULES) as NameField[]).forEach((field) => {
     const rule = NAME_RULES[field];
@@ -207,20 +207,13 @@ function validatePerson(
     field: 'email',
   };
   if (!email) {
-    if (isAuthorizedUser) {
+    if (isController) {
       issues.push({
         severity: 'error',
         target: emailTarget,
         required: true,
         message:
-          'Authorized user: enter an email — the onboarding invitation is sent here',
-      });
-    } else if (person.isController) {
-      issues.push({
-        severity: 'error',
-        target: emailTarget,
-        required: true,
-        message: `${who}: enter an email — it's required for controllers`,
+          'Controller: enter an email — the email to set up a login for onboarding is sent here',
       });
     }
   } else {
@@ -232,15 +225,6 @@ function validatePerson(
         message: `${who}: email ${problem}`,
       });
     }
-  }
-
-  if (!isAuthorizedUser && !person.isBeneficialOwner && !person.isController) {
-    issues.push({
-      severity: 'error',
-      target: { scope: 'person', personIndex, field: 'roles' },
-      required: true,
-      message: `${who}: choose a role — Owner 25%+, Controller, or both`,
-    });
   }
 }
 
@@ -414,7 +398,8 @@ function validateClient(
         personIndex
       )
     );
-    if (person.isBeneficialOwner) beneficialOwners += 1;
+    // The controller counts only when ticked; everyone else is an owner.
+    if (personIndex > 0 || person.isBeneficialOwner) beneficialOwners += 1;
 
     const key = personKey(person);
     const email = person.email.trim().toLowerCase();
@@ -425,7 +410,10 @@ function validateClient(
       issues.push({
         severity: 'warning',
         target: { scope: 'person', personIndex, field: 'firstName' },
-        message: `${personLabel(personIndex)} looks like the same person as ${personLabel(earlier).toLowerCase()}. If one person has several roles, enter them once and tick each role`,
+        message:
+          earlier === 0
+            ? `${personLabel(personIndex)} looks like the controller. If the controller also owns 25% or more, tick Owner 25%+ on their row instead of adding them again`
+            : `${personLabel(personIndex)} looks like the same person as ${personLabel(earlier).toLowerCase()}. Enter each owner once`,
       });
     }
     if (key.length > 1 && !seenPeople.has(key))
@@ -437,7 +425,7 @@ function validateClient(
     issues.push({
       severity: 'error',
       target: { scope: 'client', field: 'people' },
-      message: `${beneficialOwners} people are marked Owner 25%+. Each must own at least 25%, so there can be at most ${LIMITS.maxBeneficialOwners}`,
+      message: `${beneficialOwners} beneficial owners are listed. Each must own at least 25%, so there can be at most ${LIMITS.maxBeneficialOwners}`,
     });
   }
 

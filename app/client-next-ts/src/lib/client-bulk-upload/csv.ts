@@ -15,6 +15,7 @@ import {
   getAdditionalPeople,
   getEffectiveBusinessEmail,
   isClientBlank,
+  RETIRED_TEMPLATE_HEADERS,
   type ClientDraft,
   type PersonDraft,
 } from './model';
@@ -47,11 +48,15 @@ function emptyRow(): CsvRow {
   return Object.fromEntries(CSV_HEADERS.map((h) => [h, '']));
 }
 
-function personRoles(person: PersonDraft, isAuthorizedUser: boolean): string[] {
-  const roles: string[] = [];
+/**
+ * Roles in the order they are written: the controller first, then the
+ * authorized user role that always goes with it. Everyone else is a
+ * beneficial owner.
+ */
+function personRoles(person: PersonDraft, isController: boolean): string[] {
+  if (!isController) return [ROLES.BENEFICIAL_OWNER];
+  const roles: string[] = [ROLES.CONTROLLER, ROLES.AUTHORIZED_USER];
   if (person.isBeneficialOwner) roles.push(ROLES.BENEFICIAL_OWNER);
-  if (person.isController) roles.push(ROLES.CONTROLLER);
-  if (isAuthorizedUser) roles.push(ROLES.AUTHORIZED_USER);
   return roles;
 }
 
@@ -255,9 +260,7 @@ export function parseDelimitedText(
 
 const SHEET_HEADER_LOOKUP = new Map<string, ColumnId>();
 for (const column of ALL_SHEET_COLUMNS) {
-  const spellings = [column.templateHeader];
-  if (column.base) spellings.push(column.base.label, ...column.base.aliases);
-  for (const spelling of spellings) {
+  for (const spelling of [column.templateHeader, ...column.aliases]) {
     const key = normalizeKey(spelling);
     if (!SHEET_HEADER_LOOKUP.has(key)) SHEET_HEADER_LOOKUP.set(key, column.id);
   }
@@ -289,10 +292,7 @@ function rowsToClients(
     columns.forEach((column, columnIndex) => {
       if (!column) return;
       const cell = row[columnIndex] ?? '';
-      if (
-        (column === 'isBeneficialOwner' || column === 'isController') &&
-        parseYesNo(cell) === undefined
-      ) {
+      if (column === 'isBeneficialOwner' && parseYesNo(cell) === undefined) {
         notes.push(
           `Row ${firstRowNumber + rowIndex}: "${cell}" isn't Yes or No — left unticked`
         );
@@ -311,8 +311,10 @@ function importSpreadsheet(
   const notes: string[] = [];
   const headerColumns = matchGridHeader(rows[0] ?? []);
   if (headerColumns) {
+    const retired = new Set(RETIRED_TEMPLATE_HEADERS.map(normalizeKey));
     const ignored = rows[0].filter(
-      (cell, i) => cell.trim() && !headerColumns[i]
+      (cell, i) =>
+        cell.trim() && !headerColumns[i] && !retired.has(normalizeKey(cell))
     );
     if (ignored.length > 0) {
       notes.push(`Ignored columns: ${ignored.join(', ')}`);
@@ -334,6 +336,71 @@ function importSpreadsheet(
     clients: rowsToClients(rows, positionalColumns, 1, notes),
     notes,
   };
+}
+
+interface ImportedPerson {
+  person: PersonDraft;
+  roles: Set<string>;
+  rowNumber: number;
+  originalId: string;
+}
+
+function displayName(person: PersonDraft): string {
+  return `${person.firstName} ${person.lastName}`.trim() || 'this person';
+}
+
+/**
+ * Each business has one controller, who is also the authorized user; anyone
+ * else must be a beneficial owner. Picks the controller from the imported
+ * roles and explains every role that had to change.
+ */
+function assignControllerRoles(
+  entries: ImportedPerson[],
+  label: string,
+  notes: string[]
+): { controller?: ImportedPerson; others: ImportedPerson[] } {
+  const has = (entry: ImportedPerson, role: string) => entry.roles.has(role);
+  const controller =
+    entries.find(
+      (e) => has(e, ROLES.CONTROLLER) && has(e, ROLES.AUTHORIZED_USER)
+    ) ??
+    entries.find((e) => has(e, ROLES.AUTHORIZED_USER)) ??
+    entries.find((e) => has(e, ROLES.CONTROLLER));
+
+  if (!controller) {
+    notes.push(
+      `${label} has no controller — add the person who completes onboarding`
+    );
+  } else if (!has(controller, ROLES.CONTROLLER)) {
+    notes.push(
+      `Row ${controller.rowNumber}: CONTROLLER role added — the authorized user must also be the controller`
+    );
+  } else if (!has(controller, ROLES.AUTHORIZED_USER)) {
+    notes.push(
+      `Row ${controller.rowNumber}: AUTHORIZED_USER role added to the controller — they receive the email to set up a login`
+    );
+  }
+
+  const others: ImportedPerson[] = [];
+  for (const entry of entries) {
+    if (entry === controller) continue;
+    const extraRoles = [ROLES.CONTROLLER, ROLES.AUTHORIZED_USER].filter(
+      (role) => has(entry, role)
+    );
+    if (has(entry, ROLES.BENEFICIAL_OWNER)) {
+      others.push(entry);
+      if (extraRoles.length > 0) {
+        notes.push(
+          `Row ${entry.rowNumber}: ${extraRoles.join(' and ')} removed from ${displayName(entry.person)} — each business has one controller; kept as a beneficial owner`
+        );
+      }
+    } else {
+      notes.push(
+        `Row ${entry.rowNumber}: ${displayName(entry.person)} left out — each business has one controller, and anyone else must be a beneficial owner (25%+)`
+      );
+    }
+  }
+  return { controller, others };
 }
 
 interface PartyRecord {
@@ -390,15 +457,7 @@ function importBulkUpload(rows: string[][]): ImportResult {
 
   const clients: ClientDraft[] = [];
   const clientById = new Map<string, ClientDraft>();
-  const peopleByClient = new Map<
-    ClientDraft,
-    {
-      person: PersonDraft;
-      isAuthorizedUser: boolean;
-      rowNumber: number;
-      originalId: string;
-    }[]
-  >();
+  const peopleByClient = new Map<ClientDraft, ImportedPerson[]>();
   let renumbered = 0;
 
   for (const record of records.filter(isOrganization)) {
@@ -466,13 +525,12 @@ function importBulkUpload(rows: string[][]): ImportResult {
       lastName: record.get('individualDetails.lastName'),
       email: record.get('email'),
       isBeneficialOwner: record.roles.includes(ROLES.BENEFICIAL_OWNER),
-      isController: record.roles.includes(ROLES.CONTROLLER),
       details: readPersonDetails(record.get, notes, `Row ${record.rowNumber}`),
     });
     const list = peopleByClient.get(client) ?? [];
     list.push({
       person,
-      isAuthorizedUser: record.roles.includes(ROLES.AUTHORIZED_USER),
+      roles: new Set(record.roles),
       rowNumber: record.rowNumber,
       originalId: record.get('externalId'),
     });
@@ -481,33 +539,19 @@ function importBulkUpload(rows: string[][]): ImportResult {
 
   const finalClients = clients.map((client) => {
     const entries = peopleByClient.get(client) ?? [];
-    const authorizedUsers = entries.filter((entry) => entry.isAuthorizedUser);
     const label = client.externalId
       ? `Client "${client.externalId}"`
       : 'A client';
-    if (authorizedUsers.length === 0) {
-      notes.push(
-        `${label} has no authorized user — add the person who should receive the invitation`
-      );
-    } else if (authorizedUsers.length > 1) {
-      notes.push(
-        `${label} had ${authorizedUsers.length} authorized users; only one is allowed. Kept row ${authorizedUsers[0].rowNumber}, the others are listed as additional people`
-      );
-    }
-    const primary = authorizedUsers[0];
-    const ordered = primary
-      ? [primary, ...entries.filter((entry) => entry !== primary)]
-      : entries;
+    const { controller, others } = assignControllerRoles(entries, label, notes);
+    const ordered = controller ? [controller, ...others] : others;
     ordered.forEach((entry, index) => {
-      const ordinal = primary ? index + 1 : index + 2;
+      const ordinal = controller ? index + 1 : index + 2;
       const expectedId = buildPersonExternalId(client.externalId, ordinal);
       if (entry.originalId && entry.originalId !== expectedId) renumbered += 1;
     });
     const people = [
-      primary?.person ?? createPerson(),
-      ...ordered
-        .filter((entry) => entry !== primary)
-        .map((entry) => entry.person),
+      controller?.person ?? createPerson(),
+      ...others.map((entry) => entry.person),
     ];
     return { ...client, people };
   });

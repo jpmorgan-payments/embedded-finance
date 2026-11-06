@@ -47,7 +47,7 @@ describe('CSV output', () => {
     expect(csv.split('\r\n')[0]).toBe(TEMPLATE_HEADER);
   });
 
-  it('writes a business row and an authorized user row', () => {
+  it('writes a business row and a controller row (controller first, with the authorized user role)', () => {
     const [business, person] = buildCsvRows([validClient()]);
     expect(business).toMatchObject({
       partyType: 'ORGANIZATION',
@@ -62,8 +62,9 @@ describe('CSV output', () => {
     });
     expect(person).toMatchObject({
       partyType: 'INDIVIDUAL',
-      'roles.0': 'AUTHORIZED_USER',
-      'roles.1': '',
+      'roles.0': 'CONTROLLER',
+      'roles.1': 'AUTHORIZED_USER',
+      'roles.2': '',
       externalId: '55747723_1',
       parentExternalId: '55747723',
       email: 'jane@acme.com',
@@ -74,7 +75,7 @@ describe('CSV output', () => {
     });
   });
 
-  it('packs roles without gaps and numbers additional people', () => {
+  it('adds the owner role to the controller and writes other people as beneficial owners', () => {
     const client = validClient({
       email: 'ops@acme.com',
       people: [
@@ -82,25 +83,25 @@ describe('CSV output', () => {
           firstName: 'Jane',
           lastName: 'Doe',
           email: 'jane@acme.com',
-          isController: true,
-        }),
-        createPerson(),
-        createPerson({
-          firstName: 'Bob',
-          lastName: 'Ray',
           isBeneficialOwner: true,
         }),
+        createPerson(),
+        createPerson({ firstName: 'Bob', lastName: 'Ray' }),
       ],
     });
     const rows = buildCsvRows([client]);
     expect(rows).toHaveLength(3);
     expect(rows[0].email).toBe('ops@acme.com');
-    expect(rows[1]['roles.0']).toBe('CONTROLLER');
-    expect(rows[1]['roles.1']).toBe('AUTHORIZED_USER');
+    expect(rows[1]).toMatchObject({
+      'roles.0': 'CONTROLLER',
+      'roles.1': 'AUTHORIZED_USER',
+      'roles.2': 'BENEFICIAL_OWNER',
+    });
     expect(rows[2]).toMatchObject({
       'roles.0': 'BENEFICIAL_OWNER',
       'roles.1': '',
       externalId: '55747723_2',
+      email: '',
       'products.0': '',
     });
   });
@@ -207,58 +208,58 @@ describe('validation', () => {
     expect(issues[0].message).toContain('Use at most 48 characters');
   });
 
-  it('requires a role and, for controllers, an email', () => {
+  it("requires the controller's email but not the other owners'", () => {
     const client = validClient({
       people: [
-        validClient().people[0],
-        createPerson({ firstName: 'No', lastName: 'Role' }),
-        createPerson({
-          firstName: 'Ctrl',
-          lastName: 'User',
-          isController: true,
-        }),
+        createPerson({ firstName: 'Jane', lastName: 'Doe' }),
+        createPerson({ firstName: 'Bob', lastName: 'Ray' }),
       ],
     });
-    const messages = validateClients([client])
-      .byClientId.get(client.id)!
-      .issues.map((i) => i.message);
-    expect(messages).toContain(
-      'Person 2: choose a role — Owner 25%+, Controller, or both'
-    );
-    expect(messages).toContain(
-      "Person 3: enter an email — it's required for controllers"
-    );
+    const { issues } = validateClients([client]).byClientId.get(client.id)!;
+    expect(issues.map((i) => i.message)).toEqual([
+      'Controller: enter an email — the email to set up a login for onboarding is sent here',
+    ]);
   });
 
-  it('warns when the same person is entered twice', () => {
+  it('warns when the controller is also added as an owner', () => {
     const client = validClient({
       people: [
         validClient().people[0],
         createPerson({
           firstName: 'jane',
           lastName: 'DOE',
-          isController: true,
           email: 'x@acme.com',
         }),
       ],
     });
     const result = validateClients([client]).byClientId.get(client.id)!;
     expect(result.errorCount).toBe(0);
-    expect(result.warningCount).toBe(1);
+    expect(result.issues[0].message).toMatch(
+      /looks like the controller.*tick Owner 25%\+ on their row/
+    );
   });
 
-  it('allows at most four beneficial owners', () => {
-    const owners = Array.from({ length: 5 }, (_, i) =>
-      createPerson({
-        firstName: `Owner${i}`,
-        lastName: 'Test',
-        email: `o${i}@acme.com`,
-        isBeneficialOwner: true,
-      })
-    );
-    const client = validClient({ people: owners });
-    const { issues } = validateClients([client]).byClientId.get(client.id)!;
-    expect(issues.some((i) => i.target.field === 'people')).toBe(true);
+  it('allows at most four beneficial owners, counting the controller only when ticked', () => {
+    const owners = (controllerOwns: boolean) =>
+      validClient({
+        people: [
+          createPerson({
+            firstName: 'Ctrl',
+            lastName: 'Test',
+            email: 'c@acme.com',
+            isBeneficialOwner: controllerOwns,
+          }),
+          ...Array.from({ length: 4 }, (_, i) =>
+            createPerson({ firstName: `Owner${i}`, lastName: 'Test' })
+          ),
+        ],
+      });
+    const hasLimitError = (client: ClientDraft) =>
+      validateClients([client])
+        .byClientId.get(client.id)!
+        .issues.some((i) => i.target.field === 'people');
+    expect(hasLimitError(owners(false))).toBe(false);
+    expect(hasLimitError(owners(true))).toBe(true);
   });
 
   it('checks email shape and limits', () => {
@@ -315,7 +316,6 @@ describe('import', () => {
           firstName: 'Bob',
           lastName: 'Ray',
           email: 'bob@acme.com',
-          isController: true,
         }),
       ],
     });
@@ -338,25 +338,53 @@ describe('import', () => {
     expect(result.clients[0].organizationType).toBe(
       'LIMITED_LIABILITY_COMPANY'
     );
-    expect(result.clients[0].people[0]).toMatchObject({
-      firstName: 'Ann',
-      isController: true,
-    });
+    expect(result.clients[0].people[0]).toMatchObject({ firstName: 'Ann' });
     expect(result.notes.join('\n')).toMatch(
       /product removed from a person row/
     );
     expect(result.notes.join('\n')).toMatch(
       /no business row for client ID "Z9"/
     );
-    expect(result.notes.join('\n')).toMatch(
-      /Client "Z9" has no authorized user/
-    );
+    expect(result.notes.join('\n')).toMatch(/Client "Z9" has no controller/);
     expect(result.notes.join('\n')).toMatch(/renumbered/);
+  });
+
+  it('makes the authorized user the controller and keeps one controller per business', () => {
+    const csv = [
+      TEMPLATE_HEADER,
+      'ORGANIZATION,CLIENT,,,B1,,b@b.com,Beta LLC,LLC,US,EMBEDDED_PAYMENTS,,,,',
+      'INDIVIDUAL,BENEFICIAL_OWNER,CONTROLLER,,B1_1,B1,cy@b.com,,,,,Cy,,Ott,US',
+      'INDIVIDUAL,AUTHORIZED_USER,,,B1_2,B1,al@b.com,,,,,Al,,Fox,US',
+      'INDIVIDUAL,CONTROLLER,,,B1_3,B1,di@b.com,,,,,Di,,Ray,US',
+      'ORGANIZATION,CLIENT,,,C1,,c@c.com,Gamma LLC,LLC,US,EMBEDDED_PAYMENTS,,,,',
+      'INDIVIDUAL,CONTROLLER,BENEFICIAL_OWNER,,C1_1,C1,ed@c.com,,,,,Ed,,Lu,US',
+    ].join('\n');
+    const result = importFromText(csv);
+    const notes = result.notes.join('\n');
+    const [beta, gamma] = result.clients;
+
+    expect(beta.people.map((p) => p.firstName)).toEqual(['Al', 'Cy']);
+    expect(notes).toMatch(/Row 4: CONTROLLER role added/);
+    expect(notes).toMatch(/Row 3: CONTROLLER removed from Cy Ott/);
+    expect(notes).toMatch(/Row 5: Di Ray left out/);
+    expect(buildCsvRows([beta])[1]).toMatchObject({
+      'roles.0': 'CONTROLLER',
+      'roles.1': 'AUTHORIZED_USER',
+    });
+
+    expect(gamma.people[0]).toMatchObject({
+      firstName: 'Ed',
+      isBeneficialOwner: true,
+    });
+    expect(notes).toMatch(
+      /Row 7: AUTHORIZED_USER role added to the controller/
+    );
   });
 
   it('imports the blank spreadsheet template layout', () => {
     const template = buildSpreadsheetTemplate().trim();
-    const text = `${template}\r\nB-2,Beta Inc,S corp,,Sam,,Ito,sam@beta.com,yes,no`;
+    expect(template).not.toMatch(/controller \(Y\/N\)/i);
+    const text = `${template}\r\nB-2,Beta Inc,S corp,,Sam,,Ito,sam@beta.com,yes`;
     const { format, clients } = importFromText(text);
     expect(format).toBe('spreadsheet');
     expect(clients[0]).toMatchObject({
@@ -367,7 +395,20 @@ describe('import', () => {
       firstName: 'Sam',
       email: 'sam@beta.com',
       isBeneficialOwner: true,
-      isController: false,
+    });
+  });
+
+  it('still reads the earlier template headers without warnings', () => {
+    const text = [
+      'Client ID,Legal business name,Business type,Business email (optional),Authorized user first name,Authorized user middle name (optional),Authorized user last name,Authorized user email,Authorized user owns 25% or more (Y/N),Authorized user is controller (Y/N)',
+      'B-3,Delta Co,LLC,,Ann,,Lee,ann@d.com,N,Y',
+    ].join('\r\n');
+    const { clients, notes } = importFromText(text);
+    expect(notes).toEqual([]);
+    expect(clients[0].people[0]).toMatchObject({
+      firstName: 'Ann',
+      email: 'ann@d.com',
+      isBeneficialOwner: false,
     });
   });
 
@@ -437,7 +478,7 @@ describe('builder reducer', () => {
     expect(next.clients[0].people[0].firstName).toBe('Zoe');
   });
 
-  it('never removes the authorized user', () => {
+  it('never removes the controller', () => {
     const state = createInitialState();
     const next = builderReducer(state, {
       type: 'removePerson',

@@ -18,7 +18,7 @@ interface ColumnsPickerProps {
 
 const SECTIONS: { party: PartyKind; title: string }[] = [
   { party: 'business', title: 'Business' },
-  { party: 'person', title: 'Authorized user' },
+  { party: 'person', title: 'Controller' },
 ];
 
 export function ColumnsPicker({
@@ -128,7 +128,7 @@ export function ColumnsPicker({
             </fieldset>
           ))}
           <p className="mt-3 border-t border-jpm-gray-100 pt-2 text-xs text-jpm-gray-500">
-            Details for other owners and controllers can be added in the{' '}
+            Details for other beneficial owners can be added in the{' '}
             <strong>One at a time</strong> view.
           </p>
         </div>

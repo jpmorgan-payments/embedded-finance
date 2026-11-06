@@ -84,22 +84,20 @@ const BASE_WIDTH: Record<GridColumnKey, string> = {
   middleName: 'w-28',
   lastName: 'w-32',
   personEmail: 'w-56',
-  isBeneficialOwner: 'w-20',
-  isController: 'w-20',
+  isBeneficialOwner: 'w-24',
 };
 
 const BASE_HINT: Partial<Record<GridColumnKey, string>> = {
   externalId: 'Your own unique identifier for this business (1–50 characters)',
   organizationName: 'Legal name of the business',
   email:
-    'Email of the controller or authorized user, used for micro-deposit notifications. Leave blank to use the authorized user’s email',
+    'Email of the controller, used for micro-deposit notifications. Leave blank to use the controller’s email below',
   firstName: 'Legal first name',
   lastName: 'Legal last name',
   personEmail:
-    'This person is sent an email to set up a login and complete onboarding',
-  isBeneficialOwner: 'Tick if this person owns 25% or more of the business',
-  isController:
-    'Tick if this person has significant responsibility and control over the business, such as an executive officer or senior manager',
+    'The controller is sent an email to set up a login and complete onboarding',
+  isBeneficialOwner:
+    'Tick if the controller also owns 25% or more of the business',
 };
 
 const REQUIRED: Partial<Record<GridColumnKey, boolean>> = {
@@ -121,7 +119,6 @@ const BASE_FIELD_REF: Record<GridColumnKey, FieldRef | null> = {
   lastName: { scope: 'person', personIndex: 0, field: 'lastName' },
   personEmail: { scope: 'person', personIndex: 0, field: 'email' },
   isBeneficialOwner: null,
-  isController: null,
 };
 
 /** Shown in the first row's empty cells so people see what each field expects. */
@@ -409,14 +406,15 @@ export function SpreadsheetView({
                     <th
                       key={group.key}
                       colSpan={group.span}
-                      data-tour="authorized-user-group"
+                      data-tour="controller-group"
                       className="border-b border-l border-jpm-gray-200 bg-sp-accent px-2 py-2 font-semibold text-sp-brand-800"
                     >
-                      Authorized user · receives the onboarding invitation
+                      Controller · completes onboarding and receives the login
+                      email
                     </th>
                   );
                 }
-                const isPerson = group.section === 'authorizedUser';
+                const isPerson = group.section === 'controller';
                 return (
                   <th
                     key={`${group.key}-${index}`}
@@ -428,7 +426,7 @@ export function SpreadsheetView({
                         : 'bg-jpm-gray-100'
                     )}
                   >
-                    {isPerson ? 'Authorized user · ' : ''}
+                    {isPerson ? 'Controller · ' : ''}
                     {getGroup(group.group).label}
                     <span className="ml-1 font-normal normal-case tracking-normal text-jpm-gray-500">
                       (optional)
@@ -464,9 +462,7 @@ export function SpreadsheetView({
                       'border-b border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium',
                       index === 0 && cn(STICKY_SECOND, 'z-[3]'),
                       startsGroup && 'border-l',
-                      (column.id === 'isBeneficialOwner' ||
-                        column.id === 'isController') &&
-                        'text-center'
+                      column.id === 'isBeneficialOwner' && 'text-center'
                     )}
                   >
                     {column.label}
@@ -488,9 +484,9 @@ export function SpreadsheetView({
               <th
                 data-tour="others-column"
                 className="border-b border-l border-jpm-gray-200 bg-jpm-gray-50 px-2 py-2 font-medium"
-                title="Other beneficial owners and controllers (optional)"
+                title="Other individuals who own 25% or more of the business (optional)"
               >
-                Owners & controllers
+                Beneficial owners
               </th>
               <th className="border-b border-jpm-gray-200 bg-jpm-gray-50">
                 <span className="sr-only">Actions</span>
@@ -597,7 +593,7 @@ const ClientRow = memo(function ClientRow({
     reveal,
     editing: isFocused && !showAllErrors,
   });
-  const authorizedUser = client.people[0];
+  const controller = client.people[0];
   const additionalCount = client.people
     .slice(1)
     .filter((p) => !isPersonBlank(p)).length;
@@ -654,7 +650,7 @@ const ClientRow = memo(function ClientRow({
       const field = column.detail;
       const isBusiness = column.section === 'business';
       const value =
-        (isBusiness ? client.details : authorizedUser.details)[field.id] ?? '';
+        (isBusiness ? client.details : controller.details)[field.id] ?? '';
       return (
         <DetailInput
           field={field}
@@ -690,39 +686,36 @@ const ClientRow = memo(function ClientRow({
           col,
           column,
           client.email,
-          authorizedUser.email.trim() || 'Same as user email'
+          controller.email.trim() || 'Same as controller email'
         );
       case 'firstName':
-        return textCell(col, column, authorizedUser.firstName);
+        return textCell(col, column, controller.firstName);
       case 'middleName':
-        return textCell(col, column, authorizedUser.middleName);
+        return textCell(col, column, controller.middleName);
       case 'lastName':
-        return textCell(col, column, authorizedUser.lastName);
+        return textCell(col, column, controller.lastName);
       case 'personEmail':
-        return textCell(col, column, authorizedUser.email);
+        return textCell(col, column, controller.email);
       case 'isBeneficialOwner':
-      case 'isController': {
-        const role = column.id as 'isBeneficialOwner' | 'isController';
         return (
           <RoleCheckbox
-            checked={authorizedUser[role]}
+            checked={controller.isBeneficialOwner}
             onChange={(checked) =>
               dispatch({
                 type: 'setPersonRole',
                 clientId: client.id,
                 personIndex: 0,
-                role,
+                role: 'isBeneficialOwner',
                 value: checked,
               })
             }
-            label={`Row ${rowNumber} authorized user ${role === 'isController' ? 'is a controller' : 'owns 25% or more'}`}
+            label={`Row ${rowNumber} controller owns 25% or more`}
             title={columnHint(column)}
             data-row={rowPos}
             data-col={col}
             data-client={client.id}
           />
         );
-      }
     }
   };
 
@@ -758,9 +751,7 @@ const ClientRow = memo(function ClientRow({
                 'border-b border-jpm-gray-100 px-1 py-1',
                 col === 0 && cn(STICKY_SECOND, 'z-[1] bg-white'),
                 startsGroup && 'border-l',
-                (column.id === 'isBeneficialOwner' ||
-                  column.id === 'isController') &&
-                  'text-center'
+                column.id === 'isBeneficialOwner' && 'text-center'
               )}
             >
               {renderCell(column, col)}
@@ -872,7 +863,7 @@ function PeopleEditor({
       value,
     });
 
-  const fieldClass = (personIndex: number, field: PersonField | 'roles') =>
+  const fieldClass = (personIndex: number, field: PersonField) =>
     fieldStateClass[
       worstSeverity(
         issuesFor(issues, { scope: 'person', personIndex, field })
@@ -882,10 +873,9 @@ function PeopleEditor({
   return (
     <div className="max-w-5xl space-y-2">
       <p className="text-xs text-jpm-gray-600">
-        Add each other individual who <strong>owns 25% or more</strong> or who
-        is a <strong>controller</strong>. Don’t repeat the authorized user —
-        tick their roles in the main row instead. Email is required for
-        controllers.
+        Add each other individual who <strong>owns 25% or more</strong> of the
+        business. Don’t add the controller again — if they own 25% or more, tick{' '}
+        <strong>Owner 25%+</strong> on their row instead.
       </p>
       {others.length > 0 ? (
         <table className="w-full table-fixed text-sm">
@@ -895,9 +885,7 @@ function PeopleEditor({
               <th className="py-1 font-medium">First name *</th>
               <th className="py-1 font-medium">Middle (optional)</th>
               <th className="py-1 font-medium">Last name *</th>
-              <th className="w-64 py-1 font-medium">Email</th>
-              <th className="w-24 py-1 text-center font-medium">Owner 25%+</th>
-              <th className="w-24 py-1 text-center font-medium">Controller</th>
+              <th className="w-64 py-1 font-medium">Email (optional)</th>
               <th className="w-10" />
             </tr>
           </thead>
@@ -926,28 +914,6 @@ function PeopleEditor({
                     />
                   </td>
                 ))}
-                {(['isBeneficialOwner', 'isController'] as const).map(
-                  (role) => (
-                    <td key={role} className="py-1 text-center">
-                      <RoleCheckbox
-                        checked={person[role]}
-                        onChange={(checked) =>
-                          dispatch({
-                            type: 'setPersonRole',
-                            clientId: client.id,
-                            personIndex: index,
-                            role,
-                            value: checked,
-                          })
-                        }
-                        label={`Person ${index + 1} ${role === 'isController' ? 'is a controller' : 'owns 25% or more'}`}
-                        invalid={
-                          fieldClass(index, 'roles') === fieldStateClass.error
-                        }
-                      />
-                    </td>
-                  )
-                )}
                 <td className="py-1 text-center">
                   <Button
                     type="button"
@@ -979,7 +945,7 @@ function PeopleEditor({
           onClick={() => dispatch({ type: 'addPerson', clientId: client.id })}
         >
           <UserPlus aria-hidden />
-          Add owner or controller
+          Add beneficial owner
         </Button>
         {others.length > 0 ? (
           <Button

@@ -24,21 +24,23 @@ export const CLIENT_TOUR_STEPS: TourStep[] = [
       <p>
         Enter the legal name of the business and choose its business type from
         the list. Business email is optional: leave it blank to use the
-        authorized user’s email.
+        controller’s email.
       </p>
     ),
     example: 'Acme Kitchen Supply LLC · Limited liability company (LLC)',
   },
   {
-    target: 'authorized-user-group',
-    title: 'Authorized user',
+    target: 'controller-group',
+    title: 'Controller',
     body: (
       <>
         <p>
-          The person who is sent the email to set up a login and complete
-          onboarding. Enter their legal first and last name and their email.
-          Tick <strong>Owner 25%+</strong> or <strong>Controller</strong> if
-          they also hold those roles.
+          The individual with significant responsibility and control over the
+          business, such as an executive officer or senior manager. They
+          complete onboarding and are sent the email to set up a login, so the
+          tool also gives them the authorized user role. Enter their legal name
+          and email, and tick <strong>Owner 25%+</strong> if they own 25% or
+          more.
         </p>
         <p className="flex items-start gap-1.5 rounded-md bg-amber-50 p-2 text-amber-900">
           <ChevronsRight className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -54,12 +56,12 @@ export const CLIENT_TOUR_STEPS: TourStep[] = [
   },
   {
     target: 'others-column',
-    title: 'Other owners and controllers',
+    title: 'Other beneficial owners',
     body: (
       <p>
         Use <strong>Add</strong> to list each other individual who owns 25% or
-        more, or who is a controller. Don’t add the authorized user again; tick
-        their roles in their row instead.
+        more of the business. Don’t add the controller again; tick{' '}
+        <strong>Owner 25%+</strong> on their row instead.
       </p>
     ),
   },

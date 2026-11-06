@@ -605,7 +605,7 @@ export interface DetailIssue {
 }
 
 export interface DetailContext {
-  /** Prefix for messages, e.g. "Authorized user" or "Person 2"; empty for the business. */
+  /** Prefix for messages, e.g. "Controller" or "Person 2"; empty for the business. */
   who: string;
   organizationType?: string;
   today?: Date;

@@ -404,7 +404,7 @@ function ClientForm({
           <Field
             label="Business email"
             htmlFor={`${idPrefix}-email`}
-            hint="Email of the controller or authorized user, used for micro-deposit notifications. Leave blank to use the authorized user’s email."
+            hint="Email of the controller, used for micro-deposit notifications. Leave blank to use the controller’s email."
             issues={businessEmail.issues}
           >
             <input
@@ -438,8 +438,8 @@ function ClientForm({
       </fieldset>
 
       <PersonFieldset
-        title="Authorized user"
-        description="The person who is sent an email to set up a login and complete onboarding. One per business."
+        title="Controller"
+        description="Has significant responsibility and control over the business, such as an executive officer or senior manager. Also the authorized user: completes onboarding and is sent the email to set up a login. One per business."
         personIndex={0}
         client={client}
         control={control}
@@ -451,13 +451,13 @@ function ClientForm({
       <div className="space-y-3">
         <div>
           <h3 className="text-sm font-semibold text-jpm-gray-900">
-            Other owners and controllers{' '}
+            Other beneficial owners{' '}
             <span className="font-normal text-jpm-gray-500">(optional)</span>
           </h3>
           <p className="text-xs text-jpm-gray-600">
-            Add each other individual who owns 25% or more, or who is a
-            controller. If the authorized user holds these roles, tick them
-            above instead of adding them again.
+            Add each other individual who owns 25% or more of the business. If
+            the controller owns 25% or more, tick that above instead of adding
+            them again.
           </p>
           {peopleIssues.length > 0 ? (
             <p className="mt-1 text-xs text-red-700">
@@ -468,7 +468,7 @@ function ClientForm({
         {client.people.slice(1).map((person, offset) => (
           <PersonFieldset
             key={person.id}
-            title={`Person ${offset + 2}`}
+            title={`Beneficial owner · person ${offset + 2}`}
             personIndex={offset + 1}
             client={client}
             control={control}
@@ -485,7 +485,7 @@ function ClientForm({
           onClick={() => dispatch({ type: 'addPerson', clientId: client.id })}
         >
           <UserPlus aria-hidden />
-          Add owner or controller
+          Add beneficial owner
         </Button>
       </div>
 
@@ -538,7 +538,7 @@ function PersonFieldset({
   removable?: boolean;
 }) {
   const person = client.people[personIndex];
-  const isAuthorizedUser = personIndex === 0;
+  const isController = personIndex === 0;
   const id = (field: string) => `${idPrefix}-p${personIndex}-${field}`;
   const fields = {
     firstName: control({ scope: 'person', personIndex, field: 'firstName' }),
@@ -546,25 +546,12 @@ function PersonFieldset({
     lastName: control({ scope: 'person', personIndex, field: 'lastName' }),
     email: control({ scope: 'person', personIndex, field: 'email' }),
   };
-  const roles = control({ scope: 'person', personIndex, field: 'roles' });
-
-  const setRole = (
-    role: 'isBeneficialOwner' | 'isController',
-    value: boolean
-  ) =>
-    dispatch({
-      type: 'setPersonRole',
-      clientId: client.id,
-      personIndex,
-      role,
-      value,
-    });
 
   return (
     <fieldset
       className={cn(
         'space-y-3 rounded-md border p-4',
-        isAuthorizedUser
+        isController
           ? 'border-sp-brand/30 bg-sp-accent/40'
           : 'border-jpm-gray-200'
       )}
@@ -649,12 +636,12 @@ function PersonFieldset({
       <div className="grid gap-4 md:grid-cols-2">
         <Field
           label="Email"
-          required={isAuthorizedUser || person.isController}
+          required={isController}
           htmlFor={id('email')}
           hint={
-            isAuthorizedUser
-              ? 'The onboarding email is sent here.'
-              : 'Required for controllers.'
+            isController
+              ? 'The email to set up a login for onboarding is sent here.'
+              : undefined
           }
           issues={fields.email.issues}
         >
@@ -670,52 +657,30 @@ function PersonFieldset({
             {...fields.email.props}
           />
         </Field>
-        <div className="space-y-1">
-          <span className="block text-sm font-medium text-jpm-gray-900">
-            {isAuthorizedUser ? 'This person also…' : 'Role'}
-            {!isAuthorizedUser ? (
-              <span className="text-red-600" aria-hidden>
-                {' '}
-                *
-              </span>
-            ) : null}
-          </span>
-          <div
-            className={cn(
-              'flex flex-wrap gap-x-5 gap-y-2 rounded-md py-1.5',
-              roles.issues.length > 0 &&
-                'outline outline-1 outline-offset-4 outline-red-300'
-            )}
-          >
-            <label className="inline-flex items-center gap-2 text-sm text-jpm-gray-800">
+        {isController ? (
+          <div className="space-y-1">
+            <span className="block text-sm font-medium text-jpm-gray-900">
+              Ownership
+            </span>
+            <label className="inline-flex items-center gap-2 py-1.5 text-sm text-jpm-gray-800">
               <input
                 type="checkbox"
                 checked={person.isBeneficialOwner}
                 onChange={(event) =>
-                  setRole('isBeneficialOwner', event.target.checked)
+                  dispatch({
+                    type: 'setPersonRole',
+                    clientId: client.id,
+                    personIndex,
+                    role: 'isBeneficialOwner',
+                    value: event.target.checked,
+                  })
                 }
-                onBlur={roles.props.onBlur}
                 className="size-4 accent-sp-brand"
               />
-              Owns 25% or more
-            </label>
-            <label className="inline-flex items-center gap-2 text-sm text-jpm-gray-800">
-              <input
-                type="checkbox"
-                checked={person.isController}
-                onChange={(event) =>
-                  setRole('isController', event.target.checked)
-                }
-                onBlur={roles.props.onBlur}
-                className="size-4 accent-sp-brand"
-              />
-              Is a controller (executive officer or senior manager)
+              The controller also owns 25% or more (beneficial owner)
             </label>
           </div>
-          {roles.issues.length > 0 ? (
-            <p className="text-xs text-red-700">{roles.issues[0].message}</p>
-          ) : null}
-        </div>
+        ) : null}
       </div>
       <MoreDetails
         party="person"

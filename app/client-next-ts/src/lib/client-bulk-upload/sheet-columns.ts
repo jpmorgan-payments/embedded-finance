@@ -16,7 +16,9 @@ export interface SheetColumn {
   label: string;
   /** Header in the spreadsheet template; also recognized on import. */
   templateHeader: string;
-  section: 'business' | 'authorizedUser';
+  /** Other headers recognized on import (e.g. from earlier template versions). */
+  aliases: string[];
+  section: 'business' | 'controller';
   /** Optional group the column belongs to; undefined for the core columns. */
   group?: DetailGroupId;
   base?: GridColumn;
@@ -35,7 +37,6 @@ const PERSON_BASE: GridColumnKey[] = [
   'lastName',
   'personEmail',
   'isBeneficialOwner',
-  'isController',
 ];
 
 function baseColumn(key: GridColumnKey): SheetColumn {
@@ -44,7 +45,8 @@ function baseColumn(key: GridColumnKey): SheetColumn {
     id: key,
     label: base.label,
     templateHeader: base.templateHeader,
-    section: BUSINESS_BASE.includes(key) ? 'business' : 'authorizedUser',
+    aliases: [base.label, ...base.aliases],
+    section: BUSINESS_BASE.includes(key) ? 'business' : 'controller',
     base,
   };
 }
@@ -55,12 +57,13 @@ function detailColumn(field: DetailField): SheetColumn {
     ? /^(Business|DBA|NAICS|Year|Website)/.test(field.label)
       ? field.label
       : `Business ${lowerFirst(field.label)}`
-    : `Authorized user ${lowerFirst(field.label)}`;
+    : `Controller ${lowerFirst(field.label)}`;
   return {
     id: field.id,
     label: field.label,
     templateHeader,
-    section: isBusiness ? 'business' : 'authorizedUser',
+    aliases: isBusiness ? [] : [`Authorized user ${lowerFirst(field.label)}`],
+    section: isBusiness ? 'business' : 'controller',
     group: field.group,
     detail: field,
   };

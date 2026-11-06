@@ -33,8 +33,8 @@ export const VERIFY_CHECKLIST: string[] = [
   'Every client you expect is in the file, and only once.',
   'Each client ID matches your own records.',
   'Legal business names and business types are correct.',
-  'Each authorized user’s name and email are correct — this person is sent the email to set up a login.',
-  'Beneficial owners and controllers are listed with the right roles.',
+  'Each controller’s name and email are correct — this person completes onboarding and is sent the email to set up a login.',
+  'Every individual who owns 25% or more is listed as a beneficial owner.',
 ];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -68,9 +68,9 @@ const FIELD_ROWS: { field: string; what: string; rules: string }[] = [
   },
   {
     field: 'Business email',
-    what: 'Email of the controller or authorized user, to receive micro-deposit notifications',
+    what: 'Email of the controller, to receive micro-deposit notifications',
     rules:
-      'Required in the file — if you leave it blank, the authorized user’s email is used · up to 320 characters',
+      'Required in the file — if you leave it blank, the controller’s email is used · up to 320 characters',
   },
   {
     field: 'First, middle and last name',
@@ -82,13 +82,13 @@ const FIELD_ROWS: { field: string; what: string; rules: string }[] = [
     field: 'Email (individual)',
     what: 'Email address of the individual',
     rules:
-      'Required for the authorized user and for controllers · format name@domain.com · up to 320 characters',
+      'Required for the controller · optional for other beneficial owners · format name@domain.com · up to 320 characters',
   },
   {
     field: 'Roles',
-    what: 'Authorized user, beneficial owner (25%+), controller',
+    what: 'Controller (always also the authorized user), beneficial owners (25%+)',
     rules:
-      'One authorized user per business. One person can hold several roles — enter them once and tick each role',
+      'One controller per business — they complete onboarding and receive the login email. List every other individual who owns 25% or more as a beneficial owner',
   },
 ];
 
@@ -205,13 +205,22 @@ export function Instructions() {
       <Section title="Roles">
         <dl className="space-y-3 text-sm">
           <div>
+            <dt className="font-semibold text-jpm-gray-900">Controller</dt>
+            <dd className="text-jpm-gray-700">
+              An individual who has significant responsibility and control over
+              the business, such as an executive officer or senior manager. This
+              individual is authorized by the client to complete the onboarding
+              process with J.P. Morgan. This person may also be a beneficial
+              owner. Each business has one controller.
+            </dd>
+          </div>
+          <div>
             <dt className="font-semibold text-jpm-gray-900">Authorized user</dt>
             <dd className="text-jpm-gray-700">
-              An individual authorized by the client to complete the onboarding
-              process with J.P. Morgan. This is the person who is sent an email
-              to set up a login to access onboarding. Each business needs one.
-              They can be the same person as a beneficial owner or controller,
-              or a different person.
+              An additional role that is always added to the controller, as this
+              is the person who is sent an email to set up a login to access
+              onboarding. You don’t enter it separately — the tool adds it to
+              the controller for you.
             </dd>
           </div>
           <div>
@@ -219,26 +228,10 @@ export function Instructions() {
               Beneficial owner (Owner 25%+)
             </dt>
             <dd className="text-jpm-gray-700">
-              An individual who owns 25% or more of the client’s business.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-jpm-gray-900">Controller</dt>
-            <dd className="text-jpm-gray-700">
-              An individual with significant responsibility and control over the
-              business, such as an executive officer or senior manager. This
-              person may also be a beneficial owner.
-            </dd>
-          </div>
-          <div>
-            <dt className="font-semibold text-jpm-gray-900">
-              One person, several roles
-            </dt>
-            <dd className="text-jpm-gray-700">
-              Enter the person once and tick every role that applies. For
-              example, if the authorized user is also the controller, tick{' '}
-              <em>Controller</em> on the authorized user’s row instead of adding
-              them again.
+              An individual who owns 25% or more of the client’s business. If
+              the controller owns 25% or more, tick <em>Owner 25%+</em> on the
+              controller’s row instead of adding them again. Add every other
+              individual who owns 25% or more as a beneficial owner.
             </dd>
           </div>
         </dl>
@@ -247,7 +240,7 @@ export function Instructions() {
       <Section title="Optional details">
         <p className="text-sm text-jpm-gray-700">
           If you already have more information, add it with{' '}
-          <strong>Optional columns</strong> (for the authorized user) or in the{' '}
+          <strong>Optional columns</strong> (for the controller) or in the{' '}
           <strong>One at a time</strong> view (for every individual). Leave
           anything out that you don’t have. Only US businesses, US addresses and
           US phone numbers are accepted.
@@ -284,13 +277,18 @@ export function Instructions() {
           <li>The column headers, exactly as required.</li>
           <li>
             A separate row for each business and for each individual, with party
-            type (<code>ORGANIZATION</code> / <code>INDIVIDUAL</code>) and
-            roles.
+            type (<code>ORGANIZATION</code> / <code>INDIVIDUAL</code>).
           </li>
           <li>
-            Individual IDs built from the client ID — for example{' '}
-            <code>55747723_1</code>, <code>55747723_2</code> — and the link to
-            the business (<code>parentExternalId</code>
+            Roles, controller first: the controller’s row gets{' '}
+            <code>CONTROLLER</code> and <code>AUTHORIZED_USER</code> (plus{' '}
+            <code>BENEFICIAL_OWNER</code> if ticked); every other individual
+            gets <code>BENEFICIAL_OWNER</code>.
+          </li>
+          <li>
+            Individual IDs built from the client ID — <code>55747723_1</code>{' '}
+            for the controller, <code>55747723_2</code> and so on for beneficial
+            owners — and the link to the business (<code>parentExternalId</code>
             ).
           </li>
           <li>
